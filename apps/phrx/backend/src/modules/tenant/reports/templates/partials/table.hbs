@@ -1,0 +1,23 @@
+<section class="section">
+  <div class="section-heading keep-with-next">
+    <h2 class="section-title">{{title}}</h2>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        {{#each columns}}
+          <th>{{this}}</th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each rows}}
+        <tr>
+          {{#each this}}
+            <td>{{this}}</td>
+          {{/each}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,14 @@
+**/node_modules
+**/build
+**/.dart_tool
+**/.git
+**/.next
+**/dist
+**/*.log
+apps/phrx/app
+apps/phrx/archive
+apps/website
+apps/gastro
+apps/retail
+infra
+**/.env

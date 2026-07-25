@@ -1,0 +1,134 @@
+# Ops PhRx (produção / start)
+version: '3.8'
+
+services:
+  phrx-backend:
+    build:
+      context: ../../..
+      dockerfile: apps/phrx/backend/Dockerfile.dev
+    container_name: phrx_backend
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL_TENANT: ${DATABASE_URL_TENANT}
+      TENANT_DB_HOST: ${TENANT_DB_HOST}
+      TENANT_DB_PORT: ${TENANT_DB_PORT}
+      TENANT_DB_USERNAME: ${TENANT_DB_USERNAME}
+      TENANT_DB_PASSWORD: ${TENANT_DB_PASSWORD}
+      REDIS_URL: redis://redis:6379
+      PORT: ${BACKEND_PORT:-3300}
+    ports:
+      - "${BACKEND_PORT:-4001}:3300"
+    command: ["bun", "run", "start"]
+    volumes:
+      - ../../../apps/phrx/backend:/usr/src/app
+      - ../../../services/identity:/services/identity
+      - ../../../services/billing:/services/billing
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - phrx_net
+
+  phrx-backend-worker:
+    build:
+      context: ../../..
+      dockerfile: apps/phrx/backend/Dockerfile.dev
+    container_name: phrx_backend_worker
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "worker"]
+    volumes:
+      - ../../../apps/phrx/backend:/usr/src/app
+      - ../../../services/identity:/services/identity
+      - ../../../services/billing:/services/billing
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - phrx_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: phrx_nginx
+    restart: always
+    ports:
+      - "${NGINX_PORT:-8280}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ../../../apps/phrx/backend/http/uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      - phrx-backend
+    networks:
+      - phrx_net
+
+  phrx-db:
+    image: mysql:8.0
+    container_name: phrx_mysql
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-skalway_central}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Africa/Maputo
+    command: --default-time-zone="Africa/Maputo"
+    ports:
+      - "${MYSQL_EXPOSED_PORT:-3312}:3306"
+    volumes:
+      - phrx_mysql:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - phrx_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: phrx_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    networks:
+      - phrx_net
+
+  adminer:
+    image: phpmyadmin/phpmyadmin
+    container_name: phrx_phpmyadmin
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      PMA_HOST: phrx-db
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Africa/Maputo
+    ports:
+      - "${PHPMYADMIN_PORT:-8686}:80"
+    networks:
+      - phrx_net
+
+networks:
+  phrx_net:
+
+volumes:
+  phrx_mysql:
