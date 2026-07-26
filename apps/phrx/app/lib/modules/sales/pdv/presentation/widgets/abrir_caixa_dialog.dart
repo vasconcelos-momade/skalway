@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/design_metrics.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
@@ -232,23 +231,17 @@ class _AbrirCaixaDialogState extends ConsumerState<AbrirCaixaDialog> {
     );
 
     final actions = [
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: TextButton(
-          onPressed:
-              caixaState.isSubmitting ? null : () => AdaptiveNavigator.cancel(context),
-          child: const Text('Cancelar'),
-        ),
+      TextButton(
+        onPressed:
+            caixaState.isSubmitting ? null : () => AdaptiveNavigator.cancel(context),
+        child: const Text('Cancelar'),
       ),
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: FilledButton.icon(
-          onPressed: caixaState.isSubmitting || caixas.isEmpty ? null : _submit,
-          icon: caixaState.isSubmitting
-              ? const PharmaButtonLoader()
-              : const Icon(Icons.lock_open_rounded),
-          label: const Text('Abrir Caixa'),
-        ),
+      FilledButton.icon(
+        onPressed: caixaState.isSubmitting || caixas.isEmpty ? null : _submit,
+        icon: caixaState.isSubmitting
+            ? const PharmaButtonLoader()
+            : const Icon(Icons.lock_open_rounded),
+        label: const Text('Abrir Caixa'),
       ),
     ];
 
@@ -419,23 +412,17 @@ class _FecharCaixaDialogState extends ConsumerState<FecharCaixaDialog> {
     );
 
     final actions = [
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: TextButton(
-          onPressed:
-              caixaState.isSubmitting ? null : () => AdaptiveNavigator.cancel(context),
-          child: const Text('Cancelar'),
-        ),
+      TextButton(
+        onPressed:
+            caixaState.isSubmitting ? null : () => AdaptiveNavigator.cancel(context),
+        child: const Text('Cancelar'),
       ),
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: FilledButton.icon(
-          onPressed: caixaState.isSubmitting ? null : _submit,
-          icon: caixaState.isSubmitting
-              ? const PharmaButtonLoader()
-              : const Icon(Icons.lock_outline_rounded),
-          label: const Text('Fechar Caixa'),
-        ),
+      FilledButton.icon(
+        onPressed: caixaState.isSubmitting ? null : _submit,
+        icon: caixaState.isSubmitting
+            ? const PharmaButtonLoader()
+            : const Icon(Icons.lock_outline_rounded),
+        label: const Text('Fechar Caixa'),
       ),
     ];
 

@@ -116,7 +116,6 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
               decoration: const InputDecoration(
                 hintText: 'Nome, NUIT, telefone ou email...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
               ),
             ),
           ),

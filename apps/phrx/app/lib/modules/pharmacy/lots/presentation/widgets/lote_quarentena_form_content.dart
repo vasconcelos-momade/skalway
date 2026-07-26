@@ -86,7 +86,6 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
               helperText: widget.isRevert
                   ? 'Máximo em quarentena: $maxQty'
                   : 'Máximo disponível: $maxQty',
-              border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.next,
@@ -108,7 +107,6 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
             controller: _motivoController,
             decoration: InputDecoration(
               labelText: widget.isRevert ? 'Motivo da liberação' : 'Motivo',
-              border: const OutlineInputBorder(),
             ),
             maxLines: 3,
             textInputAction: TextInputAction.next,
@@ -124,7 +122,6 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
             controller: _docController,
             decoration: const InputDecoration(
               labelText: 'Documento de referência (opcional)',
-              border: OutlineInputBorder(),
             ),
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _submit(),

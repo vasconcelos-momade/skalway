@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 
@@ -63,7 +62,7 @@ class SyncStatusStrip extends StatelessWidget {
       return Tooltip(
         message: '$title — $subtitle',
         child: SizedBox.square(
-          dimension: DesignMetrics.buttonHeight,
+          dimension: t.controlHeight,
           child: Material(
             color: bg,
             borderRadius: BorderRadius.circular(t.radiusMd),
@@ -84,7 +83,7 @@ class SyncStatusStrip extends StatelessWidget {
     }
 
     return SizedBox(
-      height: DesignMetrics.buttonHeight,
+      height: t.controlHeight,
       child: Material(
         color: bg,
         borderRadius: BorderRadius.circular(t.radiusMd),

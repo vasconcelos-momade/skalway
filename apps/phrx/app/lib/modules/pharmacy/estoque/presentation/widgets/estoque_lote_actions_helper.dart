@@ -8,7 +8,7 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
-import '../../../../../shared/widgets/inputs/formatters/date_input_formatter.dart';
+import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../data/datasources/estoque_remote_datasource.dart';
 import '../../domain/entities/estoque_item.dart';
@@ -315,48 +315,21 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
             controller: _numeroController,
             decoration: const InputDecoration(
               labelText: 'Número do lote',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseDateField(
+            labelText: 'Data de validade',
             controller: _validadeController,
-            keyboardType: TextInputType.number,
-            maxLength: 10,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              DateInputFormatter(),
-            ],
-            decoration: InputDecoration(
-              labelText: 'Data de validade',
-              hintText: 'DD/MM/AAAA',
-              counterText: '',
-              border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.calendar_today_outlined),
-                onPressed: () => _selectDate(context, _validadeController),
-              ),
-            ),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseDateField(
+            labelText: 'Data de fabricação (opcional)',
             controller: _fabricacaoController,
-            keyboardType: TextInputType.number,
-            maxLength: 10,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              DateInputFormatter(),
-            ],
-            decoration: InputDecoration(
-              labelText: 'Data de fabricação (opcional)',
-              hintText: 'DD/MM/AAAA',
-              counterText: '',
-              border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.calendar_today_outlined),
-                onPressed: () => _selectDate(context, _fabricacaoController),
-              ),
-            ),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
           ),
         ],
       ),
@@ -467,7 +440,6 @@ class _AlterarPrecoFormContentState extends ConsumerState<_AlterarPrecoFormConte
             ],
             decoration: const InputDecoration(
               labelText: 'Preço de compra',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.sm),
@@ -479,7 +451,6 @@ class _AlterarPrecoFormContentState extends ConsumerState<_AlterarPrecoFormConte
             ],
             decoration: const InputDecoration(
               labelText: 'Preço de venda',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.sm),
@@ -487,7 +458,6 @@ class _AlterarPrecoFormContentState extends ConsumerState<_AlterarPrecoFormConte
             controller: _motivoController,
             decoration: const InputDecoration(
               labelText: 'Motivo da alteração (opcional)',
-              border: OutlineInputBorder(),
             ),
             maxLines: 2,
           ),
@@ -601,7 +571,6 @@ class _AjustarStockFormContentState extends ConsumerState<_AjustarStockFormConte
                 const TextInputType.numberWithOptions(decimal: true, signed: true),
             decoration: const InputDecoration(
               labelText: 'Quantidade (+ entrada / − saída)',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.sm),
@@ -609,7 +578,6 @@ class _AjustarStockFormContentState extends ConsumerState<_AjustarStockFormConte
             controller: _motivoController,
             decoration: const InputDecoration(
               labelText: 'Motivo',
-              border: OutlineInputBorder(),
             ),
             maxLines: 2,
           ),
@@ -764,7 +732,6 @@ class _MovimentacaoSanitariaFormContentState
               initialValue: _acoesPermitidas.contains(_tipo) ? _tipo : _acoesPermitidas.first,
               decoration: const InputDecoration(
                 labelText: 'Tipo de movimentação',
-                border: OutlineInputBorder(),
               ),
               items: _acoesPermitidas
                   .map(
@@ -786,7 +753,6 @@ class _MovimentacaoSanitariaFormContentState
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: 'Quantidade',
-                border: OutlineInputBorder(),
               ),
             ),
           ],
@@ -796,7 +762,6 @@ class _MovimentacaoSanitariaFormContentState
               controller: _motivoController,
               decoration: const InputDecoration(
                 labelText: 'Motivo',
-                border: OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -805,7 +770,6 @@ class _MovimentacaoSanitariaFormContentState
               controller: _documentoController,
               decoration: const InputDecoration(
                 labelText: 'Documento de referência (opcional)',
-                border: OutlineInputBorder(),
               ),
             ),
           ],
@@ -827,32 +791,5 @@ String? _normalizeDateForApi(String rawValue) {
     return DateFormat('yyyy-MM-dd').format(parsed);
   } catch (_) {
     return null;
-  }
-}
-
-Future<void> _selectDate(
-  BuildContext context,
-  TextEditingController controller,
-) async {
-  FocusScope.of(context).unfocus();
-
-  DateTime initialDate = DateTime.now();
-  if (controller.text.length == 10) {
-    try {
-      initialDate = DateFormat('dd/MM/yyyy').parseStrict(controller.text);
-    } catch (_) {}
-  }
-
-  final navigatorContext = Navigator.of(context, rootNavigator: false).context;
-  final picked = await showDatePicker(
-    context: navigatorContext,
-    initialDate: initialDate,
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2100),
-    useRootNavigator: false,
-  );
-
-  if (picked != null) {
-    controller.text = DateFormat('dd/MM/yyyy').format(picked);
   }
 }

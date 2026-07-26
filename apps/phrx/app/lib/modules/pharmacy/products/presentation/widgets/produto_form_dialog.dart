@@ -242,7 +242,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
     return InputDecorator(
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
       ),
       child: const LinearProgressIndicator(),
     );
@@ -301,7 +300,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _nomeController,
           decoration: const InputDecoration(
             labelText: 'Nome *',
-            border: OutlineInputBorder(),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -355,7 +353,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _substanciaController,
           decoration: const InputDecoration(
             labelText: 'Substância activa',
-            border: OutlineInputBorder(),
           ),
         ),
         SizedBox(height: s.md),
@@ -363,7 +360,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _dosagemController,
           decoration: const InputDecoration(
             labelText: 'Dosagem',
-            border: OutlineInputBorder(),
           ),
         ),
         SizedBox(height: s.md),
@@ -371,7 +367,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _formaController,
           decoration: const InputDecoration(
             labelText: 'Forma farmacêutica',
-            border: OutlineInputBorder(),
           ),
         ),
         SizedBox(height: s.md),
@@ -379,7 +374,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _apresentacaoController,
           decoration: const InputDecoration(
             labelText: 'Apresentação',
-            border: OutlineInputBorder(),
           ),
         ),
         SizedBox(height: s.md),
@@ -387,7 +381,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _barcodeController,
           decoration: const InputDecoration(
             labelText: 'Código de barras',
-            border: OutlineInputBorder(),
           ),
         ),
         SizedBox(height: s.lg),
@@ -396,7 +389,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           controller: _estoqueMinimoController,
           decoration: const InputDecoration(
             labelText: 'Estoque mínimo *',
-            border: OutlineInputBorder(),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (value) {

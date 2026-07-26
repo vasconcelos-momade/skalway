@@ -519,7 +519,6 @@ class _FefoAuditFiltersSheet extends StatelessWidget {
                 initialValue: situacao,
                 decoration: const InputDecoration(
                   labelText: 'Situação',
-                  border: OutlineInputBorder(),
                 ),
                 items: const [
                   DropdownMenuItem<String?>(value: null, child: Text('Todas')),

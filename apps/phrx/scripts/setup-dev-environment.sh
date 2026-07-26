@@ -44,7 +44,19 @@ docker compose -f "$COMPOSE_FILE" up -d --build
 wait_for_health
 
 echo "==> 2. Migrations central (prisma migrate deploy)"
-docker exec "$BACKEND_CONTAINER" bun run prisma:migrate:central
+CENTRAL_SCHEMA="src/infrastructure/prisma/central/schema.prisma"
+CENTRAL_MIGRATIONS="${ROOT}/backend/src/infrastructure/prisma/central/migrations"
+if ! docker exec "$BACKEND_CONTAINER" bun run prisma:migrate:central; then
+  echo "    migrate deploy falhou (ex.: P3005) — baseline das migrations existentes..."
+  for dir in "${CENTRAL_MIGRATIONS}"/*/; do
+    [[ -d "$dir" ]] || continue
+    migration_name="$(basename "$dir")"
+    echo "    resolve --applied ${migration_name}"
+    docker exec "$BACKEND_CONTAINER" \
+      bunx prisma migrate resolve --applied "${migration_name}" --schema="${CENTRAL_SCHEMA}" || true
+  done
+  docker exec "$BACKEND_CONTAINER" bun run prisma:migrate:central
+fi
 
 echo "==> 3. Seed central (planos + superadmin)"
 docker exec "$BACKEND_CONTAINER" bun prisma/seed.ts
@@ -87,7 +99,7 @@ fi
 echo "    Base ${DB_NAME} confirmada no MySQL"
 
 echo "==> 5. Migrations tenant (baseline + deploy)"
-bash backend/scripts/migrate-tenant-deploy.sh "${DB_NAME}" --baseline-all
+bash "${ROOT}/backend/scripts/migrate-tenant-deploy.sh" "${DB_NAME}" --baseline-all
 
 DB_URL="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@phrx-db:3306/${DB_NAME}"
 

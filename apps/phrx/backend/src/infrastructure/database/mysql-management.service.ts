@@ -1,26 +1,47 @@
 import { execSync } from "child_process";
+import { PrismaClient } from "../prisma/central/generated/central";
 import { prismaCentral } from "../prisma/prisma-central.service";
 
 export class MySqlManagementService {
   /**
-   * Creates a new MySQL database for a tenant
+   * Creates a new MySQL database for a tenant.
+   * Usa root (como runMigrations) — o user da app só tem grants na BD central.
    */
   static async createDatabase(dbName: string) {
     console.log(`🛠 [MySQL] Criando banco de dados: ${dbName}`);
     const appUser = (process.env.MYSQL_USER || "admin").replace(/'/g, "''");
     const appHost = (process.env.MYSQL_APP_HOST || "%").replace(/'/g, "''");
+    const rootPassword = process.env.MYSQL_ROOT_PASSWORD;
+    const tenantHost = process.env.TENANT_DB_HOST || process.env.MYSQL_HOST || "phrx-db";
+    const tenantPort = process.env.TENANT_DB_PORT || process.env.MYSQL_PORT || "3306";
+
+    const rootClient =
+      rootPassword != null && rootPassword !== ""
+        ? new PrismaClient({
+            datasources: {
+              db: {
+                url: `mysql://root:${encodeURIComponent(rootPassword)}@${tenantHost}:${tenantPort}/mysql`,
+              },
+            },
+          })
+        : null;
+    const client = rootClient ?? prismaCentral;
 
     try {
-      await prismaCentral.$executeRawUnsafe(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-      await prismaCentral.$executeRawUnsafe(
+      await client.$executeRawUnsafe(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+      await client.$executeRawUnsafe(
         `GRANT ALL PRIVILEGES ON \`${dbName}\`.* TO '${appUser}'@'${appHost}';`
       );
-      await prismaCentral.$executeRawUnsafe(`FLUSH PRIVILEGES;`);
+      await client.$executeRawUnsafe(`FLUSH PRIVILEGES;`);
       console.log(`✅ [MySQL] Banco ${dbName} criado com sucesso.`);
       console.log(`🔐 [MySQL] Permissoes concedidas para ${appUser}@${appHost} em ${dbName}.`);
     } catch (error) {
       console.error(`❌ [MySQL] Erro ao criar banco ${dbName}:`, error);
       throw new Error(`Falha ao criar banco de dados do tenant.`);
+    } finally {
+      if (rootClient) {
+        await rootClient.$disconnect().catch(() => undefined);
+      }
     }
   }
 

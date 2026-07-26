@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/router/routes.dart';
-import '../../core/theme/design_metrics.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
-import '../../core/theme/dimensions.dart';
 import '../../modules/sales/pdv/presentation/providers/caixa_sessao_provider.dart';
 import '../../modules/sales/pdv/presentation/widgets/abrir_caixa_dialog.dart';
 import '../widgets/buttons/pharma_button_loader.dart';
@@ -51,7 +49,7 @@ class PosLayout extends ConsumerWidget {
       body: Column(
         children: [
           Container(
-            height: AppDimensions.posHeader,
+            height: t.posHeader,
             padding: EdgeInsets.symmetric(horizontal: s.xl),
             decoration: BoxDecoration(
               color: t.bgSecondary,
@@ -59,13 +57,11 @@ class PosLayout extends ConsumerWidget {
             ),
             child: LayoutBuilder(
               builder: (context, bx) {
-                final narrow = bx.maxWidth < 640;
+                final narrow = bx.maxWidth < Breakpoints.mobile;
                 return Row(
                   children: [
                     SizedBox.square(
-                      dimension: narrow
-                          ? DesignMetrics.buttonHeight
-                          : DesignMetrics.buttonHeight + 4,
+                      dimension: t.controlHeight,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(t.radiusMd),
                         child: Image.asset(
@@ -91,7 +87,10 @@ class PosLayout extends ConsumerWidget {
                               subtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.erpOverline.copyWith(color: t.textMuted),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .erpOverline
+                                  .copyWith(color: t.textMuted),
                             ),
                         ],
                       ),
@@ -105,7 +104,7 @@ class PosLayout extends ConsumerWidget {
                       message: caixaLabel,
                       child: narrow
                           ? SizedBox.square(
-                              dimension: DesignMetrics.buttonHeight,
+                              dimension: t.controlHeight,
                               child: IconButton(
                                 onPressed: caixaState.isSubmitting
                                     ? null
@@ -117,29 +116,27 @@ class PosLayout extends ConsumerWidget {
                                 icon: Icon(caixaIcon, color: caixaColor),
                               ),
                             )
-                          : SizedBox(
-                              height: DesignMetrics.buttonHeight,
-                              child: OutlinedButton.icon(
-                                onPressed: caixaState.isSubmitting
-                                    ? null
-                                    : () => _onCaixaPressed(
-                                          context,
-                                          ref,
-                                          caixaState,
-                                        ),
-                                icon: caixaState.isSubmitting
-                                    ? const PharmaButtonLoader()
-                                    : Icon(caixaIcon, color: caixaColor),
-                                label: Text(
-                                  caixaLabel,
-                                  style: Theme.of(context).textTheme.erpButtonSecondary.copyWith(
-                                        color: caixaColor,
+                          : OutlinedButton.icon(
+                              onPressed: caixaState.isSubmitting
+                                  ? null
+                                  : () => _onCaixaPressed(
+                                        context,
+                                        ref,
+                                        caixaState,
                                       ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: caixaColor.withValues(alpha: 0.45),
-                                  ),
+                              icon: caixaState.isSubmitting
+                                  ? const PharmaButtonLoader()
+                                  : Icon(caixaIcon, color: caixaColor),
+                              label: Text(
+                                caixaLabel,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .erpButtonSecondary
+                                    .copyWith(color: caixaColor),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: caixaColor.withValues(alpha: 0.45),
                                 ),
                               ),
                             ),
@@ -153,7 +150,7 @@ class PosLayout extends ConsumerWidget {
                     SizedBox(width: narrow ? s.sm : s.lg),
                     if (narrow)
                       SizedBox.square(
-                        dimension: DesignMetrics.buttonHeight,
+                        dimension: t.controlHeight,
                         child: IconButton(
                           tooltip: 'Sair PDV',
                           onPressed: () => context.go(AppRoutePaths.dashboard),
@@ -164,19 +161,19 @@ class PosLayout extends ConsumerWidget {
                         ),
                       )
                     else
-                      SizedBox(
-                        height: DesignMetrics.buttonHeight,
-                        child: TextButton.icon(
-                          onPressed: () => context.go(AppRoutePaths.dashboard),
-                          icon: Icon(
-                            Icons.arrow_back_rounded,
-                            color: t.textSecondary,
-                            size: t.iconSm,
-                          ),
-                          label: Text(
-                            'Sair do PDV',
-                            style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textSecondary),
-                          ),
+                      TextButton.icon(
+                        onPressed: () => context.go(AppRoutePaths.dashboard),
+                        icon: Icon(
+                          Icons.arrow_back_rounded,
+                          color: t.textSecondary,
+                          size: t.iconSm,
+                        ),
+                        label: Text(
+                          'Sair do PDV',
+                          style: Theme.of(context)
+                              .textTheme
+                              .erpLabel
+                              .copyWith(color: t.textSecondary),
                         ),
                       ),
                   ],

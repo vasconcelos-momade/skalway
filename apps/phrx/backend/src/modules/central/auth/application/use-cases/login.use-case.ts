@@ -38,7 +38,11 @@ export class LoginUseCase {
       where: { email: normalizedEmail },
       include: {
         userTenants: {
-          where: { active: true, deletedAt: null },
+          where: {
+            active: true,
+            deletedAt: null,
+            tenant: { deletedAt: null },
+          },
           include: {
             tenant: {
               include: {

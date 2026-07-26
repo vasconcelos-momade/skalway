@@ -6,6 +6,8 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 
 import '../../../customers/data/repositories/customer_repository_impl.dart';
 import '../../../customers/domain/entities/customer.dart';
@@ -148,18 +150,6 @@ class _SaveProformaInvoiceDialogState
     }
   }
 
-  Future<void> _pickValidade() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _validade,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-    );
-    if (picked != null) {
-      setState(() => _validade = picked);
-    }
-  }
-
   void _submit() {
     final cliente = _clienteController.text.trim();
     if (cliente.isEmpty) {
@@ -232,7 +222,6 @@ class _SaveProformaInvoiceDialogState
                 initialValue: _clienteId,
                 decoration: const InputDecoration(
                   labelText: 'Cliente do cadastro *',
-                  border: OutlineInputBorder(),
                 ),
                 items: _customers
                     .map(
@@ -253,7 +242,6 @@ class _SaveProformaInvoiceDialogState
             controller: _clienteController,
             decoration: const InputDecoration(
               labelText: 'Cliente *',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.md),
@@ -261,7 +249,6 @@ class _SaveProformaInvoiceDialogState
             controller: _nuitController,
             decoration: const InputDecoration(
               labelText: 'NUIT',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.md),
@@ -269,28 +256,24 @@ class _SaveProformaInvoiceDialogState
             controller: _contactoController,
             decoration: const InputDecoration(
               labelText: 'Contacto',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.md),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Validade'),
-            subtitle: Text(
-              '${_validade.day.toString().padLeft(2, '0')}/'
-              '${_validade.month.toString().padLeft(2, '0')}/'
-              '${_validade.year}',
-            ),
-            trailing: const Icon(Icons.calendar_today_outlined),
-            onTap: _pickValidade,
+          EnterpriseDateField(
+            labelText: 'Validade',
+            value: _validade,
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+            onChanged: (picked) {
+              if (picked != null) {
+                setState(() => _validade = picked);
+              }
+            },
           ),
           SizedBox(height: s.md),
-          TextField(
+          EnterpriseTextField(
             controller: _descontoGeralController,
-            decoration: const InputDecoration(
-              labelText: 'Desconto Geral (MT)',
-              border: OutlineInputBorder(),
-            ),
+            labelText: 'Desconto Geral (MT)',
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
@@ -298,12 +281,9 @@ class _SaveProformaInvoiceDialogState
             ],
           ),
           SizedBox(height: s.md),
-          TextField(
+          EnterpriseTextField(
             controller: _observacoesController,
-            decoration: const InputDecoration(
-              labelText: 'Observações',
-              border: OutlineInputBorder(),
-            ),
+            labelText: 'Observações',
             maxLines: 3,
           ),
         ],

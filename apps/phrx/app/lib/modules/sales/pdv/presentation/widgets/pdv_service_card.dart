@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/design_metrics.dart';
+import '../../../../../core/theme/component_theme.dart';
+import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../domain/entities/pdv_service.dart';
 import 'pdv_catalog_utils.dart';
@@ -21,6 +22,8 @@ class PdvServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.pharmaTokens;
+    final scheme = Theme.of(context).colorScheme;
     return EnterpriseListCard(
       title: service.nome,
       subtitle: (service.tipoServicoClinico ?? '').isNotEmpty
@@ -35,8 +38,13 @@ class PdvServiceCard extends StatelessWidget {
       ],
       onTap: canAdd ? onAdd : null,
       actions: SizedBox(
-        height: DesignMetrics.buttonHeight,
+        height: compactAction ? t.compactControlHeight : t.controlHeight,
         child: FilledButton(
+          style: PharmaComponentTheme.filled(
+            t,
+            scheme,
+            compact: compactAction,
+          ),
           onPressed: canAdd ? onAdd : null,
           child: Text(compactAction ? '+' : 'Add'),
         ),

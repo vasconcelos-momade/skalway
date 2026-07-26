@@ -123,7 +123,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _nome,
             decoration: const InputDecoration(
               labelText: 'Nome',
-              border: OutlineInputBorder(),
             ),
             validator: (value) =>
                 value == null || value.trim().length < 2 ? 'Nome obrigatório' : null,
@@ -133,7 +132,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _nuit,
             decoration: const InputDecoration(
               labelText: 'NUIT',
-              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -141,7 +139,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _email,
             decoration: const InputDecoration(
               labelText: 'Email',
-              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -149,7 +146,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _telefone,
             decoration: const InputDecoration(
               labelText: 'Telefone',
-              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -157,7 +153,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _cidade,
             decoration: const InputDecoration(
               labelText: 'Cidade',
-              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -165,7 +160,6 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
             controller: _contato,
             decoration: const InputDecoration(
               labelText: 'Contacto',
-              border: OutlineInputBorder(),
             ),
           ),
         ],

@@ -641,7 +641,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             decoration: const InputDecoration(
               hintText: 'Número, médico, paciente...',
               prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
             ),
             onSubmitted: (value) {
               setState(() {
@@ -658,7 +657,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             initialValue: _receitasStatus,
             decoration: const InputDecoration(
               labelText: 'Estado',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -681,7 +679,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             initialValue: _receitasOrigem,
             decoration: const InputDecoration(
               labelText: 'Origem',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todas')),
@@ -717,7 +714,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             decoration: const InputDecoration(
               hintText: 'Receita, paciente, produto...',
               prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
             ),
             onSubmitted: (value) {
               setState(() {
@@ -734,7 +730,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             initialValue: _livroTipoMovimento,
             decoration: const InputDecoration(
               labelText: 'Movimento',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -760,7 +755,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             initialValue: _livroOrigem,
             decoration: const InputDecoration(
               labelText: 'Origem',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todas')),

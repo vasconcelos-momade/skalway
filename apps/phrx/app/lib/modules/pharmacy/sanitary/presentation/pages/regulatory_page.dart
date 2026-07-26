@@ -268,7 +268,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
             decoration: const InputDecoration(
               hintText: 'Produto, lote, barcode...',
               prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
             ),
             onSubmitted: (value) {
               setState(() {
@@ -285,7 +284,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
             initialValue: _estado,
             decoration: const InputDecoration(
               labelText: 'Estado',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -310,7 +308,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
             initialValue: _alertaTipo,
             decoration: const InputDecoration(
               labelText: 'Tipo de alerta',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -355,7 +352,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
             initialValue: _reportTipo,
             decoration: const InputDecoration(
               labelText: 'Tipo de relatório',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -416,7 +412,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
                   initialValue: estado,
                   decoration: const InputDecoration(
                     labelText: 'Estado',
-                    border: OutlineInputBorder(),
                   ),
                   items: const [
                     DropdownMenuItem(value: null, child: Text('Todos')),
@@ -442,7 +437,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
                   initialValue: alertaTipo,
                   decoration: const InputDecoration(
                     labelText: 'Tipo de alerta',
-                    border: OutlineInputBorder(),
                   ),
                   items: const [
                     DropdownMenuItem(value: null, child: Text('Todos')),

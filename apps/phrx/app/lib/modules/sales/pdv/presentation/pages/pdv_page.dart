@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/design_metrics.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/dialogs/enterprise_dialog.dart';
@@ -364,96 +363,87 @@ class _PdvPageState extends ConsumerState<PdvPage>
     final isThermal = result.isThermalReceipt;
     final actions = <Widget>[
       if (!isMobile)
-        SizedBox(
-          height: DesignMetrics.buttonHeight,
-          child: TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
-          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Fechar'),
         ),
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: OutlinedButton.icon(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            try {
-              await ref.read(invoiceActionProvider.notifier).showDocument(
-                    invoiceId: result.id,
-                    tipo: result.tipo,
-                    previewContext: context,
-                  );
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.success(
-                context,
-                isThermal
-                    ? 'PDF do recibo 80mm disponibilizado.'
-                    : 'PDF A4 da fatura disponibilizado.',
-              );
-            } on ApiFailure catch (e) {
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.error(context, e.message);
-            } catch (_) {
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.error(
-                context,
-                isThermal
-                    ? 'Não foi possível mostrar o recibo 80mm.'
-                    : 'Não foi possível abrir o PDF A4.',
-              );
+      OutlinedButton.icon(
+        onPressed: () async {
+          Navigator.of(context).pop();
+          try {
+            await ref.read(invoiceActionProvider.notifier).showDocument(
+                  invoiceId: result.id,
+                  tipo: result.tipo,
+                  previewContext: context,
+                );
+            if (!mounted) {
+              return;
             }
-          },
-          icon: Icon(
-            isThermal ? Icons.receipt_long_outlined : Icons.picture_as_pdf_outlined,
-          ),
-          label: Text(isThermal ? 'Ver PDF 80mm' : 'Ver PDF A4'),
+            PharmaFeedback.success(
+              context,
+              isThermal
+                  ? 'PDF do recibo 80mm disponibilizado.'
+                  : 'PDF A4 da fatura disponibilizado.',
+            );
+          } on ApiFailure catch (e) {
+            if (!mounted) {
+              return;
+            }
+            PharmaFeedback.error(context, e.message);
+          } catch (_) {
+            if (!mounted) {
+              return;
+            }
+            PharmaFeedback.error(
+              context,
+              isThermal
+                  ? 'Não foi possível mostrar o recibo 80mm.'
+                  : 'Não foi possível abrir o PDF A4.',
+            );
+          }
+        },
+        icon: Icon(
+          isThermal ? Icons.receipt_long_outlined : Icons.picture_as_pdf_outlined,
         ),
+        label: Text(isThermal ? 'Ver PDF 80mm' : 'Ver PDF A4'),
       ),
-      SizedBox(
-        height: DesignMetrics.buttonHeight,
-        child: FilledButton.icon(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            try {
-              await ref.read(invoiceActionProvider.notifier).printReceipt(
-                    invoiceId: result.id,
-                    tipo: result.tipo,
-                    previewContext: context,
-                  );
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.success(
-                context,
-                isThermal
-                    ? 'Impressão térmica 80mm preparada.'
-                    : 'PDF A4 pronto para imprimir.',
-              );
-            } on ApiFailure catch (e) {
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.error(context, e.message);
-            } catch (_) {
-              if (!mounted) {
-                return;
-              }
-              PharmaFeedback.error(
-                context,
-                isThermal
-                    ? 'Não foi possível imprimir o recibo 80mm.'
-                    : 'Não foi possível preparar o PDF A4.',
-              );
+      FilledButton.icon(
+        onPressed: () async {
+          Navigator.of(context).pop();
+          try {
+            await ref.read(invoiceActionProvider.notifier).printReceipt(
+                  invoiceId: result.id,
+                  tipo: result.tipo,
+                  previewContext: context,
+                );
+            if (!mounted) {
+              return;
             }
-          },
-          icon: const Icon(Icons.print_outlined),
-          label: Text(isThermal ? 'Imprimir 80mm' : 'Imprimir A4'),
-        ),
+            PharmaFeedback.success(
+              context,
+              isThermal
+                  ? 'Impressão térmica 80mm preparada.'
+                  : 'PDF A4 pronto para imprimir.',
+            );
+          } on ApiFailure catch (e) {
+            if (!mounted) {
+              return;
+            }
+            PharmaFeedback.error(context, e.message);
+          } catch (_) {
+            if (!mounted) {
+              return;
+            }
+            PharmaFeedback.error(
+              context,
+              isThermal
+                  ? 'Não foi possível imprimir o recibo 80mm.'
+                  : 'Não foi possível preparar o PDF A4.',
+            );
+          }
+        },
+        icon: const Icon(Icons.print_outlined),
+        label: Text(isThermal ? 'Imprimir 80mm' : 'Imprimir A4'),
       ),
     ];
 
@@ -490,8 +480,8 @@ class _PdvPageState extends ConsumerState<PdvPage>
     final cart = cartState.lines;
     final cartItemCount =
         cart.fold<int>(0, (sum, line) => sum + line.qty);
-    final mobileCartButtonHeight = t.minTouchTarget;
-    final mobileFooterHeightEstimate = t.minTouchTarget + s.lg;
+    final mobileCartButtonHeight = t.controlHeight;
+    final mobileFooterHeightEstimate = t.controlHeight + s.lg;
     final mobileCartFooterGap = s.sm;
     final activeIsLoading = _isProductsTab
         ? productState.isLoading
@@ -637,6 +627,7 @@ class _PdvPageState extends ConsumerState<PdvPage>
 
             Widget filterField(Widget child) => SizedBox(
                   width: isMobile ? double.infinity : fieldWidth,
+                  height: t.controlHeight,
                   child: child,
                 );
 
@@ -660,14 +651,16 @@ class _PdvPageState extends ConsumerState<PdvPage>
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  searchBar,
+                  filterField(searchBar),
                   if (_isProductsTab) ...[
                     SizedBox(height: s.sm),
-                    ProdutoCategoriaFilterDropdown(
-                      value: productState.categoriaId,
-                      width: double.infinity,
-                      enabled: true,
-                      onChanged: _onCategoryChanged,
+                    filterField(
+                      ProdutoCategoriaFilterDropdown(
+                        value: productState.categoriaId,
+                        width: double.infinity,
+                        enabled: true,
+                        onChanged: _onCategoryChanged,
+                      ),
                     ),
                   ],
                 ],
@@ -676,26 +669,29 @@ class _PdvPageState extends ConsumerState<PdvPage>
 
             return Align(
               alignment: Alignment.centerRight,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                reverse: true, // starts from right
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    filterField(searchBar),
-                    if (_isProductsTab) ...[
-                      SizedBox(width: s.sm),
-                      filterField(
-                        ProdutoCategoriaFilterDropdown(
-                          value: productState.categoriaId,
-                          width: null,
-                          enabled: true,
-                          onChanged: _onCategoryChanged,
+              child: SizedBox(
+                height: t.controlHeight,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  reverse: true,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      filterField(searchBar),
+                      if (_isProductsTab) ...[
+                        SizedBox(width: s.sm),
+                        filterField(
+                          ProdutoCategoriaFilterDropdown(
+                            value: productState.categoriaId,
+                            width: null,
+                            enabled: true,
+                            onChanged: _onCategoryChanged,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             );
@@ -1034,11 +1030,11 @@ class _CartPane extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       SizedBox.square(
-                                        dimension: t.minTouchTarget,
+                                        dimension: t.compactControlHeight,
                                         child: IconButton(
                                           icon: const Icon(Icons.remove_circle_outline_rounded),
                                           color: t.textMuted,
-                                          iconSize: t.iconMd,
+                                          iconSize: t.iconSm,
                                           onPressed: () => onRemove(line),
                                         ),
                                       ),
@@ -1054,7 +1050,7 @@ class _CartPane extends StatelessWidget {
                                         ),
                                       ),
                                       SizedBox.square(
-                                        dimension: t.minTouchTarget,
+                                        dimension: t.compactControlHeight,
                                         child: IconButton(
                                           icon: lineBusy
                                               ? PharmaButtonLoader(color: t.brandBlue)
@@ -1063,7 +1059,7 @@ class _CartPane extends StatelessWidget {
                                                   size: t.iconSm,
                                                 ),
                                           color: t.brandBlue,
-                                          iconSize: t.iconMd,
+                                          iconSize: t.iconSm,
                                           onPressed:
                                               (caixaAberto && !isCartBusy && !lineBusy)
                                                   ? () => onAdd(line)
@@ -1072,11 +1068,11 @@ class _CartPane extends StatelessWidget {
                                       ),
                                       SizedBox(width: s.sm),
                                       SizedBox.square(
-                                        dimension: t.minTouchTarget,
+                                        dimension: t.compactControlHeight,
                                         child: IconButton(
                                           icon: const Icon(Icons.delete_outline_rounded),
                                           color: t.posDanger,
-                                          iconSize: t.iconMd,
+                                          iconSize: t.iconSm,
                                           onPressed: () => onDelete(line),
                                         ),
                                       ),
@@ -1150,24 +1146,18 @@ class _CartPane extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: DesignMetrics.buttonHeight,
-                    child: OutlinedButton(
-                      onPressed: onCancelCart,
-                      child: const Text('Cancelar'),
-                    ),
+                  child: OutlinedButton(
+                    onPressed: onCancelCart,
+                    child: const Text('Cancelar'),
                   ),
                 ),
                 SizedBox(width: s.sm),
                 Expanded(
-                  child: SizedBox(
-                    height: DesignMetrics.buttonHeight,
-                    child: FilledButton(
-                      onPressed: onCharge,
-                      child: Text(
-                        compact ? 'Finalizar' : 'Finalizar Venda',
-                        maxLines: 1,
-                      ),
+                  child: FilledButton(
+                    onPressed: onCharge,
+                    child: Text(
+                      compact ? 'Finalizar' : 'Finalizar Venda',
+                      maxLines: 1,
                     ),
                   ),
                 ),

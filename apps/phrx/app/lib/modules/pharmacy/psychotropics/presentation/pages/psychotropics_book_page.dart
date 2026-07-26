@@ -415,7 +415,6 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
             decoration: const InputDecoration(
               hintText: 'Documento, produto, lote...',
               prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
             ),
             onSubmitted: (value) {
               setState(() {
@@ -432,7 +431,6 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
             initialValue: _tipoMovimento,
             decoration: const InputDecoration(
               labelText: 'Movimento',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: null, child: Text('Todos')),
@@ -473,7 +471,6 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
                     initialValue: tipo,
                     decoration: const InputDecoration(
                       labelText: 'Movimento',
-                      border: OutlineInputBorder(),
                     ),
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Todos')),

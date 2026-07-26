@@ -116,7 +116,6 @@ class _UserFormDialogState extends State<UserFormDialog> {
             controller: _nameController,
             decoration: const InputDecoration(
               labelText: 'Nome *',
-              border: OutlineInputBorder(),
             ),
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Nome obrigatório' : null,
@@ -126,7 +125,6 @@ class _UserFormDialogState extends State<UserFormDialog> {
             controller: _emailController,
             decoration: const InputDecoration(
               labelText: 'Email *',
-              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
@@ -140,7 +138,6 @@ class _UserFormDialogState extends State<UserFormDialog> {
             initialValue: _role,
             decoration: const InputDecoration(
               labelText: 'Perfil',
-              border: OutlineInputBorder(),
             ),
             items: _roles
                 .map(

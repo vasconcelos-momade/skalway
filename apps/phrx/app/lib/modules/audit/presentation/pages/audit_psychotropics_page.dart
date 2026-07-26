@@ -123,7 +123,6 @@ class _AuditPsychotropicsPageState
               decoration: const InputDecoration(
                 hintText: 'Produto, documento...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
               ),
             ),
           ),

@@ -137,84 +137,108 @@ export class RegisterTenantUseCase {
       },
     });
 
-    // 3. Create the physical MySQL Database
-    await MySqlManagementService.createDatabase(dbName);
-
-    // 4. Run Prisma migrations on the new Database
-    MySqlManagementService.runMigrations(dbName);
-    MySqlManagementService.runRolePermissionsSeed(dbName);
-
-    // 5. Sincronizar utilizadores tenant a partir da central (+ admin local do registo).
-    const centralForAdmin = await prisma.user.findUnique({
-      where: { email: adminEmail },
-      select: { id: true, name: true, email: true },
-    });
-    const ownerCentral = await prisma.user.findUnique({
-      where: { id: BigInt(data.userId) },
-      select: { id: true, name: true, email: true },
-    });
-
-    const tenantUserCount = await branchContext.run({
-      tenantId: tenant.id.toString(),
-      branchId: branch.id.toString(),
-      dbName,
-      dbHost,
-      dbPort,
-      dbUsername: "root",
-      dbPasswordCipherText: cipherText,
-      dbPasswordIv: iv,
-      dbPasswordTag: tag,
-    }, async () => {
-      const prismaTenant = TenantPrismaFactory.getClient();
-      return syncTenantUsersFromCentral({
-        tenantId: tenant.id,
-        prismaTenant,
-        extraUsers: [
-          {
-            name: data.adminName,
-            email: adminEmail,
-            centralUserId: centralForAdmin?.id ?? null,
-          },
-        ],
-      });
-    });
-
-    runtimeGlobals.console?.log(`👤 ${tenantUserCount} utilizador(es) tenant sincronizados em ${dbName}.`);
-
-    const notificationEmail = ownerCentral?.email ?? adminEmail;
-    const notificationName = ownerCentral?.name ?? data.adminName;
-
+    // 3. Create the physical MySQL Database (+ schema/seed). Em falha, soft-delete
+    // o tenant/branch na central para não ficar registo a apontar para BD inexistente.
     try {
-      await EmailService.send({
-        to: notificationEmail,
-        subject: `Trial iniciado para ${data.nomeEmpresa}`,
-        text: [
-          `O tenant ${data.nomeEmpresa} foi criado com sucesso.`,
-          `Plano: ${defaultPlan.name}.`,
-          `Trial valido ate ${trialEndsAt.toISOString().slice(0, 10)}.`,
-          `Branch inicial: ${branch.name} (${branch.code}).`,
-          "Ao terminar o trial sera emitida uma factura com 3 dias de prazo para pagamento.",
-          `Responsavel registado: ${notificationName}.`,
-        ].join("\n"),
+      await MySqlManagementService.createDatabase(dbName);
+
+      // 4. Run Prisma migrations on the new Database
+      MySqlManagementService.runMigrations(dbName);
+      MySqlManagementService.runRolePermissionsSeed(dbName);
+
+      // 5. Sincronizar utilizadores tenant a partir da central (+ admin local do registo).
+      const centralForAdmin = await prisma.user.findUnique({
+        where: { email: adminEmail },
+        select: { id: true, name: true, email: true },
       });
+      const ownerCentral = await prisma.user.findUnique({
+        where: { id: BigInt(data.userId) },
+        select: { id: true, name: true, email: true },
+      });
+
+      const tenantUserCount = await branchContext.run({
+        tenantId: tenant.id.toString(),
+        branchId: branch.id.toString(),
+        dbName,
+        dbHost,
+        dbPort,
+        dbUsername: "root",
+        dbPasswordCipherText: cipherText,
+        dbPasswordIv: iv,
+        dbPasswordTag: tag,
+      }, async () => {
+        const prismaTenant = TenantPrismaFactory.getClient();
+        return syncTenantUsersFromCentral({
+          tenantId: tenant.id,
+          prismaTenant,
+          extraUsers: [
+            {
+              name: data.adminName,
+              email: adminEmail,
+              centralUserId: centralForAdmin?.id ?? null,
+            },
+          ],
+        });
+      });
+
+      runtimeGlobals.console?.log(`👤 ${tenantUserCount} utilizador(es) tenant sincronizados em ${dbName}.`);
+
+      const notificationEmail = ownerCentral?.email ?? adminEmail;
+      const notificationName = ownerCentral?.name ?? data.adminName;
+
+      try {
+        await EmailService.send({
+          to: notificationEmail,
+          subject: `Trial iniciado para ${data.nomeEmpresa}`,
+          text: [
+            `O tenant ${data.nomeEmpresa} foi criado com sucesso.`,
+            `Plano: ${defaultPlan.name}.`,
+            `Trial valido ate ${trialEndsAt.toISOString().slice(0, 10)}.`,
+            `Branch inicial: ${branch.name} (${branch.code}).`,
+            "Ao terminar o trial sera emitida uma factura com 3 dias de prazo para pagamento.",
+            `Responsavel registado: ${notificationName}.`,
+          ].join("\n"),
+        });
+      } catch (error) {
+        runtimeGlobals.console?.log(
+          `⚠️ Email de boas-vindas nao enviado para ${notificationEmail}:`,
+          error instanceof Error ? error.message : error,
+        );
+      }
+
+      runtimeGlobals.console?.log(`🎉 Tenant ${data.nomeTenant} criado e configurado com sucesso!`);
+
+      return {
+        id: tenant.id.toString(),
+        companyName: tenant.companyName,
+        name: tenant.name,
+        branch: {
+          id: branch.id.toString(),
+          code: branch.code,
+          name: branch.name,
+        },
+      };
     } catch (error) {
       runtimeGlobals.console?.log(
-        `⚠️ Email de boas-vindas nao enviado para ${notificationEmail}:`,
+        `❌ Falha ao provisionar BD do tenant ${data.nomeTenant}; a reverter registos centrais.`,
         error instanceof Error ? error.message : error,
       );
+      const now = new Date();
+      await prisma.branch.update({
+        where: { id: branch.id },
+        data: { deletedAt: now, active: false, updatedBy: BigInt(data.userId) },
+      });
+      await prisma.userTenant.updateMany({
+        where: { tenantId: tenant.id, userId: BigInt(data.userId) },
+        data: { active: false, deletedAt: now },
+      });
+      await prisma.tenant.update({
+        where: { id: tenant.id },
+        data: { deletedAt: now, updatedBy: BigInt(data.userId) },
+      });
+      throw error instanceof Error
+        ? error
+        : new Error("Falha ao provisionar base de dados do tenant.");
     }
-
-    runtimeGlobals.console?.log(`🎉 Tenant ${data.nomeTenant} criado e configurado com sucesso!`);
-
-    return {
-      id: tenant.id.toString(),
-      companyName: tenant.companyName,
-      name: tenant.name,
-      branch: {
-        id: branch.id.toString(),
-        code: branch.code,
-        name: branch.name,
-      },
-    };
   }
 }

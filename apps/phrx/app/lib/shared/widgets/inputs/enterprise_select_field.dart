@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
-import '../../../core/theme/extensions.dart';
+import '../../../core/theme/typography.dart';
+import 'enterprise_field_decoration.dart';
 
-/// Opção de um [EnterpriseSelectField].
+/// Select enterprise alinhado ao design system / search do PDV:
+/// - mesma altura dos inputs e botões (`PharmaTokens.controlHeight`)
+/// - hover cinza **dentro** do campo
+/// - menu abre **abaixo** do input ([MenuAnchor])
 class EnterpriseSelectOption<T> {
   const EnterpriseSelectOption({
     required this.value,
@@ -15,10 +19,6 @@ class EnterpriseSelectOption<T> {
   final String label;
 }
 
-/// Select enterprise alinhado ao design system / search do PDV:
-/// - mesma altura dos inputs (`DesignMetrics.fieldHeightMin` + `inputPadding`)
-/// - hover cinza **dentro** do campo
-/// - menu abre **abaixo** do input ([MenuAnchor])
 class EnterpriseSelectField<T> extends StatefulWidget {
   const EnterpriseSelectField({
     super.key,
@@ -80,13 +80,7 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final enabled = widget.enabled && widget.onChanged != null;
-    final inputTheme = theme.inputDecorationTheme;
-    final menuMaxHeight =
-        widget.menuMaxHeight ?? DesignMetrics.dialogSizeSmall;
-
-    final outline = BorderSide(
-      color: scheme.outline.withValues(alpha: isDark ? 0.6 : 0.85),
-    );
+    final menuMaxHeight = widget.menuMaxHeight ?? DesignMetrics.dialogSizeSmall;
 
     final field = LayoutBuilder(
       builder: (context, constraints) {
@@ -112,43 +106,18 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
             final open = controller.isOpen;
             final showHover = enabled && (_hovering || open);
 
-            // Decoração alinhada ao EnterpriseSearchField + InputDecorationTheme.
-            final decoration = InputDecoration(
+            final decoration = EnterpriseFieldDecoration.of(
+              context,
               labelText: widget.label,
-              isDense: true,
-              filled: inputTheme.filled,
-              fillColor: inputTheme.fillColor,
-              hoverColor:
-                  scheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.06),
-              contentPadding:
-                  inputTheme.contentPadding ?? t.density.inputPadding,
-              constraints: inputTheme.constraints ??
-                  BoxConstraints(
-                    minHeight: t.minTouchTarget,
-                  ),
-              labelStyle: inputTheme.labelStyle ??
-                  textTheme.erpSelectLabel.copyWith(color: t.textSecondary),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(t.radiusMd),
-                borderSide: outline,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(t.radiusMd),
-                borderSide: outline,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(t.radiusMd),
-                borderSide: BorderSide(color: scheme.primary),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(t.radiusMd),
-                borderSide: outline,
-              ),
+              enabled: enabled,
               suffixIcon: Icon(
                 open ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                 size: t.iconSm,
                 color: enabled ? t.textSecondary : t.textMuted,
               ),
+            ).copyWith(
+              hoverColor:
+                  scheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.06),
             );
 
             return MouseRegion(
@@ -213,7 +182,6 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                     : null,
                 child: Text(
                   option.label,
-                  overflow: TextOverflow.ellipsis,
                   style: textTheme.erpBody.copyWith(color: t.textPrimary),
                 ),
               ),

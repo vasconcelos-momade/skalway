@@ -9,6 +9,8 @@ import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_field_decoration.dart';
+import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
@@ -545,7 +547,6 @@ class _LotsFiltersBottomSheetState extends State<_LotsFiltersBottomSheet> {
             initialValue: _estadoSanitario,
             decoration: const InputDecoration(
               labelText: 'Estado sanitário',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem<String?>(value: null, child: Text('Todos')),
@@ -569,7 +570,6 @@ class _LotsFiltersBottomSheetState extends State<_LotsFiltersBottomSheet> {
             initialValue: _disponibilidade,
             decoration: const InputDecoration(
               labelText: 'Disponibilidade',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem<String?>(value: null, child: Text('Todas')),
@@ -671,35 +671,7 @@ class _LotsDesktopToolbar extends StatefulWidget {
 
 class _LotsDesktopToolbarState extends State<_LotsDesktopToolbar> {
   @override
-  void initState() {
-    super.initState();
-    widget.searchController.addListener(_onSearchChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.searchController.removeListener(_onSearchChanged);
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant _LotsDesktopToolbar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.searchController != widget.searchController) {
-      oldWidget.searchController.removeListener(_onSearchChanged);
-      widget.searchController.addListener(_onSearchChanged);
-    }
-  }
-
-  void _onSearchChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
     final s = context.spacing;
     final state = widget.state;
     final hasFilters =
@@ -712,57 +684,11 @@ class _LotsDesktopToolbarState extends State<_LotsDesktopToolbar> {
       children: [
         Expanded(
           flex: 3,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: TextField(
-              controller: widget.searchController,
-              onSubmitted: widget.onSearchSubmitted,
-              style: Theme.of(context).textTheme.erpBody.copyWith(color: t.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Pesquisar produto ou nº lote...',
-                hintStyle: Theme.of(context).textTheme.erpBody.copyWith(color: t.textMuted),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color: t.textMuted,
-                  size: t.iconSm,
-                ),
-                suffixIcon: widget.searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.clear_rounded,
-                          color: t.textMuted,
-                          size: t.iconSm,
-                        ),
-                        onPressed: widget.isLoading
-                            ? null
-                            : () {
-                                widget.searchController.clear();
-                                widget.onSearchSubmitted('');
-                              },
-                      )
-                    : null,
-                filled: true,
-                fillColor: t.card,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(t.radiusXl),
-                  borderSide: BorderSide(
-                    color: t.border.withValues(alpha: 0.45),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(t.radiusXl),
-                  borderSide: BorderSide(
-                    color: t.border.withValues(alpha: 0.45),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(t.radiusXl),
-                  borderSide: BorderSide(color: t.brandBlue, width: 2),
-                ),
-                isDense: true,
-                contentPadding: t.density.inputPadding,
-              ),
-            ),
+          child: EnterpriseSearchField(
+            controller: widget.searchController,
+            hintText: 'Pesquisar produto ou nº lote...',
+            onChanged: (_) {},
+            onSubmitted: widget.isLoading ? null : widget.onSearchSubmitted,
           ),
         ),
         SizedBox(width: s.md),
@@ -842,7 +768,10 @@ class _LotsDesktopToolbarState extends State<_LotsDesktopToolbar> {
                     widget.onDisponibilidadeChanged(null);
                     widget.onExpiradoChanged(null);
                   },
-            icon: Icon(Icons.filter_alt_off_outlined, size: t.iconSm),
+            icon: Icon(
+              Icons.filter_alt_off_outlined,
+              size: context.pharmaTokens.iconSm,
+            ),
             label: const Text('Limpar'),
           ),
         ],
@@ -866,22 +795,7 @@ class _LotsDesktopToolbarState extends State<_LotsDesktopToolbar> {
   }
 
   InputDecoration _dropdownDecoration(BuildContext context, String label) {
-    final t = context.pharmaTokens;
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: t.card,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-      ),
-      isDense: true,
-      contentPadding: t.density.inputPadding,
-    );
+    return EnterpriseFieldDecoration.of(context, labelText: label);
   }
 }
 

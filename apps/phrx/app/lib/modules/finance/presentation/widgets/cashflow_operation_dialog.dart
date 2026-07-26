@@ -267,7 +267,6 @@ class _CashflowOperationDialogState
               enabled: !_submitting,
               decoration: const InputDecoration(
                 labelText: 'Valor',
-                border: OutlineInputBorder(),
                 suffixText: 'MZN',
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -292,7 +291,6 @@ class _CashflowOperationDialogState
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Origem / Destino',
-                border: OutlineInputBorder(),
               ),
               items: cashflow.origens
                   .map(
@@ -314,7 +312,6 @@ class _CashflowOperationDialogState
               enabled: !_submitting,
               decoration: const InputDecoration(
                 labelText: 'Descrição',
-                border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),

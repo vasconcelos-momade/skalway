@@ -1336,7 +1336,6 @@ class _NovoInventarioDialogState extends State<_NovoInventarioDialog> {
             decoration: const InputDecoration(
               labelText: 'Observacao',
               hintText: 'Ex.: Contagem ciclica da seccao A',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.sm),
@@ -1579,7 +1578,6 @@ class _DialogField extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          border: const OutlineInputBorder(),
         ),
       ),
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 import '../../../../../core/errors/api_failure.dart';
 import '../../../../../core/theme/app_radius.dart';
@@ -12,6 +11,8 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
+import '../../../../../shared/widgets/inputs/async_type_ahead_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../customers/data/repositories/customer_repository_impl.dart';
 import '../../../customers/domain/entities/customer.dart';
 import '../../domain/entities/pdv_checkout.dart';
@@ -114,6 +115,31 @@ class _FinalizarVendaDialogState
       return;
     }
 
+    final idadeTexto = _idadeController.text.trim();
+    if (idadeTexto.isNotEmpty) {
+      final idade = int.tryParse(idadeTexto);
+      if (idade == null || idade <= 0 || idade > _maxPatientAge) {
+        await PharmaFeedback.criticalError(
+          context: context,
+          title: 'Idade inválida',
+          message: 'Informe uma idade entre 1 e $_maxPatientAge anos.',
+        );
+        return;
+      }
+    }
+
+    if (_isCashPayment) {
+      final recebido = _parseCheckoutMoneyInput(_valorRecebidoController.text);
+      if (recebido == null) {
+        await PharmaFeedback.criticalError(
+          context: context,
+          title: 'Valor recebido inválido',
+          message: 'Informe o valor recebido para o pagamento em dinheiro.',
+        );
+        return;
+      }
+    }
+
     try {
       final nomeDigitado = _nomeController.text.trim();
       final nomePaciente = cartState.hasSelectedCliente
@@ -169,36 +195,6 @@ class _FinalizarVendaDialogState
     }
   }
 
-  InputDecoration _fieldDecoration(String label) {
-    final t = context.pharmaTokens;
-    final theme = Theme.of(context);
-    
-    return InputDecoration(
-      labelText: label,
-      isDense: true,
-      contentPadding: t.density.inputPadding,
-      labelStyle: theme.textTheme.erpSelectLabel.copyWith(color: t.textSecondary),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        borderSide: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: theme.brightness == Brightness.dark ? 0.6 : 0.85),
-        ),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        borderSide: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: theme.brightness == Brightness.dark ? 0.6 : 0.85),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        borderSide: BorderSide(
-          color: theme.colorScheme.primary,
-        ),
-      ),
-    );
-  }
-
   Future<List<CustomerSummary>> _searchCustomers(String query) async {
     final response = await ref.read(customerRepositoryProvider).listCustomers(
           CustomerQuery(
@@ -244,73 +240,34 @@ class _FinalizarVendaDialogState
   }
 
   Widget _buildNomeField(PdvCartState cartState) {
-    return TypeAheadField<CustomerSummary>(
+    return AsyncTypeAheadField<CustomerSummary>(
       controller: _nomeController,
-      debounceDuration: const Duration(milliseconds: 350),
-      hideOnEmpty: true,
-      autoFlipDirection: true,
-      constraints: const BoxConstraints(maxHeight: 280),
-      suggestionsCallback: (pattern) async {
-        final query = pattern.trim();
-        if (query.length < 2) {
-          return const <CustomerSummary>[];
-        }
+      labelText: 'Nome do paciente',
+      helperText: cartState.hasSelectedCliente
+          ? 'Cliente encontrado e associado a venda.'
+          : 'Opcional. Pesquise um cliente ou digite um novo nome.',
+      emptyMessage:
+          'Nenhum cliente encontrado. Continue a digitar para usar como novo registo.',
+      suggestionsCallback: (query) async {
         try {
           return await _searchCustomers(query);
         } catch (_) {
           return const <CustomerSummary>[];
         }
       },
-      builder: (context, controller, focusNode) {
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
-          decoration: _fieldDecoration('Nome do paciente').copyWith(
-            helperText: cartState.hasSelectedCliente
-                ? 'Cliente encontrado e associado a venda.'
-                : 'Opcional. Pesquise um cliente ou digite um novo nome.',
-            suffixIcon: const Icon(Icons.search),
-          ),
-          onChanged: _handleNomeChanged,
-        );
-      },
-      itemBuilder: (context, customer) {
-        final subtitle = customer.telefone?.trim();
-        return ListTile(
-          dense: true,
-          title: Text(
-            customer.nome,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: subtitle == null || subtitle.isEmpty
-              ? null
-              : Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-        );
-      },
+      itemLabel: (customer) => customer.nome,
+      itemSubtitle: (customer) => customer.telefone ?? '',
       onSelected: _applySelectedCustomer,
-      emptyBuilder: (context) => const Padding(
-        padding: EdgeInsets.all(12),
-        child: Text(
-          'Nenhum cliente encontrado. Continue a digitar para usar como novo registo.',
-          textAlign: TextAlign.center,
-        ),
-      ),
+      onChanged: _handleNomeChanged,
     );
   }
 
   Widget _buildIdadeField() {
-    return TextFormField(
+    return EnterpriseTextFormField(
       controller: _idadeController,
-      style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
+      labelText: 'Idade',
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: _fieldDecoration('Idade'),
       validator: (value) {
         final trimmed = value?.trim() ?? '';
         if (trimmed.isEmpty) {
@@ -326,41 +283,36 @@ class _FinalizarVendaDialogState
   }
 
   Widget _buildNidField() {
-    return TextFormField(
+    return EnterpriseTextFormField(
       controller: _nidController,
-      style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
-      decoration: _fieldDecoration('NID da receita/doente'),
+      labelText: 'NID da receita/doente',
     );
   }
 
   Widget _buildPrescritorField() {
-    return TextFormField(
+    return EnterpriseTextFormField(
       controller: _prescritorController,
-      style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
-      decoration: _fieldDecoration('Prescritor'),
+      labelText: 'Prescritor',
     );
   }
 
   Widget _buildUnidadeSanitariaField() {
-    return TextFormField(
+    return EnterpriseTextFormField(
       controller: _unidadeSanitariaController,
-      style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
-      decoration: _fieldDecoration('Unidade sanitária'),
+      labelText: 'Unidade sanitária',
     );
   }
 
   Widget _buildValorRecebidoField(bool enabled) {
-    return TextFormField(
+    return EnterpriseTextFormField(
       controller: _valorRecebidoController,
       enabled: enabled,
-      style: Theme.of(context).textTheme.erpBody.copyWith(color: context.pharmaTokens.textPrimary),
+      labelText: 'Valor recebido *',
+      suffixText: 'MT',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
       ],
-      decoration: _fieldDecoration('Valor recebido *').copyWith(
-        suffixText: 'MT',
-      ),
       validator: (value) {
         if (!_isCashPayment) {
           return null;
@@ -379,24 +331,18 @@ class _FinalizarVendaDialogState
     PdvCheckoutState checkoutState,
     FinalizarVendaPresentation presentation,
   ) {
-    final cancelButton = SizedBox(
-      height: DesignMetrics.buttonHeight,
-      child: OutlinedButton(
-        onPressed: checkoutState.isSubmitting
-            ? null
-            : () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
-      ),
+    final cancelButton = OutlinedButton(
+      onPressed: checkoutState.isSubmitting
+          ? null
+          : () => AdaptiveNavigator.cancel(context),
+      child: const Text('Cancelar'),
     );
 
-    final confirmButton = SizedBox(
-      height: DesignMetrics.buttonHeight,
-      child: FilledButton(
-        onPressed: checkoutState.isSubmitting ? null : _submit,
-        child: checkoutState.isSubmitting
-            ? const PharmaButtonLoader()
-            : const Text('Finalizar venda'),
-      ),
+    final confirmButton = FilledButton(
+      onPressed: checkoutState.isSubmitting ? null : _submit,
+      child: checkoutState.isSubmitting
+          ? const PharmaButtonLoader()
+          : const Text('Finalizar venda'),
     );
 
     if (widget.embedded) {
@@ -406,7 +352,7 @@ class _FinalizarVendaDialogState
           child: Row(
             children: [
               Expanded(child: cancelButton),
-              const SizedBox(width: 16),
+              SizedBox(width: context.spacing.md),
               Expanded(child: confirmButton),
             ],
           ),
@@ -421,7 +367,7 @@ class _FinalizarVendaDialogState
           child: Row(
             children: [
               Expanded(child: cancelButton),
-              const SizedBox(width: 16),
+              SizedBox(width: context.spacing.md),
               Expanded(child: confirmButton),
             ],
           ),
@@ -751,13 +697,6 @@ class _PaymentMethodCard extends StatelessWidget {
                         color: t.textPrimary,
                       ),
                 ),
-              ),
-              Icon(
-                selected
-                    ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_off_rounded,
-                color: selected ? t.brandBlue : t.textMuted,
-                size: t.iconSm,
               ),
             ],
           ),

@@ -7,6 +7,8 @@ import '../../../../../core/errors/api_failure.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/async_type_ahead_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/estoque_item.dart';
 import '../providers/estoque_provider.dart';
 import '../../data/datasources/estoque_remote_datasource.dart';
@@ -16,7 +18,6 @@ import '../../../../stock/presentation/providers/movimentacao_provider.dart';
 
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
-import '../../../../../shared/widgets/inputs/formatters/date_input_formatter.dart';
 
 abstract final class EstoqueStockEntryHelper {
   EstoqueStockEntryHelper._();
@@ -246,7 +247,6 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
                   initialValue: _fornecedorId,
                   decoration: const InputDecoration(
                     labelText: 'Fornecedor',
-                    border: OutlineInputBorder(),
                   ),
                   items: widget.fornecedores
                       .map(
@@ -264,7 +264,6 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(
                     labelText: 'Quantidade',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
@@ -276,7 +275,6 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
                   ],
                   decoration: const InputDecoration(
                     labelText: 'Valor compra',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
@@ -288,36 +286,19 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
                   ],
                   decoration: const InputDecoration(
                     labelText: 'Valor venda',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _loteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número lote',
-                    border: OutlineInputBorder(),
-                  ),
+                  labelText: 'Número lote',
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseDateField(
+                  labelText: 'Data validade',
                   controller: _validadeController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    DateInputFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Data validade',
-                    hintText: 'DD/MM/AAAA',
-                    counterText: '',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      onPressed: () => _selectDate(context, _validadeController),
-                    ),
-                  ),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2100),
                 ),
               ],
             ),
@@ -540,7 +521,6 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
                   controller: _loteController,
                   decoration: const InputDecoration(
                     labelText: 'Número lote',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
@@ -551,7 +531,6 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Quantidade inicial',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
@@ -562,7 +541,6 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Preço compra',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
@@ -573,28 +551,14 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Preço venda',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseDateField(
+                  labelText: 'Data validade',
                   controller: _validadeController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    DateInputFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Data validade',
-                    hintText: 'DD/MM/AAAA',
-                    counterText: '',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      onPressed: () => _selectDate(context, _validadeController),
-                    ),
-                  ),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2100),
                 ),
               ],
             ),
@@ -635,32 +599,5 @@ String? _normalizeDateForApi(String rawValue) {
     return DateFormat('yyyy-MM-dd').format(parsed);
   } catch (_) {
     return null;
-  }
-}
-
-Future<void> _selectDate(
-  BuildContext context,
-  TextEditingController controller,
-) async {
-  FocusScope.of(context).unfocus();
-
-  DateTime initialDate = DateTime.now();
-  if (controller.text.length == 10) {
-    try {
-      initialDate = DateFormat('dd/MM/yyyy').parseStrict(controller.text);
-    } catch (_) {}
-  }
-
-  final navigatorContext = Navigator.of(context, rootNavigator: false).context;
-  final picked = await showDatePicker(
-    context: navigatorContext,
-    initialDate: initialDate,
-    firstDate: DateTime.now(),
-    lastDate: DateTime(2100),
-    useRootNavigator: false,
-  );
-
-  if (picked != null) {
-    controller.text = DateFormat('dd/MM/yyyy').format(picked);
   }
 }

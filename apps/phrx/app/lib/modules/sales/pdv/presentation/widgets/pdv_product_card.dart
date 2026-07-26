@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/design_metrics.dart';
 import '../../../../../core/theme/extensions.dart';
+import '../../../../../core/theme/component_theme.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
@@ -63,22 +63,31 @@ class PdvProductCard extends StatelessWidget {
             ),
           )
         : null;
+    final s = context.spacing;
     final Widget actionButton = SizedBox(
-      height: DesignMetrics.buttonHeight,
-      child: compactAction
-          ? FilledButton(
-              onPressed: canInteract ? onAdd : null,
-              child: isAdding
-                  ? PharmaButtonLoader(color: t.brandBlue)
-                  : const Text('+'),
-            )
-          : FilledButton.tonalIcon(
-              onPressed: canInteract ? onAdd : null,
-              icon: isAdding
-                  ? PharmaButtonLoader(color: t.brandBlue)
-                  : const Icon(Icons.add_shopping_cart_rounded),
-              label: const Text('Adicionar'),
-            ),
+      height: compactAction ? t.compactControlHeight : t.controlHeight,
+      width: double.infinity,
+      child: FilledButton(
+        style: PharmaComponentTheme.filled(
+          t,
+          Theme.of(context).colorScheme,
+          compact: compactAction,
+        ),
+        onPressed: canInteract ? onAdd : null,
+        child: isAdding
+            ? PharmaButtonLoader(color: t.brandBlue)
+            : compactAction
+                ? const Text('+')
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_shopping_cart_rounded, size: t.iconSm),
+                      SizedBox(width: s.sm),
+                      const Text('Adicionar'),
+                    ],
+                  ),
+      ),
     );
 
     return EnterpriseListCard(

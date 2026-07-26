@@ -177,7 +177,6 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _nomeController,
             decoration: const InputDecoration(
               labelText: 'Nome *',
-              border: OutlineInputBorder(),
             ),
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Nome obrigatório' : null,
@@ -187,7 +186,6 @@ class _CustomerFormState extends State<CustomerForm> {
             initialValue: _tipo,
             decoration: const InputDecoration(
               labelText: 'Tipo',
-              border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem(value: 'PACIENTE', child: Text('Paciente')),
@@ -204,7 +202,6 @@ class _CustomerFormState extends State<CustomerForm> {
                   controller: _telefoneController,
                   decoration: const InputDecoration(
                     labelText: 'Telefone',
-                    border: OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -214,7 +211,6 @@ class _CustomerFormState extends State<CustomerForm> {
                   controller: _nuitController,
                   decoration: const InputDecoration(
                     labelText: 'NUIT',
-                    border: OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -225,7 +221,6 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _emailController,
             decoration: const InputDecoration(
               labelText: 'Email',
-              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.emailAddress,
           ),
@@ -234,7 +229,6 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _documentoController,
             decoration: const InputDecoration(
               labelText: 'Documento',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.md),
@@ -242,7 +236,6 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _enderecoController,
             decoration: const InputDecoration(
               labelText: 'Endereço',
-              border: OutlineInputBorder(),
             ),
           ),
           SizedBox(height: s.md),
@@ -250,7 +243,6 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _limiteController,
             decoration: const InputDecoration(
               labelText: 'Limite de crédito (MT)',
-              border: OutlineInputBorder(),
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),

@@ -60,10 +60,29 @@ class AppNavSection {
   const AppNavSection({
     required this.title,
     required this.items,
+    this.icon,
   });
 
   final String title;
   final List<AppNavItem> items;
+  final IconData? icon;
+
+  IconData get resolvedIcon => icon ?? navSectionIconForTitle(title);
+}
+
+/// Ícone do grupo (Notion/Linear: só o grupo tem ícone forte).
+IconData navSectionIconForTitle(String title) {
+  return switch (title) {
+    AppNavSections.dashboard => Icons.space_dashboard_outlined,
+    AppNavSections.terminal => Icons.point_of_sale_outlined,
+    AppNavSections.pharmacy => Icons.local_pharmacy_outlined,
+    AppNavSections.finance => Icons.account_balance_wallet_outlined,
+    AppNavSections.regulatory => Icons.verified_user_outlined,
+    AppNavSections.audit => Icons.history_edu_outlined,
+    AppNavSections.administration => Icons.admin_panel_settings_outlined,
+    AppNavSections.system => Icons.settings_outlined,
+    _ => Icons.folder_outlined,
+  };
 }
 
 /// Menu ERP — Dashboard com páginas dedicadas (sem hub de tabs).
@@ -274,26 +293,21 @@ List<AppNavItem> buildFlatNavItems(List<AppNavSection> sections) {
 
 final List<AppNavItem> kAppNavItems = buildFlatNavItems(kAppNavSections);
 
-List<AppNavItem> visibleNavItemsForAccess(SessionAccessState access) {
-  final visible = <AppNavItem>[];
-
+/// Secções filtradas por permissão (hierarquia preservada).
+List<AppNavSection> visibleNavSectionsForAccess(SessionAccessState access) {
+  final sections = <AppNavSection>[];
   for (final group in kAppNavSections) {
     final allowedItems = group.items
         .where((item) => _canAccessNavItem(item, access))
         .toList(growable: false);
-    if (allowedItems.isEmpty) {
-      continue;
-    }
-
-    for (var index = 0; index < allowedItems.length; index++) {
-      final item = allowedItems[index];
-      visible.add(
-        item.copyWith(section: index == 0 ? group.title : null),
-      );
-    }
+    if (allowedItems.isEmpty) continue;
+    sections.add(AppNavSection(title: group.title, items: allowedItems));
   }
+  return sections;
+}
 
-  return visible;
+List<AppNavItem> visibleNavItemsForAccess(SessionAccessState access) {
+  return buildFlatNavItems(visibleNavSectionsForAccess(access));
 }
 
 String? navSectionTitleForPath(String path) {

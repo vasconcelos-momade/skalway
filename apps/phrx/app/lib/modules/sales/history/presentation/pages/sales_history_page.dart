@@ -113,7 +113,6 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
               decoration: const InputDecoration(
                 hintText: 'Nº fatura, cliente ou terminal...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
               ),
             ),
           ),

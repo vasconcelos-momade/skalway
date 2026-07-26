@@ -168,7 +168,6 @@ class _ProformaInvoiceCartItemCardState
                   decoration: const InputDecoration(
                     labelText: 'Qtd.',
                     isDense: true,
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -204,7 +203,6 @@ class _ProformaInvoiceCartItemCardState
                   decoration: const InputDecoration(
                     labelText: 'Preço unit.',
                     isDense: true,
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -224,7 +222,6 @@ class _ProformaInvoiceCartItemCardState
                   decoration: const InputDecoration(
                     labelText: 'Desc. %',
                     isDense: true,
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -260,7 +257,6 @@ class _ProformaInvoiceCartItemCardState
             decoration: const InputDecoration(
               labelText: 'Descrição',
               isDense: true,
-              border: OutlineInputBorder(),
             ),
             maxLines: 2,
             onSubmitted: (value) => _commit(observacao: value.trim()),

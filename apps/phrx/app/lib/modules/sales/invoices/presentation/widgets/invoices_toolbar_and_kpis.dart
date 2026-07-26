@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
+import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
 import '../providers/invoice_list_provider.dart';
 
 class InvoicesToolbarV2 extends ConsumerWidget {
@@ -20,30 +20,15 @@ class InvoicesToolbarV2 extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.pharmaTokens;
     final s = context.spacing;
     final screen = context.pharmaScreen;
     final query = state.query;
     final notifier = ref.read(invoiceListProvider.notifier);
 
-    final searchField = TextField(
+    final searchField = EnterpriseSearchField(
       controller: searchController,
+      hintText: 'Pesquisar nº da fatura, cliente ou terminal',
       onChanged: notifier.onSearchChanged,
-      decoration: InputDecoration(
-        hintText: 'Pesquisar nº da fatura, cliente ou terminal',
-        prefixIcon: const Icon(Icons.search_rounded),
-        filled: true,
-        fillColor: t.card,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        isDense: true,
-      ),
     );
 
     final chips = <Widget>[

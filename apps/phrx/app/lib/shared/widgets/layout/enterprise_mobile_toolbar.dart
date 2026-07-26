@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/design_metrics.dart';
+import '../../../core/theme/component_theme.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/theme/extensions.dart';
 import '../inputs/enterprise_search_field.dart';
 
 /// Barra de ferramentas mobile com pesquisa, filtros, exportação e atualização.
@@ -45,12 +46,10 @@ class EnterpriseMobileToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
-    final compactButtonStyle = OutlinedButton.styleFrom(
-      minimumSize: const Size(0, DesignMetrics.buttonHeight),
-      maximumSize: const Size(double.infinity, DesignMetrics.buttonHeight),
-      padding: EdgeInsets.symmetric(horizontal: s.sm),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.standard,
+    final compactButtonStyle = PharmaComponentTheme.outlined(
+      t,
+      Theme.of(context).colorScheme,
+      compact: true,
     );
     return ColoredBox(
       color: t.bgPrimary,
@@ -116,8 +115,8 @@ class EnterpriseMobileToolbar extends StatelessWidget {
                   SizedBox(width: s.sm),
                 if (hasFilters && onClearFilters != null)
                   SizedBox(
-                    width: DesignMetrics.toolbarHeight,
-                    height: DesignMetrics.toolbarHeight,
+                    width: t.controlHeight,
+                    height: t.controlHeight,
                     child: IconButton(
                       tooltip: 'Limpar filtros',
                       onPressed: enabled ? () => onClearFilters?.call() : null,
@@ -193,41 +192,62 @@ class _EnterpriseDesktopListToolbarState extends State<EnterpriseDesktopListTool
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final hasClear = widget.hasFilters && widget.onClearFilters != null;
+    final hasFiltersRow =
+        widget.filterWidgets.isNotEmpty || hasClear;
+    final hasTrailing = widget.trailingActions.isNotEmpty;
 
+    // Row com filhos de largura intrínseca (search 320 + selects + acções)
+    // rebenta em viewports ~580px (sidebar expandida). Flexible + Wrap
+    // permitem encolher / quebrar linha sem RenderFlex overflow.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IgnorePointer(
-          ignoring: widget.isLoading,
-          child: EnterpriseSearchField(
-            controller: widget.searchController,
-            hintText: widget.searchHint,
-            onChanged: widget.onSearchSubmitted,
+        Flexible(
+          flex: 2,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: IgnorePointer(
+              ignoring: widget.isLoading,
+              child: EnterpriseSearchField(
+                controller: widget.searchController,
+                hintText: widget.searchHint,
+                onChanged: widget.onSearchSubmitted,
+              ),
+            ),
           ),
         ),
-        for (final filter in widget.filterWidgets) ...[
+        if (hasFiltersRow) ...[
           SizedBox(width: s.md),
-          filter,
-        ],
-        if (widget.hasFilters && widget.onClearFilters != null) ...[
-          SizedBox(width: s.sm),
-          TextButton.icon(
-            onPressed: widget.isLoading ? null : widget.onClearFilters,
-            icon: Icon(Icons.filter_alt_off_outlined, size: t.iconSm),
-            label: const Text('Limpar'),
+          Flexible(
+            flex: 3,
+            child: Wrap(
+              spacing: s.md,
+              runSpacing: s.sm,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ...widget.filterWidgets,
+                if (hasClear)
+                  TextButton.icon(
+                    onPressed:
+                        widget.isLoading ? null : widget.onClearFilters,
+                    icon: Icon(
+                      Icons.filter_alt_off_outlined,
+                      size: t.iconSm,
+                    ),
+                    label: const Text('Limpar'),
+                  ),
+              ],
+            ),
           ),
         ],
-        const Spacer(),
-        if (widget.trailingActions.isNotEmpty) ...[
+        if (hasTrailing) ...[
           SizedBox(width: s.md),
-          Align(
-            alignment: Alignment.topRight,
-            child: Wrap(
-              spacing: s.sm,
-              runSpacing: s.sm,
-              alignment: WrapAlignment.end,
-              children: widget.trailingActions,
-            ),
+          Wrap(
+            spacing: s.sm,
+            runSpacing: s.sm,
+            alignment: WrapAlignment.end,
+            children: widget.trailingActions,
           ),
         ],
       ],

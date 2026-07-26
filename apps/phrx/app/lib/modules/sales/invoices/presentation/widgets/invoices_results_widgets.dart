@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
 import '../../../../../shared/widgets/tables/table_typography.dart';
 import '../../domain/entities/invoice_summary.dart';
 import 'invoice_formatters.dart';
@@ -81,24 +82,12 @@ class InvoicesResults extends StatelessWidget {
   }
 
   Widget _buildSearchField(BuildContext context) {
-    final t = context.pharmaTokens;
-    return TextField(
-      controller: searchController,
-      decoration: InputDecoration(
-        hintText: 'Pesquisar nº da fatura, cliente ou terminal',
-        prefixIcon: const Icon(Icons.search_rounded),
-        filled: true,
-        fillColor: t.card,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        isDense: true,
-      ),
+    final controller = searchController;
+    if (controller == null) return const SizedBox.shrink();
+    return EnterpriseSearchField(
+      controller: controller,
+      hintText: 'Pesquisar nº da fatura, cliente ou terminal',
+      onChanged: (_) {},
     );
   }
 }

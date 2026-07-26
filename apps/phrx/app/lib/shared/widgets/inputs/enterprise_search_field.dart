@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../responsive/pharma_screen_layout.dart';
+import '../../../core/theme/design_metrics.dart';
+import 'enterprise_field_decoration.dart';
 
 /// Campo de pesquisa enterprise unificado (tabelas/listagens/toolbars/dialogs).
 ///
@@ -11,18 +12,22 @@ import '../../responsive/pharma_screen_layout.dart';
 /// - Desktop: [DesignMetrics.searchFieldMaxWidthDesktop]
 /// - Tablet: [DesignMetrics.searchFieldMaxWidthTablet]
 /// - Mobile: 100% da largura disponível
+///
+/// Altura: [PharmaTokens.controlHeight] (igual a botões / select / date).
 class EnterpriseSearchField extends StatefulWidget {
   const EnterpriseSearchField({
     super.key,
     required this.hintText,
     required this.controller,
     required this.onChanged,
+    this.onSubmitted,
     this.focusNode,
   });
 
   final String hintText;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
 
   @override
@@ -58,6 +63,7 @@ class _EnterpriseSearchFieldState extends State<EnterpriseSearchField> {
   void _clear() {
     widget.controller.clear();
     widget.onChanged('');
+    widget.onSubmitted?.call('');
   }
 
   double? _maxWidthFor(BuildContext context) {
@@ -72,41 +78,16 @@ class _EnterpriseSearchFieldState extends State<EnterpriseSearchField> {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final inputTheme = theme.inputDecorationTheme;
-
-    final outline = BorderSide(
-      color: scheme.outline.withValues(alpha: isDark ? 0.6 : 0.85),
-    );
 
     final field = TextField(
       controller: widget.controller,
       focusNode: widget.focusNode,
       onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
-      decoration: InputDecoration(
+      decoration: EnterpriseFieldDecoration.of(
+        context,
         labelText: widget.hintText,
-        isDense: true,
-        filled: inputTheme.filled,
-        fillColor: inputTheme.fillColor,
-        contentPadding: inputTheme.contentPadding ?? t.density.inputPadding,
-        constraints: inputTheme.constraints ??
-            BoxConstraints(minHeight: t.minTouchTarget),
-        labelStyle: inputTheme.labelStyle ??
-            theme.textTheme.erpSelectLabel.copyWith(color: t.textSecondary),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          borderSide: outline,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          borderSide: outline,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          borderSide: BorderSide(color: scheme.primary),
-        ),
         prefixIcon: Icon(
           Icons.search_rounded,
           color: t.textMuted,
@@ -129,7 +110,6 @@ class _EnterpriseSearchFieldState extends State<EnterpriseSearchField> {
     final maxWidth = _maxWidthFor(context);
     if (maxWidth == null) return field;
 
-    // Obrigatório em Row/toolbar: TextField não aceita largura infinita.
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: field,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/feedback_theme.dart';
 import '../internal/notification_type.dart';
 
@@ -99,14 +100,15 @@ class _EnterpriseSnackbarState extends State<EnterpriseSnackbar>
         break;
     }
 
+    final t = context.pharmaTokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isDesktop = screenWidth > 600;
 
     final content = Material(
       type: MaterialType.transparency,
       child: Container(
-        constraints: const BoxConstraints(
-          minHeight: 44,
+        constraints: BoxConstraints(
+          minHeight: t.controlHeight,
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(FeedbackStyles.borderRadius),

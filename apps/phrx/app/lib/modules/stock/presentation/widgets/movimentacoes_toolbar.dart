@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
 import '../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../shared/widgets/inputs/enterprise_search_field.dart';
 import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../domain/entities/movimentacao.dart';
 import '../providers/movimentacao_provider.dart';
@@ -26,24 +27,10 @@ class MovimentacoesToolbar extends ConsumerWidget {
     final query = state.query;
     final notifier = ref.read(movimentacaoListProvider.notifier);
 
-    final searchField = TextField(
+    final searchField = EnterpriseSearchField(
       controller: searchController,
+      hintText: 'Pesquisar produto, lote, origem, documento ou utilizador...',
       onChanged: notifier.onSearchChanged,
-      decoration: InputDecoration(
-        hintText: 'Pesquisar produto, lote, origem, documento ou utilizador...',
-        prefixIcon: const Icon(Icons.search_rounded),
-        filled: true,
-        fillColor: t.card,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          borderSide: BorderSide(color: t.border.withValues(alpha: 0.45)),
-        ),
-        isDense: true,
-      ),
     );
 
     final dateChips = <Widget>[
