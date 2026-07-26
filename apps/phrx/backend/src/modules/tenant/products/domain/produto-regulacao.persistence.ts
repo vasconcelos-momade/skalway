@@ -15,8 +15,6 @@ export type ProdutoRegulacaoSource =
   | "seed:anarme"
   | "backfill:legacy";
 
-type ClassificacaoSourceValue = "MANUAL" | "REGRA" | "IMPORTACAO" | "IA";
-
 export type ProdutoRegulacaoPersistenceClient = {
   produtoRegulacao: {
     upsert: (args: {
@@ -25,28 +23,10 @@ export type ProdutoRegulacaoPersistenceClient = {
       update: Record<string, unknown>;
     }) => Promise<unknown>;
   };
-  produtoClassificacaoEvento: {
-    create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
-  };
 };
 
 export function toProdutoRegulacaoTx(tx: unknown): ProdutoRegulacaoPersistenceClient {
   return tx as ProdutoRegulacaoPersistenceClient;
-}
-
-export function mapRegulacaoSourceToClassificacaoSource(
-  source: ProdutoRegulacaoSource,
-): ClassificacaoSourceValue {
-  switch (source) {
-    case "seed:anarme":
-      return "IMPORTACAO";
-    case "api:create":
-    case "api:update":
-      return "MANUAL";
-    case "backfill:legacy":
-    default:
-      return "REGRA";
-  }
 }
 
 export type PrepareProdutoWriteResult = {
@@ -78,7 +58,7 @@ export async function persistProdutoRegulacao(
   tx: ProdutoRegulacaoPersistenceClient,
   produtoId: bigint,
   policy: ResolvedProdutoPolicy,
-  source: ProdutoRegulacaoSource,
+  _source: ProdutoRegulacaoSource,
 ): Promise<void> {
   const regulacaoRow = policyToRegulacaoRow(policy);
 
@@ -90,31 +70,6 @@ export async function persistProdutoRegulacao(
     },
     update: regulacaoRow,
   });
-
-  if (policy.classificacaoRule) {
-    await tx.produtoClassificacaoEvento.create({
-      data: {
-        produtoId,
-        source: mapRegulacaoSourceToClassificacaoSource(source),
-        observacao: policy.classificacaoReason ?? null,
-        snapshot: {
-          rule: policy.classificacaoRule,
-          reason: policy.classificacaoReason,
-          matchedTerm: policy.classificacaoMatchedTerm,
-          tipoDispensacao: policy.tipoDispensacao,
-          policyVersion: policy.policyVersion,
-          resolved: {
-            antimicrobiano: policy.antimicrobiano,
-            requiresPrescription: policy.requiresPrescription,
-            requiresDoubleCheck: policy.requiresDoubleCheck,
-            requiresPsychotropicBook: policy.requiresPsychotropicBook,
-            requiresManualReview: policy.requiresManualReview,
-            riskLevel: policy.riskLevel,
-          },
-        },
-      },
-    });
-  }
 }
 
 export function policyInputFromProdutoRow(

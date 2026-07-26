@@ -1,10 +1,16 @@
 import { z } from "zod";
 
+/** Origens canónicas + legados aceites na API (compatibilidade). */
 export const cashflowOrigemSchema = z.enum([
-  "PAGAMENTO",
+  "FATURA",
+  "SUPRIMENTO",
+  "SANGRIA",
+  "DESPESA",
+  "ESTORNO",
+  "AJUSTE",
   "PEDIDO",
   "COMPRA",
-  "SANGRIA",
+  "PAGAMENTO",
   "REFORCO",
   "OUTRO",
 ]);
@@ -13,6 +19,21 @@ export const cashflowOperationBodySchema = z.object({
   valor: z.coerce.number().positive("Valor deve ser maior que zero"),
   origem: cashflowOrigemSchema,
   descricao: z.string().trim().max(500).optional(),
+  categoria: z
+    .enum([
+      "ENERGIA",
+      "AGUA",
+      "INTERNET",
+      "SALARIO",
+      "TRANSPORTE",
+      "MANUTENCAO",
+      "LIMPEZA",
+      "IMPOSTO",
+      "RENDA",
+      "COMPRA_STOCK",
+      "OUTRO",
+    ])
+    .optional(),
   idempotencyKey: z.string().trim().min(8).max(120).optional(),
 });
 

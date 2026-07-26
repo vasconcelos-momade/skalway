@@ -211,7 +211,6 @@ model Produto {
   proformaInvoiceItems             ProformaInvoiceItem[]
   stockReversals           StockReversal[]
   regulacao                ProdutoRegulacao?
-  classificacaoEventos     ProdutoClassificacaoEvento[]
   inventarioItens          InventarioItem[]
   purchaseSuggestion       PurchaseSuggestion?
   categoria                Categoria               @relation(fields: [categoriaId], references: [id])
@@ -225,11 +224,12 @@ model Produto {
   @@map("produtos")
 }
 
-/// Política regulatória: campos legais essenciais + tipoDispensacao; demais flags derivadas em runtime.
+/// Política regulatória do produto (regras legais; não características comerciais).
 model ProdutoRegulacao {
   produtoId                BigInt          @id @db.UnsignedBigInt
   tipoDispensacao          TipoDispensacao @default(VENDA_LIVRE)
   requiresPrescription     Boolean         @default(false)
+  requiresDoubleCheck      Boolean         @default(false)
   requiresPsychotropicBook Boolean         @default(false)
   policyVersion            Int             @default(1)
   produto                  Produto         @relation(fields: [produtoId], references: [id], onDelete: Cascade)
@@ -237,22 +237,9 @@ model ProdutoRegulacao {
 
   @@index([tipoDispensacao])
   @@index([requiresPrescription])
+  @@index([requiresDoubleCheck])
   @@index([requiresPsychotropicBook])
   @@map("produto_regulacao")
-}
-
-/// Histórico append-only de classificação (auditoria / seed / reclassificação).
-model ProdutoClassificacaoEvento {
-  id         BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
-  produtoId  BigInt              @db.UnsignedBigInt
-  source     ClassificacaoSource
-  observacao String?             @db.Text
-  snapshot   Json?
-  createdAt  DateTime            @default(now())
-  produto    Produto             @relation(fields: [produtoId], references: [id], onDelete: Cascade)
-
-  @@index([produtoId, createdAt])
-  @@map("produto_classificacao_eventos")
 }
 
 model Servico {
@@ -1117,19 +1104,25 @@ enum TipoMovimento {
 }
 
 enum TipoCaixaMovimento {
-  ENTRADA
-  SAIDA
+  VENDA
   SUPRIMENTO
   SANGRIA
+  DESPESA
   ESTORNO
 }
 
+/// Rastreabilidade da origem operacional do movimento de caixa.
 enum OrigemCaixaMovimentacao {
+  FATURA
+  SUPRIMENTO
+  SANGRIA
+  DESPESA
+  ESTORNO
+  AJUSTE
+  /// Legados mapeados na migration (compatibilidade).
   PEDIDO
   COMPRA
-  AJUSTE
   PAGAMENTO
-  SANGRIA
   REFORCO
   OUTRO
 }
@@ -1240,13 +1233,6 @@ enum FinancialMovementType {
   PURCHASE
   ADJUSTMENT
   DEBT_PAYMENT
-}
-
-enum ClassificacaoSource {
-  MANUAL
-  REGRA
-  IMPORTACAO
-  IA
 }
 
 enum TipoRelatorioSanitario {

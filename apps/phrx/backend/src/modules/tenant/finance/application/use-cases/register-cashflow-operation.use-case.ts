@@ -6,7 +6,8 @@ import type {
   CashflowOrigem,
 } from "../dto/cashflow.dto";
 
-type CashflowOperationKind = "SAIDA" | "SUPRIMENTO" | "SANGRIA" | "ESTORNO";
+/** Operações manuais de tesouraria (não incluem VENDA — essa vem do POS). */
+export type CashflowOperationKind = "DESPESA" | "SUPRIMENTO" | "SANGRIA" | "ESTORNO";
 
 type RegisterCashflowOperationInput = CashflowOperationBody & {
   userId: string;
@@ -21,14 +22,29 @@ function resolveFinancialMovementType(
   kind: CashflowOperationKind,
   origem: CashflowOrigem,
 ): "EXPENSE" | "PURCHASE" | "ADJUSTMENT" | "REFUND" {
-  if (kind === "SAIDA" && origem === "COMPRA") return "PURCHASE";
-  if (kind === "SAIDA" || kind === "SANGRIA") return "EXPENSE";
+  if (kind === "DESPESA" && origem === "COMPRA") return "PURCHASE";
+  if (kind === "DESPESA" || kind === "SANGRIA") return "EXPENSE";
   if (kind === "ESTORNO") return "REFUND";
   return "ADJUSTMENT";
 }
 
+/** SUPRIMENTO/ESTORNO (correção) entram; DESPESA/SANGRIA saem. Não é receita. */
 function resolveDirection(kind: CashflowOperationKind): "increment" | "decrement" {
   return kind === "SUPRIMENTO" || kind === "ESTORNO" ? "increment" : "decrement";
+}
+
+function defaultOrigem(kind: CashflowOperationKind, origem: CashflowOrigem): CashflowOrigem {
+  if (origem) return origem;
+  switch (kind) {
+    case "SUPRIMENTO":
+      return "SUPRIMENTO";
+    case "SANGRIA":
+      return "SANGRIA";
+    case "DESPESA":
+      return "DESPESA";
+    case "ESTORNO":
+      return "ESTORNO";
+  }
 }
 
 export class RegisterCashflowOperationUseCase {
@@ -55,6 +71,7 @@ export class RegisterCashflowOperationUseCase {
       );
     }
 
+    const origem = defaultOrigem(input.kind, input.origem);
     const direction = resolveDirection(input.kind);
     const idempotencyKey =
       input.idempotencyKey?.trim() ||
@@ -83,14 +100,15 @@ export class RegisterCashflowOperationUseCase {
 
       const descricao =
         input.descricao?.trim() ||
-        `${input.kind} (${input.origem})`;
+        `${input.kind} (${origem})`;
 
       const movimento = await tx.caixaMovimento.create({
         data: {
           caixaId: sessao.caixaId,
           userId: BigInt(input.userId),
           tipo: input.kind,
-          origem: input.origem,
+          origem,
+          categoria: input.kind === "DESPESA" ? (input.categoria ?? null) : null,
           valor,
           saldoAnterior,
           saldoFinal,
@@ -107,7 +125,7 @@ export class RegisterCashflowOperationUseCase {
         },
       });
 
-      const financialType = resolveFinancialMovementType(input.kind, input.origem);
+      const financialType = resolveFinancialMovementType(input.kind, origem);
       const financialMovement = await tx.financialMovement.create({
         data: {
           userId: BigInt(input.userId),
@@ -148,7 +166,7 @@ export class RegisterCashflowOperationUseCase {
           entityId: movimento.id.toString(),
           after: {
             kind: input.kind,
-            origem: input.origem,
+            origem,
             valor,
             saldoAnterior,
             saldoFinal,
@@ -162,7 +180,7 @@ export class RegisterCashflowOperationUseCase {
         financialMovementId: financialMovement.id.toString(),
         caixaId: sessao.caixaId.toString(),
         kind: input.kind,
-        origem: input.origem,
+        origem,
         valor,
         saldoAnterior,
         saldoAtual: saldoFinal,

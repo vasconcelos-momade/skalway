@@ -205,17 +205,6 @@ export function registerProductRoutes(router: Router, prefix: string): void {
   );
 
   router.get(
-    `${prefix}/tenant/produtos/:productId/historico`,
-    tenantAuthMiddleware(),
-    tenantBranchContextMiddleware(),
-    requirePermission("PRODUTOS", "VIEW"),
-    async (context) => {
-      const { productId } = parseRouteParams(context.params, productIdParamSchema);
-      return produtoController.listHistory(context.req, productId);
-    },
-  );
-
-  router.get(
     `${prefix}/tenant/produtos/:productId/auditoria`,
     tenantAuthMiddleware(),
     tenantBranchContextMiddleware(),

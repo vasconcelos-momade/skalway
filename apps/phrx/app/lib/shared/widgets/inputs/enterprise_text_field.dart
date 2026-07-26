@@ -97,6 +97,8 @@ class EnterpriseTextFormField extends StatelessWidget {
       enableSuggestions: enableSuggestions,
       textCapitalization: textCapitalization,
       autovalidateMode: autovalidateMode,
+      textAlignVertical:
+          _multiline ? TextAlignVertical.top : TextAlignVertical.center,
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,
@@ -179,6 +181,8 @@ class EnterpriseTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       onTap: onTap,
+      textAlignVertical:
+          _multiline ? TextAlignVertical.top : TextAlignVertical.center,
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,

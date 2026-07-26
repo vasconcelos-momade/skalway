@@ -9,6 +9,7 @@ export interface ComplianceRuleResult {
 export class ComplianceEngineService {
   /**
    * Valida regras da ANARME e boas práticas farmacêuticas para uma venda.
+   * Flags legais vêm derivadas de `tipoDispensacao` (API flatten / resolveProdutoPolicy).
    */
   async validateVenda(data: {
     produto: any;
@@ -23,7 +24,7 @@ export class ComplianceEngineService {
       return {
         passed: false,
         message: `O produto ${produto.nomeComercial} exige prescrição médica obrigatória.`,
-        errorCode: "MISSING_PRESCRIPTION"
+        errorCode: "MISSING_PRESCRIPTION",
       };
     }
 
@@ -33,20 +34,11 @@ export class ComplianceEngineService {
       Boolean(produto.requiresDoubleCheck) &&
       !validatorUserId
     ) {
-        return {
-          passed: false,
-          message: `O produto ${produto.nomeComercial} (receita especial) exige validação de um segundo profissional qualificado.`,
-          errorCode: "MISSING_DOUBLE_CHECK"
-        };
-    }
-
-    // 3. Regra: Receita especial deve registar no Livro de Psicotrópicos
-    if (produto.tipoDispensacao === "RECEITA_ESPECIAL" && !produto.requiresPsychotropicBook) {
-        return {
-            passed: false,
-            message: `Configuração inconsistente: Receita especial ${produto.nomeComercial} deve obrigatoriamente registar no Livro de Psicotrópicos.`,
-            errorCode: "INCONSISTENT_CONFIG"
-        };
+      return {
+        passed: false,
+        message: `O produto ${produto.nomeComercial} (receita especial) exige validação de um segundo profissional qualificado.`,
+        errorCode: "MISSING_DOUBLE_CHECK",
+      };
     }
 
     return { passed: true };
@@ -56,31 +48,31 @@ export class ComplianceEngineService {
    * Verifica se um lote está apto para venda comercial.
    */
   async validateLoteDisponibilidade(lote: any): Promise<ComplianceRuleResult> {
-      if (lote.estadoSanitario !== 'VALIDO') {
-          return {
-              passed: false,
-              message: `Lote ${lote.numeroLote} bloqueado sanitariamente: ${lote.estadoSanitario}`,
-              errorCode: "SANITARY_BLOCK"
-          };
-      }
+    if (lote.estadoSanitario !== "VALIDO") {
+      return {
+        passed: false,
+        message: `Lote ${lote.numeroLote} bloqueado sanitariamente: ${lote.estadoSanitario}`,
+        errorCode: "SANITARY_BLOCK",
+      };
+    }
 
-      if (lote.disponibilidade !== 'DISPONIVEL') {
-          return {
-              passed: false,
-              message: `Lote ${lote.numeroLote} indisponível para venda: ${lote.disponibilidade}`,
-              errorCode: "COMMERCIAL_BLOCK"
-          };
-      }
+    if (lote.disponibilidade !== "DISPONIVEL") {
+      return {
+        passed: false,
+        message: `Lote ${lote.numeroLote} indisponível para venda: ${lote.disponibilidade}`,
+        errorCode: "COMMERCIAL_BLOCK",
+      };
+    }
 
-      const hoje = new Date();
-      if (new Date(lote.dataValidade) <= hoje) {
-          return {
-              passed: false,
-              message: `Lote ${lote.numeroLote} expirado.`,
-              errorCode: "EXPIRED_LOT"
-          };
-      }
+    const hoje = new Date();
+    if (new Date(lote.dataValidade) <= hoje) {
+      return {
+        passed: false,
+        message: `Lote ${lote.numeroLote} expirado.`,
+        errorCode: "EXPIRED_LOT",
+      };
+    }
 
-      return { passed: true };
+    return { passed: true };
   }
 }

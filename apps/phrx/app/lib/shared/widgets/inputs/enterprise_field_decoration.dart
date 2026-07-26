@@ -6,11 +6,13 @@ import '../../../core/theme/design_tokens.dart';
 ///
 /// Fonte de verdade: [ThemeData.inputDecorationTheme]
 /// ([PharmaComponentTheme.input]).
-/// - Altura da caixa = [PharmaTokens.controlHeight] (`isDense: false`)
+/// - Altura da caixa = [PharmaTokens.controlHeight] (`isDense: true` +
+///   padding vertical calculado a partir da tipografia)
 /// - Label flutuante ([FloatingLabelBehavior.auto]): dentro quando vazio,
 ///   sobe para a borda ao focar ou preencher.
 ///
-/// Se só [hintText] for passado, promove-o a [labelText].
+/// Se só [hintText] for passado e [floatingLabel] for true, promove-o a
+/// [labelText].
 abstract final class EnterpriseFieldDecoration {
   EnterpriseFieldDecoration._();
 
@@ -25,13 +27,21 @@ abstract final class EnterpriseFieldDecoration {
     Widget? suffixIcon,
     bool enabled = true,
     bool multiline = false,
+    bool floatingLabel = true,
   }) {
     final t = context.pharmaTokens;
     final inputTheme = Theme.of(context).inputDecorationTheme;
     final horizontal = t.density.inputPadding.left;
 
-    final effectiveLabel = labelText ?? hintText;
-    final effectiveHint = labelText != null ? hintText : null;
+    final String? effectiveLabel;
+    final String? effectiveHint;
+    if (floatingLabel) {
+      effectiveLabel = labelText ?? hintText;
+      effectiveHint = labelText != null ? hintText : null;
+    } else {
+      effectiveLabel = labelText;
+      effectiveHint = hintText ?? labelText;
+    }
 
     final decoration = InputDecoration(
       labelText: effectiveLabel,
@@ -42,9 +52,13 @@ abstract final class EnterpriseFieldDecoration {
       enabled: enabled,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      floatingLabelBehavior: FloatingLabelBehavior.auto,
+      floatingLabelBehavior: floatingLabel
+          ? FloatingLabelBehavior.auto
+          : FloatingLabelBehavior.never,
     ).applyDefaults(inputTheme).copyWith(
-          floatingLabelBehavior: FloatingLabelBehavior.auto,
+          floatingLabelBehavior: floatingLabel
+              ? FloatingLabelBehavior.auto
+              : FloatingLabelBehavior.never,
         );
 
     if (!multiline) return decoration;

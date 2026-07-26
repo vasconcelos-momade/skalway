@@ -25,8 +25,6 @@ const livroPsicotropicoInclude = {
           regulacao: {
             select: {
               tipoDispensacao: true,
-              requiresPrescription: true,
-              requiresPsychotropicBook: true,
             },
           },
           categoria: {
@@ -94,8 +92,7 @@ function mapLivroRegulacaoSummary(produto: any) {
   });
   return {
     tipoDispensacao: policy.tipoDispensacao,
-    requiresPsychotropicBook:
-      produto.regulacao.requiresPsychotropicBook ?? policy.requiresPsychotropicBook,
+    requiresPsychotropicBook: policy.requiresPsychotropicBook,
     riskLevel: policy.riskLevel,
   };
 }

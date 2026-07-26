@@ -579,9 +579,7 @@ async function main() {
 
     const {
       dispensacao,
-      requiresPrescription,
       requiresDoubleCheck,
-      requiresPsychotropicBook,
       requiresManualReview,
       audit,
       riskLevel,
@@ -633,9 +631,7 @@ async function main() {
         forma: toNullable(safeForma),
         apresentacao: toNullable(safeApresentacao),
         tipoDispensacao: dispensacao as any,
-        requiresPrescription,
         requiresDoubleCheck,
-        requiresPsychotropicBook,
         requiresManualReview,
         classificacaoRule: truncateField(audit.rule, 100),
         classificacaoReason: audit.reason,

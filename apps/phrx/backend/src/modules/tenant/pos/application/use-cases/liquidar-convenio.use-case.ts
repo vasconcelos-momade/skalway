@@ -97,8 +97,8 @@ export class LiquidarConvenioUseCase {
         data: {
           caixaId: caixa.id,
           userId: BigInt(data.userId),
-          tipo: "ENTRADA",
-          origem: "PAGAMENTO",
+          tipo: "VENDA",
+          origem: "FATURA",
           valor: valorDisponivel,
           saldoAnterior: caixa.saldo_atual,
           saldoFinal: Number(caixa.saldo_atual) + valorDisponivel,

@@ -9,6 +9,7 @@ import {
 export type ProdutoRegulacaoRow = {
   tipoDispensacao: string;
   requiresPrescription?: boolean;
+  requiresDoubleCheck?: boolean;
   requiresPsychotropicBook?: boolean;
   policyVersion?: number;
   updatedAt?: Date;
@@ -133,8 +134,7 @@ export function regulacaoToPolicyInput(
 ): ProdutoPolicyInput {
   return {
     tipoDispensacao: regulacao.tipoDispensacao as ProdutoPolicyInput["tipoDispensacao"],
-    requiresPrescription: regulacao.requiresPrescription,
-    requiresPsychotropicBook: regulacao.requiresPsychotropicBook,
+    requiresDoubleCheck: regulacao.requiresDoubleCheck,
   };
 }
 

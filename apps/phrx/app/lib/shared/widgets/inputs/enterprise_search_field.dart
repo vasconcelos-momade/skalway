@@ -79,31 +79,37 @@ class _EnterpriseSearchFieldState extends State<EnterpriseSearchField> {
     final t = context.pharmaTokens;
     final theme = Theme.of(context);
 
-    final field = TextField(
-      controller: widget.controller,
-      focusNode: widget.focusNode,
-      onChanged: widget.onChanged,
-      onSubmitted: widget.onSubmitted,
-      style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
-      decoration: EnterpriseFieldDecoration.of(
-        context,
-        labelText: widget.hintText,
-        prefixIcon: Icon(
-          Icons.search_rounded,
-          color: t.textMuted,
-          size: t.iconSm,
+    // Toolbar: altura exacta = botões (sem label flutuante que ultrapassa a caixa).
+    final field = SizedBox(
+      height: t.controlHeight,
+      child: TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
+        style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
+        textAlignVertical: TextAlignVertical.center,
+        decoration: EnterpriseFieldDecoration.of(
+          context,
+          hintText: widget.hintText,
+          floatingLabel: false,
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: t.textMuted,
+            size: t.iconSm,
+          ),
+          suffixIcon: widget.controller.text.isNotEmpty
+              ? IconButton(
+                  tooltip: 'Limpar',
+                  icon: Icon(
+                    Icons.clear_rounded,
+                    color: t.textMuted,
+                    size: t.iconSm,
+                  ),
+                  onPressed: _clear,
+                )
+              : null,
         ),
-        suffixIcon: widget.controller.text.isNotEmpty
-            ? IconButton(
-                tooltip: 'Limpar',
-                icon: Icon(
-                  Icons.clear_rounded,
-                  color: t.textMuted,
-                  size: t.iconSm,
-                ),
-                onPressed: _clear,
-              )
-            : null,
       ),
     );
 

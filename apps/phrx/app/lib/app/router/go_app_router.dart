@@ -21,10 +21,9 @@ import '../../modules/dashboard/presentation/pages/stock_dashboard_page.dart';
 import '../../modules/finance/presentation/pages/cashflow_page.dart';
 import '../../modules/finance/presentation/pages/finance_hub_page.dart';
 import '../../modules/pharmacy/presentation/pages/pharmacy_stock_hub_page.dart';
-import '../../modules/pharmacy/presentation/pages/regulatory_hub_page.dart';
+import '../../modules/pharmacy/sanitary/presentation/pages/regulatory_page.dart';
 import '../../modules/pharmacy/prescriptions/presentation/pages/recipes_book_page.dart';
 import '../../modules/pharmacy/psychotropics/presentation/pages/psychotropics_book_page.dart';
-import '../../modules/pharmacy/sanitary/presentation/pages/regulatory_page.dart';
 import '../../modules/pharmacy/products/presentation/pages/products_page.dart';
 import '../../modules/pharmacy/categories/presentation/pages/categories_page.dart';
 import '../../modules/sales/proforma_invoices/presentation/pages/proforma_invoices_page.dart';
@@ -343,7 +342,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutePaths.regulatoryHub,
             name: 'regulatory-hub',
-            builder: (context, state) => const RegulatoryHubPage(),
+            builder: (context, state) => const RegulatoryPage(),
           ),
           GoRoute(
             path: AppRoutePaths.regulatory,

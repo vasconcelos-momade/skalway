@@ -46,7 +46,6 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
   List<Map<String, dynamic>> _lotes = [];
   List<Map<String, dynamic>> _movimentos = [];
   List<Map<String, dynamic>> _precos = [];
-  List<Map<String, dynamic>> _historico = [];
   List<Map<String, dynamic>> _fornecedores = [];
   List<Map<String, dynamic>> _auditoria = [];
 
@@ -54,7 +53,7 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 8, vsync: this);
+    _tabs = TabController(length: 7, vsync: this);
     _load();
   }
 
@@ -80,7 +79,6 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
       final precosRes = await dio.get<Map<String, dynamic>>(
         ApiConstants.tenantProdutoHistoricoPrecos(widget.product.id),
       );
-      final historicoRes = await productsDs.listHistory(id: widget.product.id);
       final fornecedoresRes = await productsDs.listSuppliers(widget.product.id);
       final auditoriaRes = await productsDs.listAudit(id: widget.product.id);
 
@@ -90,7 +88,6 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
         _lotes = _unwrapList(lotesRes.data);
         _movimentos = ApiEnvelope.unwrapMap(movRes.data!).letItems();
         _precos = ApiEnvelope.unwrapMap(precosRes.data!).letItems();
-        _historico = historicoRes.items;
         _fornecedores = fornecedoresRes;
         _auditoria = auditoriaRes.items;
         _loading = false;
@@ -189,7 +186,6 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
               Tab(text: _tabWithCount('Lotes', _lotes.length)),
               Tab(text: _tabWithCount('Movimentos', _movimentos.length)),
               Tab(text: _tabWithCount('Preços', _precos.length)),
-              Tab(text: _tabWithCount('Histórico', _historico.length)),
               Tab(text: _tabWithCount('Fornecedor', _fornecedores.length)),
               Tab(text: _tabWithCount('Auditoria', _auditoria.length)),
             ],
@@ -215,15 +211,6 @@ class _ProdutoDetailPanelState extends ConsumerState<ProdutoDetailPanel>
                     .map(
                       (p) =>
                           '${p['precoAnterior']} → ${p['precoNovo']} (${_formatDate(p['data'])})',
-                    )
-                    .toList(),
-              ),
-              _SimpleListTab(
-                empty: 'Sem histórico regulatório',
-                items: _historico
-                    .map(
-                      (item) =>
-                          '${item['rule'] ?? 'Regra'} • ${item['source'] ?? 'manual'} (${_formatDate(item['createdAt'])})',
                     )
                     .toList(),
               ),

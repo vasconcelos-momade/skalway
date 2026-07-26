@@ -187,7 +187,6 @@ export class FinalizarVendaUseCase {
                   regulacao: {
                     select: {
                       tipoDispensacao: true,
-                      requiresPrescription: true,
                     },
                   },
                   categoria: {
@@ -195,16 +194,8 @@ export class FinalizarVendaUseCase {
                   },
                 },
               })
-            ).filter(
-              (produto: {
-                regulacao?: {
-                  requiresPrescription?: boolean;
-                  tipoDispensacao?: string;
-                } | null;
-                categoria?: { id?: bigint; nome?: string; codigoFNM?: string | null } | null;
-              }) =>
-                produto.regulacao?.requiresPrescription === true ||
-                resolveRegulacaoPolicyForProduto(produto as any).requiresPrescription,
+            ).filter((produto) =>
+              resolveRegulacaoPolicyForProduto(produto as any).requiresPrescription,
             )
           : [];
 
@@ -603,8 +594,8 @@ export class FinalizarVendaUseCase {
             caixaId: caixa.id,
             userId: BigInt(data.userId),
             faturaId: fatura.id,
-            tipo: "ENTRADA",
-            origem: "PAGAMENTO",
+            tipo: "VENDA",
+            origem: "FATURA",
             valor: totalsFatura.total,
             saldoAnterior: caixa.saldoAtual,
             saldoFinal: Number(caixa.saldoAtual) + totalsFatura.total,

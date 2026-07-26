@@ -159,6 +159,7 @@ export function policyToRegulacaoRow(policy: ResolvedProdutoPolicy) {
   return {
     tipoDispensacao: policy.tipoDispensacao,
     requiresPrescription: policy.requiresPrescription,
+    requiresDoubleCheck: policy.requiresDoubleCheck,
     requiresPsychotropicBook: policy.requiresPsychotropicBook,
     policyVersion: policy.policyVersion,
   };

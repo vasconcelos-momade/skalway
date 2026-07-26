@@ -154,28 +154,59 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
         ? null
         : [
             dashboardKpiCard(
-              title: 'Saldo caixa',
-              value: '${dashKpi(kpis, 'saldoAtual')} MZN',
-              icon: Icons.account_balance_wallet,
+              title: 'Saldo inicial',
+              value: '${dashKpi(kpis, 'saldoInicial')} MZN',
+              icon: Icons.playlist_add_check_circle_outlined,
+              accent: StatCardAccent.neutral,
+            ),
+            dashboardKpiCard(
+              title: 'Vendas',
+              value: '${dashKpi(kpis, 'vendas')} MZN',
+              icon: Icons.point_of_sale_outlined,
               accent: StatCardAccent.positive,
             ),
             dashboardKpiCard(
-              title: 'Fluxo caixa',
-              value: '${dashKpi(kpis, 'fluxoCaixa')} MZN',
-              icon: Icons.swap_horiz_outlined,
-              accent: StatCardAccent.info,
-            ),
-            dashboardKpiCard(
-              title: 'Receita',
-              value: '${dashKpi(kpis, 'receita')} MZN',
-              icon: Icons.trending_up,
+              title: 'Suprimentos',
+              value: '${dashKpi(kpis, 'suprimentos')} MZN',
+              icon: Icons.add_circle_outline,
               accent: StatCardAccent.positive,
             ),
             dashboardKpiCard(
               title: 'Despesas',
               value: '${dashKpi(kpis, 'despesas')} MZN',
-              icon: Icons.trending_down,
+              icon: Icons.remove_circle_outline,
               accent: StatCardAccent.warning,
+            ),
+            dashboardKpiCard(
+              title: 'Sangrias',
+              value: '${dashKpi(kpis, 'sangrias')} MZN',
+              icon: Icons.savings_outlined,
+              accent: StatCardAccent.warning,
+            ),
+            dashboardKpiCard(
+              title: 'Estornos',
+              value: '${dashKpi(kpis, 'estornos')} MZN',
+              icon: Icons.settings_backup_restore_outlined,
+              accent: StatCardAccent.info,
+            ),
+            dashboardKpiCard(
+              title: 'Saldo final',
+              value: '${dashKpi(kpis, 'saldoFinal')} MZN',
+              icon: Icons.account_balance_wallet,
+              accent: StatCardAccent.positive,
+            ),
+            dashboardKpiCard(
+              title: 'Faturamento / Receita',
+              value: '${dashKpi(kpis, 'faturamento')} MZN',
+              subtitle: 'Receita: ${dashKpi(kpis, 'receita')} MZN',
+              icon: Icons.trending_up,
+              accent: StatCardAccent.info,
+            ),
+            dashboardKpiCard(
+              title: 'Fluxo de caixa',
+              value: '${dashKpi(kpis, 'fluxoCaixa')} MZN',
+              icon: Icons.sync_alt_outlined,
+              accent: StatCardAccent.info,
             ),
           ];
 
@@ -186,7 +217,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
 
         return EnterpriseModuleHub(
           title: 'Fluxo de caixa',
-          subtitle: 'Tesouraria, movimentos financeiros e evolução do saldo.',
+          subtitle: 'Operação do caixa físico com separação de saldo e faturamento.',
           tag: AppNavSections.finance,
           scrollable: false,
           mobileKpisHorizontalScroll: true,
@@ -196,9 +227,10 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
               ? null
               : [
                   OutlinedButton.icon(
-                    onPressed: () => _openOperation(CashflowOperationKind.saida),
+                    onPressed: () =>
+                        _openOperation(CashflowOperationKind.despesa),
                     icon: const Icon(Icons.remove_circle_outline),
-                    label: const Text('Saída'),
+                    label: const Text('Despesa'),
                   ),
                   OutlinedButton.icon(
                     onPressed: () => _openOperation(CashflowOperationKind.suprimento),

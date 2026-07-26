@@ -16,11 +16,6 @@ abstract class ProductRemoteDataSource {
   Future<Map<String, dynamic>> dashboard();
   Future<ProductModel> getProduct(String id);
   Future<List<Map<String, dynamic>>> listSuppliers(String id);
-  Future<PaginationResponse<Map<String, dynamic>>> listHistory({
-    required String id,
-    int page = 1,
-    int pageSize = 20,
-  });
   Future<PaginationResponse<Map<String, dynamic>>> listAudit({
     required String id,
     int page = 1,
@@ -208,24 +203,6 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       );
       return ApiEnvelope.unwrapList(response.data)
           .cast<Map<String, dynamic>>();
-    } on DioException catch (e) {
-      throw ApiFailure.fromDio(e);
-    }
-  }
-
-  @override
-  Future<PaginationResponse<Map<String, dynamic>>> listHistory({
-    required String id,
-    int page = 1,
-    int pageSize = 20,
-  }) async {
-    try {
-      return await _getRawPage(
-        ApiConstants.tenantProdutoHistorico(id),
-        queryParameters: <String, dynamic>{'page': page, 'pageSize': pageSize},
-        page: page,
-        pageSize: pageSize,
-      );
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }

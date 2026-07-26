@@ -463,36 +463,6 @@ export class ProdutoRepository {
     }));
   }
 
-  async listClassificationHistory(produtoId: bigint, page = 1, pageSize = 20) {
-    const safePage = Math.max(1, page);
-    const safeSize = Math.min(100, Math.max(1, pageSize));
-    const where = { produtoId };
-
-    const [totalCount, rows] = await (this.prisma as any).$transaction([
-      (this.prisma as any).produtoClassificacaoEvento.count({ where }),
-      (this.prisma as any).produtoClassificacaoEvento.findMany({
-        where,
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        skip: (safePage - 1) * safeSize,
-        take: safeSize + 1,
-      }),
-    ]);
-
-    return {
-      items: rows.slice(0, safeSize).map((row: any) => ({
-        id: row.id.toString(),
-        source: row.source,
-        observacao: row.observacao ?? null,
-        snapshot: row.snapshot ?? null,
-        createdAt: row.createdAt.toISOString(),
-      })),
-      page: safePage,
-      pageSize: safeSize,
-      hasMore: rows.length > safeSize,
-      totalCount,
-    };
-  }
-
   async listAuditLogs(produtoId: bigint, page = 1, pageSize = 20) {
     const safePage = Math.max(1, page);
     const safeSize = Math.min(100, Math.max(1, pageSize));

@@ -25,20 +25,15 @@ class RegulatoryPage extends ConsumerStatefulWidget {
   ConsumerState<RegulatoryPage> createState() => _RegulatoryPageState();
 }
 
-class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
   late final TextEditingController _searchController;
   Timer? _refreshTimer;
 
   bool _loadingSanitario = true;
-  bool _loadingReports = true;
   String? _sanitarioError;
-  String? _reportsError;
   Map<String, dynamic>? _dashboard;
   List<Map<String, dynamic>> _items = <Map<String, dynamic>>[];
   List<Map<String, dynamic>> _accumulatedSanitario = <Map<String, dynamic>>[];
-  List<Map<String, dynamic>> _reports = <Map<String, dynamic>>[];
   int _page = 1;
   int _pageSize = PaginationDefaults.pageSize;
   bool _hasMore = false;
@@ -46,11 +41,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
   String _search = '';
   String? _estado;
   String? _alertaTipo;
-  int _reportsPage = 1;
-  int _reportsPageSize = PaginationDefaults.pageSize;
-  bool _reportsHasMore = false;
-  int _reportsTotal = 0;
-  String? _reportTipo;
 
   RegulatoryRemoteDataSource get _ds =>
       ref.read(regulatoryRemoteDataSourceProvider);
@@ -58,27 +48,19 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _searchController = TextEditingController();
-    _bootstrap();
+    _loadSanitario();
     _refreshTimer = Timer.periodic(
       const Duration(seconds: 45),
-      (_) => _tabController.index == 0
-          ? _loadSanitario(silent: true)
-          : _loadReports(silent: true),
+      (_) => _loadSanitario(silent: true),
     );
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _bootstrap() async {
-    await Future.wait([_loadSanitario(), _loadReports()]);
   }
 
   Future<void> _loadSanitario({bool silent = false}) async {
@@ -130,37 +112,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
     }
   }
 
-  Future<void> _loadReports({bool silent = false}) async {
-    if (!silent && mounted) {
-      setState(() {
-        _loadingReports = true;
-        _reportsError = null;
-      });
-    }
-    try {
-      final page = await _ds.listSanitarioReports(
-        tipo: _reportTipo,
-        page: _reportsPage,
-        pageSize: _reportsPageSize,
-      );
-      if (!mounted) return;
-      setState(() {
-        _reports = page.items;
-        _reportsPage = page.page;
-        _reportsPageSize = page.pageSize;
-        _reportsHasMore = page.hasMore;
-        _reportsTotal = page.totalCount ?? _reports.length;
-        _loadingReports = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loadingReports = false;
-        _reportsError = error.toString();
-      });
-    }
-  }
-
   Future<void> _openHistory(String loteId) async {
     await LotActionsHelper.showHistory(context, ref, loteId);
   }
@@ -168,7 +119,7 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
   @override
   Widget build(BuildContext context) {
     final dash = _dashboard?['kpis'] as Map<String, dynamic>?;
-    final kpis = dash == null || _tabController.index == 1
+    final kpis = dash == null
         ? null
         : [
             EnterpriseStatCard(
@@ -210,47 +161,20 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
         return EnterpriseModuleHub(
           title: 'Sanitário / Alertas',
           subtitle:
-              'Validade, recall, quarentena, incineração, stock crítico e relatórios oficiais integrados.',
+              'Validade, recall, quarentena, incineração e stock crítico.',
           tag: 'Regulatório',
           mobileKpisHorizontalScroll: true,
           actions: isMobile
               ? null
               : [
                   IconButton(
-                    onPressed: () => _tabController.index == 0
-                        ? _loadSanitario()
-                        : _loadReports(),
+                    onPressed: _loadSanitario,
                     icon: const Icon(Icons.refresh),
                   ),
                 ],
           kpis: isMobile ? null : kpis,
-          filters: isMobile
-              ? null
-              : (_tabController.index == 0
-                    ? _buildSanitarioFilters()
-                    : _buildReportsFilters()),
-          child: Column(
-            children: [
-              TabBar(
-                controller: _tabController,
-                onTap: (_) => setState(() {}),
-                tabs: const [
-                  Tab(text: 'Alertas & lotes'),
-                  Tab(text: 'Relatórios'),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildSanitarioTab(context, isMobile: isMobile, kpis: kpis),
-                    _buildReportsTab(context, adaptive: !isMobile),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          filters: isMobile ? null : _buildSanitarioFilters(),
+          child: _buildSanitarioBody(context, isMobile: isMobile, kpis: kpis),
         );
       },
     );
@@ -334,50 +258,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
                 _page = 1;
               });
               _loadSanitario();
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReportsFilters() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        SizedBox(
-          width: 280,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _reportTipo,
-            decoration: const InputDecoration(
-              labelText: 'Tipo de relatório',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(
-                value: 'RELATORIO_EXPIRADOS',
-                child: Text('Expirados'),
-              ),
-              DropdownMenuItem(
-                value: 'RELATORIO_QUARENTENA',
-                child: Text('Quarentena'),
-              ),
-              DropdownMenuItem(
-                value: 'RELATORIO_INCINERACAO',
-                child: Text('Incineração'),
-              ),
-              DropdownMenuItem(
-                value: 'MAPA_MENSAL_PSICOTROPICOS',
-                child: Text('Mapa psicotrópicos'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _reportTipo = value;
-                _reportsPage = 1;
-              });
-              _loadReports();
             },
           ),
         ),
@@ -480,7 +360,7 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
     );
   }
 
-  Widget _buildSanitarioTab(
+  Widget _buildSanitarioBody(
     BuildContext context, {
     bool isMobile = false,
     List<EnterpriseStatCard>? kpis,
@@ -628,85 +508,6 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage>
         ),
         Text(
           'Total: $_total lote(s)',
-          style: Theme.of(
-            context,
-          ).textTheme.erpCaption.copyWith(color: t.textMuted),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReportsTab(BuildContext context, {bool adaptive = true}) {
-    final t = context.pharmaTokens;
-    return Column(
-      children: [
-        if (_loadingReports) const LinearProgressIndicator(),
-        if (_reportsError != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Text(
-              _reportsError!,
-              style: Theme.of(
-                context,
-              ).textTheme.erpBody.copyWith(color: t.posDanger),
-            ),
-          ),
-        Expanded(
-          child: _reports.isEmpty && !_loadingReports
-              ? const Center(
-                  child: Text('Sem resultados para os filtros selecionados.'),
-                )
-              : EnterpriseDataTable(
-                  adaptive: adaptive,
-                  showCheckboxColumn: false,
-                  columns: const [
-                    DataColumn(label: Text('TIPO')),
-                    DataColumn(label: Text('PERÍODO')),
-                    DataColumn(label: Text('ARQUIVO')),
-                    DataColumn(label: Text('DATA')),
-                  ],
-                  rowCount: _reports.length,
-                  rowBuilder: (context, index) {
-                    final item = _reports[index];
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(item['tipo']?.toString() ?? '—')),
-                        DataCell(Text(item['periodo']?.toString() ?? '—')),
-                        DataCell(Text(item['arquivoUrl']?.toString() ?? '—')),
-                        DataCell(
-                          Text(
-                            item['createdAt']?.toString().substring(0, 10) ??
-                                '—',
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        MovimentacoesPagination(
-          page: _reportsPage,
-          pageSize: _reportsPageSize,
-          hasMore: _reportsHasMore,
-          isBusy: _loadingReports,
-          totalCount: _reportsTotal,
-          itemsOnPage: _reports.length,
-          itemLabel: 'relatórios',
-          onPageChanged: (nextPage) {
-            setState(() => _reportsPage = nextPage);
-            _loadReports();
-          },
-          onPageSizeChanged: (value) {
-            setState(() {
-              _reportsPageSize = value;
-              _reportsPage = 1;
-            });
-            _loadReports();
-          },
-        ),
-        Text(
-          'Total: $_reportsTotal relatório(s)',
           style: Theme.of(
             context,
           ).textTheme.erpCaption.copyWith(color: t.textMuted),

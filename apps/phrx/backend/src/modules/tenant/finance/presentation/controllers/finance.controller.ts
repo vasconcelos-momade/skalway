@@ -1,6 +1,7 @@
 import { GetCashflowContextUseCase } from "../../application/use-cases/get-cashflow-context.use-case";
 import { ListCashflowMovementsUseCase } from "../../application/use-cases/list-cashflow-movements.use-case";
 import { RegisterCashflowOperationUseCase } from "../../application/use-cases/register-cashflow-operation.use-case";
+import type { CashflowOperationKind } from "../../application/use-cases/register-cashflow-operation.use-case";
 import {
   cashflowMovementsQuerySchema,
   cashflowOperationBodySchema,
@@ -40,8 +41,13 @@ export class FinanceController {
     }
   }
 
+  /** @deprecated Prefer registerDespesa — mantido para compatibilidade de clientes. */
   async registerSaida(req: Request, userId: string) {
-    return this.register(req, userId, "SAIDA");
+    return this.register(req, userId, "DESPESA");
+  }
+
+  async registerDespesa(req: Request, userId: string) {
+    return this.register(req, userId, "DESPESA");
   }
 
   async registerSuprimento(req: Request, userId: string) {
@@ -59,7 +65,7 @@ export class FinanceController {
   private async register(
     req: Request,
     userId: string,
-    kind: "SAIDA" | "SUPRIMENTO" | "SANGRIA" | "ESTORNO",
+    kind: CashflowOperationKind,
   ) {
     try {
       const body = await parseJsonBody(req, cashflowOperationBodySchema);

@@ -87,7 +87,8 @@ class CashflowRemoteDataSourceImpl implements CashflowRemoteDataSource {
 
   String _endpointFor(CashflowOperationKind kind) {
     return switch (kind) {
-      CashflowOperationKind.saida => ApiConstants.tenantFinanceCashflowSaida,
+      CashflowOperationKind.despesa =>
+        ApiConstants.tenantFinanceCashflowDespesa,
       CashflowOperationKind.suprimento =>
         ApiConstants.tenantFinanceCashflowSuprimento,
       CashflowOperationKind.sangria => ApiConstants.tenantFinanceCashflowSangria,

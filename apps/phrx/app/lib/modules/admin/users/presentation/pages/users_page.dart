@@ -238,7 +238,14 @@ class _UsersPageState extends ConsumerState<UsersPage> {
             flex: recentAccess.isEmpty ? 1 : 3,
             child: EnterpriseDataTable(
               columns: [
-                for (final label in ['Nome', 'Email', 'Perfil', 'Estado', 'Registo'])
+                for (final label in [
+                  'Nome',
+                  'Email',
+                  'Perfil',
+                  'Estado',
+                  'Registo',
+                  'Ações',
+                ])
                   DataColumn(
                     label: Text(
                       label.toUpperCase(),
@@ -250,7 +257,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
               rowBuilder: (context, index) {
                 final u = state.items[index];
                 return DataRow(
-                  onSelectChanged: (_) => _openDetails(context, u),
                   cells: [
                     DataCell(Text(
                       u.name,
@@ -274,6 +280,37 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                       _dateFmt.format(u.createdAt),
                       style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
                     )),
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _editUser(context, u),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text('Editar'),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => _toggleActive(context, u),
+                            icon: Icon(
+                              u.active
+                                  ? Icons.person_off_outlined
+                                  : Icons.person_outline,
+                              size: 18,
+                            ),
+                            label: Text(u.active ? 'Desactivar' : 'Activar'),
+                            style: u.active
+                                ? OutlinedButton.styleFrom(
+                                    foregroundColor: t.posDanger,
+                                    side: BorderSide(
+                                      color: t.posDanger.withValues(alpha: 0.5),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },
@@ -362,44 +399,60 @@ class _UsersPageState extends ConsumerState<UsersPage> {
         _ => role,
       };
 
-  Future<void> _openDetails(BuildContext context, TenantUserSummary user) async {
-    Future<void> onEdit() async {
-      final detail = await ref.read(userRepositoryProvider).getUser(user.id);
-      if (!context.mounted) return;
-      final result = await showUserFormDialog(context, user: detail);
-      if (result == null || !context.mounted) return;
-      try {
-        await ref.read(userListProvider.notifier).updateUser(user.id, result.toPayload());
-        if (context.mounted) PharmaFeedback.success(context, 'Utilizador actualizado');
-      } on ApiFailure catch (e) {
-        if (context.mounted) PharmaFeedback.error(context, e.message);
-      }
+  Future<void> _editUser(BuildContext context, TenantUserSummary user) async {
+    final detail = await ref.read(userRepositoryProvider).getUser(user.id);
+    if (!context.mounted) return;
+    final result = await showUserFormDialog(context, user: detail);
+    if (result == null || !context.mounted) return;
+    try {
+      await ref.read(userListProvider.notifier).updateUser(user.id, result.toPayload());
+      if (context.mounted) PharmaFeedback.success(context, 'Utilizador actualizado');
+    } on ApiFailure catch (e) {
+      if (context.mounted) PharmaFeedback.error(context, e.message);
     }
+  }
+
+  Future<bool> _toggleActive(BuildContext context, TenantUserSummary user) async {
+    final detail = await ref.read(userRepositoryProvider).getUser(user.id);
+    if (!context.mounted) return false;
+    final action = detail.active ? 'desactivar' : 'activar';
+    final confirmed = await PharmaFeedback.confirm(
+      context: context,
+      title: '${detail.active ? 'Desactivar' : 'Activar'} utilizador',
+      message: 'Deseja $action «${user.name}»?',
+      confirmText: detail.active ? 'Desactivar' : 'Activar',
+    );
+    if (!context.mounted || confirmed != true) return false;
+    try {
+      await ref.read(userListProvider.notifier).updateUser(
+            user.id,
+            UserFormPayload(
+              name: detail.name,
+              email: detail.email ?? '',
+              role: detail.role,
+              active: !detail.active,
+              version: detail.version,
+            ),
+          );
+      if (context.mounted) {
+        PharmaFeedback.success(
+          context,
+          detail.active ? 'Utilizador desactivado' : 'Utilizador activado',
+        );
+      }
+      return true;
+    } on ApiFailure catch (e) {
+      if (context.mounted) PharmaFeedback.error(context, e.message);
+      return false;
+    }
+  }
+
+  Future<void> _openDetails(BuildContext context, TenantUserSummary user) async {
+    Future<void> onEdit() => _editUser(context, user);
 
     Future<void> onToggleActive() async {
-      final detail = await ref.read(userRepositoryProvider).getUser(user.id);
-      if (!context.mounted) return;
-      try {
-        await ref.read(userListProvider.notifier).updateUser(
-              user.id,
-              UserFormPayload(
-                name: detail.name,
-                email: detail.email ?? '',
-                role: detail.role,
-                active: !detail.active,
-                version: detail.version,
-              ),
-            );
-        if (context.mounted) {
-          PharmaFeedback.success(
-            context,
-            detail.active ? 'Utilizador desactivado' : 'Utilizador activado',
-          );
-          AdaptiveNavigator.close(context);
-        }
-      } on ApiFailure catch (e) {
-        if (context.mounted) PharmaFeedback.error(context, e.message);
-      }
+      final ok = await _toggleActive(context, user);
+      if (ok && context.mounted) AdaptiveNavigator.close(context);
     }
 
     Future<void> onDelete() async {

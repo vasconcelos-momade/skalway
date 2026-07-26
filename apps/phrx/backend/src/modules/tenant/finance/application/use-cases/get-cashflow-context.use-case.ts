@@ -44,11 +44,13 @@ export class GetCashflowContextUseCase {
         localizacao: sessao.caixa.terminal.localizacao,
       },
       origens: [
-        { value: "PAGAMENTO", label: "Pagamento" },
-        { value: "PEDIDO", label: "Pedido" },
-        { value: "COMPRA", label: "Compra" },
+        { value: "FATURA", label: "Fatura" },
+        { value: "SUPRIMENTO", label: "Suprimento" },
         { value: "SANGRIA", label: "Sangria" },
-        { value: "REFORCO", label: "Reforço" },
+        { value: "DESPESA", label: "Despesa" },
+        { value: "ESTORNO", label: "Estorno" },
+        { value: "AJUSTE", label: "Ajuste" },
+        { value: "COMPRA", label: "Compra (legado)" },
         { value: "OUTRO", label: "Outros" },
       ],
     };

@@ -65,9 +65,12 @@ export class FinanceDashboardUseCase {
 
     const [
       receitasMes,
-      saidasMes,
+      vendasMes,
+      despesasMes,
       suprimentosMes,
       sangriasMes,
+      estornosMes,
+      faturasVendaMes,
       contasReceberAgg,
       contasPagarAgg,
       recebimentosPendentes,
@@ -90,7 +93,11 @@ export class FinanceDashboardUseCase {
         _sum: { amount: true },
       }),
       prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "SAIDA" },
+        where: { ...caixaMovimentoPeriod, tipo: "VENDA" },
+        _sum: { valor: true },
+      }),
+      prisma.caixaMovimento.aggregate({
+        where: { ...caixaMovimentoPeriod, tipo: "DESPESA" },
         _sum: { valor: true },
       }),
       prisma.caixaMovimento.aggregate({
@@ -100,6 +107,18 @@ export class FinanceDashboardUseCase {
       prisma.caixaMovimento.aggregate({
         where: { ...caixaMovimentoPeriod, tipo: "SANGRIA" },
         _sum: { valor: true },
+      }),
+      prisma.caixaMovimento.aggregate({
+        where: { ...caixaMovimentoPeriod, tipo: "ESTORNO" },
+        _sum: { valor: true },
+      }),
+      prisma.fatura.aggregate({
+        where: {
+          ...FATURA_VENDA_WHERE,
+          createdAt: { gte: monthStart, lte: monthEnd },
+        },
+        _sum: { total: true, lucroBruto: true },
+        _count: { _all: true },
       }),
       prisma.contaReceber.aggregate({
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
@@ -202,24 +221,46 @@ export class FinanceDashboardUseCase {
       }),
     ]);
 
-    const receita = round2(toNumber(receitasMes._sum.amount));
-    const saidas = round2(toNumber(saidasMes._sum.valor));
+    // Operação de caixa (saldo físico) — SUPRIMENTO NÃO é receita.
+    const vendas = round2(toNumber(vendasMes._sum.valor));
     const suprimentos = round2(toNumber(suprimentosMes._sum.valor));
+    const despesas = round2(toNumber(despesasMes._sum.valor));
     const sangrias = round2(toNumber(sangriasMes._sum.valor));
-    const despesas = saidas;
-    const lucro = round2(receita - saidas - sangrias);
-    const saldoAtual = round2(toNumber(saldoCaixaAgg._sum.saldoTotal));
+    const estornos = round2(toNumber(estornosMes._sum.valor));
+    const saldoFinal = round2(toNumber(saldoCaixaAgg._sum.saldoTotal));
+    const saldoInicial = round2(
+      saldoFinal - vendas - suprimentos + despesas + sangrias + estornos,
+    );
+
+    // Desempenho comercial (separado do saldo de caixa).
+    const receita = round2(toNumber(receitasMes._sum.amount));
+    const faturamento = round2(toNumber(faturasVendaMes._sum.total));
+    const numVendas = Number(faturasVendaMes._count._all ?? 0);
+    const ticketMedio = numVendas > 0 ? round2(faturamento / numVendas) : 0;
+    const lucroBruto = round2(toNumber(faturasVendaMes._sum.lucroBruto));
+    const lucro = round2(receita - despesas - sangrias);
+    const saldoAtual = saldoFinal;
 
     return {
       kpis: {
-        receita,
-        despesas,
-        saidas,
+        // Operação de caixa
+        saldoInicial,
+        vendas,
         suprimentos,
+        despesas,
         sangrias,
-        lucro,
-        fluxoCaixa: lucro,
+        estornos,
+        saldoFinal,
         saldoAtual,
+        // Desempenho comercial (não entra no saldo como receita de suprimento)
+        receita,
+        faturamento,
+        numVendas,
+        ticketMedio,
+        lucroBruto,
+        lucro,
+        fluxoCaixa: round2(vendas + suprimentos - despesas - sangrias - estornos),
+        saidas: despesas,
         contasReceber: round2(toNumber(contasReceberAgg._sum.saldo)),
         contasPagar: round2(toNumber(contasPagarAgg._sum.saldo)),
         recebimentosPendentes,

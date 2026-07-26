@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/report_paths.dart';
+import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../domain/mappers/finance_dashboard_kpis.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/charts/finance_dashboard_charts.dart';
 import '../widgets/dashboard_charts_section.dart';
-import '../widgets/dashboard_kpi_section.dart';
 import '../widgets/dashboard_scaffold.dart';
 import '../widgets/dashboard_widgets.dart';
 
@@ -17,7 +17,7 @@ class FinanceDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return DashboardScaffold(
       title: 'Painel Financeiro',
-      subtitle: 'Visão consolidada de fluxo de caixa, receitas e despesas.',
+      subtitle: 'Visão consolidada da operação de caixa e do desempenho comercial.',
       provider: financeDashboardProvider.call,
       reportPath: ReportPaths.dashboardFinance,
       exportSuccessMessage: 'Exportação do painel financeiro concluída.',
@@ -52,8 +52,22 @@ class FinanceDashboardPage extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DashboardKpiSection(
-              primaryKpis: FinanceDashboardKpis.primary(kpis),
+            Text(
+              'Operação de Caixa',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            EnterpriseKpiGrid(
+              cards: FinanceDashboardKpis.cashOperation(kpis),
+            ),
+            const DashboardSectionGap(),
+            Text(
+              'Desempenho Comercial',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            EnterpriseKpiGrid(
+              cards: FinanceDashboardKpis.commercial(kpis),
             ),
             const DashboardSectionGap(),
             DashboardChartsSection(

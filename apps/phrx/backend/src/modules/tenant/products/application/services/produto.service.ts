@@ -82,14 +82,6 @@ export class ProdutoService {
     return this.repo.listSuppliers(id);
   }
 
-  async listClassificationHistory(id: bigint, page?: number, pageSize?: number) {
-    const produto = await this.repo.findById(id);
-    if (!produto) {
-      throw new Error("Produto não encontrado");
-    }
-    return this.repo.listClassificationHistory(id, page, pageSize);
-  }
-
   async listAuditLogs(id: bigint, page?: number, pageSize?: number) {
     const produto = await this.repo.findById(id);
     if (!produto) {

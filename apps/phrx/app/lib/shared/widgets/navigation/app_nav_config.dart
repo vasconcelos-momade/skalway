@@ -120,7 +120,7 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         permissionModule: 'POS',
       ),
       AppNavItem(
-        label: 'Faturas',
+        label: 'Operacional PDV',
         path: AppRoutePaths.salesInvoices,
         icon: Icons.receipt_long_outlined,
         permissionModule: 'POS',
@@ -136,12 +136,6 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         path: AppRoutePaths.salesCustomers,
         icon: Icons.people_outline,
         permissionModule: 'CLIENTES',
-      ),
-      AppNavItem(
-        label: 'Histórico de Vendas',
-        path: AppRoutePaths.salesHistory,
-        icon: Icons.history,
-        permissionModule: 'RELATORIOS',
       ),
     ],
   ),

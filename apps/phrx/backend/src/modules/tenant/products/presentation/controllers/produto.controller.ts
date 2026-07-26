@@ -92,24 +92,6 @@ export class ProdutoController {
     }
   }
 
-  async listHistory(req: Request, id: string) {
-    try {
-      const url = new URL(req.url);
-      const { page, pageSize } = parseSearchParams(url, z.object({
-        page: z.coerce.number().int().positive().optional(),
-        pageSize: z.coerce.number().int().positive().max(100).optional(),
-      }));
-      const result = await this.service.listClassificationHistory(
-        BigInt(id),
-        page,
-        pageSize,
-      );
-      return Response.json(this.serialize(result));
-    } catch (error: any) {
-      return controllerErrorResponse(error, 404);
-    }
-  }
-
   async listAudit(req: Request, id: string) {
     try {
       const url = new URL(req.url);

@@ -38,10 +38,13 @@ class CashflowMobileCard extends StatelessWidget {
     final descricao = row['descricao']?.toString() ?? '—';
 
     Color? chipColor;
-    if (tipo.toLowerCase() == 'suprimento' || tipo.toLowerCase() == 'entrada') {
+    final tipoNormalizado = tipo.toLowerCase();
+    if (tipoNormalizado == 'suprimento' || tipoNormalizado == 'venda') {
       chipColor = t.posSuccess;
-    } else if (tipo.toLowerCase() == 'saida' || tipo.toLowerCase() == 'sangria' || tipo.toLowerCase() == 'saída') {
+    } else if (tipoNormalizado == 'despesa' || tipoNormalizado == 'sangria') {
       chipColor = t.posWarning;
+    } else if (tipoNormalizado == 'estorno') {
+      chipColor = t.brandBlue;
     } else {
       chipColor = t.brandBlue;
     }

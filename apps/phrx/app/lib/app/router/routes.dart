@@ -143,7 +143,7 @@ abstract final class AppRouteTitles {
       AppRoutePaths.stockPurchases => 'Compras',
       AppRoutePaths.stockPurchaseSuggestions => 'Sugestão de Compra',
       AppRoutePaths.salesCustomers => 'Clientes',
-      AppRoutePaths.salesInvoices => 'Faturas',
+      AppRoutePaths.salesInvoices => 'Operacional PDV',
       AppRoutePaths.salesProformaInvoices => 'Faturas Proforma',
       AppRoutePaths.salesHistory => 'Histórico de Vendas',
       AppRoutePaths.users => 'Utilizadores',

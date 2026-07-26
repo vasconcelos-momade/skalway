@@ -1,26 +1,30 @@
-/// Valores de `origem` alinhados ao enum do backend (`cashflowOrigemSchema`).
+/// Valores de `origem` alinhados ao enum canónico devolvido pelo backend.
 abstract final class CashflowOrigemValues {
   CashflowOrigemValues._();
 
-  static const pagamento = 'PAGAMENTO';
-  static const pedido = 'PEDIDO';
-  static const compra = 'COMPRA';
+  static const fatura = 'FATURA';
+  static const suprimento = 'SUPRIMENTO';
   static const sangria = 'SANGRIA';
-  static const reforco = 'REFORCO';
+  static const despesa = 'DESPESA';
+  static const estorno = 'ESTORNO';
+  static const ajuste = 'AJUSTE';
+  static const compra = 'COMPRA';
   static const outro = 'OUTRO';
 
   static const all = <String>[
-    pagamento,
-    pedido,
-    compra,
+    fatura,
+    suprimento,
     sangria,
-    reforco,
+    despesa,
+    estorno,
+    ajuste,
+    compra,
     outro,
   ];
 }
 
 enum CashflowOperationKind {
-  saida('Saída'),
+  despesa('Despesa'),
   suprimento('Suprimento'),
   sangria('Sangria'),
   estorno('Estorno');
@@ -33,7 +37,10 @@ enum CashflowOperationKind {
     for (final kind in CashflowOperationKind.values) {
       if (kind.label == label) return kind;
     }
-    // Compatibilidade com label legado "Extorno"
+    // Compatibilidade com labels legados ainda visíveis nalguns fluxos.
+    if (label == 'Saída' || label == 'Saida') {
+      return CashflowOperationKind.despesa;
+    }
     if (label == 'Extorno') return CashflowOperationKind.estorno;
     return null;
   }
@@ -172,10 +179,10 @@ class CashflowOperationResponse {
 /// Pré-seleção de UI apenas — a validação final fica no backend.
 String? suggestedOrigemForKind(CashflowOperationKind kind) {
   return switch (kind) {
-    CashflowOperationKind.suprimento => CashflowOrigemValues.reforco,
+    CashflowOperationKind.despesa => CashflowOrigemValues.despesa,
+    CashflowOperationKind.suprimento => CashflowOrigemValues.suprimento,
     CashflowOperationKind.sangria => CashflowOrigemValues.sangria,
-    CashflowOperationKind.estorno => CashflowOrigemValues.outro,
-    CashflowOperationKind.saida => null,
+    CashflowOperationKind.estorno => CashflowOrigemValues.estorno,
   };
 }
 
