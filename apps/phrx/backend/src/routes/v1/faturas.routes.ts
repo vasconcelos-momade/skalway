@@ -6,6 +6,7 @@ import { FaturaDocumentService, isThermalReceiptTipo } from "../../modules/tenan
 import { ReportsController } from "../../modules/tenant/reports";
 import { REPORT_KEYS } from "../../modules/tenant/reports/application/constants/report-keys";
 import { getPrisma } from "../../infrastructure/prisma/tenant-prisma.factory";
+import { FinancialMetricsService } from "../../modules/tenant/finance/application/services/financial-metrics.service";
 import {
   tenantAuthMiddleware,
   tenantBranchContextMiddleware,
@@ -76,34 +77,30 @@ async function handleListFaturas(req: Request) {
 async function handleDashboard() {
   try {
     const prisma = getPrisma() as any;
+    const metricsService = new FinancialMetricsService(prisma);
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
 
     const baseWhere = { deletedAt: null };
 
     const [totalMes, totalHoje, pagas, pendentes, anuladas, receitaMes] =
       await Promise.all([
         prisma.fatura.count({
-          where: { ...baseWhere, createdAt: { gte: startOfMonth } },
+          where: { ...baseWhere, createdAt: { gte: monthStart } },
         }),
         prisma.fatura.count({
-          where: { ...baseWhere, createdAt: { gte: startOfDay } },
+          where: { ...baseWhere, createdAt: { gte: todayStart } },
         }),
         prisma.fatura.count({ where: { ...baseWhere, estado: "PAGA" } }),
         prisma.fatura.count({
           where: { ...baseWhere, estado: { in: ["EMITIDA", "PARCIAL"] } },
         }),
         prisma.fatura.count({ where: { ...baseWhere, estado: "ANULADA" } }),
-        prisma.fatura.aggregate({
-          where: {
-            ...baseWhere,
-            estado: { in: ["PAGA", "PARCIAL"] },
-            createdAt: { gte: startOfMonth },
-          },
-          _sum: { total: true },
-        }),
+        metricsService.calculateRevenue({ from: monthStart, to: now }),
       ]);
 
     return success(
@@ -113,7 +110,7 @@ async function handleDashboard() {
         pagas,
         pendentes,
         anuladas,
-        receitaMes: toNumber(receitaMes._sum.total),
+        receitaMes,
       }),
     );
   } catch (error: any) {
@@ -129,36 +126,33 @@ async function handleSalesHistoryDashboard(req: Request) {
       dateTo: z.string().trim().min(1).optional(),
     }));
     const { from, to } = parseDateRange(params.dateFrom, params.dateTo);
+    const rangeEnd = to ?? new Date();
+    const rangeStart =
+      from ?? new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), 1);
 
     const prisma = getPrisma() as any;
-    const where: any = {
+    const metricsService = new FinancialMetricsService(prisma);
+    const metrics = await metricsService.calculateDreMetrics({
+      from: rangeStart,
+      to: rangeEnd,
+    });
+
+    const faturaWhere = {
       deletedAt: null,
       estado: { in: ["PAGA", "PARCIAL", "EMITIDA"] },
-      ...(from || to
-        ? {
-            createdAt: {
-              ...(from ? { gte: from } : {}),
-              ...(to ? { lte: to } : {}),
-            },
-          }
-        : {}),
+      createdAt: { gte: rangeStart, lte: rangeEnd },
     };
 
-    const [totalVendas, receitaTotal, ticketMedio, topProdutos] = await Promise.all([
-      prisma.fatura.count({ where }),
-      prisma.fatura.aggregate({ where, _sum: { total: true } }),
-      prisma.fatura.aggregate({ where, _avg: { total: true } }),
-      prisma.faturaItem.groupBy({
-        by: ["produtoId"],
-        where: {
-          fatura: where,
-          produtoId: { not: null },
-        },
-        _sum: { quantidade: true, total: true },
-        orderBy: { _sum: { total: "desc" } },
-        take: 5,
-      }),
-    ]);
+    const topProdutos = await prisma.faturaItem.groupBy({
+      by: ["produtoId"],
+      where: {
+        fatura: faturaWhere,
+        produtoId: { not: null },
+      },
+      _sum: { quantidade: true, total: true },
+      orderBy: { _sum: { total: "desc" } },
+      take: 5,
+    });
 
     const produtoIds = topProdutos
       .map((p: any) => p.produtoId)
@@ -173,9 +167,9 @@ async function handleSalesHistoryDashboard(req: Request) {
 
     return success(
       serialize({
-        totalVendas,
-        receitaTotal: toNumber(receitaTotal._sum.total),
-        ticketMedio: toNumber(ticketMedio._avg.total),
+        totalVendas: metrics.numVendas,
+        receitaTotal: metrics.receita,
+        ticketMedio: metrics.ticketMedio,
         topProdutos: topProdutos.map((p: any) => ({
           produtoId: p.produtoId?.toString() ?? null,
           nome: produtoMap.get(p.produtoId?.toString()) ?? "—",

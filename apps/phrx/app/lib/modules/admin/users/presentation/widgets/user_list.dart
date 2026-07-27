@@ -15,6 +15,7 @@ class UserList extends StatefulWidget {
     required this.isLoading,
     required this.onLoadMore,
     required this.onItemTap,
+    required this.onItemAction,
   });
 
   final List<TenantUserSummary> items;
@@ -22,6 +23,7 @@ class UserList extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onLoadMore;
   final void Function(TenantUserSummary) onItemTap;
+  final void Function(TenantUserSummary, String) onItemAction;
 
   @override
   State<UserList> createState() => _UserListState();
@@ -100,6 +102,7 @@ class _UserListState extends State<UserList> {
         return UserCard(
           user: user,
           onTap: () => widget.onItemTap(user),
+          onAction: (action) => widget.onItemAction(user, action),
         );
       },
     );

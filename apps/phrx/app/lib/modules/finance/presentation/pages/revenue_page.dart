@@ -14,14 +14,15 @@ import '../../../dashboard/presentation/widgets/dashboard_widgets.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../widgets/finance_report_exports.dart';
 
-class ExpensesPage extends ConsumerStatefulWidget {
-  const ExpensesPage({super.key});
+/// Receita / Faturamento — apenas vendas realizadas (não saldo físico de caixa).
+class RevenuePage extends ConsumerStatefulWidget {
+  const RevenuePage({super.key});
 
   @override
-  ConsumerState<ExpensesPage> createState() => _ExpensesPageState();
+  ConsumerState<RevenuePage> createState() => _RevenuePageState();
 }
 
-class _ExpensesPageState extends ConsumerState<ExpensesPage> {
+class _RevenuePageState extends ConsumerState<RevenuePage> {
   var _query = const DashboardQuery();
 
   @override
@@ -32,8 +33,8 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     final kpis = dashMap(async.valueOrNull?['kpis']);
 
     return EnterpriseModuleHub(
-      title: 'Despesas',
-      subtitle: 'Movimentos de despesa, compras e reembolsos.',
+      title: 'Receita / Faturamento',
+      subtitle: 'Apenas vendas realizadas — separado do saldo físico de caixa.',
       tag: AppNavSections.finance,
       scrollable: true,
       mobileKpisHorizontalScroll: true,
@@ -41,7 +42,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
         ...financeReportActions(
           ref: ref,
           enabled: !reportState.isSubmitting,
-          path: ReportPaths.financeExpenses,
+          path: ReportPaths.dashboardFinance,
           queryParameters: _query.toParams(),
         ),
         OutlinedButton.icon(
@@ -58,27 +59,28 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
           ? null
           : [
               dashboardKpiCard(
-                title: 'Despesas',
-                value: '${dashKpi(kpis, 'despesas')} MZN',
-                icon: Icons.trending_down,
-                accent: StatCardAccent.warning,
+                title: 'Receita / Faturamento',
+                value: '${dashKpi(kpis, 'faturamento')} MZN',
+                icon: Icons.trending_up,
+                accent: StatCardAccent.positive,
               ),
               dashboardKpiCard(
-                title: 'A pagar',
-                value: '${dashKpi(kpis, 'contasPagar')} MZN',
-                icon: Icons.call_made,
-                accent: StatCardAccent.warning,
+                title: 'Nº de vendas',
+                value: dashKpi(kpis, 'numVendas'),
+                icon: Icons.receipt_long_outlined,
+                accent: StatCardAccent.neutral,
               ),
               dashboardKpiCard(
-                title: 'Pag. pendentes',
-                value: dashKpi(kpis, 'pagamentosPendentes'),
-                icon: Icons.pending_outlined,
-              ),
-              dashboardKpiCard(
-                title: 'Lucro líquido',
-                value: '${dashKpi(kpis, 'lucroLiquido')} MZN',
-                icon: Icons.percent,
+                title: 'Ticket médio',
+                value: '${dashKpi(kpis, 'ticketMedio')} MZN',
+                icon: Icons.confirmation_number_outlined,
                 accent: StatCardAccent.info,
+              ),
+              dashboardKpiCard(
+                title: 'Lucro bruto',
+                value: '${dashKpi(kpis, 'lucroBruto')} MZN',
+                icon: Icons.stacked_line_chart,
+                accent: StatCardAccent.positive,
               ),
             ],
       child: dashboardAsyncBody(
@@ -88,12 +90,12 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DashboardPaginatedTable(
-              title: 'Despesas',
+              title: 'Vendas realizadas',
               headers: const ['Data', 'Tipo', 'Referência', 'Valor (MZN)'],
-              reloadKey: '${_query.reloadKey}-despesas',
+              reloadKey: '${_query.reloadKey}-receitas',
               loadPage: (page, pageSize, sortBy, sortDir) async {
                 final result = await dataSource.financeDashboardTable(
-                  table: 'ultimasDespesas',
+                  table: 'ultimasReceitas',
                   query: _query.copyWith(
                     sortBy: sortBy,
                     sortDir: sortDir,

@@ -18,13 +18,19 @@ function round2(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+/**
+ * Ledger financeiro (DRE) separado do saldo físico:
+ * - DESPESA → EXPENSE (ou PURCHASE se origem COMPRA)
+ * - SANGRIA → ADJUSTMENT (sai do caixa, NÃO é despesa)
+ * - SUPRIMENTO → ADJUSTMENT (entra no caixa, NÃO é receita)
+ * - ESTORNO → ADJUSTMENT (ajusta saldo, NÃO é receita)
+ */
 function resolveFinancialMovementType(
   kind: CashflowOperationKind,
   origem: CashflowOrigem,
-): "EXPENSE" | "PURCHASE" | "ADJUSTMENT" | "REFUND" {
+): "EXPENSE" | "PURCHASE" | "ADJUSTMENT" {
   if (kind === "DESPESA" && origem === "COMPRA") return "PURCHASE";
-  if (kind === "DESPESA" || kind === "SANGRIA") return "EXPENSE";
-  if (kind === "ESTORNO") return "REFUND";
+  if (kind === "DESPESA") return "EXPENSE";
   return "ADJUSTMENT";
 }
 
@@ -33,7 +39,10 @@ function resolveDirection(kind: CashflowOperationKind): "increment" | "decrement
   return kind === "SUPRIMENTO" || kind === "ESTORNO" ? "increment" : "decrement";
 }
 
-function defaultOrigem(kind: CashflowOperationKind, origem: CashflowOrigem): CashflowOrigem {
+function defaultOrigem(
+  kind: CashflowOperationKind,
+  origem?: CashflowOrigem | null,
+): CashflowOrigem {
   if (origem) return origem;
   switch (kind) {
     case "SUPRIMENTO":

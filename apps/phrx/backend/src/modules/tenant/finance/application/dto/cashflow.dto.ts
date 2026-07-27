@@ -17,7 +17,8 @@ export const cashflowOrigemSchema = z.enum([
 
 export const cashflowOperationBodySchema = z.object({
   valor: z.coerce.number().positive("Valor deve ser maior que zero"),
-  origem: cashflowOrigemSchema,
+  /** Opcional: o use-case aplica origem canónica por tipo se omitido. */
+  origem: cashflowOrigemSchema.optional(),
   descricao: z.string().trim().max(500).optional(),
   categoria: z
     .enum([

@@ -8,28 +8,21 @@ abstract final class PharmacyDashboardTables {
     DashboardTableDefinition(
       title: 'Produtos críticos',
       tableKey: 'produtosCriticos',
-      headers: ['Produto', 'Disponível', 'Mínimo'],
+      headers: ['Produto', 'Stock', 'Mínimo', 'Validade'],
       reloadKeySuffix: 'criticos',
       rowBuilder: _produtoCriticoRow,
     ),
     DashboardTableDefinition(
-      title: 'Últimas entradas',
-      tableKey: 'ultimasEntradas',
-      headers: ['Produto', 'Lote', 'Qtd', 'Origem'],
-      reloadKeySuffix: 'entradas',
-      rowBuilder: _entradaRow,
-    ),
-    DashboardTableDefinition(
       title: 'Últimas dispensações',
       tableKey: 'ultimasDispensacoes',
-      headers: ['Produto', 'Lote', 'Qtd', 'Tipo'],
+      headers: ['Produto', 'Lote', 'Qtd', 'Tipo', 'Data'],
       reloadKeySuffix: 'dispensacoes',
       rowBuilder: _dispensacaoRow,
     ),
     DashboardTableDefinition(
       title: 'Últimos alertas',
       tableKey: 'ultimosAlertas',
-      headers: ['Produto', 'Tipo', 'Mensagem'],
+      headers: ['Produto', 'Tipo', 'Mensagem', 'Data'],
       reloadKeySuffix: 'alertas',
       rowBuilder: _alertaRow,
     ),
@@ -39,13 +32,7 @@ abstract final class PharmacyDashboardTables {
         DashboardDataUtils.text(row['nome']),
         DashboardDataUtils.text(row['disponivel']),
         DashboardDataUtils.text(row['minimo']),
-      ];
-
-  static List<String> _entradaRow(Map<String, dynamic> row) => [
-        DashboardDataUtils.productName(row),
-        DashboardDataUtils.text(row['numeroLote']),
-        DashboardDataUtils.text(row['quantidade']),
-        DashboardDataUtils.text(row['origem']),
+        DashboardDataUtils.label(row['validade']),
       ];
 
   static List<String> _dispensacaoRow(Map<String, dynamic> row) => [
@@ -53,11 +40,13 @@ abstract final class PharmacyDashboardTables {
         DashboardDataUtils.text(row['numeroLote']),
         DashboardDataUtils.text(row['quantidade']),
         DashboardDataUtils.text(row['tipoDispensacao']),
+        DashboardDataUtils.label(row['createdAt']),
       ];
 
   static List<String> _alertaRow(Map<String, dynamic> row) => [
         DashboardDataUtils.productName(row),
         DashboardDataUtils.text(row['tipo']),
         DashboardDataUtils.text(row['mensagem']),
+        DashboardDataUtils.label(row['createdAt']),
       ];
 }

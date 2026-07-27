@@ -65,7 +65,7 @@ class EnterpriseListCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: s.lg, vertical: s.sm),
+          padding: EdgeInsets.symmetric(horizontal: s.md, vertical: s.sm),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/spacing.dart';
-import '../../../../shared/responsive/pharma_screen_layout.dart';
-import '../providers/dashboard_providers.dart';
-import '../../domain/dashboard_query.dart';
-import 'dashboard_widgets.dart';
+import '../../../core/theme/spacing.dart';
+import '../../responsive/pharma_screen_layout.dart';
+import '../../../modules/dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../modules/dashboard/domain/dashboard_query.dart';
+import '../../../modules/dashboard/presentation/widgets/dashboard_widgets.dart';
 
 typedef DashboardQueryChanged = void Function(DashboardQuery query);
 
-class DashboardPeriodFilters extends ConsumerStatefulWidget {
-  const DashboardPeriodFilters({
+class EnterpriseFilterBar extends ConsumerStatefulWidget {
+  const EnterpriseFilterBar({
     super.key,
     required this.query,
     required this.onChanged,
@@ -34,10 +34,10 @@ class DashboardPeriodFilters extends ConsumerStatefulWidget {
   final List<Widget>? actions;
 
   @override
-  ConsumerState<DashboardPeriodFilters> createState() => _DashboardPeriodFiltersState();
+  ConsumerState<EnterpriseFilterBar> createState() => _EnterpriseFilterBarState();
 }
 
-class _DashboardPeriodFiltersState extends ConsumerState<DashboardPeriodFilters> {
+class _EnterpriseFilterBarState extends ConsumerState<EnterpriseFilterBar> {
   DashboardQuery get query => widget.query;
   DashboardQueryChanged get onChanged => widget.onChanged;
 

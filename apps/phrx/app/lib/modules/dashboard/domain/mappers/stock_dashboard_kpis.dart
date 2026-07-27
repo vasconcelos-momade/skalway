@@ -1,38 +1,38 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
+import '../../../../shared/widgets/dashboard/enterprise_kpi_card.dart';
 import '../utils/dashboard_data_utils.dart';
 
 abstract final class StockDashboardKpis {
   StockDashboardKpis._();
 
-  static List<EnterpriseStatCard> primary(Map<String, dynamic>? kpis) {
+  static List<EnterpriseKpiCard> primary(Map<String, dynamic>? kpis) {
     if (kpis == null) return const [];
     return [
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Stock disponível',
         value: DashboardDataUtils.kpi(kpis, 'stockDisponivel'),
         icon: Icons.inventory_2_outlined,
-        accent: StatCardAccent.positive,
+        trend: EnterpriseKpiTrend.positive,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Valor stock',
         value: '${DashboardDataUtils.kpi(kpis, 'valorTotalStock')} MZN',
         icon: Icons.payments_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Críticos',
         value: DashboardDataUtils.kpi(kpis, 'produtosCriticos'),
         icon: Icons.warning_amber_outlined,
-        accent: StatCardAccent.danger,
+        trend: EnterpriseKpiTrend.negative,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Sem stock',
         value: DashboardDataUtils.kpi(kpis, 'produtosSemStock'),
         icon: Icons.remove_shopping_cart_outlined,
-        accent: StatCardAccent.warning,
+        trend: EnterpriseKpiTrend.negative,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Lotes activos',
         value: DashboardDataUtils.kpi(kpis, 'lotesAtivos'),
         icon: Icons.layers_outlined,
@@ -40,45 +40,45 @@ abstract final class StockDashboardKpis {
     ];
   }
 
-  static List<EnterpriseStatCard> secondary(Map<String, dynamic>? kpis) {
+  static List<EnterpriseKpiCard> secondary(Map<String, dynamic>? kpis) {
     if (kpis == null) return const [];
     return [
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Stock total',
         value: DashboardDataUtils.kpi(kpis, 'stockTotal'),
         icon: Icons.inventory_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Reservado',
         value: DashboardDataUtils.kpi(kpis, 'stockReservado'),
         icon: Icons.lock_clock_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Inventários',
         value: DashboardDataUtils.kpi(kpis, 'inventariosAbertos'),
         icon: Icons.fact_check_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Sugestões compra',
         value: DashboardDataUtils.kpi(kpis, 'sugestoesCompra'),
         icon: Icons.shopping_cart_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Incinerações',
         value: DashboardDataUtils.kpi(kpis, 'incineracoes'),
         icon: Icons.delete_sweep_outlined,
-        accent: StatCardAccent.warning,
+        trend: EnterpriseKpiTrend.negative,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Ajustes stock',
         value: DashboardDataUtils.kpi(kpis, 'ajustesStock'),
         icon: Icons.tune_outlined,
       ),
-      dashboardKpiCard(
+      EnterpriseKpiCard(
         title: 'Alertas operac.',
         value: DashboardDataUtils.kpi(kpis, 'alertasOperacionais'),
         icon: Icons.crisis_alert_outlined,
-        accent: StatCardAccent.danger,
+        trend: EnterpriseKpiTrend.negative,
       ),
     ];
   }

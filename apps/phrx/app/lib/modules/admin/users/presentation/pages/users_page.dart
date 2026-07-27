@@ -281,32 +281,69 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                       style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
                     )),
                     DataCell(
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () => _editUser(context, u),
-                            icon: const Icon(Icons.edit_outlined, size: 18),
-                            label: const Text('Editar'),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: () => _toggleActive(context, u),
-                            icon: Icon(
-                              u.active
-                                  ? Icons.person_off_outlined
-                                  : Icons.person_outline,
-                              size: 18,
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert, color: t.textMuted, size: t.iconSm),
+                        tooltip: 'Ações',
+                        onSelected: (value) {
+                          if (value == 'details') {
+                            _openDetails(context, u);
+                          } else if (value == 'edit') {
+                            _editUser(context, u);
+                          } else if (value == 'toggle') {
+                            _toggleActive(context, u);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'details',
+                            child: Row(
+                              children: [
+                                Icon(Icons.visibility_outlined, size: t.iconSm, color: t.textPrimary),
+                                SizedBox(width: s.sm),
+                                Text(
+                                  'Detalhes',
+                                  style: Theme.of(context).textTheme.erpBody.copyWith(
+                                    color: t.textPrimary,
+                                  ),
+                                ),
+                              ],
                             ),
-                            label: Text(u.active ? 'Desactivar' : 'Activar'),
-                            style: u.active
-                                ? OutlinedButton.styleFrom(
-                                    foregroundColor: t.posDanger,
-                                    side: BorderSide(
-                                      color: t.posDanger.withValues(alpha: 0.5),
-                                    ),
-                                  )
-                                : null,
+                          ),
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined, size: t.iconSm, color: t.textPrimary),
+                                SizedBox(width: s.sm),
+                                Text(
+                                  'Editar',
+                                  style: Theme.of(context).textTheme.erpBody.copyWith(
+                                    color: t.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'toggle',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  u.active
+                                      ? Icons.person_off_outlined
+                                      : Icons.person_outline,
+                                  size: t.iconSm,
+                                  color: u.active ? t.posDanger : t.textPrimary,
+                                ),
+                                SizedBox(width: s.sm),
+                                Text(
+                                  u.active ? 'Desactivar' : 'Activar',
+                                  style: Theme.of(context).textTheme.erpBody.copyWith(
+                                    color: u.active ? t.posDanger : t.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -384,6 +421,15 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   isLoading: state.isBusy,
                   onLoadMore: () => notifier.goToPage(state.query.page + 1),
                   onItemTap: (u) => _openDetails(context, u),
+                  onItemAction: (u, action) {
+                    if (action == 'details') {
+                      _openDetails(context, u);
+                    } else if (action == 'edit') {
+                      _editUser(context, u);
+                    } else if (action == 'toggle') {
+                      _toggleActive(context, u);
+                    }
+                  },
                 ),
         ),
       ],

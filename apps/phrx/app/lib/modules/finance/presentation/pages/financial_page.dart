@@ -11,9 +11,10 @@ import '../../../dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/presentation/widgets/dashboard_kpi_section.dart';
-import '../../../dashboard/presentation/widgets/dashboard_period_filters.dart';
+import '../../../../shared/widgets/dashboard/enterprise_filter_bar.dart';
 import '../../../dashboard/presentation/widgets/dashboard_widgets.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
+import '../../domain/finance_metrics_keys.dart';
 import '../widgets/finance_report_exports.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
@@ -52,53 +53,71 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
           label: const Text('Atualizar'),
         ),
       ],
-      filters: DashboardPeriodFilters(
+      filters: EnterpriseFilterBar(
         query: _query,
         onChanged: (query) => setState(() => _query = query),
       ),
       child: dashboardAsyncBody(
         async: async,
         onRetry: () => ref.invalidate(financeDashboardProvider(_query)),
-        loadingKpiCount: 6,
+        loadingKpiCount: 7,
         builder: (_) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (kpis != null) ...[
               DashboardKpiSection(
-                primaryKpis: [
+                kpis: [
                   dashboardKpiCard(
                     title: 'Receita',
-                    value: '${dashKpi(kpis, 'receita')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.receita)} MZN',
                     icon: Icons.trending_up,
                     accent: StatCardAccent.positive,
                   ),
                   dashboardKpiCard(
                     title: 'CMV',
-                    value: '${dashKpi(kpis, 'custos')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.custos)} MZN',
                     icon: Icons.inventory_2_outlined,
                     accent: StatCardAccent.warning,
                   ),
                   dashboardKpiCard(
                     title: 'Lucro bruto',
-                    value: '${dashKpi(kpis, 'lucroBruto')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.lucroBruto)} MZN',
                     icon: Icons.stacked_line_chart,
                     accent: StatCardAccent.positive,
                   ),
                   dashboardKpiCard(
                     title: 'Despesas',
-                    value: '${dashKpi(kpis, 'despesas')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.despesas)} MZN',
                     icon: Icons.trending_down,
                     accent: StatCardAccent.warning,
                   ),
                   dashboardKpiCard(
                     title: 'Lucro líquido',
-                    value: '${dashKpi(kpis, 'lucroLiquido')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.lucroLiquido)} MZN',
                     icon: Icons.percent,
                     accent: StatCardAccent.positive,
                   ),
                   dashboardKpiCard(
+                    title: 'Margem',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.margem)} %',
+                    icon: Icons.donut_large_outlined,
+                    accent: StatCardAccent.info,
+                  ),
+                  dashboardKpiCard(
+                    title: 'Nº de vendas',
+                    value: dashKpi(kpis, FinanceMetricsKeys.numVendas),
+                    icon: Icons.receipt_long_outlined,
+                    accent: StatCardAccent.neutral,
+                  ),
+                  dashboardKpiCard(
+                    title: 'Ticket médio',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.ticketMedio)} MZN',
+                    icon: Icons.confirmation_number_outlined,
+                    accent: StatCardAccent.info,
+                  ),
+                  dashboardKpiCard(
                     title: 'Saldo caixa',
-                    value: '${dashKpi(kpis, 'saldoAtual')} MZN',
+                    value: '${dashKpi(kpis, FinanceMetricsKeys.saldoAtual)} MZN',
                     icon: Icons.account_balance_wallet,
                     accent: StatCardAccent.info,
                   ),

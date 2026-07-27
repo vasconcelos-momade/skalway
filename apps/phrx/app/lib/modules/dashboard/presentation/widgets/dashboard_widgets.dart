@@ -7,13 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/contracts/pagination_response.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
-import '../../../../core/theme/pharma_surface.dart';
 import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/table_typography.dart';
-import '../../../reports/presentation/controllers/report_controller.dart';
+import '../../../../shared/widgets/dashboard/enterprise_chart_card.dart';
 import '../../../stock/presentation/widgets/movimentacoes_pagination.dart';
-import '../../domain/dashboard_query.dart';
 import '../../domain/models/dashboard_filter_option.dart';
 import '../../domain/models/dashboard_paged_table_result.dart';
 import '../../domain/utils/dashboard_data_utils.dart';
@@ -310,23 +308,16 @@ Widget dashboardChartCard({
   required String title,
   required Widget child,
 }) {
-  final t = context.pharmaTokens;
-  return PharmaSurface(
-    padding: t.density.cardPadding,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          title.toUpperCase(),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.erpOverline.copyWith(
-                color: t.textMuted,
-              ),
-        ),
-        SizedBox(height: t.density.md),
-        Expanded(child: child),
-      ],
+  return EnterpriseChartCard(
+    title: title,
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: child,
+        );
+      },
     ),
   );
 }
@@ -641,6 +632,332 @@ Widget dashboardDualTrendBarChart({
         ],
       ),
     ],
+  );
+}
+
+class DashboardLineSeries {
+  const DashboardLineSeries({
+    required this.key,
+    required this.label,
+    required this.color,
+  });
+
+  final String key;
+  final String label;
+  final Color color;
+}
+
+Widget dashboardMultiLineChart({
+  required BuildContext context,
+  required List<Map<String, dynamic>> points,
+  required String labelKey,
+  required List<DashboardLineSeries> series,
+  bool fillFirstSeries = false,
+}) {
+  final t = context.pharmaTokens;
+  if (points.isEmpty || series.isEmpty) {
+    return _dashboardChartEmptyState(context);
+  }
+
+  final lineData = <LineChartBarData>[];
+  var maxY = 0.0;
+  var minY = 0.0;
+
+  for (var s = 0; s < series.length; s++) {
+    final config = series[s];
+    final spots = <FlSpot>[];
+    for (var i = 0; i < points.length; i++) {
+      final y = _dashboardNumeric(points[i][config.key]);
+      if (y > maxY) maxY = y;
+      if (y < minY) minY = y;
+      spots.add(FlSpot(i.toDouble(), y));
+    }
+    lineData.add(
+      LineChartBarData(
+        spots: spots,
+        isCurved: true,
+        color: config.color,
+        barWidth: s == 0 ? 2.5 : 2,
+        dotData: FlDotData(show: points.length <= 14 && s == 0),
+        belowBarData: BarAreaData(
+          show: fillFirstSeries && s == 0,
+          color: config.color.withValues(alpha: 0.1),
+        ),
+      ),
+    );
+  }
+
+  final chartMax = maxY < 1 ? 1.0 : maxY * 1.15;
+  final chartMin = minY < 0 ? minY * 1.15 : 0.0;
+  final minWidth = _dashboardChartMinWidthForCount(points.length);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Expanded(
+        child: _dashboardScrollableChart(
+          minWidth: minWidth,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: LineChart(
+              LineChartData(
+                minY: chartMin,
+                maxY: chartMax,
+                clipData: const FlClipData.none(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (v) => FlLine(
+                    color: t.border.withValues(alpha: 0.22),
+                    strokeWidth: 1,
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= points.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return DefaultTextStyle(
+                          style: Theme.of(context)
+                              .textTheme
+                              .erpBodySecondary
+                              .copyWith(color: t.textMuted),
+                          child: _dashboardAxisLabel(
+                            context: context,
+                            meta: meta,
+                            label: dashLabel(points[i][labelKey], max: 10),
+                            angle: points.length > 8 ? -0.45 : 0,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles:
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles:
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                lineBarsData: lineData,
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: AppSpacing.xs),
+      _dashboardChartLegend(
+        items: [
+          for (final item in series) (item.label, item.color),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget dashboardGroupedCashFlowChart({
+  required BuildContext context,
+  required List<Map<String, dynamic>> points,
+  required String labelKey,
+  String entradasKey = 'receitas',
+  String saidasKey = 'despesas',
+  String saldoKey = 'saldo',
+}) {
+  final t = context.pharmaTokens;
+  if (points.isEmpty) {
+    return _dashboardChartEmptyState(context);
+  }
+
+  final entradasColor = t.brandGreen;
+  final saidasColor = t.posDanger;
+  final saldoColor = t.brandBlue;
+  final entradas = points
+      .map((point) => _dashboardNumeric(point[entradasKey]))
+      .toList(growable: false);
+  final saidas = points
+      .map((point) => _dashboardNumeric(point[saidasKey]))
+      .toList(growable: false);
+  final saldos = points
+      .map((point) => _dashboardNumeric(point[saldoKey]))
+      .toList(growable: false);
+
+  var maxY = 0.0;
+  var minY = 0.0;
+  for (final value in [...entradas, ...saidas, ...saldos]) {
+    if (value > maxY) maxY = value;
+    if (value < minY) minY = value;
+  }
+
+  final chartMax = maxY > 0 ? maxY * 1.15 : 1.0;
+  final chartMin = minY < 0 ? minY * 1.15 : 0.0;
+  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 88);
+  const barWidth = 8.0;
+
+  BarChartRodData rod({
+    required double value,
+    required Color color,
+  }) {
+    return BarChartRodData(
+      fromY: 0,
+      toY: value,
+      width: barWidth,
+      color: color,
+      borderRadius: BorderRadius.vertical(
+        top: value < 0 ? Radius.zero : const Radius.circular(4),
+        bottom: value < 0 ? const Radius.circular(4) : Radius.zero,
+      ),
+    );
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Expanded(
+        child: _dashboardScrollableChart(
+          minWidth: minWidth,
+          child: BarChart(
+            BarChartData(
+              minY: chartMin,
+              maxY: chartMax,
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (v) => FlLine(
+                  color: t.border.withValues(alpha: 0.22),
+                  strokeWidth: 1,
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 28,
+                    getTitlesWidget: (value, meta) {
+                      final i = value.toInt();
+                      if (i < 0 || i >= points.length) {
+                        return const SizedBox.shrink();
+                      }
+                      return DefaultTextStyle(
+                        style: Theme.of(context)
+                            .textTheme
+                            .erpBodySecondary
+                            .copyWith(color: t.textMuted),
+                        child: _dashboardAxisLabel(
+                          context: context,
+                          meta: meta,
+                          label: dashLabel(points[i][labelKey], max: 10),
+                          angle: points.length > 8 ? -0.45 : 0,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                leftTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              barGroups: List.generate(points.length, (i) {
+                return BarChartGroupData(
+                  x: i,
+                  barsSpace: 3,
+                  barRods: [
+                    rod(value: entradas[i], color: entradasColor),
+                    rod(value: saidas[i], color: saidasColor),
+                    rod(value: saldos[i], color: saldoColor),
+                  ],
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: AppSpacing.xs),
+      _dashboardChartLegend(
+        items: [
+          ('Entradas', entradasColor),
+          ('Saídas', saidasColor),
+          ('Saldo', saldoColor),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget dashboardRankedBarList({
+  required BuildContext context,
+  required List<Map<String, dynamic>> points,
+  required String valueKey,
+  required String labelKey,
+  Color? color,
+}) {
+  final t = context.pharmaTokens;
+  if (points.isEmpty) {
+    return _dashboardChartEmptyState(context);
+  }
+
+  final barColor = color ?? t.brandBlue;
+  final values = points
+      .map((point) => _dashboardNumeric(point[valueKey]))
+      .toList(growable: false);
+  final maxValue = values.fold<double>(0, (a, b) => a > b ? a : b);
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      return ListView.separated(
+        itemCount: points.length,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final value = values[index];
+          final label = DashboardDataUtils.text(points[index][labelKey]);
+          final ratio = maxValue <= 0 ? 0.0 : (value / maxValue).clamp(0.0, 1.0);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.erpCaption,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    DashboardDataUtils.money(value),
+                    style: Theme.of(context).textTheme.erpCaption.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: ratio,
+                  minHeight: 8,
+                  backgroundColor: t.bgSecondary,
+                  color: barColor,
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
   );
 }
 
@@ -1144,27 +1461,5 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
         ),
       ],
     );
-  }
-}
-
-Future<void> dashboardReportExport({
-  required WidgetRef ref,
-  required String path,
-  required DashboardQuery query,
-  String format = 'csv',
-}) async {
-  final controller = ref.read(reportControllerProvider.notifier);
-  final params = query.toParams();
-
-  switch (format) {
-    case 'excel':
-      await controller.exportExcel(path: path, queryParameters: params);
-      return;
-    case 'pdf':
-      await controller.downloadPdf(path: path, queryParameters: params);
-      return;
-    case 'csv':
-    default:
-      await controller.exportCsv(path: path, queryParameters: params);
   }
 }

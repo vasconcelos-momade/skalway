@@ -1,13 +1,8 @@
 import { getPrisma } from "../../../../infrastructure/prisma/tenant-prisma.factory";
 import {
-  daysAgo,
-  endOfDay,
-  endOfMonth,
   FATURA_VENDA_WHERE,
   round2,
   startOfDay,
-  startOfMonth,
-  toIsoDate,
   toNumber,
 } from "./dashboard-date.util";
 import {
@@ -18,6 +13,7 @@ import {
   buildPagedTableResult,
   normalizeTablePagination,
 } from "./dashboard-pagination.util";
+import { FinancialMetricsService } from "../../finance/application/services/financial-metrics.service";
 import { ListContasPagarUseCase } from "./list-contas-pagar.use-case";
 import { ListContasReceberUseCase } from "./list-contas-receber.use-case";
 import { ListFinancialMovementsUseCase } from "./list-financial-movements.use-case";
@@ -50,76 +46,32 @@ type FinanceTableParams = PeriodParams & {
 export class FinanceDashboardUseCase {
   async execute(params: PeriodParams = {}) {
     const prisma = getPrisma() as any;
+    const metricsService = new FinancialMetricsService(prisma);
     const resolved = resolveDashboardPeriod(params);
     const days = resolved.days;
     const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
     const chartFrom = resolved.from;
-    const todayEnd = resolved.to;
-
-    const caixaMovimentoPeriod = {
-      deletedAt: null,
-      createdAt: { gte: monthStart, lte: monthEnd },
-    };
-
+    const periodEnd = resolved.to;
+    const metricsRange = { from: chartFrom, to: periodEnd };
     const [
-      receitasMes,
-      vendasMes,
-      despesasMes,
-      suprimentosMes,
-      sangriasMes,
-      estornosMes,
-      faturasVendaMes,
+      dreMetrics,
+      cashFlowMetrics,
+      dreFlowDaily,
+      dreFlowMonthly,
       contasReceberAgg,
       contasPagarAgg,
       recebimentosPendentes,
       pagamentosPendentes,
-      saldoCaixaAgg,
-      movimentosChart,
-      movimentosMensais,
       pagamentosRecentes,
       receitasRecentes,
       despesasRecentes,
       contasVencidas,
       metodosPagamento,
-    ] = await prisma.$transaction([
-      prisma.financialMovement.aggregate({
-        where: {
-          deletedAt: null,
-          type: { in: ["SALE", "DEBT_PAYMENT"] },
-          createdAt: { gte: monthStart, lte: monthEnd },
-        },
-        _sum: { amount: true },
-      }),
-      prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "VENDA" },
-        _sum: { valor: true },
-      }),
-      prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "DESPESA" },
-        _sum: { valor: true },
-      }),
-      prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "SUPRIMENTO" },
-        _sum: { valor: true },
-      }),
-      prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "SANGRIA" },
-        _sum: { valor: true },
-      }),
-      prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "ESTORNO" },
-        _sum: { valor: true },
-      }),
-      prisma.fatura.aggregate({
-        where: {
-          ...FATURA_VENDA_WHERE,
-          createdAt: { gte: monthStart, lte: monthEnd },
-        },
-        _sum: { total: true, lucroBruto: true },
-        _count: { _all: true },
-      }),
+    ] = await Promise.all([
+      metricsService.calculateDreMetrics(metricsRange),
+      metricsService.calculateCashFlow(metricsRange),
+      metricsService.getDailyDreFlow(chartFrom, periodEnd, days),
+      metricsService.getMonthlyDreFlow(periodEnd, 6),
       prisma.contaReceber.aggregate({
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
         _sum: { saldo: true },
@@ -133,24 +85,6 @@ export class FinanceDashboardUseCase {
       }),
       prisma.contaPagar.count({
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
-      }),
-      prisma.cashBalance.aggregate({ _sum: { saldoTotal: true } }),
-      prisma.financialMovement.findMany({
-        where: {
-          deletedAt: null,
-          createdAt: { gte: chartFrom, lte: todayEnd },
-        },
-        select: { createdAt: true, amount: true, type: true },
-      }),
-      prisma.financialMovement.findMany({
-        where: {
-          deletedAt: null,
-          createdAt: {
-            gte: new Date(now.getFullYear(), now.getMonth() - 5, 1),
-            lte: monthEnd,
-          },
-        },
-        select: { createdAt: true, amount: true, type: true },
       }),
       prisma.pagamento.findMany({
         where: { deletedAt: null },
@@ -214,32 +148,37 @@ export class FinanceDashboardUseCase {
         by: ["tipoPagamento"],
         where: {
           ...FATURA_VENDA_WHERE,
-          createdAt: { gte: monthStart, lte: monthEnd },
+          createdAt: { gte: chartFrom, lte: periodEnd },
         },
         _sum: { total: true },
         _count: { _all: true },
       }),
     ]);
 
-    // Operação de caixa (saldo físico) — SUPRIMENTO NÃO é receita.
-    const vendas = round2(toNumber(vendasMes._sum.valor));
-    const suprimentos = round2(toNumber(suprimentosMes._sum.valor));
-    const despesas = round2(toNumber(despesasMes._sum.valor));
-    const sangrias = round2(toNumber(sangriasMes._sum.valor));
-    const estornos = round2(toNumber(estornosMes._sum.valor));
-    const saldoFinal = round2(toNumber(saldoCaixaAgg._sum.saldoTotal));
-    const saldoInicial = round2(
-      saldoFinal - vendas - suprimentos + despesas + sangrias + estornos,
-    );
-
-    // Desempenho comercial (separado do saldo de caixa).
-    const receita = round2(toNumber(receitasMes._sum.amount));
-    const faturamento = round2(toNumber(faturasVendaMes._sum.total));
-    const numVendas = Number(faturasVendaMes._count._all ?? 0);
-    const ticketMedio = numVendas > 0 ? round2(faturamento / numVendas) : 0;
-    const lucroBruto = round2(toNumber(faturasVendaMes._sum.lucroBruto));
-    const lucro = round2(receita - despesas - sangrias);
-    const saldoAtual = saldoFinal;
+    const {
+      receita,
+      faturamento,
+      custos,
+      lucroBruto,
+      lucroLiquido,
+      margem,
+      ticketMedio,
+      numVendas,
+      despesas,
+    } = dreMetrics;
+    const {
+      saldoInicial,
+      vendas,
+      suprimentos,
+      despesas: despesasCaixa,
+      sangrias,
+      estornos,
+      saldoFinal,
+      saldoAtual,
+      fluxoCaixa,
+      entradas,
+      saidas,
+    } = cashFlowMetrics;
 
     return {
       kpis: {
@@ -247,7 +186,7 @@ export class FinanceDashboardUseCase {
         saldoInicial,
         vendas,
         suprimentos,
-        despesas,
+        despesasCaixa,
         sangrias,
         estornos,
         saldoFinal,
@@ -257,20 +196,26 @@ export class FinanceDashboardUseCase {
         faturamento,
         numVendas,
         ticketMedio,
+        custos,
         lucroBruto,
-        lucro,
-        fluxoCaixa: round2(vendas + suprimentos - despesas - sangrias - estornos),
-        saidas: despesas,
+        lucroLiquido,
+        margem,
+        margemLucro: margem,
+        lucro: lucroLiquido,
+        despesas,
+        fluxoCaixa,
+        entradas,
+        saidas,
         contasReceber: round2(toNumber(contasReceberAgg._sum.saldo)),
         contasPagar: round2(toNumber(contasPagarAgg._sum.saldo)),
         recebimentosPendentes,
         pagamentosPendentes,
       },
       charts: {
-        fluxoDiario: buildFlowSeries(movimentosChart, chartFrom, days),
-        fluxoMensal: buildMonthlyFlow(movimentosMensais, 6),
-        receitasDespesas: buildFlowSeries(movimentosChart, chartFrom, days),
-        evolucaoFinanceira: buildMonthlyFlow(movimentosMensais, 6),
+        fluxoDiario: dreFlowDaily,
+        fluxoMensal: dreFlowMonthly,
+        receitasDespesas: dreFlowDaily,
+        evolucaoFinanceira: dreFlowMonthly,
         metodosPagamento: metodosPagamento.map((row: any) => ({
           metodo: row.tipoPagamento,
           total: round2(toNumber(row._sum.total)),
@@ -553,65 +498,4 @@ export class FinanceDashboardUseCase {
       }
     }
   }
-}
-
-function buildFlowSeries(
-  rows: Array<{ createdAt: Date; amount: unknown; type: string }>,
-  from: Date,
-  days: number,
-) {
-  const buckets = new Map<string, { receitas: number; despesas: number }>();
-  for (let i = 0; i < days; i++) {
-    const d = new Date(from);
-    d.setDate(from.getDate() + i);
-    buckets.set(toIsoDate(d), { receitas: 0, despesas: 0 });
-  }
-  for (const row of rows) {
-    const key = toIsoDate(new Date(row.createdAt));
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
-    const amount = toNumber(row.amount);
-    if (row.type === "EXPENSE" || row.type === "PURCHASE" || row.type === "REFUND") {
-      bucket.despesas += amount;
-    } else {
-      bucket.receitas += amount;
-    }
-  }
-  return [...buckets.entries()].map(([data, values]) => ({
-    data,
-    receitas: round2(values.receitas),
-    despesas: round2(values.despesas),
-    saldo: round2(values.receitas - values.despesas),
-  }));
-}
-
-function buildMonthlyFlow(
-  rows: Array<{ createdAt: Date; amount: unknown; type: string }>,
-  months: number,
-) {
-  const now = new Date();
-  const buckets = new Map<string, { receitas: number; despesas: number }>();
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    buckets.set(key, { receitas: 0, despesas: 0 });
-  }
-  for (const row of rows) {
-    const d = new Date(row.createdAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
-    const amount = toNumber(row.amount);
-    if (row.type === "EXPENSE" || row.type === "PURCHASE" || row.type === "REFUND") {
-      bucket.despesas += amount;
-    } else {
-      bucket.receitas += amount;
-    }
-  }
-  return [...buckets.entries()].map(([mes, values]) => ({
-    mes,
-    receitas: round2(values.receitas),
-    despesas: round2(values.despesas),
-    saldo: round2(values.receitas - values.despesas),
-  }));
 }

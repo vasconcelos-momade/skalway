@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../domain/entities/user_entities.dart';
 
 class UserFormResult {
@@ -33,23 +34,52 @@ Future<UserFormResult?> showUserFormDialog(
   BuildContext context, {
   TenantUserDetail? user,
 }) {
-  final title = Text(user != null ? 'Editar utilizador' : 'Novo utilizador');
-  return AdaptiveNavigator.openEmbeddedForm<UserFormResult>(
+  final titleText = user != null ? 'Editar utilizador' : 'Novo utilizador';
+  final width = AdaptiveNavigator.widthOf(context);
+  final panelWidth =
+      width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
+
+  return AdaptiveNavigator.openPanel<UserFormResult>(
     context: context,
-    title: title,
+    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: user == null ? '/utilizadores/novo' : '/utilizadores/${user.id}/editar',
     ),
-    formBuilder: (ctx, {required embedded}) =>
-        UserFormDialog(user: user, embedded: embedded),
+    builder: (detailContext) {
+      if (AdaptiveNavigator.isMobile(detailContext)) {
+        return Scaffold(
+          appBar: AppBar(title: Text(titleText)),
+          body: SafeArea(
+            child: UserFormDialog(
+              user: user,
+              embedded: true,
+            ),
+          ),
+        );
+      }
+      return UserFormDialog(
+        user: user,
+        embedded: true,
+        showHeader: true,
+        onClose: () => AdaptiveNavigator.cancel(detailContext),
+      );
+    },
   );
 }
 
 class UserFormDialog extends StatefulWidget {
-  const UserFormDialog({super.key, this.user, this.embedded = false});
+  const UserFormDialog({
+    super.key,
+    this.user,
+    this.embedded = false,
+    this.showHeader = false,
+    this.onClose,
+  });
 
   final TenantUserDetail? user;
   final bool embedded;
+  final bool showHeader;
+  final VoidCallback? onClose;
 
   bool get isEditing => user != null;
 
@@ -172,15 +202,44 @@ class _UserFormDialogState extends State<UserFormDialog> {
   @override
   Widget build(BuildContext context) {
     if (widget.embedded) {
+      final isMobile = AdaptiveNavigator.isMobile(context);
       return Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildFormBody(context),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: _buildActions(),
+          if (widget.showHeader) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.isEditing ? 'Editar utilizador' : 'Novo utilizador',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  if (widget.onClose != null)
+                    IconButton(
+                      onPressed: widget.onClose,
+                      icon: const Icon(Icons.close),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+          ],
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+              child: _buildFormBody(context),
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: _buildActions(),
+            ),
           ),
         ],
       );

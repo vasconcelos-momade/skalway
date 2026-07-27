@@ -20,6 +20,7 @@ import '../../modules/dashboard/presentation/pages/pharmacy_dashboard_page.dart'
 import '../../modules/dashboard/presentation/pages/stock_dashboard_page.dart';
 import '../../modules/finance/presentation/pages/cashflow_page.dart';
 import '../../modules/finance/presentation/pages/finance_hub_page.dart';
+import '../../modules/finance/presentation/pages/revenue_page.dart';
 import '../../modules/pharmacy/presentation/pages/pharmacy_stock_hub_page.dart';
 import '../../modules/pharmacy/sanitary/presentation/pages/regulatory_page.dart';
 import '../../modules/pharmacy/prescriptions/presentation/pages/recipes_book_page.dart';
@@ -376,6 +377,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutePaths.financeCashflow,
             name: 'finance-cashflow',
             builder: (context, state) => const CashflowPage(),
+          ),
+          GoRoute(
+            path: AppRoutePaths.financeRevenue,
+            name: 'finance-revenue',
+            builder: (context, state) => const RevenuePage(),
           ),
           GoRoute(
             path: AppRoutePaths.financeExpenses,

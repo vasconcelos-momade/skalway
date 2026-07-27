@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
-import '../../../../core/theme/pharma_surface.dart';
+import '../../../../core/theme/spacing.dart';
 import '../../domain/utils/dashboard_data_utils.dart';
+
+import '../../../../shared/widgets/dashboard/enterprise_alert_card.dart';
+import '../../../../shared/widgets/dashboard/enterprise_section.dart';
 
 class DashboardAlertItem {
   const DashboardAlertItem({
@@ -35,33 +37,39 @@ class DashboardAlertsPanel extends StatelessWidget {
       return int.tryParse(value?.toString() ?? '') ?? 0;
     }
 
+    double asDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
     final criticos = asInt(kpis?['produtosCriticos']);
     final proximas = asInt(kpis?['produtosProximosValidade']);
-    final expirados = asInt(kpis?['lotesExpirados']);
-    final contasReceber = DashboardDataUtils.kpi(kpis, 'contasReceber');
-    final contasReceberValue = (kpis?['contasReceber'] as num?)?.toDouble() ?? 0;
+    final contasPagar = asDouble(kpis?['contasPagar']);
+    final alertasFiscais = asInt(kpis?['pendenciasFiscais']);
 
     return DashboardAlertsPanel(
       items: [
         DashboardAlertItem(
-          label: 'Produtos com stock crítico',
+          label: 'Produtos críticos',
           value: criticos > 0 ? '$criticos' : 'OK',
           critical: criticos > 0,
         ),
         DashboardAlertItem(
-          label: 'Produtos a vencer',
+          label: 'Lotes próximos do vencimento',
           value: proximas > 0 ? '$proximas' : 'OK',
           attention: proximas > 0,
         ),
         DashboardAlertItem(
-          label: 'Contas a receber',
-          value: contasReceberValue > 0 ? '$contasReceber MZN' : 'OK',
-          attention: contasReceberValue > 0,
+          label: 'Contas vencidas',
+          value: contasPagar > 0
+              ? '${DashboardDataUtils.kpi(kpis, 'contasPagar')} MZN'
+              : 'OK',
+          critical: contasPagar > 0,
         ),
         DashboardAlertItem(
-          label: 'Lotes expirados',
-          value: expirados > 0 ? '$expirados' : 'OK',
-          critical: expirados > 0,
+          label: 'Pendências fiscais',
+          value: alertasFiscais > 0 ? '$alertasFiscais' : 'OK',
+          attention: alertasFiscais > 0,
         ),
       ],
     );
@@ -69,69 +77,34 @@ class DashboardAlertsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-    return PharmaSurface(
-      padding: t.density.cardPadding,
+    final activeItems = items.where((i) => i.critical || i.attention).toList();
+
+    if (activeItems.isEmpty) {
+      return EnterpriseSection(
+        title: 'Alertas',
+        child: EnterpriseAlertCard(
+          title: 'Tudo OK',
+          description: 'Não há alertas críticos no momento.',
+          severity: EnterpriseAlertSeverity.success,
+        ),
+      );
+    }
+
+    return EnterpriseSection(
+      title: 'Alertas',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'PAINEL DE ALERTAS',
-            style: Theme.of(context).textTheme.erpOverline.copyWith(
-                  color: t.textMuted,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) Divider(color: t.border.withValues(alpha: 0.35)),
-            _AlertRow(item: items[i]),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _AlertRow extends StatelessWidget {
-  const _AlertRow({required this.item});
-
-  final DashboardAlertItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-    final color = item.critical
-        ? t.posDanger
-        : item.attention
-            ? t.posWarning
-            : t.brandGreen;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Icon(
-            item.critical
-                ? Icons.error_outline_rounded
-                : item.attention
-                    ? Icons.warning_amber_rounded
-                    : Icons.check_circle_outline_rounded,
-            size: 18,
-            color: color,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              item.label,
-              style: Theme.of(context).textTheme.erpBodySecondary.copyWith(
-                    color: t.textPrimary,
-                  ),
+          for (var i = 0; i < activeItems.length; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpacing.sm),
+            EnterpriseAlertCard(
+              title: activeItems[i].label,
+              description: activeItems[i].value,
+              severity: activeItems[i].critical
+                  ? EnterpriseAlertSeverity.error
+                  : EnterpriseAlertSeverity.warning,
             ),
-          ),
-          Text(
-            item.value,
-            style: Theme.of(context).textTheme.erpLabel.copyWith(color: color),
-          ),
+          ],
         ],
       ),
     );

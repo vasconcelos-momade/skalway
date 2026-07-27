@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/report_paths.dart';
 import '../../data/datasources/dashboard_remote_datasource.dart';
 import '../../domain/mappers/stock_dashboard_kpis.dart';
 import '../../domain/mappers/stock_dashboard_tables.dart';
@@ -23,13 +22,10 @@ class StockDashboardPage extends ConsumerWidget {
       title: 'Painel de Stock',
       subtitle: 'Visão operacional de inventário e movimentações.',
       provider: stockDashboardProvider.call,
-      reportPath: ReportPaths.dashboardStock,
-      exportSuccessMessage: 'Exportação do painel stock concluída.',
       filterPresetBuilder: (preview) {
         final tables = DashboardDataUtils.map(preview?['tables']);
         final charts = DashboardDataUtils.map(preview?['charts']);
         return DashboardFilterPreset(
-          actionsInFilters: true,
           showProductFilter: true,
           statusOptions: dashboardUniqueOptions([
             ...DashboardDataUtils.list(tables?['inventarios'])
@@ -61,7 +57,7 @@ class StockDashboardPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DashboardKpiSection(
-              primaryKpis: StockDashboardKpis.primary(kpis),
+              kpis: StockDashboardKpis.primary(kpis),
             ),
             const DashboardSectionGap(),
             DashboardChartsSection(

@@ -118,10 +118,9 @@ class DashboardChartsSection extends StatelessWidget {
     final height = (availableWidth / preferredAspectRatio)
         .clamp(minChartHeight, maxChartHeight)
         .toDouble();
-    final aspectRatio = availableWidth / height;
 
-    return AspectRatio(
-      aspectRatio: aspectRatio,
+    return SizedBox(
+      height: height,
       child: chart,
     );
   }
@@ -141,7 +140,6 @@ class DashboardChartsSection extends StatelessWidget {
       final targetCardHeight = (currentItemWidth / preferredAspectRatio)
           .clamp(minChartHeight, maxChartHeight)
           .toDouble();
-      final currentAspectRatio = currentItemWidth / targetCardHeight;
 
       rows.add(
         Row(
@@ -150,8 +148,8 @@ class DashboardChartsSection extends StatelessWidget {
             for (var j = 0; j < rowChildren.length; j++) ...[
               if (j > 0) SizedBox(width: spacing),
               Expanded(
-                child: AspectRatio(
-                  aspectRatio: currentAspectRatio,
+                child: SizedBox(
+                  height: targetCardHeight,
                   child: rowChildren[j],
                 ),
               ),

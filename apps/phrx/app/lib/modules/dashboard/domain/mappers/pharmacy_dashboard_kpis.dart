@@ -1,54 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
+import '../../../../app/router/routes.dart';
+import '../../../../shared/widgets/dashboard/enterprise_kpi_card.dart';
 import '../utils/dashboard_data_utils.dart';
 
 abstract final class PharmacyDashboardKpis {
   PharmacyDashboardKpis._();
 
-  static List<EnterpriseStatCard> primary(Map<String, dynamic>? kpis) {
+  static List<EnterpriseKpiCard> build(
+    BuildContext context,
+    Map<String, dynamic>? kpis,
+  ) {
     if (kpis == null) return const [];
+
+    final criticos = _asInt(kpis['produtosAbaixoMinimo']);
     final semStock = _asInt(kpis['produtosSemStock']);
-    final abaixoMinimo = _asInt(kpis['produtosAbaixoMinimo']);
     final proximas = _asInt(kpis['produtosProximosValidade']);
-    final alertas = _asInt(kpis['alertasSanitarios']);
 
     return [
-      dashboardKpiCard(
-        title: 'Produtos',
+      EnterpriseKpiCard(
+        title: 'Produtos cadastrados',
         value: DashboardDataUtils.kpi(kpis, 'produtosCadastrados'),
         icon: Icons.medication_outlined,
-        accent: StatCardAccent.info,
+        trend: EnterpriseKpiTrend.neutral,
       ),
-      dashboardKpiCard(
-        title: 'Valor do stock',
-        value: '${DashboardDataUtils.kpi(kpis, 'valorTotalStock')} MZN',
-        icon: Icons.payments_outlined,
-        accent: StatCardAccent.positive,
-      ),
-      dashboardKpiCard(
-        title: 'Produtos sem stock',
-        value: DashboardDataUtils.kpi(kpis, 'produtosSemStock'),
+      EnterpriseKpiCard(
+        title: 'Valor em estoque',
+        value: DashboardDataUtils.kpi(kpis, 'valorTotalStock'),
+        unit: 'MZN',
         icon: Icons.inventory_2_outlined,
-        accent: semStock > 0 ? StatCardAccent.warning : StatCardAccent.neutral,
+        trend: EnterpriseKpiTrend.neutral,
       ),
-      dashboardKpiCard(
-        title: 'Abaixo do mínimo',
+      EnterpriseKpiCard(
+        title: 'Produtos críticos',
         value: DashboardDataUtils.kpi(kpis, 'produtosAbaixoMinimo'),
-        icon: Icons.vertical_align_bottom_outlined,
-        accent: abaixoMinimo > 0 ? StatCardAccent.warning : StatCardAccent.neutral,
+        icon: Icons.warning_amber_outlined,
+        trend: criticos > 0
+            ? EnterpriseKpiTrend.negative
+            : EnterpriseKpiTrend.neutral,
+        onTap: () => context.go(AppRoutePaths.pharmacyStock),
       ),
-      dashboardKpiCard(
-        title: 'Próximas validades',
+      EnterpriseKpiCard(
+        title: 'Sem estoque',
+        value: DashboardDataUtils.kpi(kpis, 'produtosSemStock'),
+        icon: Icons.remove_shopping_cart_outlined,
+        trend: semStock > 0
+            ? EnterpriseKpiTrend.negative
+            : EnterpriseKpiTrend.neutral,
+        onTap: () => context.go(AppRoutePaths.pharmacyStock),
+      ),
+      EnterpriseKpiCard(
+        title: 'Lotes a vencer',
         value: DashboardDataUtils.kpi(kpis, 'produtosProximosValidade'),
-        icon: Icons.event_busy,
-        accent: proximas > 0 ? StatCardAccent.warning : StatCardAccent.neutral,
+        icon: Icons.event_busy_outlined,
+        trend: proximas > 0
+            ? EnterpriseKpiTrend.negative
+            : EnterpriseKpiTrend.neutral,
       ),
-      dashboardKpiCard(
-        title: 'Alertas sanitários',
-        value: DashboardDataUtils.kpi(kpis, 'alertasSanitarios'),
-        icon: Icons.health_and_safety_outlined,
-        accent: alertas > 0 ? StatCardAccent.danger : StatCardAccent.neutral,
+      EnterpriseKpiCard(
+        title: 'Prescrições do dia',
+        value: DashboardDataUtils.kpi(kpis, 'prescricoesHoje'),
+        icon: Icons.medical_services_outlined,
+        trend: EnterpriseKpiTrend.neutral,
+      ),
+      EnterpriseKpiCard(
+        title: 'Vendas hoje',
+        value: DashboardDataUtils.kpi(kpis, 'vendasHoje'),
+        icon: Icons.point_of_sale_outlined,
+        trend: EnterpriseKpiTrend.positive,
+        onTap: () => context.go(AppRoutePaths.salesInvoices),
+      ),
+      EnterpriseKpiCard(
+        title: 'Valor vendido hoje',
+        value: DashboardDataUtils.kpi(kpis, 'valorVendidoHoje'),
+        unit: 'MZN',
+        icon: Icons.payments_outlined,
+        trend: EnterpriseKpiTrend.positive,
+        onTap: () => context.go(AppRoutePaths.salesInvoices),
       ),
     ];
   }

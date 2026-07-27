@@ -6,8 +6,7 @@ import '../../../../core/theme/spacing.dart';
 import '../../data/datasources/dashboard_remote_datasource.dart';
 import '../../domain/dashboard_query.dart';
 import '../../domain/models/dashboard_table_definition.dart';
-import 'dashboard_header_actions.dart';
-import 'dashboard_period_filters.dart';
+import '../../../../shared/widgets/dashboard/enterprise_filter_bar.dart';
 import 'dashboard_widgets.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 
@@ -19,7 +18,6 @@ class DashboardFilterPreset {
     this.statusOptions = const [],
     this.paymentMethodOptions = const [],
     this.movementTypeOptions = const [],
-    this.actionsInFilters = false,
   });
 
   final bool showCategoryFilter;
@@ -27,7 +25,6 @@ class DashboardFilterPreset {
   final List<DashboardFilterOption> statusOptions;
   final List<DashboardFilterOption> paymentMethodOptions;
   final List<DashboardFilterOption> movementTypeOptions;
-  final bool actionsInFilters;
 }
 
 typedef DashboardProviderFamily =
@@ -41,8 +38,6 @@ class DashboardScaffold extends ConsumerStatefulWidget {
     this.subtitle,
     this.tag,
     required this.provider,
-    required this.reportPath,
-    required this.exportSuccessMessage,
     required this.contentBuilder,
     this.filterPreset = const DashboardFilterPreset(),
     this.filterPresetBuilder,
@@ -54,8 +49,6 @@ class DashboardScaffold extends ConsumerStatefulWidget {
   final String? subtitle;
   final String? tag;
   final DashboardProviderFamily provider;
-  final String reportPath;
-  final String exportSuccessMessage;
   final Widget Function(
     BuildContext context,
     Map<String, dynamic> data,
@@ -74,23 +67,11 @@ class DashboardScaffold extends ConsumerStatefulWidget {
 class _DashboardScaffoldState extends ConsumerState<DashboardScaffold> {
   var _query = const DashboardQuery();
 
-  void _invalidate() => ref.invalidate(widget.provider(_query));
-
-  DashboardHeaderActions _headerActions({required bool exportEnabled}) {
-    return DashboardHeaderActions(
-      onRefresh: _invalidate,
-      reportPath: widget.reportPath,
-      query: _query,
-      exportEnabled: exportEnabled,
-      exportSuccessMessage: widget.exportSuccessMessage,
-    );
-  }
+  void _reload() => ref.invalidate(widget.provider(_query));
 
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(widget.provider(_query));
-    final exportEnabled = async.valueOrNull != null;
-    final headerActions = _headerActions(exportEnabled: exportEnabled);
     final filters = widget.filterPresetBuilder?.call(async.valueOrNull) ??
         widget.filterPreset;
 
@@ -99,8 +80,7 @@ class _DashboardScaffoldState extends ConsumerState<DashboardScaffold> {
       subtitle: widget.subtitle,
       tag: widget.tag,
       scrollable: true,
-      actions: filters.actionsInFilters ? null : [headerActions],
-      filters: DashboardPeriodFilters(
+      filters: EnterpriseFilterBar(
         query: _query,
         onChanged: (query) => setState(() => _query = query),
         showCategoryFilter: filters.showCategoryFilter,
@@ -109,11 +89,10 @@ class _DashboardScaffoldState extends ConsumerState<DashboardScaffold> {
         paymentMethodOptions: filters.paymentMethodOptions,
         movementTypeOptions: filters.movementTypeOptions,
         extraFilters: widget.extraFilters,
-        actions: filters.actionsInFilters ? [headerActions] : null,
       ),
       child: dashboardAsyncBody(
         async: async,
-        onRetry: _invalidate,
+        onRetry: _reload,
         loadingKpiCount: widget.loadingKpiCount,
         builder: (Map<String, dynamic> data) =>
             widget.contentBuilder(context, data, _query),
@@ -201,6 +180,22 @@ class _DashboardTableTile extends StatelessWidget {
       rowBuilder: definition.rowBuilder,
     );
   }
+}
+
+DashboardTableFetcher executiveTableFetcher(DashboardRemoteDataSource source) {
+  return ({
+    required table,
+    required query,
+    required page,
+    required pageSize,
+  }) {
+    return source.executiveDashboardTable(
+      table: table,
+      query: query,
+      page: page,
+      pageSize: pageSize,
+    );
+  };
 }
 
 DashboardTableFetcher financeTableFetcher(DashboardRemoteDataSource source) {

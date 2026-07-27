@@ -1,4 +1,6 @@
 import { ListFaturasUseCase } from "../../../pos/application/use-cases/list-faturas.use-case";
+import { FinancialMetricsService } from "../../../finance/application/services/financial-metrics.service";
+import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 import { formatCurrency, toText } from "../helpers/report-export.helper";
 import { collectAllPages } from "../helpers/report-pagination.helper";
 import { REPORT_KEYS } from "../constants/report-keys";
@@ -67,6 +69,28 @@ export async function buildInvoiceListReportDefinition(
     0,
   );
 
+  const metricsKpis: Record<string, string | number> = {};
+  if (filters.dateFrom || filters.dateTo) {
+    const rangeEnd = filters.dateTo ? new Date(filters.dateTo) : new Date();
+    rangeEnd.setHours(23, 59, 59, 999);
+    const rangeStart = filters.dateFrom
+      ? new Date(filters.dateFrom)
+      : new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), 1);
+    rangeStart.setHours(0, 0, 0, 0);
+
+    const metrics = await new FinancialMetricsService(getPrisma() as any).calculateDreMetrics({
+      from: rangeStart,
+      to: rangeEnd,
+    });
+
+    metricsKpis["Receita (periodo)"] = formatCurrency(metrics.receita);
+    metricsKpis["Ticket medio"] = formatCurrency(metrics.ticketMedio);
+    metricsKpis["Numero de vendas"] = metrics.numVendas;
+    metricsKpis["Lucro bruto"] = formatCurrency(metrics.lucroBruto);
+    metricsKpis["Lucro liquido"] = formatCurrency(metrics.lucroLiquido);
+    metricsKpis["Margem"] = `${metrics.margem}%`;
+  }
+
   return {
     fileBaseName,
     reportName,
@@ -81,6 +105,7 @@ export async function buildInvoiceListReportDefinition(
       Operador: filters.userId ?? "-",
     },
     kpis: {
+      ...metricsKpis,
       "Total de faturas": items.length,
       "Valor total (MZN)": formatCurrency(totalAmount),
       Pagas: items.filter((item) => item.estado === "PAGA").length,

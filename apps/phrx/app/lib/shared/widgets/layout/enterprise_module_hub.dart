@@ -49,84 +49,97 @@ class EnterpriseModuleHub extends StatelessWidget {
         (subtitle != null && subtitle!.isNotEmpty) ||
         (tag != null && tag!.isNotEmpty);
 
+    final headerPadding = size == PharmaScreenSize.mobile
+        ? EdgeInsets.symmetric(horizontal: s.md)
+        : EdgeInsets.zero;
+
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (hasHeaderTexts ||
             ((filters == null) && (actions != null && actions!.isNotEmpty)))
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (hasHeaderTexts)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (tag != null && tag!.isNotEmpty) ...[
-                        Text(
-                          tag!.toUpperCase(),
-                          style: textTheme.erpOverline.copyWith(
-                            color: t.brandBlue,
+          Padding(
+            padding: headerPadding,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hasHeaderTexts)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (tag != null && tag!.isNotEmpty) ...[
+                          Text(
+                            tag!.toUpperCase(),
+                            style: textTheme.erpOverline.copyWith(
+                              color: t.brandBlue,
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          height: size == PharmaScreenSize.mobile
-                              ? s.xxs
-                              : s.xs,
-                        ),
-                      ],
-                      if (title != null && title!.isNotEmpty) ...[
-                        Text(
-                          title!,
-                          maxLines: size == PharmaScreenSize.mobile ? 2 : 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: titleStyle,
-                        ),
-                        SizedBox(
-                          height: size == PharmaScreenSize.mobile ? s.xs : s.sm,
-                        ),
-                      ],
-                      if (subtitle != null && subtitle!.isNotEmpty)
-                        Text(
-                          subtitle!,
-                          maxLines: size == PharmaScreenSize.mobile ? 2 : 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.erpBodySecondary.copyWith(
-                            color: t.textMuted,
-                            height: 1.3,
+                          SizedBox(
+                            height: size == PharmaScreenSize.mobile
+                                ? s.xxs
+                                : s.xs,
                           ),
-                        ),
-                    ],
-                  ),
-                )
-              else
-                const Spacer(),
-              if (filters == null && actions != null && actions!.isNotEmpty)
-                Flexible(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: Wrap(
-                      spacing: s.sm,
-                      runSpacing: s.sm,
-                      alignment: WrapAlignment.end,
-                      children: actions!,
+                        ],
+                        if (title != null && title!.isNotEmpty) ...[
+                          Text(
+                            title!,
+                            maxLines: size == PharmaScreenSize.mobile ? 2 : 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: titleStyle,
+                          ),
+                          SizedBox(
+                            height: size == PharmaScreenSize.mobile ? s.xs : s.sm,
+                          ),
+                        ],
+                        if (subtitle != null && subtitle!.isNotEmpty)
+                          Text(
+                            subtitle!,
+                            maxLines: size == PharmaScreenSize.mobile ? 2 : 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.erpBodySecondary.copyWith(
+                              color: t.textMuted,
+                              height: 1.3,
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                else
+                  const Spacer(),
+                if (filters == null && actions != null && actions!.isNotEmpty)
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Wrap(
+                        spacing: s.sm,
+                        runSpacing: s.sm,
+                        alignment: WrapAlignment.end,
+                        children: actions!,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         if (filters != null) ...[
           SizedBox(height: size == PharmaScreenSize.mobile ? s.sm : s.md),
-          _buildFiltersAndActionsRow(
-            context: context,
-            size: size,
-            filters: filters!,
-            actions: actions,
+          Padding(
+            padding: headerPadding,
+            child: _buildFiltersAndActionsRow(
+              context: context,
+              size: size,
+              filters: filters!,
+              actions: actions,
+            ),
           ),
         ],
         if (kpis != null && kpis!.isNotEmpty) ...[
           SizedBox(height: size == PharmaScreenSize.mobile ? s.md : s.lg),
-          _buildKpis(context, size),
+          Padding(
+            padding: headerPadding,
+            child: _buildKpis(context, size),
+          ),
         ],
         SizedBox(height: size == PharmaScreenSize.mobile ? s.md : s.lg),
         if (scrollable)

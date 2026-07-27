@@ -1,50 +1,109 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/design_tokens.dart';
 import '../dashboard_charts_section.dart';
 import '../dashboard_widgets.dart';
 
-/// Gráficos do painel financeiro (MVP).
 abstract final class FinanceDashboardCharts {
   FinanceDashboardCharts._();
 
   static List<Widget> build(BuildContext context, Map<String, dynamic>? charts) {
-    final scheme = Theme.of(context).colorScheme;
+    final t = context.pharmaTokens;
+    final fluxoDiario = DashboardDataUtils.list(charts?['fluxoDiario']);
+    final fluxoMensal = DashboardDataUtils.list(charts?['fluxoMensal']);
+    final metodosPagamento = DashboardDataUtils.list(charts?['metodosPagamento']);
+    final despesasCategoria = DashboardDataUtils.list(charts?['despesasPorCategoria']);
+    final recebimentos = DashboardDataUtils.list(charts?['recebimentosPorCategoria']);
+
     return [
       DashboardChartSlot(
         fullWidth: true,
         child: dashboardChartCard(
           context: context,
-          title: 'Fluxo financeiro mensal',
-          child: dashboardTrendBarChart(
+          title: 'DRE Financeira',
+          child: dashboardMultiLineChart(
             context: context,
-            points: DashboardDataUtils.list(charts?['fluxoMensal']),
-            valueKey: 'saldo',
+            points: fluxoMensal,
             labelKey: 'mes',
-            color: scheme.secondary,
-            allowNegative: true,
+            series: [
+              DashboardLineSeries(
+                key: 'receitas',
+                label: 'Receita',
+                color: t.brandGreen,
+              ),
+              DashboardLineSeries(
+                key: 'despesas',
+                label: 'Despesas',
+                color: t.posDanger,
+              ),
+              DashboardLineSeries(
+                key: 'saldo',
+                label: 'Resultado',
+                color: t.brandBlue,
+              ),
+            ],
           ),
         ),
       ),
       dashboardChartCard(
         context: context,
-        title: 'Receitas x despesas',
-        child: dashboardDualTrendBarChart(
+        title: 'Fluxo de caixa',
+        child: dashboardGroupedCashFlowChart(
           context: context,
-          points: DashboardDataUtils.list(charts?['receitasDespesas']),
+          points: fluxoDiario,
           labelKey: 'data',
         ),
       ),
       dashboardChartCard(
         context: context,
-        title: 'Métodos de pagamento',
+        title: 'Despesas por categoria',
+        child: dashboardPieChart(
+          context: context,
+          slices: [
+            for (var i = 0; i < despesasCategoria.length; i++)
+              DashboardPieSlice(
+                label: DashboardDataUtils.text(despesasCategoria[i]['categoria']),
+                value:
+                    (despesasCategoria[i]['total'] as num?)?.toDouble() ?? 0,
+                color: _palette(t)[i % _palette(t).length],
+              ),
+          ],
+        ),
+      ),
+      dashboardChartCard(
+        context: context,
+        title: 'Recebimentos',
+        child: dashboardPieChart(
+          context: context,
+          slices: [
+            for (var i = 0; i < recebimentos.length; i++)
+              DashboardPieSlice(
+                label: DashboardDataUtils.text(recebimentos[i]['categoria']),
+                value: (recebimentos[i]['total'] as num?)?.toDouble() ?? 0,
+                color: _palette(t)[i % _palette(t).length],
+              ),
+          ],
+        ),
+      ),
+      dashboardChartCard(
+        context: context,
+        title: 'Receita por forma de pagamento',
         child: dashboardBarChart(
           context: context,
-          points: DashboardDataUtils.list(charts?['metodosPagamento']),
+          points: metodosPagamento,
           valueKey: 'total',
           labelKey: 'metodo',
-          color: scheme.tertiary,
+          color: t.brandGreen,
         ),
       ),
     ];
   }
+
+  static List<Color> _palette(dynamic t) => [
+        t.posDanger,
+        t.posWarning,
+        t.brandBlue,
+        t.brandGreen,
+        t.textSecondary,
+      ];
 }

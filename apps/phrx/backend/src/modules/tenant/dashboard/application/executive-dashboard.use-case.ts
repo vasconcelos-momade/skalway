@@ -1,12 +1,10 @@
 import { getPrisma } from "../../../../infrastructure/prisma/tenant-prisma.factory";
 import {
-  daysAgo,
   endOfDay,
   endOfMonth,
   FATURA_VENDA_WHERE,
   round2,
   startOfDay,
-  startOfMonth,
   toIsoDate,
   toNumber,
 } from "./dashboard-date.util";
@@ -22,6 +20,7 @@ import {
   loadValorStockLotesFromMovements,
   sumValorStockFromLotes,
 } from "./dashboard-valor-stock.util";
+import { FinancialMetricsService } from "../../finance/application/services/financial-metrics.service";
 
 type PeriodParams = {
   days?: number;
@@ -45,21 +44,19 @@ type ExecutiveTableParams = PeriodParams & {
 export class ExecutiveDashboardUseCase {
   async execute(params: PeriodParams = {}) {
     const prisma = getPrisma() as any;
+    const metricsService = new FinancialMetricsService(prisma);
     const resolved = resolveDashboardPeriod(params);
     const days = resolved.days;
     const now = new Date();
     const todayStart = startOfDay(now);
-    const todayEnd = resolved.to;
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
+    const todayEnd = endOfDay(now);
     const chartFrom = resolved.from;
+    const periodEnd = resolved.to;
+    const periodRange = { from: chartFrom, to: periodEnd };
 
     const faturaWhere = { ...FATURA_VENDA_WHERE };
 
     const [
-      receitaHojeAgg,
-      receitaMesAgg,
-      faturasMesCount,
       produtosVendidosAgg,
       clientesAtivosMes,
       contasReceberAgg,
@@ -68,46 +65,21 @@ export class ExecutiveDashboardUseCase {
       produtosCriticos,
       lotesExpirados,
       produtosProximosValidade,
-      custosMesRows,
-      despesasMesAgg,
       faturasChart,
       faturasMensais,
       metodosPagamento,
       topProdutos,
       topCategoriasSource,
-      fluxoFinanceiro,
       ultimasVendas,
       alertasCriticos,
       ultimosEventos,
     ] = await prisma.$transaction([
-      prisma.fatura.aggregate({
-        where: {
-          ...faturaWhere,
-          createdAt: { gte: todayStart, lte: todayEnd },
-        },
-        _sum: { total: true },
-        _count: { _all: true },
-      }),
-      prisma.fatura.aggregate({
-        where: {
-          ...faturaWhere,
-          createdAt: { gte: monthStart, lte: monthEnd },
-        },
-        _sum: { total: true },
-        _count: { _all: true },
-      }),
-      prisma.fatura.count({
-        where: {
-          ...faturaWhere,
-          createdAt: { gte: monthStart, lte: monthEnd },
-        },
-      }),
       prisma.faturaItem.aggregate({
         where: {
           produtoId: { not: null },
           fatura: {
             ...faturaWhere,
-            createdAt: { gte: monthStart, lte: monthEnd },
+            createdAt: { gte: chartFrom, lte: periodEnd },
           },
         },
         _sum: { quantidade: true },
@@ -115,7 +87,7 @@ export class ExecutiveDashboardUseCase {
       prisma.fatura.findMany({
         where: {
           ...faturaWhere,
-          createdAt: { gte: monthStart, lte: monthEnd },
+          createdAt: { gte: chartFrom, lte: periodEnd },
         },
         distinct: ["clienteId"],
         select: { clienteId: true },
@@ -169,30 +141,10 @@ export class ExecutiveDashboardUseCase {
           },
         },
       }),
-      prisma.faturaItem.findMany({
-        where: {
-          fatura: {
-            ...faturaWhere,
-            createdAt: { gte: monthStart, lte: monthEnd },
-          },
-        },
-        select: {
-          quantidade: true,
-          custoUnitario: true,
-        },
-      }),
-      prisma.financialMovement.aggregate({
-        where: {
-          deletedAt: null,
-          type: "EXPENSE",
-          createdAt: { gte: monthStart, lte: monthEnd },
-        },
-        _sum: { amount: true },
-      }),
       prisma.fatura.findMany({
         where: {
           ...faturaWhere,
-          createdAt: { gte: chartFrom, lte: todayEnd },
+          createdAt: { gte: chartFrom, lte: periodEnd },
         },
         select: { createdAt: true, total: true },
         orderBy: { createdAt: "asc" },
@@ -201,8 +153,8 @@ export class ExecutiveDashboardUseCase {
         where: {
           ...faturaWhere,
           createdAt: {
-            gte: new Date(now.getFullYear(), now.getMonth() - 5, 1),
-            lte: monthEnd,
+            gte: new Date(periodEnd.getFullYear(), periodEnd.getMonth() - 5, 1),
+            lte: periodEnd,
           },
         },
         select: { createdAt: true, total: true },
@@ -211,7 +163,7 @@ export class ExecutiveDashboardUseCase {
         by: ["tipoPagamento"],
         where: {
           ...faturaWhere,
-          createdAt: { gte: monthStart, lte: monthEnd },
+          createdAt: { gte: chartFrom, lte: periodEnd },
         },
         _sum: { total: true },
         _count: { _all: true },
@@ -222,7 +174,7 @@ export class ExecutiveDashboardUseCase {
           produtoId: { not: null },
           fatura: {
             ...faturaWhere,
-            createdAt: { gte: monthStart, lte: monthEnd },
+            createdAt: { gte: chartFrom, lte: periodEnd },
           },
         },
         _sum: { quantidade: true, total: true },
@@ -232,17 +184,10 @@ export class ExecutiveDashboardUseCase {
       prisma.fatura.findMany({
         where: {
           ...faturaWhere,
-          createdAt: { gte: monthStart, lte: monthEnd },
+          createdAt: { gte: chartFrom, lte: periodEnd },
         },
         select: { total: true, items: { select: { produtoId: true, total: true } } },
         take: 500,
-      }),
-      prisma.financialMovement.findMany({
-        where: {
-          deletedAt: null,
-          createdAt: { gte: chartFrom, lte: todayEnd },
-        },
-        select: { createdAt: true, amount: true, type: true },
       }),
       prisma.fatura.findMany({
         where: faturaWhere,
@@ -284,19 +229,20 @@ export class ExecutiveDashboardUseCase {
       }),
     ]);
 
-    const receitaHoje = toNumber(receitaHojeAgg._sum.total);
-    const receitaMes = toNumber(receitaMesAgg._sum.total);
-    const numeroFaturasHoje = receitaHojeAgg._count._all ?? 0;
-    const numeroFaturasMes = faturasMesCount;
-    const ticketMedio =
-      numeroFaturasMes > 0 ? round2(receitaMes / numeroFaturasMes) : 0;
+    const todayRange = { from: todayStart, to: todayEnd };
 
-    const custoMes = custosMesRows.reduce((sum: number, row: any) => {
-      return sum + toNumber(row.quantidade) * toNumber(row.custoUnitario);
-    }, 0);
-    const despesasMes = toNumber(despesasMesAgg._sum.amount);
-    const lucroBruto = round2(receitaMes - custoMes);
-    const lucroLiquido = round2(receitaMes - custoMes - despesasMes);
+    const [receitaHoje, metrics, numeroFaturasHoje, fluxoFinanceiro] = await Promise.all([
+      metricsService.calculateRevenue(todayRange),
+      metricsService.calculateDreMetrics(periodRange),
+      metricsService.calculateSalesCount(todayRange),
+      metricsService.getDailyDreFlow(chartFrom, periodEnd, days),
+    ]);
+    const receitaMes = metrics.receita;
+    const numeroFaturasMes = metrics.numVendas;
+    const ticketMedio = metrics.ticketMedio;
+    const lucroBruto = metrics.lucroBruto;
+    const lucroLiquido = metrics.lucroLiquido;
+    const margem = metrics.margem;
 
     const valorInventarioRows = await loadValorStockLotesFromMovements(prisma, now);
     const valorInventario = sumValorStockFromLotes(valorInventarioRows);
@@ -355,9 +301,15 @@ export class ExecutiveDashboardUseCase {
       kpis: {
         receitaHoje: round2(receitaHoje),
         receitaMes: round2(receitaMes),
+        faturamento: round2(receitaMes),
         lucroBruto,
         lucroLiquido,
+        margem,
+        margemLucro: margem,
+        custos: metrics.custos,
+        despesas: metrics.despesas,
         totalVendas: round2(receitaMes),
+        numVendas: numeroFaturasMes,
         numeroFaturas: numeroFaturasMes,
         numeroFaturasHoje,
         ticketMedio,
@@ -391,7 +343,7 @@ export class ExecutiveDashboardUseCase {
           };
         }),
         topCategorias: topCategoriasList,
-        fluxoFinanceiro: buildFinancialFlow(fluxoFinanceiro, chartFrom, days),
+        fluxoFinanceiro,
       },
       tables: {
         ultimasVendas: ultimasVendas.map((row: any) => ({
@@ -615,34 +567,5 @@ function buildMonthlySeries(
   return [...buckets.entries()].map(([mes, total]) => ({
     mes,
     total: round2(total),
-  }));
-}
-
-function buildFinancialFlow(
-  rows: Array<{ createdAt: Date; amount: unknown; type: string }>,
-  from: Date,
-  days: number,
-) {
-  const buckets = new Map<string, { receitas: number; despesas: number }>();
-  for (let i = 0; i < days; i++) {
-    const d = new Date(from);
-    d.setDate(from.getDate() + i);
-    buckets.set(toIsoDate(d), { receitas: 0, despesas: 0 });
-  }
-  for (const row of rows) {
-    const key = toIsoDate(new Date(row.createdAt));
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
-    const amount = toNumber(row.amount);
-    if (row.type === "EXPENSE" || row.type === "PURCHASE") {
-      bucket.despesas += amount;
-    } else {
-      bucket.receitas += amount;
-    }
-  }
-  return [...buckets.entries()].map(([data, values]) => ({
-    data,
-    receitas: round2(values.receitas),
-    despesas: round2(values.despesas),
   }));
 }

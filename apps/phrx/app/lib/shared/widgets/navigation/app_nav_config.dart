@@ -195,6 +195,12 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         icon: Icons.stacked_line_chart,
         permissionModule: 'RELATORIOS',
       ),
+      AppNavItem(
+        label: 'Receita/Faturamento',
+        path: AppRoutePaths.financeRevenue,
+        icon: Icons.trending_up,
+        permissionModule: 'RELATORIOS',
+      ),
     ],
   ),
   AppNavSection(

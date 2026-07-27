@@ -1,6 +1,57 @@
 import { formatCurrency, toText } from "../../helpers/report-export.helper";
 import { type ModuleReportDefinition, type ReportSectionTable } from "../types/report.types";
 
+const CURRENCY_KPI_KEYS = new Set([
+  "receitaHoje",
+  "receitaMes",
+  "receita",
+  "faturamento",
+  "lucroBruto",
+  "lucroLiquido",
+  "lucro",
+  "custos",
+  "despesas",
+  "despesasCaixa",
+  "totalVendas",
+  "ticketMedio",
+  "contasReceber",
+  "contasPagar",
+  "saldoInicial",
+  "saldoFinal",
+  "saldoAtual",
+  "vendas",
+  "suprimentos",
+  "sangrias",
+  "estornos",
+  "fluxoCaixa",
+  "entradas",
+  "saidas",
+  "valorInventario",
+  "valorTotalStock",
+  "produtosVendidos",
+  "stockTotal",
+  "stockReservado",
+]);
+
+const PERCENT_KPI_KEYS = new Set(["margem", "margemLucro"]);
+
+function formatDashboardKpiValue(key: string, value: unknown): string {
+  if (value == null) return "-";
+  if (typeof value !== "number") return toText(value);
+  if (PERCENT_KPI_KEYS.has(key)) return `${value}%`;
+  if (CURRENCY_KPI_KEYS.has(key)) return formatCurrency(value);
+  return toText(value);
+}
+
+function mapDashboardKpis(kpis: Record<string, unknown> = {}) {
+  return Object.fromEntries(
+    Object.entries(kpis).map(([key, value]) => [
+      key.replace(/([A-Z])/g, " $1").trim(),
+      formatDashboardKpiValue(key, value),
+    ]),
+  );
+}
+
 function formatDateTime(value: unknown): string {
   if (!value) {
     return "-";
@@ -46,12 +97,7 @@ export function buildExecutiveDashboardReport(
     title: "Dashboard Executivo",
     subtitle: "Indicadores consolidados de vendas, stock e financeiro",
     filters: periodFilters(periodo),
-    kpis: Object.fromEntries(
-      Object.entries(data.kpis ?? {}).map(([key, value]) => [
-        key.replace(/([A-Z])/g, " $1").trim(),
-        typeof value === "number" ? formatCurrency(value) : toText(value),
-      ]),
-    ),
+    kpis: mapDashboardKpis(data.kpis ?? {}),
     tables: [
       mapObjectTable(
         "Ultimas vendas",
@@ -114,12 +160,7 @@ export function buildFinanceDashboardReport(data: any): ModuleReportDefinition {
     title: "Dashboard Financeiro",
     subtitle: "Fluxo de caixa, receitas, despesas e contas",
     filters: periodFilters(periodo),
-    kpis: Object.fromEntries(
-      Object.entries(data.kpis ?? {}).map(([key, value]) => [
-        key.replace(/([A-Z])/g, " $1").trim(),
-        typeof value === "number" ? formatCurrency(value) : toText(value),
-      ]),
-    ),
+    kpis: mapDashboardKpis(data.kpis ?? {}),
     tables: [
       mapObjectTable(
         "Ultimos pagamentos",
@@ -182,12 +223,7 @@ export function buildPharmacyDashboardReport(data: any): ModuleReportDefinition 
     title: "Dashboard Farmacia",
     subtitle: "Produtos, validades, dispensacoes e alertas sanitarios",
     filters: periodFilters(periodo),
-    kpis: Object.fromEntries(
-      Object.entries(data.kpis ?? {}).map(([key, value]) => [
-        key.replace(/([A-Z])/g, " $1").trim(),
-        typeof value === "number" ? formatCurrency(value) : toText(value),
-      ]),
-    ),
+    kpis: mapDashboardKpis(data.kpis ?? {}),
     tables: [
       mapObjectTable(
         "Produtos criticos",
@@ -250,12 +286,7 @@ export function buildStockDashboardReport(data: any): ModuleReportDefinition {
     title: "Dashboard Stock & Logistica",
     subtitle: "Movimentos, inventários, compras e reservas",
     filters: periodFilters(periodo),
-    kpis: Object.fromEntries(
-      Object.entries(data.kpis ?? {}).map(([key, value]) => [
-        key.replace(/([A-Z])/g, " $1").trim(),
-        typeof value === "number" ? formatCurrency(value) : toText(value),
-      ]),
-    ),
+    kpis: mapDashboardKpis(data.kpis ?? {}),
     tables: [
       mapObjectTable(
         "Ultimos movimentos",

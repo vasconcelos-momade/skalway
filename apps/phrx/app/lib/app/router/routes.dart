@@ -36,6 +36,7 @@ abstract final class AppRoutePaths {
 
   static const String financial = '/app/financial';
   static const String financeCashflow = '/app/finance/cashflow';
+  static const String financeRevenue = '/app/finance/revenue';
   static const String financeExpenses = '/app/finance/expenses';
 
   static const String audit = '/app/audit';
@@ -126,6 +127,7 @@ abstract final class AppRouteTitles {
       AppRoutePaths.recipesBook => 'Livro de Receitas',
       AppRoutePaths.financial => 'Visão Geral',
       AppRoutePaths.financeCashflow => 'Fluxo de Caixa',
+      AppRoutePaths.financeRevenue => 'Receita/Faturamento',
       AppRoutePaths.financeExpenses => 'Despesas',
       AppRoutePaths.audit => 'Visão Geral',
       AppRoutePaths.auditTimeline => 'Cronologia',

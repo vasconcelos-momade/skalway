@@ -12,7 +12,7 @@ import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/navigation/app_nav_config.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
-import '../../../dashboard/presentation/widgets/dashboard_period_filters.dart';
+import '../../../../shared/widgets/dashboard/enterprise_filter_bar.dart';
 import '../../../dashboard/presentation/widgets/dashboard_widgets.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../../stock/presentation/widgets/movimentacoes_pagination.dart';
@@ -150,6 +150,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
     final reportState = ref.watch(reportControllerProvider);
     final kpis = dashMap(async.valueOrNull?['kpis']);
 
+    // Apenas operação de caixa (saldo físico). Receita/Faturamento vive noutro menu.
     final kpiCards = kpis == null
         ? null
         : [
@@ -173,7 +174,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
             ),
             dashboardKpiCard(
               title: 'Despesas',
-              value: '${dashKpi(kpis, 'despesas')} MZN',
+              value: '${dashKpi(kpis, 'despesasCaixa')} MZN',
               icon: Icons.remove_circle_outline,
               accent: StatCardAccent.warning,
             ),
@@ -195,19 +196,6 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
               icon: Icons.account_balance_wallet,
               accent: StatCardAccent.positive,
             ),
-            dashboardKpiCard(
-              title: 'Faturamento / Receita',
-              value: '${dashKpi(kpis, 'faturamento')} MZN',
-              subtitle: 'Receita: ${dashKpi(kpis, 'receita')} MZN',
-              icon: Icons.trending_up,
-              accent: StatCardAccent.info,
-            ),
-            dashboardKpiCard(
-              title: 'Fluxo de caixa',
-              value: '${dashKpi(kpis, 'fluxoCaixa')} MZN',
-              icon: Icons.sync_alt_outlined,
-              accent: StatCardAccent.info,
-            ),
           ];
 
     return ResponsiveBuilder(
@@ -217,7 +205,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
 
         return EnterpriseModuleHub(
           title: 'Fluxo de caixa',
-          subtitle: 'Operação do caixa físico com separação de saldo e faturamento.',
+          subtitle: 'Movimentações que alteram o saldo físico do caixa.',
           tag: AppNavSections.finance,
           scrollable: false,
           mobileKpisHorizontalScroll: true,
@@ -316,7 +304,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: DashboardPeriodFilters(
+          child: EnterpriseFilterBar(
             query: _query,
             onChanged: _onQueryChanged,
           ),
@@ -358,7 +346,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: DashboardPeriodFilters(
+          child: EnterpriseFilterBar(
             query: _query,
             onChanged: _onQueryChanged,
           ),

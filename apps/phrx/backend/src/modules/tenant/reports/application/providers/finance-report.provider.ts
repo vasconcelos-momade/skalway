@@ -17,7 +17,6 @@ import {
   periodFilterLabels,
 } from "./helpers/finance-report.builder";
 
-const INCOME_TYPES = ["SALE", "DEBT_PAYMENT"];
 const EXPENSE_TYPES = ["EXPENSE", "PURCHASE", "REFUND"];
 
 export class FinanceCashflowReportProvider implements ReportDataProvider {
@@ -35,18 +34,18 @@ export class FinanceCashflowReportProvider implements ReportDataProvider {
       ),
     ]);
 
-    const receitas = items.filter((item: any) => INCOME_TYPES.includes(item.tipo));
-    const despesas = items.filter((item: any) => EXPENSE_TYPES.includes(item.tipo));
 
     return buildFinanceReportDefinition({
       fileBaseName: "fluxo-caixa",
       reportName: "Fluxo de Caixa",
       title: "Fluxo de Caixa",
-      subtitle: "Movimentos financeiros consolidados",
+      subtitle: "Movimentos de caixa separados da DRE",
       filters: periodFilterLabels(filters),
       kpis: {
-        "Receitas (mes)": formatCurrency(dashboard.kpis?.receita),
-        "Despesas (mes)": formatCurrency(dashboard.kpis?.despesas),
+        "Faturamento (periodo)": formatCurrency(dashboard.kpis?.faturamento),
+        "Entradas de caixa": formatCurrency(dashboard.kpis?.entradas),
+        "Saidas de caixa": formatCurrency(dashboard.kpis?.saidas),
+        "Despesas de caixa": formatCurrency(dashboard.kpis?.despesasCaixa),
         "Fluxo de caixa": formatCurrency(dashboard.kpis?.fluxoCaixa),
         "Saldo actual": formatCurrency(dashboard.kpis?.saldoAtual),
         Movimentos: items.length,
@@ -65,8 +64,8 @@ export class FinanceCashflowReportProvider implements ReportDataProvider {
       ],
       totals: {
         Registos: items.length,
-        Receitas: formatCurrency(receitas.reduce((sum, item: any) => sum + Number(item.valor ?? 0), 0)),
-        Despesas: formatCurrency(despesas.reduce((sum, item: any) => sum + Number(item.valor ?? 0), 0)),
+        Faturamento: formatCurrency(dashboard.kpis?.faturamento),
+        "Fluxo de caixa": formatCurrency(dashboard.kpis?.fluxoCaixa),
       },
     });
   }
@@ -99,7 +98,8 @@ export class FinanceExpensesReportProvider implements ReportDataProvider {
       subtitle: "Movimentos de despesa, compra e reembolso",
       filters: periodFilterLabels(filters),
       kpis: {
-        "Despesas (mes)": formatCurrency(dashboard.kpis?.despesas),
+        "Despesas operacionais (mes)": formatCurrency(dashboard.kpis?.despesas),
+        "Despesas de caixa (mes)": formatCurrency(dashboard.kpis?.despesasCaixa),
         "Contas a pagar": formatCurrency(dashboard.kpis?.contasPagar),
         Registos: items.length,
       },
@@ -117,7 +117,11 @@ export class FinanceExpensesReportProvider implements ReportDataProvider {
       ],
       totals: {
         Registos: items.length,
-        Total: formatCurrency(items.reduce((sum, item: any) => sum + Number(item.valor ?? 0), 0)),
+        "Despesas operacionais": formatCurrency(dashboard.kpis?.despesas),
+        "Despesas de caixa": formatCurrency(dashboard.kpis?.despesasCaixa),
+        "Total movimentos listados": formatCurrency(
+          items.reduce((sum, item: any) => sum + Number(item.valor ?? 0), 0),
+        ),
       },
     });
   }
