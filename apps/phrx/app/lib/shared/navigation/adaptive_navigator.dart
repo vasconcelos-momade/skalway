@@ -107,6 +107,7 @@ abstract final class AdaptiveNavigator {
     RouteSettings? routeSettings,
     double? sideSheetWidth,
     EnterpriseOverlaySize size = EnterpriseOverlaySize.medium,
+    bool forceSideSheet = false,
   }) {
     if (isMobile(context)) {
       return Navigator.of(context, rootNavigator: true).push<T>(
@@ -117,7 +118,7 @@ abstract final class AdaptiveNavigator {
       );
     }
 
-    if (isDesktop(context)) {
+    if (isDesktop(context) && !forceSideSheet) {
       return showEnterpriseDialog<T>(
         context: context,
         barrierDismissible: barrierDismissible,
@@ -148,6 +149,7 @@ abstract final class AdaptiveNavigator {
     bool barrierDismissible = true,
     bool mobileWrapInScrollView = true,
     EnterpriseOverlaySize size = EnterpriseOverlaySize.medium,
+    bool forceSideSheet = false,
   }) {
     return openForm<T>(
       context: context,
@@ -156,6 +158,7 @@ abstract final class AdaptiveNavigator {
       sideSheetWidth: sideSheetWidth,
       barrierDismissible: barrierDismissible,
       size: size,
+      forceSideSheet: forceSideSheet,
       contentBuilder: (formContext) {
         final form = formBuilder(formContext, embedded: true);
         if (isMobile(formContext)) {

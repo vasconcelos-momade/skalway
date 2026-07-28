@@ -26,6 +26,7 @@ import '../providers/proforma_invoice_cart_provider.dart';
 import '../widgets/proforma_invoice_cart_item_card.dart';
 import '../widgets/proforma_invoice_cart_summary.dart';
 import '../widgets/save_proforma_invoice_dialog.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class SalesProformaInvoicesPage extends ConsumerStatefulWidget {
   const SalesProformaInvoicesPage({super.key});
@@ -575,15 +576,6 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
               ),
               if (_isProductsTab) ...[
                 SizedBox(width: s.sm),
-                IconButton(
-                  tooltip: 'Actualizar catálogo',
-                  onPressed: productState.isLoading
-                      ? null
-                      : () => unawaited(
-                            productController.refreshCatalogAndPage(),
-                          ),
-                  icon: Icon(Icons.refresh_rounded, color: t.brandBlue),
-                ),
               ],
             ],
           ),
@@ -812,8 +804,18 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
 
     final cartPane = _buildCartPane(compact: isMobile || isTablet);
 
+    Future<void> refreshCatalog() async {
+      if (_isProductsTab) {
+        await productController.refreshCurrentPage();
+      } else if (!_isHistoryTab) {
+        await serviceController.refreshCurrentQuery();
+      }
+    }
+
     if (isMobile) {
-      return ColoredBox(
+      return PageRefreshBinder(
+        onRefresh: refreshCatalog,
+        child: ColoredBox(
         color: t.bgPrimary,
         child: Column(
           children: [
@@ -844,10 +846,13 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
             ),
           ],
         ),
+      ),
       );
     }
 
-    return ColoredBox(
+    return PageRefreshBinder(
+      onRefresh: refreshCatalog,
+      child: ColoredBox(
       color: t.bgPrimary,
       child: Padding(
         padding: EdgeInsets.all(s.md),
@@ -893,6 +898,7 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
             ],
           ),
       ),
+    ),
     );
   }
 }

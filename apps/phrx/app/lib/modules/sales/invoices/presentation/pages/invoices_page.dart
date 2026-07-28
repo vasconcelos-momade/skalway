@@ -13,6 +13,7 @@ import '../providers/invoice_list_provider.dart';
 import '../widgets/cancel_invoice_dialog.dart';
 import '../widgets/invoice_detail_screen.dart';
 import '../widgets/invoices_body.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class SalesInvoicesPage extends ConsumerStatefulWidget {
   const SalesInvoicesPage({super.key});
@@ -69,7 +70,9 @@ class _SalesInvoicesPageState extends ConsumerState<SalesInvoicesPage> {
       );
     }
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => ref.read(invoiceListProvider.notifier).refresh(),
+      child: EnterpriseModuleHub(
       title: 'Faturas de venda',
       subtitle:
           'Histórico operacional do POS com pesquisa, filtros rápidos, cache em memória e cancelamento seguro.',
@@ -101,13 +104,6 @@ class _SalesInvoicesPageState extends ConsumerState<SalesInvoicesPage> {
             label: Text('Exportar'),
           ),
         ),
-        OutlinedButton.icon(
-          onPressed: listState.isBusy
-              ? null
-              : () => ref.read(invoiceListProvider.notifier).refresh(),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
-        ),
       ],
       child: InvoicesBody(
         searchController: _searchController,
@@ -117,6 +113,7 @@ class _SalesInvoicesPageState extends ConsumerState<SalesInvoicesPage> {
         onCancel: _confirmCancelInvoice,
         onPrint: _printInvoice,
       ),
+    ),
     );
   }
 

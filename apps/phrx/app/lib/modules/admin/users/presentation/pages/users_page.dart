@@ -24,6 +24,7 @@ import '../widgets/user_detail_panel.dart';
 import '../widgets/user_form_dialog.dart';
 import '../widgets/user_list.dart';
 import '../widgets/user_toolbar.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class UsersPage extends ConsumerStatefulWidget {
   const UsersPage({super.key});
@@ -91,7 +92,9 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return Scaffold(
+        return PageRefreshBinder(
+          onRefresh: () => notifier.refresh(),
+          child: Scaffold(
           floatingActionButton: isMobile
               ? FloatingActionButton(
                   onPressed: state.isBusy ? null : () => _openCreateDialog(context),
@@ -111,11 +114,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                       enabled: !state.isBusy,
                       path: ReportPaths.adminUsers,
                       queryParameters: reportQuery,
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: state.isBusy ? null : notifier.refresh,
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Atualizar'),
                     ),
                     FilledButton.icon(
                       onPressed: state.isBusy ? null : () => _openCreateDialog(context),
@@ -194,6 +192,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                         icon: Icons.lock_outline,
                       ),
           ),
+        ),
         );
       },
     );

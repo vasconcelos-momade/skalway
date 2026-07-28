@@ -12,6 +12,7 @@ import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../pharmacy/regulatory/data/datasources/regulatory_remote_datasource.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class AuditPsychotropicsPage extends ConsumerStatefulWidget {
   const AuditPsychotropicsPage({super.key});
@@ -96,16 +97,13 @@ class _AuditPsychotropicsPageState
         _dashboard?['kpis'] as Map<String, dynamic>? ??
         const <String, dynamic>{};
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async { await _load(); },
+      child: EnterpriseModuleHub(
       title: 'Auditoria de psicotrópicos',
       subtitle: 'Livro B, receitas, retenção e cruzamento regulatório.',
       tag: 'Auditoria',
       actions: [
-        OutlinedButton.icon(
-          onPressed: _loading ? null : () => _load(),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
-        ),
       ],
       filters: Wrap(
         spacing: s.sm,
@@ -149,6 +147,7 @@ class _AuditPsychotropicsPageState
         ),
       ],
       child: _buildBody(context),
+    ),
     );
   }
 

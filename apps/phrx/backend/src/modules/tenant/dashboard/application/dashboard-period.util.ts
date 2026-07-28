@@ -134,3 +134,20 @@ export function serializePeriodo(period: ResolvedDashboardPeriod) {
     to: period.to.toISOString(),
   };
 }
+
+/** Período imediatamente anterior com a mesma duração (crescimento %). */
+export function previousEquivalentPeriod(
+  period: ResolvedDashboardPeriod,
+): { from: Date; to: Date } {
+  const durationMs = period.to.getTime() - period.from.getTime();
+  const to = new Date(period.from.getTime() - 1);
+  const from = new Date(to.getTime() - durationMs);
+  return { from, to };
+}
+
+export function percentGrowth(current: number, previous: number): number {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+  return Math.round(((current - previous) / previous) * 10000) / 100;
+}

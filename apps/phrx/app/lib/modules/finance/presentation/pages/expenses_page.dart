@@ -6,6 +6,7 @@ import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -31,7 +32,14 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     final dataSource = ref.watch(dashboardRemoteDataSourceProvider);
     final kpis = dashMap(async.valueOrNull?['kpis']);
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async {
+        ref.invalidate(financeDashboardProvider(_query));
+        try {
+          await ref.read(financeDashboardProvider(_query).future);
+        } catch (_) {}
+      },
+      child: EnterpriseModuleHub(
       title: 'Despesas',
       subtitle: 'Movimentos de despesa, compras e reembolsos.',
       tag: AppNavSections.finance,
@@ -43,11 +51,6 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
           enabled: !reportState.isSubmitting,
           path: ReportPaths.financeExpenses,
           queryParameters: _query.toParams(),
-        ),
-        OutlinedButton.icon(
-          onPressed: () => ref.invalidate(financeDashboardProvider(_query)),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
       ],
       filters: EnterpriseFilterBar(
@@ -114,6 +117,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
           ],
         ),
       ),
+    ),
     );
   }
 }

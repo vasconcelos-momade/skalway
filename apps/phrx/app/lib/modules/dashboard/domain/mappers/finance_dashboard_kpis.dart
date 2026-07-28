@@ -25,6 +25,13 @@ abstract final class FinanceDashboardKpis {
         onTap: () => context.go(AppRoutePaths.financeRevenue),
       ),
       EnterpriseKpiCard(
+        title: 'CMV',
+        value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.custos),
+        unit: 'MZN',
+        icon: Icons.inventory_2_outlined,
+        trend: EnterpriseKpiTrend.negative,
+      ),
+      EnterpriseKpiCard(
         title: 'Lucro bruto',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.lucroBruto),
         unit: 'MZN',
@@ -40,7 +47,7 @@ abstract final class FinanceDashboardKpis {
         onTap: () => context.go(AppRoutePaths.financeExpenses),
       ),
       EnterpriseKpiCard(
-        title: 'Saldo caixa',
+        title: 'Saldo de caixa',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.saldoAtual),
         unit: 'MZN',
         icon: Icons.account_balance_wallet_outlined,
@@ -59,13 +66,6 @@ abstract final class FinanceDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.ticketMedio),
         unit: 'MZN',
         icon: Icons.sell_outlined,
-        trend: EnterpriseKpiTrend.neutral,
-      ),
-      EnterpriseKpiCard(
-        title: 'Contas a receber',
-        value: DashboardDataUtils.kpi(kpis, 'contasReceber'),
-        unit: 'MZN',
-        icon: Icons.request_quote_outlined,
         trend: EnterpriseKpiTrend.neutral,
       ),
       EnterpriseKpiCard(

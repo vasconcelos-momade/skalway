@@ -12,16 +12,19 @@ const double kDashboardChartMinItemWidth = 480.0;
 
 /// Envolve um gráfico para controlar o layout na grelha.
 ///
-/// [fullWidth] força 1 card por linha (útil para séries diárias/mensais em web).
+/// [fullWidth] força 1 card por linha.
+/// [fixedHeight] sobrescreve o cálculo por aspect ratio (alturas enterprise).
 class DashboardChartSlot extends StatelessWidget {
   const DashboardChartSlot({
     super.key,
     required this.child,
     this.fullWidth = false,
+    this.fixedHeight,
   });
 
   final Widget child;
   final bool fullWidth;
+  final double? fixedHeight;
 
   @override
   Widget build(BuildContext context) => child;
@@ -47,6 +50,9 @@ class DashboardChartsSection extends StatelessWidget {
   static bool _isFullWidth(Widget widget) =>
       widget is DashboardChartSlot && widget.fullWidth;
 
+  static double? _fixedHeight(Widget widget) =>
+      widget is DashboardChartSlot ? widget.fixedHeight : null;
+
   static Widget _unwrap(Widget widget) =>
       widget is DashboardChartSlot ? widget.child : widget;
 
@@ -56,15 +62,16 @@ class DashboardChartsSection extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-            ? constraints.maxWidth
-            : minChartWidth;
+        final availableWidth =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : minChartWidth;
         final spacing = AppSpacing.lg;
 
         final crossAxisCount = PharmaScreenLayout.adaptiveCrossAxisCount(
           availableWidth,
           minChartWidth,
-          maxColumns: 2,
+          maxColumns: PharmaScreenLayout.isMobile(context) ? 1 : 2,
         );
 
         final rows = <Widget>[];
@@ -87,13 +94,14 @@ class DashboardChartsSection extends StatelessWidget {
           if (_isFullWidth(chart)) {
             flushGridBatch();
             rows.add(
-              _buildFullWidthRow(
+              _buildSizedRow(
                 chart: _unwrap(chart),
                 availableWidth: availableWidth,
+                fixedHeight: _fixedHeight(chart),
               ),
             );
           } else {
-            gridBatch.add(_unwrap(chart));
+            gridBatch.add(chart);
           }
         }
         flushGridBatch();
@@ -111,13 +119,15 @@ class DashboardChartsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildFullWidthRow({
+  Widget _buildSizedRow({
     required Widget chart,
     required double availableWidth,
+    double? fixedHeight,
   }) {
-    final height = (availableWidth / preferredAspectRatio)
-        .clamp(minChartHeight, maxChartHeight)
-        .toDouble();
+    final height = fixedHeight ??
+        (availableWidth / preferredAspectRatio)
+            .clamp(minChartHeight, maxChartHeight)
+            .toDouble();
 
     return SizedBox(
       height: height,
@@ -137,9 +147,6 @@ class DashboardChartsSection extends StatelessWidget {
       final currentCount = rowChildren.length;
       final currentItemWidth =
           (availableWidth - (currentCount - 1) * spacing) / currentCount;
-      final targetCardHeight = (currentItemWidth / preferredAspectRatio)
-          .clamp(minChartHeight, maxChartHeight)
-          .toDouble();
 
       rows.add(
         Row(
@@ -149,8 +156,11 @@ class DashboardChartsSection extends StatelessWidget {
               if (j > 0) SizedBox(width: spacing),
               Expanded(
                 child: SizedBox(
-                  height: targetCardHeight,
-                  child: rowChildren[j],
+                  height: _fixedHeight(rowChildren[j]) ??
+                      (currentItemWidth / preferredAspectRatio)
+                          .clamp(minChartHeight, maxChartHeight)
+                          .toDouble(),
+                  child: _unwrap(rowChildren[j]),
                 ),
               ),
             ],

@@ -1107,7 +1107,10 @@ enum TipoCaixaMovimento {
   VENDA
   SUPRIMENTO
   SANGRIA
-  DESPESA
+  /// Despesa consumida (água, energia, salários, etc.) — impacta Lucro Líquido.
+  DESPESA_OPERACIONAL
+  /// Aquisição de mercadorias para estoque — reduz caixa, não impacta Lucro.
+  COMPRA_ESTOQUE
   ESTORNO
 }
 
@@ -1116,12 +1119,12 @@ enum OrigemCaixaMovimentacao {
   FATURA
   SUPRIMENTO
   SANGRIA
-  DESPESA
+  DESPESA_OPERACIONAL
+  COMPRA_ESTOQUE
   ESTORNO
   AJUSTE
   /// Legados mapeados na migration (compatibilidade).
   PEDIDO
-  COMPRA
   PAGAMENTO
   REFORCO
   OUTRO

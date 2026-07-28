@@ -18,6 +18,7 @@ import '../../domain/entities/customer.dart';
 import '../providers/customer_list_provider.dart';
 import '../../data/repositories/customer_repository_impl.dart';
 import '../widgets/customer_form_sheet.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class CustomersPage extends ConsumerStatefulWidget {
   const CustomersPage({super.key});
@@ -61,7 +62,9 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
       );
     }
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => notifier.refresh(),
+      child: EnterpriseModuleHub(
       title: 'Clientes & convénios',
       subtitle: 'CRM operacional, limites de crédito e convénios hospitalares.',
       tag: 'Terminal',
@@ -91,11 +94,6 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
             icon: Icon(Icons.download_outlined),
             label: Text('Exportar'),
           ),
-        ),
-        OutlinedButton.icon(
-          onPressed: state.isBusy ? null : notifier.refresh,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
         FilledButton.icon(
           onPressed: state.isBusy ? null : () => _openCreateSheet(context),
@@ -186,6 +184,7 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
         ),
       ],
       child: _buildBody(context, state, notifier),
+    ),
     );
   }
 

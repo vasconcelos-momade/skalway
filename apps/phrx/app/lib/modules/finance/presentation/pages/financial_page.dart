@@ -7,6 +7,7 @@ import '../../../../core/theme/spacing.dart';
 import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -34,7 +35,14 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
     final dataSource = ref.watch(dashboardRemoteDataSourceProvider);
     final kpis = dashMap(async.valueOrNull?['kpis']);
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async {
+        ref.invalidate(financeDashboardProvider(_query));
+        try {
+          await ref.read(financeDashboardProvider(_query).future);
+        } catch (_) {}
+      },
+      child: EnterpriseModuleHub(
       title: 'Visão financeira',
       subtitle: 'DRE (receita, CMV, despesas) separado do saldo físico de caixa.',
       tag: AppNavSections.finance,
@@ -46,11 +54,6 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
           enabled: !reportState.isSubmitting,
           path: ReportPaths.financeAccountsReceivable,
           queryParameters: _query.toParams(),
-        ),
-        OutlinedButton.icon(
-          onPressed: () => ref.invalidate(financeDashboardProvider(_query)),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
       ],
       filters: EnterpriseFilterBar(
@@ -226,6 +229,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -10,6 +10,7 @@ import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../shared/widgets/dashboard/enterprise_filter_bar.dart';
@@ -127,6 +128,16 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
     );
   }
 
+  Future<void> _refreshPage() async {
+    setState(() => _tableReloadToken++);
+    invalidateExecutiveAndFinanceDashboardsFrom(ref);
+    _page = 1;
+    await _fetchTable();
+    try {
+      await ref.read(financeDashboardProvider(_query).future);
+    } catch (_) {}
+  }
+
   String _formatDateTime(String iso) {
     final parsed = DateTime.tryParse(iso)?.toLocal();
     if (parsed == null) return iso.isEmpty ? '—' : iso;
@@ -203,7 +214,9 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
         final isDesktop = constraints.isDesktopOrWider;
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+          onRefresh: _refreshPage,
+          child: EnterpriseModuleHub(
           title: 'Fluxo de caixa',
           subtitle: 'Movimentações que alteram o saldo físico do caixa.',
           tag: AppNavSections.finance,
@@ -216,9 +229,15 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
               : [
                   OutlinedButton.icon(
                     onPressed: () =>
-                        _openOperation(CashflowOperationKind.despesa),
+                        _openOperation(CashflowOperationKind.despesaOperacional),
                     icon: const Icon(Icons.remove_circle_outline),
-                    label: const Text('Despesa'),
+                    label: const Text('Despesa operacional'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () =>
+                        _openOperation(CashflowOperationKind.compraEstoque),
+                    icon: const Icon(Icons.inventory_2_outlined),
+                    label: const Text('Compra estoque'),
                   ),
                   OutlinedButton.icon(
                     onPressed: () => _openOperation(CashflowOperationKind.suprimento),
@@ -294,6 +313,7 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
               totalCountLabel: _totalCount != null ? 'Total: $_totalCount movimento(s)' : null,
             ),
           ),
+          ),
         );
       },
     );
@@ -321,18 +341,6 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
               path: ReportPaths.financeCashflow,
               queryParameters: _query.toParams(),
             ),
-            OutlinedButton.icon(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      setState(() => _tableReloadToken++);
-                      invalidateExecutiveAndFinanceDashboardsFrom(ref);
-                      _page = 1;
-                      _fetchTable();
-                    },
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Atualizar'),
-            ),
           ],
         ),
       ],
@@ -352,33 +360,12 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: financeReportActions(
-                ref: ref,
-                enabled: !reportState.isSubmitting && !_isLoading,
-                path: ReportPaths.financeCashflow,
-                queryParameters: _query.toParams(),
-              ).first,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        setState(() => _tableReloadToken++);
-                        invalidateExecutiveAndFinanceDashboardsFrom(ref);
-                        _page = 1;
-                        _fetchTable();
-                      },
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Atualizar'),
-              ),
-            ),
-          ],
-        ),
+        financeReportActions(
+          ref: ref,
+          enabled: !reportState.isSubmitting && !_isLoading,
+          path: ReportPaths.financeCashflow,
+          queryParameters: _query.toParams(),
+        ).first,
       ],
     );
   }

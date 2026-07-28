@@ -9,6 +9,8 @@ export class ValidadesDashboardUseCase {
     in30.setDate(in30.getDate() + 30);
     const in60 = new Date(now);
     in60.setDate(in60.getDate() + 60);
+    const in90 = new Date(now);
+    in90.setDate(in90.getDate() + 90);
 
     const baseWhere = {
       deletedAt: null,
@@ -16,7 +18,7 @@ export class ValidadesDashboardUseCase {
       stockBalance: { quantidadeDisponivel: { gt: 0 } },
     };
 
-    const [expirados, ate30, ate60, valorRows] = await prisma.$transaction([
+    const [expirados, ate30, ate60, ate90, valorRows] = await prisma.$transaction([
       prisma.lote.count({
         where: { ...baseWhere, dataValidade: { lt: now } },
       }),
@@ -32,10 +34,16 @@ export class ValidadesDashboardUseCase {
           dataValidade: { gt: in30, lte: in60 },
         },
       }),
+      prisma.lote.count({
+        where: {
+          ...baseWhere,
+          dataValidade: { gt: in60, lte: in90 },
+        },
+      }),
       prisma.lote.findMany({
         where: {
           ...baseWhere,
-          dataValidade: { lte: in60 },
+          dataValidade: { lte: in90 },
         },
         select: {
           quantidadeQuarentena: true,
@@ -57,6 +65,11 @@ export class ValidadesDashboardUseCase {
       lotesExpirados: expirados,
       expiramEm30Dias: ate30,
       expiramEm60Dias: ate60,
+      expiramEm90Dias: ate90,
+      // aliases do contrato validadeProdutos
+      vencem30Dias: ate30,
+      vencem60Dias: ate60,
+      vencem90Dias: ate90,
       valorFinanceiroEmRisco: Math.round(valorEmRisco * 100) / 100,
     };
   }

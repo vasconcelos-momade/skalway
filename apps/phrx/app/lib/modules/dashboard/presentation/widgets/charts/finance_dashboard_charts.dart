@@ -9,7 +9,9 @@ abstract final class FinanceDashboardCharts {
 
   static List<Widget> build(BuildContext context, Map<String, dynamic>? charts) {
     final t = context.pharmaTokens;
-    final fluxoDiario = DashboardDataUtils.list(charts?['fluxoDiario']);
+    final fluxoDiario = DashboardDataUtils.compactTimeSeries(
+      DashboardDataUtils.list(charts?['fluxoDiario']),
+    );
     final fluxoMensal = DashboardDataUtils.list(charts?['fluxoMensal']);
     final metodosPagamento = DashboardDataUtils.list(charts?['metodosPagamento']);
     final despesasCategoria = DashboardDataUtils.list(charts?['despesasPorCategoria']);
@@ -21,37 +23,26 @@ abstract final class FinanceDashboardCharts {
         child: dashboardChartCard(
           context: context,
           title: 'DRE Financeira',
-          child: dashboardMultiLineChart(
+          child: dashboardGroupedCashFlowChart(
             context: context,
             points: fluxoMensal,
             labelKey: 'mes',
-            series: [
-              DashboardLineSeries(
-                key: 'receitas',
-                label: 'Receita',
-                color: t.brandGreen,
-              ),
-              DashboardLineSeries(
-                key: 'despesas',
-                label: 'Despesas',
-                color: t.posDanger,
-              ),
-              DashboardLineSeries(
-                key: 'saldo',
-                label: 'Resultado',
-                color: t.brandBlue,
-              ),
-            ],
+            entradasKey: 'receitas',
+            saidasKey: 'despesas',
+            saldoKey: 'saldo',
           ),
         ),
       ),
-      dashboardChartCard(
-        context: context,
-        title: 'Fluxo de caixa',
-        child: dashboardGroupedCashFlowChart(
+      DashboardChartSlot(
+        fullWidth: true,
+        child: dashboardChartCard(
           context: context,
-          points: fluxoDiario,
-          labelKey: 'data',
+          title: 'Fluxo de caixa',
+          child: dashboardGroupedCashFlowChart(
+            context: context,
+            points: fluxoDiario,
+            labelKey: 'data',
+          ),
         ),
       ),
       dashboardChartCard(

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/contracts/pagination_response.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
+import '../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/table_typography.dart';
@@ -66,25 +67,70 @@ class DashboardTableColumn {
 }
 
 /// Altura mínima e máxima recomendadas para a área de gráfico dentro do card.
-const double kDashboardChartMinHeight = 240.0;
-const double kDashboardChartMaxHeight = 420.0;
+const double kDashboardChartMinHeight = 220.0;
+const double kDashboardChartMaxHeight = 320.0;
+
+/// Alturas enterprise (Power BI / Fiori) por breakpoint.
+double dashboardEnterpriseChartHeight(
+  BuildContext context, {
+  required double desktop,
+  double? tablet,
+  double? mobile,
+}) {
+  return switch (PharmaScreenLayout.sizeOf(context)) {
+    PharmaScreenSize.desktop => desktop,
+    PharmaScreenSize.tablet => tablet ?? (desktop - 40).clamp(220.0, desktop),
+    PharmaScreenSize.mobile => mobile ?? (desktop - 60).clamp(200.0, desktop),
+  };
+}
 
 Widget _dashboardChartEmptyState(
   BuildContext context, {
   String message = 'Sem dados no período',
+  String? title,
+  String? subtitle,
 }) {
   final t = context.pharmaTokens;
+  final resolvedTitle = title ?? message;
+  final resolvedSubtitle = subtitle;
   return LayoutBuilder(
     builder: (context, constraints) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Text(
-            message,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.insights_outlined,
+                size: 28,
+                color: t.textMuted.withValues(alpha: 0.7),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                resolvedTitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.erpBody.copyWith(
+                      color: t.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              if (resolvedSubtitle != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  resolvedSubtitle,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .erpBodySecondary
+                      .copyWith(color: t.textMuted),
+                ),
+              ],
+            ],
           ),
         ),
       );
@@ -95,6 +141,7 @@ Widget _dashboardChartEmptyState(
 Widget _dashboardScrollableChart({
   required double minWidth,
   required Widget child,
+  bool scrollToEnd = false,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -114,8 +161,10 @@ Widget _dashboardScrollableChart({
       );
 
       if (needsHorizontalScroll) {
+        // reverse: mostra primeiro o fim da série (dias recentes com dados).
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          reverse: scrollToEnd,
           child: chart,
         );
       }
@@ -223,83 +272,154 @@ Widget dashboardLineChart({
   required String valueKey,
   String? labelKey,
   Color? color,
+  String emptyTitle = 'Nenhuma venda registrada',
+  String emptySubtitle =
+      'Comece a vender para visualizar a evolução financeira.',
+  Widget? headerTrailing,
 }) {
   final t = context.pharmaTokens;
-  if (points.isEmpty) {
-    return _dashboardChartEmptyState(context);
+  final lineColor = color ?? t.brandGreen;
+  final hasActivity = points.any((p) => _dashboardNumeric(p[valueKey]) != 0);
+  if (points.isEmpty || !hasActivity) {
+    return _dashboardChartEmptyState(
+      context,
+      title: emptyTitle,
+      subtitle: emptySubtitle,
+    );
   }
 
   final spots = <FlSpot>[];
   var maxY = 0.0;
   for (var i = 0; i < points.length; i++) {
-    final y = (points[i][valueKey] as num?)?.toDouble() ?? 0;
+    final y = _dashboardNumeric(points[i][valueKey]);
     if (y > maxY) maxY = y;
     spots.add(FlSpot(i.toDouble(), y));
   }
-  final chartMax = maxY < 1 ? 1.0 : maxY * 1.15;
+  final chartMax = maxY < 1 ? 1.0 : maxY * 1.25;
   final minWidth = labelKey == null
       ? 280.0
-      : _dashboardChartMinWidthForCount(points.length);
+      : _dashboardChartMinWidthForCount(points.length, perItem: 56);
 
-  return _dashboardScrollableChart(
-    minWidth: minWidth,
-    child: Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 4),
-      child: LineChart(
-        LineChartData(
-          minY: 0,
-          maxY: chartMax,
-          clipData: const FlClipData.none(),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            getDrawingHorizontalLine: (v) =>
-                FlLine(color: t.border.withValues(alpha: 0.22), strokeWidth: 1),
-          ),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            bottomTitles: labelKey == null
-                ? const AxisTitles(sideTitles: SideTitles(showTitles: false))
-                : AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 28,
-                      getTitlesWidget: (value, meta) {
-                        final i = value.toInt();
-                        if (i < 0 || i >= points.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return DefaultTextStyle(
-                          style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
-                          child: _dashboardAxisLabel(
-                            context: context,
-                            meta: meta,
-                            label: dashLabel(points[i][labelKey], max: 10),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (headerTrailing != null) ...[
+        Align(alignment: Alignment.centerRight, child: headerTrailing),
+        const SizedBox(height: AppSpacing.xs),
+      ],
+      Expanded(
+        child: _dashboardScrollableChart(
+          minWidth: minWidth,
+          scrollToEnd: true,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: chartMax,
+                clipData: const FlClipData.none(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: chartMax / 4,
+                  getDrawingHorizontalLine: (v) => FlLine(
+                    color: t.border.withValues(alpha: 0.22),
+                    strokeWidth: 1,
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => t.card,
+                    tooltipBorder: BorderSide(color: t.border),
+                    getTooltipItems: (touched) => touched
+                        .map(
+                          (item) => LineTooltipItem(
+                            '${item.y.toStringAsFixed(2)} MZN',
+                            Theme.of(context).textTheme.erpCaption.copyWith(
+                                  color: t.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
-                        );
-                      },
+                        )
+                        .toList(growable: false),
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  bottomTitles: labelKey == null
+                      ? const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        )
+                      : AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            getTitlesWidget: (value, meta) {
+                              final i = value.toInt();
+                              if (i < 0 || i >= points.length) {
+                                return const SizedBox.shrink();
+                              }
+                              return DefaultTextStyle(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .erpBodySecondary
+                                    .copyWith(color: t.textMuted),
+                                child: _dashboardAxisLabel(
+                                  context: context,
+                                  meta: meta,
+                                  label: dashLabel(points[i][labelKey], max: 8),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: lineColor,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, bar, index) =>
+                          FlDotCirclePainter(
+                        radius: 4,
+                        color: lineColor,
+                        strokeWidth: 2,
+                        strokeColor: t.card,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          lineColor.withValues(alpha: 0.22),
+                          lineColor.withValues(alpha: 0.02),
+                        ],
+                      ),
                     ),
                   ),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              color: color ?? t.brandGreen,
-              barWidth: 2.5,
-              dotData: FlDotData(show: points.length <= 14),
-              belowBarData: BarAreaData(
-                show: true,
-                color: (color ?? t.brandGreen).withValues(alpha: 0.1),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
-    ),
+    ],
   );
 }
 
@@ -307,9 +427,13 @@ Widget dashboardChartCard({
   required BuildContext context,
   required String title,
   required Widget child,
+  String? subtitle,
+  Widget? action,
 }) {
   return EnterpriseChartCard(
     title: title,
+    subtitle: subtitle,
+    action: action,
     child: LayoutBuilder(
       builder: (context, constraints) {
         return SizedBox(
@@ -353,6 +477,22 @@ Widget dashboardBarChart({
               FlLine(color: t.border.withValues(alpha: 0.22), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => t.card,
+            tooltipBorder: BorderSide(color: t.border),
+            getTooltipItem: (group, groupIndex, rodData, rodIndex) {
+              return BarTooltipItem(
+                '${rodData.toY.toStringAsFixed(2)} MZN',
+                Theme.of(context).textTheme.erpCaption.copyWith(
+                      color: t.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              );
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -647,16 +787,38 @@ class DashboardLineSeries {
   final Color color;
 }
 
+bool _dashboardSeriesHasActivity(
+  List<Map<String, dynamic>> points,
+  List<String> keys,
+) {
+  for (final point in points) {
+    for (final key in keys) {
+      if (_dashboardNumeric(point[key]) != 0) return true;
+    }
+  }
+  return false;
+}
+
 Widget dashboardMultiLineChart({
   required BuildContext context,
   required List<Map<String, dynamic>> points,
   required String labelKey,
   required List<DashboardLineSeries> series,
   bool fillFirstSeries = false,
+  String emptyTitle = 'Nenhuma venda registrada',
+  String emptySubtitle =
+      'Comece a vender para visualizar a evolução financeira.',
 }) {
   final t = context.pharmaTokens;
-  if (points.isEmpty || series.isEmpty) {
-    return _dashboardChartEmptyState(context);
+  final seriesKeys = series.map((s) => s.key).toList(growable: false);
+  if (points.isEmpty ||
+      series.isEmpty ||
+      !_dashboardSeriesHasActivity(points, seriesKeys)) {
+    return _dashboardChartEmptyState(
+      context,
+      title: emptyTitle,
+      subtitle: emptySubtitle,
+    );
   }
 
   final lineData = <LineChartBarData>[];
@@ -676,20 +838,39 @@ Widget dashboardMultiLineChart({
       LineChartBarData(
         spots: spots,
         isCurved: true,
+        curveSmoothness: 0.28,
         color: config.color,
-        barWidth: s == 0 ? 2.5 : 2,
-        dotData: FlDotData(show: points.length <= 14 && s == 0),
+        barWidth: s == 0 ? 3 : 2,
+        isStrokeCapRound: true,
+        dotData: FlDotData(
+          show: true,
+          getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+            radius: 4,
+            color: config.color,
+            strokeWidth: 2,
+            strokeColor: t.card,
+          ),
+        ),
         belowBarData: BarAreaData(
           show: fillFirstSeries && s == 0,
-          color: config.color.withValues(alpha: 0.1),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              config.color.withValues(alpha: 0.22),
+              config.color.withValues(alpha: 0.02),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  final chartMax = maxY < 1 ? 1.0 : maxY * 1.15;
+  // Escala com margem superior para a linha não colar no topo/fundo.
+  final chartMax = maxY <= 0 ? 1.0 : maxY * 1.25;
   final chartMin = minY < 0 ? minY * 1.15 : 0.0;
-  final minWidth = _dashboardChartMinWidthForCount(points.length);
+  final labelStep = points.length > 10 ? 2 : 1;
+  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 48);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -697,8 +878,9 @@ Widget dashboardMultiLineChart({
       Expanded(
         child: _dashboardScrollableChart(
           minWidth: minWidth,
+          scrollToEnd: true,
           child: Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
             child: LineChart(
               LineChartData(
                 minY: chartMin,
@@ -707,20 +889,45 @@ Widget dashboardMultiLineChart({
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
+                  horizontalInterval: chartMax / 4,
                   getDrawingHorizontalLine: (v) => FlLine(
                     color: t.border.withValues(alpha: 0.22),
                     strokeWidth: 1,
                   ),
                 ),
                 borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  handleBuiltInTouches: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => t.card,
+                    tooltipBorder: BorderSide(color: t.border),
+                    getTooltipItems: (touched) {
+                      return touched.map((item) {
+                        final seriesIndex = item.barIndex;
+                        final label = seriesIndex >= 0 && seriesIndex < series.length
+                            ? series[seriesIndex].label
+                            : '';
+                        return LineTooltipItem(
+                          '$label\n${item.y.toStringAsFixed(2)} MZN',
+                          Theme.of(context).textTheme.erpCaption.copyWith(
+                                color: t.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        );
+                      }).toList(growable: false);
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 28,
+                      reservedSize: 30,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
-                        if (i < 0 || i >= points.length) {
+                        if (i < 0 || i >= points.length || i % labelStep != 0) {
                           return const SizedBox.shrink();
                         }
                         return DefaultTextStyle(
@@ -731,8 +938,8 @@ Widget dashboardMultiLineChart({
                           child: _dashboardAxisLabel(
                             context: context,
                             meta: meta,
-                            label: dashLabel(points[i][labelKey], max: 10),
-                            angle: points.length > 8 ? -0.45 : 0,
+                            label: dashLabel(points[i][labelKey], max: 8),
+                            angle: points.length > 8 ? -0.4 : 0,
                           ),
                         );
                       },
@@ -770,8 +977,18 @@ Widget dashboardGroupedCashFlowChart({
   String saldoKey = 'saldo',
 }) {
   final t = context.pharmaTokens;
-  if (points.isEmpty) {
-    return _dashboardChartEmptyState(context);
+  final hasActivity = _dashboardSeriesHasActivity(points, [
+    entradasKey,
+    saidasKey,
+    saldoKey,
+  ]);
+  if (points.isEmpty || !hasActivity) {
+    return _dashboardChartEmptyState(
+      context,
+      title: 'Nenhuma movimentação registada',
+      subtitle:
+          'Registe vendas, despesas ou suprimentos para visualizar o fluxo de caixa.',
+    );
   }
 
   final entradasColor = t.brandGreen;
@@ -794,10 +1011,11 @@ Widget dashboardGroupedCashFlowChart({
     if (value < minY) minY = value;
   }
 
-  final chartMax = maxY > 0 ? maxY * 1.15 : 1.0;
+  final chartMax = maxY > 0 ? maxY * 1.20 : 1.0;
   final chartMin = minY < 0 ? minY * 1.15 : 0.0;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 88);
-  const barWidth = 8.0;
+  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 64);
+  const barWidth = 18.0;
+  final labelStep = points.length > 10 ? 2 : 1;
 
   BarChartRodData rod({
     required double value,
@@ -809,11 +1027,15 @@ Widget dashboardGroupedCashFlowChart({
       width: barWidth,
       color: color,
       borderRadius: BorderRadius.vertical(
-        top: value < 0 ? Radius.zero : const Radius.circular(4),
-        bottom: value < 0 ? const Radius.circular(4) : Radius.zero,
+        top: value < 0 ? Radius.zero : const Radius.circular(6),
+        bottom: value < 0 ? const Radius.circular(6) : Radius.zero,
       ),
     );
   }
+
+  final saldoSpots = <FlSpot>[
+    for (var i = 0; i < saldos.length; i++) FlSpot(i.toDouble(), saldos[i]),
+  ];
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -821,62 +1043,133 @@ Widget dashboardGroupedCashFlowChart({
       Expanded(
         child: _dashboardScrollableChart(
           minWidth: minWidth,
-          child: BarChart(
-            BarChartData(
-              minY: chartMin,
-              maxY: chartMax,
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                getDrawingHorizontalLine: (v) => FlLine(
-                  color: t.border.withValues(alpha: 0.22),
-                  strokeWidth: 1,
-                ),
-              ),
-              borderData: FlBorderData(show: false),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 28,
-                    getTitlesWidget: (value, meta) {
-                      final i = value.toInt();
-                      if (i < 0 || i >= points.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return DefaultTextStyle(
-                        style: Theme.of(context)
-                            .textTheme
-                            .erpBodySecondary
-                            .copyWith(color: t.textMuted),
-                        child: _dashboardAxisLabel(
-                          context: context,
-                          meta: meta,
-                          label: dashLabel(points[i][labelKey], max: 10),
-                          angle: points.length > 8 ? -0.45 : 0,
+          scrollToEnd: true,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
+            child: Stack(
+              children: [
+                BarChart(
+                  BarChartData(
+                    minY: chartMin,
+                    maxY: chartMax,
+                    alignment: BarChartAlignment.spaceAround,
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval: chartMax / 4,
+                      getDrawingHorizontalLine: (v) => FlLine(
+                        color: t.border.withValues(alpha: 0.22),
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => t.card,
+                        tooltipBorder: BorderSide(color: t.border),
+                        getTooltipItem: (group, groupIndex, rodData, rodIndex) {
+                          if (rodIndex != 0) return null;
+                          final entrada = entradas[groupIndex];
+                          final saida = saidas[groupIndex];
+                          final saldo = saldos[groupIndex];
+                          return BarTooltipItem(
+                            'Entrada:\n${entrada.toStringAsFixed(2)} MZN\n\n'
+                            'Saída:\n${saida.toStringAsFixed(2)} MZN\n\n'
+                            'Saldo:\n${saldo.toStringAsFixed(2)} MZN',
+                            Theme.of(context).textTheme.erpCaption.copyWith(
+                                  color: t.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                            textAlign: TextAlign.left,
+                          );
+                        },
+                      ),
+                    ),
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 30,
+                          getTitlesWidget: (value, meta) {
+                            final i = value.toInt();
+                            if (i < 0 ||
+                                i >= points.length ||
+                                i % labelStep != 0) {
+                              return const SizedBox.shrink();
+                            }
+                            return DefaultTextStyle(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .erpBodySecondary
+                                  .copyWith(color: t.textMuted),
+                              child: _dashboardAxisLabel(
+                                context: context,
+                                meta: meta,
+                                label: dashLabel(points[i][labelKey], max: 8),
+                                angle: points.length > 8 ? -0.4 : 0,
+                              ),
+                            );
+                          },
                         ),
+                      ),
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+                    barGroups: List.generate(points.length, (i) {
+                      return BarChartGroupData(
+                        x: i,
+                        barsSpace: 4,
+                        barRods: [
+                          rod(value: entradas[i], color: entradasColor),
+                          rod(value: saidas[i], color: saidasColor),
+                        ],
                       );
-                    },
+                    }),
                   ),
                 ),
-                leftTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              barGroups: List.generate(points.length, (i) {
-                return BarChartGroupData(
-                  x: i,
-                  barsSpace: 3,
-                  barRods: [
-                    rod(value: entradas[i], color: entradasColor),
-                    rod(value: saidas[i], color: saidasColor),
-                    rod(value: saldos[i], color: saldoColor),
-                  ],
-                );
-              }),
+                IgnorePointer(
+                  child: LineChart(
+                    LineChartData(
+                      minX: -0.5,
+                      maxX: points.length - 0.5,
+                      minY: chartMin,
+                      maxY: chartMax,
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      titlesData: const FlTitlesData(show: false),
+                      lineTouchData: const LineTouchData(enabled: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: saldoSpots,
+                          isCurved: true,
+                          color: saldoColor,
+                          barWidth: 3,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, bar, index) =>
+                                FlDotCirclePainter(
+                              radius: 4,
+                              color: saldoColor,
+                              strokeWidth: 2,
+                              strokeColor: t.card,
+                            ),
+                          ),
+                          belowBarData: BarAreaData(show: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -899,10 +1192,16 @@ Widget dashboardRankedBarList({
   required String valueKey,
   required String labelKey,
   Color? color,
+  String emptyTitle = 'Sem dados no período',
+  String? emptySubtitle,
 }) {
   final t = context.pharmaTokens;
   if (points.isEmpty) {
-    return _dashboardChartEmptyState(context);
+    return _dashboardChartEmptyState(
+      context,
+      title: emptyTitle,
+      subtitle: emptySubtitle,
+    );
   }
 
   final barColor = color ?? t.brandBlue;
@@ -945,10 +1244,10 @@ Widget dashboardRankedBarList({
               ),
               const SizedBox(height: AppSpacing.xxs),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
                   value: ratio,
-                  minHeight: 8,
+                  minHeight: 10,
                   backgroundColor: t.bgSecondary,
                   color: barColor,
                 ),
@@ -956,6 +1255,178 @@ Widget dashboardRankedBarList({
             ],
           );
         },
+      );
+    },
+  );
+}
+
+/// Ranking enterprise: produto + quantidade + receita + barra proporcional.
+Widget dashboardProductRankingList({
+  required BuildContext context,
+  required List<Map<String, dynamic>> points,
+  String emptyTitle = 'Nenhuma venda registrada',
+  String emptySubtitle =
+      'Comece a vender para visualizar os produtos mais vendidos.',
+}) {
+  final t = context.pharmaTokens;
+  if (points.isEmpty) {
+    return _dashboardChartEmptyState(
+      context,
+      title: emptyTitle,
+      subtitle: emptySubtitle,
+    );
+  }
+
+  final totals = points
+      .map((p) => _dashboardNumeric(p['total'] ?? p['quantidade']))
+      .toList(growable: false);
+  final maxTotal = totals.fold<double>(0, (a, b) => a > b ? a : b);
+
+  return ListView.separated(
+    itemCount: points.length,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (context, index) {
+      final row = points[index];
+      final name = DashboardDataUtils.productName(row);
+      final qty = _dashboardNumeric(row['quantidade']);
+      final revenue = _dashboardNumeric(row['total']);
+      final ratio = maxTotal <= 0 ? 0.0 : (revenue / maxTotal).clamp(0.0, 1.0);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t.bgSecondary,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${index + 1}',
+                  style: Theme.of(context).textTheme.erpOverline.copyWith(
+                        color: t.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.erpCaption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: t.textPrimary,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Qtd: ${qty == qty.roundToDouble() ? qty.toInt() : qty.toStringAsFixed(1)}  ·  Receita: ${revenue.toStringAsFixed(2)} MZN',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .erpOverline
+                          .copyWith(color: t.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 10,
+              backgroundColor: t.bgSecondary,
+              color: t.brandBlue,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Ranking de categorias com percentagem (quando há poucas categorias).
+Widget dashboardCategoryRankingList({
+  required BuildContext context,
+  required List<DashboardPieSlice> slices,
+}) {
+  final t = context.pharmaTokens;
+  final total = slices.fold<double>(0, (sum, s) => sum + s.value);
+  if (slices.isEmpty || total <= 0) {
+    return _dashboardChartEmptyState(
+      context,
+      title: 'Nenhuma venda por categoria',
+      subtitle: 'As vendas por categoria aparecerão aqui.',
+    );
+  }
+
+  final sorted = [...slices]..sort((a, b) => b.value.compareTo(a.value));
+
+  return ListView.separated(
+    itemCount: sorted.length,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (context, index) {
+      final slice = sorted[index];
+      final pct = (slice.value / total * 100);
+      final ratio = (slice.value / total).clamp(0.0, 1.0);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  slice.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.erpCaption.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
+              Text(
+                '${pct.toStringAsFixed(0)}%',
+                style: Theme.of(context).textTheme.erpCaption.copyWith(
+                      color: t.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${slice.value.toStringAsFixed(2)} MZN',
+            style: Theme.of(context)
+                .textTheme
+                .erpOverline
+                .copyWith(color: t.textMuted),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 10,
+              backgroundColor: t.bgSecondary,
+              color: slice.color,
+            ),
+          ),
+        ],
       );
     },
   );
@@ -1130,13 +1601,19 @@ Widget dashboardPieChart({
   required BuildContext context,
   required List<DashboardPieSlice> slices,
   String emptyLabel = 'OK',
+  String emptyTitle = 'Sem dados no período',
+  String? emptySubtitle,
 }) {
   final t = context.pharmaTokens;
   final total = slices.fold<double>(0, (sum, slice) => sum + slice.value);
   final activeSlices = slices.where((slice) => slice.value > 0).toList(growable: false);
 
   if (total <= 0 && activeSlices.isEmpty) {
-    return _dashboardChartEmptyState(context);
+    return _dashboardChartEmptyState(
+      context,
+      title: emptyTitle,
+      subtitle: emptySubtitle ?? 'As categorias aparecerão quando houver vendas.',
+    );
   }
 
   return LayoutBuilder(

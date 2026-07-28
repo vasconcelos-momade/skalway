@@ -11,6 +11,7 @@ import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../providers/permission_matrix_provider.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class UserPermissionsPage extends ConsumerWidget {
   const UserPermissionsPage({super.key});
@@ -23,7 +24,9 @@ class UserPermissionsPage extends ConsumerWidget {
     final notifier = ref.read(permissionMatrixProvider.notifier);
     final dash = state.dashboard;
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async { await notifier.load(role: state.selectedRole); },
+      child: EnterpriseModuleHub(
       title: 'Matriz de permissões',
       subtitle: 'Granularidade por módulo e acção.',
       tag: 'Administração',
@@ -46,13 +49,6 @@ class UserPermissionsPage extends ConsumerWidget {
                 : const Text('Guardar'),
           ),
         ],
-        OutlinedButton.icon(
-          onPressed: state.isBusy
-              ? null
-              : () => notifier.load(role: state.selectedRole),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
-        ),
       ],
       filters: Wrap(
         spacing: s.sm,
@@ -112,6 +108,7 @@ class UserPermissionsPage extends ConsumerWidget {
               onRetry: () => ref.read(sessionAccessProvider.notifier).refresh(),
               icon: Icons.lock_outline,
             ),
+    ),
     );
   }
 

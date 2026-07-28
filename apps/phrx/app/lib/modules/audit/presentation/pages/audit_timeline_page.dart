@@ -7,6 +7,7 @@ import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../domain/entities/audit_entities.dart';
 import '../providers/audit_providers.dart';
 import '../widgets/audit_adaptive_list_layout.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class AuditTimelinePage extends ConsumerStatefulWidget {
   const AuditTimelinePage({super.key});
@@ -67,7 +68,9 @@ class _AuditTimelinePageState extends ConsumerState<AuditTimelinePage> {
       );
     }
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => notifier.refresh(),
+      child: EnterpriseModuleHub(
       title: 'Cronologia de eventos',
       subtitle: 'Imutável, assinado e correlacionado a utilizador/terminal.',
       tag: 'Auditoria',
@@ -90,11 +93,6 @@ class _AuditTimelinePageState extends ConsumerState<AuditTimelinePage> {
         onGoToPage: notifier.goToPage,
         onPageSizeChanged: notifier.setPageSize,
         headerActions: [
-          OutlinedButton.icon(
-            onPressed: state.isBusy ? null : notifier.refresh,
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Atualizar'),
-          ),
         ],
         columns: const [
           DataColumn(label: Text('TIPO')),
@@ -124,6 +122,7 @@ class _AuditTimelinePageState extends ConsumerState<AuditTimelinePage> {
         ),
         itemId: (event) => event.id,
       ),
+    ),
     );
   }
 }

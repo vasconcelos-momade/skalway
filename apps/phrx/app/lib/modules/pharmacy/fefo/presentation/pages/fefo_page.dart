@@ -16,6 +16,7 @@ import '../../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../../../lots/presentation/widgets/open_lote_details.dart';
 import '../providers/fefo_provider.dart';
 import '../../../presentation/widgets/pharmacy_report_exports.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class FefoPage extends ConsumerStatefulWidget {
   const FefoPage({super.key});
@@ -143,7 +144,9 @@ class _FefoPageState extends ConsumerState<FefoPage> with SingleTickerProviderSt
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+      onRefresh: () => controller.refresh(force: true),
+      child: EnterpriseModuleHub(
           mobileKpisHorizontalScroll: true,
           kpis: isMobile ? null : kpis,
           actions: null,
@@ -185,10 +188,6 @@ class _FefoPageState extends ConsumerState<FefoPage> with SingleTickerProviderSt
                         enabled: !asyncState.isLoading,
                         path: reportPath,
                         queryParameters: reportQuery,
-                      ),
-                      IconButton(
-                        onPressed: () => controller.refresh(force: true),
-                        icon: const Icon(Icons.refresh_rounded),
                       ),
                     ],
                   ),
@@ -287,7 +286,8 @@ class _FefoPageState extends ConsumerState<FefoPage> with SingleTickerProviderSt
               ),
             ],
           ),
-        );
+        ),
+    );
       },
     );
   }

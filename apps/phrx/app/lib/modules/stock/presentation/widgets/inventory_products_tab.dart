@@ -127,21 +127,15 @@ class _InventoryProductsTabState extends ConsumerState<InventoryProductsTab> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IgnorePointer(
-              ignoring: catalogState.isLoading,
-              child: EnterpriseSearchField(
-                controller: widget.searchController,
-                hintText: 'Pesquisar por nome, substancia activa ou fornecedor...',
-                onChanged: catalogController.onSearchChanged,
+            Expanded(
+              child: IgnorePointer(
+                ignoring: catalogState.isLoading,
+                child: EnterpriseSearchField(
+                  controller: widget.searchController,
+                  hintText: 'Pesquisar por nome, substancia activa ou fornecedor...',
+                  onChanged: catalogController.onSearchChanged,
+                ),
               ),
-            ),
-            SizedBox(width: s.sm),
-            IconButton(
-              onPressed: catalogState.isLoading
-                  ? null
-                  : catalogController.refreshCurrentPage,
-              icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Actualizar lista',
             ),
           ],
         ),

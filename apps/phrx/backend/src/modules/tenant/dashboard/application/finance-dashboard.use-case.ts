@@ -67,6 +67,7 @@ export class FinanceDashboardUseCase {
       despesasRecentes,
       contasVencidas,
       metodosPagamento,
+      despesasPorCategoriaRows,
     ] = await Promise.all([
       metricsService.calculateDreMetrics(metricsRange),
       metricsService.calculateCashFlow(metricsRange),
@@ -153,6 +154,16 @@ export class FinanceDashboardUseCase {
         _sum: { total: true },
         _count: { _all: true },
       }),
+      // DESPESA_OPERACIONAL (null categoria → OUTRO no mapeamento)
+      prisma.caixaMovimento.groupBy({
+        by: ["categoria"],
+        where: {
+          deletedAt: null,
+          tipo: "DESPESA_OPERACIONAL",
+          createdAt: { gte: chartFrom, lte: periodEnd },
+        },
+        _sum: { valor: true },
+      }),
     ]);
 
     const {
@@ -171,6 +182,8 @@ export class FinanceDashboardUseCase {
       vendas,
       suprimentos,
       despesas: despesasCaixa,
+      despesasOperacionais,
+      comprasEstoque,
       sangrias,
       estornos,
       saldoFinal,
@@ -180,6 +193,24 @@ export class FinanceDashboardUseCase {
       saidas,
     } = cashFlowMetrics;
 
+    const despesasPorCategoria = despesasPorCategoriaRows
+      .map((row: any) => {
+        const valor = round2(toNumber(row._sum?.valor));
+        return {
+          categoria: (row.categoria as string | null) ?? "OUTRO",
+          valor,
+          total: valor,
+        };
+      })
+      .filter((row: { total: number }) => row.total > 0)
+      .sort((a: { total: number }, b: { total: number }) => b.total - a.total);
+
+    const recebimentosPorCategoria = metodosPagamento.map((row: any) => ({
+      categoria: row.tipoPagamento ?? "OUTRO",
+      total: round2(toNumber(row._sum.total)),
+      valor: round2(toNumber(row._sum.total)),
+    }));
+
     return {
       kpis: {
         // Operação de caixa
@@ -187,6 +218,8 @@ export class FinanceDashboardUseCase {
         vendas,
         suprimentos,
         despesasCaixa,
+        despesasOperacionais,
+        comprasEstoque,
         sangrias,
         estornos,
         saldoFinal,
@@ -197,6 +230,7 @@ export class FinanceDashboardUseCase {
         numVendas,
         ticketMedio,
         custos,
+        cmv: custos,
         lucroBruto,
         lucroLiquido,
         margem,
@@ -221,6 +255,8 @@ export class FinanceDashboardUseCase {
           total: round2(toNumber(row._sum.total)),
           quantidade: row._count._all ?? 0,
         })),
+        despesasPorCategoria,
+        recebimentosPorCategoria,
       },
       tables: {
         ultimosPagamentos: pagamentosRecentes.map((row: any) => ({

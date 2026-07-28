@@ -16,6 +16,7 @@ import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class PsychotropicsBookPage extends ConsumerStatefulWidget {
   const PsychotropicsBookPage({super.key});
@@ -231,7 +232,9 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+      onRefresh: () async { await _load(); },
+      child: EnterpriseModuleHub(
           title: 'Livro de Psicotrópicos',
           subtitle:
               'Livro oficial de entradas e saídas com saldos, conformidade e auditoria regulatória.',
@@ -239,7 +242,7 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
           mobileKpisHorizontalScroll: true,
           actions: isMobile
               ? null
-              : [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+              : [],
           kpis: isMobile ? null : (kpiCards.isEmpty ? null : kpiCards),
           filters: isMobile ? null : _buildFilters(),
           child: isMobile
@@ -398,7 +401,8 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
                     ),
                   ],
                 ),
-        );
+        ),
+    );
       },
     );
   }

@@ -68,10 +68,10 @@ class EnterpriseKpiCard extends StatelessWidget {
       );
     }
 
-    final (Color trendColor, IconData trendIcon) = switch (trend) {
-      EnterpriseKpiTrend.positive => (t.brandGreen, Icons.trending_up),
-      EnterpriseKpiTrend.negative => (t.posDanger, Icons.trending_down),
-      EnterpriseKpiTrend.neutral => (t.textMuted, Icons.trending_flat),
+    final (Color trendColor, Color bgTrendColor, IconData trendIcon) = switch (trend) {
+      EnterpriseKpiTrend.positive => (t.brandGreen, t.brandGreen.withValues(alpha: 0.1), Icons.trending_up),
+      EnterpriseKpiTrend.negative => (t.posDanger, t.posDanger.withValues(alpha: 0.1), Icons.trending_down),
+      EnterpriseKpiTrend.neutral => (t.textSecondary, t.textMuted.withValues(alpha: 0.12), Icons.trending_flat),
     };
 
     return PharmaSurface(
@@ -96,10 +96,10 @@ class EnterpriseKpiCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(s.xs),
                 decoration: BoxDecoration(
-                  color: t.bgSecondary,
+                  color: bgTrendColor,
                   borderRadius: BorderRadius.circular(t.radiusMd),
                 ),
-                child: Icon(icon, size: t.iconSm, color: t.textPrimary),
+                child: Icon(icon, size: t.iconSm, color: trendColor),
               ),
             ],
           ),

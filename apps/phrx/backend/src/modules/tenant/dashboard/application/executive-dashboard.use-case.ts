@@ -9,6 +9,8 @@ import {
   toNumber,
 } from "./dashboard-date.util";
 import {
+  percentGrowth,
+  previousEquivalentPeriod,
   resolveDashboardPeriod,
   serializePeriodo,
 } from "./dashboard-period.util";
@@ -230,12 +232,22 @@ export class ExecutiveDashboardUseCase {
     ]);
 
     const todayRange = { from: todayStart, to: todayEnd };
+    const previousRange = previousEquivalentPeriod(resolved);
 
-    const [receitaHoje, metrics, numeroFaturasHoje, fluxoFinanceiro] = await Promise.all([
+    const [
+      receitaHoje,
+      metrics,
+      numeroFaturasHoje,
+      fluxoFinanceiro,
+      cashFlow,
+      receitaPeriodoAnterior,
+    ] = await Promise.all([
       metricsService.calculateRevenue(todayRange),
       metricsService.calculateDreMetrics(periodRange),
       metricsService.calculateSalesCount(todayRange),
       metricsService.getDailyDreFlow(chartFrom, periodEnd, days),
+      metricsService.calculateCashFlow(periodRange),
+      metricsService.calculateRevenue(previousRange),
     ]);
     const receitaMes = metrics.receita;
     const numeroFaturasMes = metrics.numVendas;
@@ -243,6 +255,8 @@ export class ExecutiveDashboardUseCase {
     const lucroBruto = metrics.lucroBruto;
     const lucroLiquido = metrics.lucroLiquido;
     const margem = metrics.margem;
+    const crescimentoPercentual = percentGrowth(receitaMes, receitaPeriodoAnterior);
+    const saldoAtual = cashFlow.saldoAtual;
 
     const valorInventarioRows = await loadValorStockLotesFromMovements(prisma, now);
     const valorInventario = sumValorStockFromLotes(valorInventarioRows);
@@ -323,6 +337,9 @@ export class ExecutiveDashboardUseCase {
         produtosCriticos: produtosCriticosCount,
         lotesExpirados,
         produtosProximosValidade,
+        saldoAtual,
+        crescimento: crescimentoPercentual,
+        crescimentoPercentual,
       },
       charts: {
         receitaDiaria,

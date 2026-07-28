@@ -19,6 +19,7 @@ import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 enum RecipesBookTab { receitas, book }
 
@@ -558,7 +559,11 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+          onRefresh: () async {
+            await _reloadCurrentTab();
+          },
+          child: EnterpriseModuleHub(
           title: showingLivro ? 'Livro de Receitas' : 'Receitas',
           subtitle: showingLivro
               ? 'Movimentos oficiais de livro de receitas com rastreio, auditoria e exportação.'
@@ -568,10 +573,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
           actions: isMobile
               ? null
               : [
-                  IconButton(
-                    onPressed: () => _reloadCurrentTab(),
-                    icon: const Icon(Icons.refresh),
-                  ),
                   if (_tabController.index == 0)
                     FilledButton.icon(
                       onPressed: _openReceitaForm,
@@ -624,7 +625,8 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
               ),
             ],
           ),
-        );
+        ),
+    );
       },
     );
   }

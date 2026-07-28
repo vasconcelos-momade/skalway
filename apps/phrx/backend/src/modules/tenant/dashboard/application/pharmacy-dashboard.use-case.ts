@@ -1,10 +1,11 @@
-import { ProdutoRepository } from "../../products/infrastructure/repositories/produto.repository";
-import { CategoriaRepository } from "../../products/infrastructure/repositories/categoria.repository";
-import { ValidadesDashboardUseCase } from "../../stock/application/use-cases/lotes/validades.use-case";
-import { FefoDashboardUseCase } from "../../stock/application/use-cases/lotes/fefo.use-case";
-import { LotesDashboardUseCase } from "../../stock/application/use-cases/lotes/search-lotes.use-case";
 import { getPrisma } from "../../../../infrastructure/prisma/tenant-prisma.factory";
-import { round2, toNumber } from "./dashboard-date.util";
+import {
+  FATURA_VENDA_WHERE,
+  endOfDay,
+  round2,
+  startOfDay,
+  toNumber,
+} from "./dashboard-date.util";
 import {
   resolveDashboardPeriod,
   serializePeriodo,
@@ -17,6 +18,11 @@ import {
   loadValorStockLotesFromMovements,
   sumValorStockFromLotes,
 } from "./dashboard-valor-stock.util";
+import { ProdutoRepository } from "../../products/infrastructure/repositories/produto.repository";
+import { CategoriaRepository } from "../../products/infrastructure/repositories/categoria.repository";
+import { ValidadesDashboardUseCase } from "../../stock/application/use-cases/lotes/validades.use-case";
+import { FefoDashboardUseCase } from "../../stock/application/use-cases/lotes/fefo.use-case";
+import { LotesDashboardUseCase } from "../../stock/application/use-cases/lotes/search-lotes.use-case";
 
 type PeriodParams = {
   days?: number;
@@ -51,6 +57,8 @@ export class PharmacyDashboardUseCase {
     const days = resolved.days;
     const now = new Date();
     const fromDays = resolved.from;
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
 
     const [
       produtos,
@@ -64,7 +72,10 @@ export class PharmacyDashboardUseCase {
       ultimosAlertas,
       produtosSemFornecedor,
       movimentosEntradaSaida,
-      topDispensados,
+      topVendidos,
+      faturasPorHora,
+      vendasHojeAgg,
+      prescricoesHoje,
     ] = await Promise.all([
       this.produtoRepo.getDashboard(),
       this.categoriaRepo.getStats(),
@@ -117,15 +128,39 @@ export class PharmacyDashboardUseCase {
         _sum: { quantidade: true },
         _count: { _all: true },
       }),
-      prisma.dispensacao.groupBy({
+      // Mesma origem do Executivo/Financeiro: itens de fatura de venda
+      prisma.faturaItem.groupBy({
         by: ["produtoId"],
         where: {
-          deletedAt: null,
-          createdAt: { gte: fromDays },
+          produtoId: { not: null },
+          fatura: {
+            ...FATURA_VENDA_WHERE,
+            createdAt: { gte: resolved.from, lte: resolved.to },
+          },
         },
-        _sum: { quantidade: true },
-        orderBy: { _sum: { quantidade: "desc" } },
+        _sum: { quantidade: true, total: true },
+        orderBy: { _sum: { total: "desc" } },
         take: 8,
+      }),
+      prisma.fatura.findMany({
+        where: {
+          ...FATURA_VENDA_WHERE,
+          createdAt: { gte: resolved.from, lte: resolved.to },
+        },
+        select: { createdAt: true, total: true },
+      }),
+      prisma.fatura.aggregate({
+        where: {
+          ...FATURA_VENDA_WHERE,
+          createdAt: { gte: todayStart, lte: todayEnd },
+        },
+        _sum: { total: true },
+        _count: { _all: true },
+      }),
+      prisma.receita.count({
+        where: {
+          createdAt: { gte: todayStart, lte: todayEnd },
+        },
       }),
     ]);
 
@@ -140,7 +175,7 @@ export class PharmacyDashboardUseCase {
       .filter((row: any) => row.tipoDispensacao === "RECEITA_ESPECIAL")
       .reduce((sum: number, row: any) => sum + (row._count._all ?? 0), 0);
 
-    const produtoIds = topDispensados
+    const produtoIds = topVendidos
       .map((row: any) => row.produtoId)
       .filter(Boolean);
     const produtoNomes =
@@ -164,6 +199,16 @@ export class PharmacyDashboardUseCase {
       movimentosEntradaSaida.find((row: any) => row.tipo === "SAIDA")?._sum
         ?.quantidade ?? 0;
 
+    const vendasPorHora = buildVendasPorHora(faturasPorHora);
+    const vendasHoje = vendasHojeAgg._count?._all ?? 0;
+    const valorVendidoHoje = round2(toNumber(vendasHojeAgg._sum?.total));
+
+    const validadeProdutos = {
+      vencem30Dias: validades.vencem30Dias ?? validades.expiramEm30Dias ?? 0,
+      vencem60Dias: validades.vencem60Dias ?? validades.expiramEm60Dias ?? 0,
+      vencem90Dias: validades.vencem90Dias ?? validades.expiramEm90Dias ?? 0,
+    };
+
     return {
       kpis: {
         produtosCadastrados: produtos.totalProdutos,
@@ -181,6 +226,9 @@ export class PharmacyDashboardUseCase {
           (validades.expiramEm30Dias ?? 0) + (validades.lotesExpirados ?? 0),
         alertasAbertos,
         produtosSemFornecedor,
+        prescricoesHoje,
+        vendasHoje,
+        valorVendidoHoje,
       },
       charts: {
         produtosPorCategoria: categorias.items.map((item: any) => ({
@@ -201,12 +249,21 @@ export class PharmacyDashboardUseCase {
           { tipo: "COMPRA", quantidade: round2(toNumber(entradasCompra)) },
           { tipo: "SAIDA", quantidade: round2(toNumber(saidas)) },
         ],
-        produtosMaisDispensados: topDispensados.map((row: any) => ({
+        produtosMaisDispensados: topVendidos.map((row: any) => ({
           produtoId: row.produtoId?.toString() ?? null,
           produtoNomeComercial: nomeMap.get(row.produtoId?.toString() ?? "") ?? "—",
           quantidade: round2(toNumber(row._sum.quantidade)),
+          total: round2(toNumber(row._sum.total)),
         })),
+        topProdutos: topVendidos.map((row: any) => ({
+          produtoId: row.produtoId?.toString() ?? null,
+          produtoNomeComercial: nomeMap.get(row.produtoId?.toString() ?? "") ?? "—",
+          quantidade: round2(toNumber(row._sum.quantidade)),
+          total: round2(toNumber(row._sum.total)),
+        })),
+        vendasPorHora,
         validades,
+        validadeProdutos,
         fefo,
       },
       tables: {
@@ -230,6 +287,7 @@ export class PharmacyDashboardUseCase {
         produtosSemFornecedor: produtosSemFornecedor,
       },
       validades,
+      validadeProdutos,
       fefo,
       lotes,
       produtos,
@@ -478,4 +536,25 @@ export class PharmacyDashboardUseCase {
       createdAt: row.createdAt.toISOString(),
     }));
   }
+}
+
+function buildVendasPorHora(
+  faturas: Array<{ createdAt: Date; total: unknown }>,
+) {
+  const buckets = Array.from({ length: 24 }, (_, hour) => ({
+    hora: `${hour}h`,
+    quantidade: 0,
+    valor: 0,
+    total: 0,
+  }));
+
+  for (const fatura of faturas) {
+    const hour = new Date(fatura.createdAt).getHours();
+    const valor = toNumber(fatura.total);
+    buckets[hour].quantidade += 1;
+    buckets[hour].valor = round2(buckets[hour].valor + valor);
+    buckets[hour].total = buckets[hour].valor;
+  }
+
+  return buckets;
 }

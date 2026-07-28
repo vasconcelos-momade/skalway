@@ -4,6 +4,7 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../widgets/lote_details_content.dart';
 
 /// Página full-screen de detalhe do lote (mobile, fora do [AppMainShell]).
+/// Mantém refresh no AppBar local — não passa pelo shell global.
 class LoteDetailsPage extends StatefulWidget {
   const LoteDetailsPage({super.key, required this.loteId, this.title});
 

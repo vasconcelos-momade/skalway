@@ -5,7 +5,7 @@ import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 import '../inputs/enterprise_search_field.dart';
 
-/// Barra de ferramentas mobile com pesquisa, filtros, exportação e atualização.
+/// Barra de ferramentas mobile com pesquisa, filtros e exportação.
 class EnterpriseMobileToolbar extends StatelessWidget {
   const EnterpriseMobileToolbar({
     super.key,
@@ -16,14 +16,14 @@ class EnterpriseMobileToolbar extends StatelessWidget {
     required this.hasFilters,
     required this.onSearchSubmitted,
     required this.onOpenFilters,
-    required this.onRefresh,
+    this.onRefresh,
     this.reportAction,
     this.onClearFilters,
     this.filterLabel = 'Filtros',
     this.refreshLabel = 'Atualizar',
     this.exportLabel = 'Exportar..',
     this.showFiltersButton = true,
-    this.showRefreshButton = true,
+    this.showRefreshButton = false,
   });
 
   final TextEditingController searchController;
@@ -33,7 +33,7 @@ class EnterpriseMobileToolbar extends StatelessWidget {
   final bool hasFilters;
   final ValueChanged<String> onSearchSubmitted;
   final VoidCallback onOpenFilters;
-  final VoidCallback onRefresh;
+  final VoidCallback? onRefresh;
   final Widget? reportAction;
   final Future<void> Function()? onClearFilters;
   final String filterLabel;
@@ -99,7 +99,7 @@ class EnterpriseMobileToolbar extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       style: compactButtonStyle,
-                      onPressed: enabled ? onRefresh : null,
+                      onPressed: enabled && onRefresh != null ? onRefresh : null,
                       icon: Icon(Icons.refresh_rounded, size: t.iconSm),
                       label: Text(
                         refreshLabel,

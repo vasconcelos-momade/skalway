@@ -220,7 +220,6 @@ class _EnterpriseSideSheetOverlayState<T>
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final scheme = Theme.of(context).colorScheme;
-    final elevation = context.elevationTokens.level8;
 
     return Positioned.fill(
       child: Material(
@@ -251,15 +250,16 @@ class _EnterpriseSideSheetOverlayState<T>
                       width: widget.width,
                       height: double.infinity,
                       child: Material(
-                        color: t.bgPrimary,
-                        elevation: elevation,
-                        shadowColor: scheme.shadow.withValues(alpha: 0.22),
+                        color: scheme.surfaceContainerHigh,
+                        elevation: context.elevationTokens.level2,
+                        shadowColor: Colors.transparent,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: t.bgPrimary,
+                            color: scheme.surfaceContainerHigh,
                             border: Border(
                               left: BorderSide(
-                                color: t.border.withValues(alpha: 0.45),
+                                color: t.border,
+                                width: 1.0,
                               ),
                             ),
                             boxShadow: AppShadows.dialog(context),

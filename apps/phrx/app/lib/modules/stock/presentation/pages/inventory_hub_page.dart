@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
@@ -207,7 +208,9 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
             ),
           );
 
-    return Scaffold(
+    return PageRefreshBinder(
+      onRefresh: _refreshPage,
+      child: Scaffold(
       floatingActionButton: isMobile
           ? FloatingActionButton.extended(
               onPressed: inventoryState.isCreating ? null : _startInventory,
@@ -235,11 +238,6 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
         actions: isMobile
             ? const <Widget>[]
             : [
-                OutlinedButton.icon(
-                  onPressed: _refreshPage,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Atualizar'),
-                ),
                 FilledButton.icon(
                   onPressed: inventoryState.isCreating ? null : _startInventory,
                   icon: inventoryState.isCreating
@@ -250,6 +248,7 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
               ],
         child: pageBody,
       ),
+    ),
     );
   }
 }

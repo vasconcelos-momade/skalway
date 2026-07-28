@@ -5,26 +5,27 @@ abstract final class CashflowOrigemValues {
   static const fatura = 'FATURA';
   static const suprimento = 'SUPRIMENTO';
   static const sangria = 'SANGRIA';
-  static const despesa = 'DESPESA';
+  static const despesaOperacional = 'DESPESA_OPERACIONAL';
+  static const compraEstoque = 'COMPRA_ESTOQUE';
   static const estorno = 'ESTORNO';
   static const ajuste = 'AJUSTE';
-  static const compra = 'COMPRA';
   static const outro = 'OUTRO';
 
   static const all = <String>[
     fatura,
     suprimento,
     sangria,
-    despesa,
+    despesaOperacional,
+    compraEstoque,
     estorno,
     ajuste,
-    compra,
     outro,
   ];
 }
 
 enum CashflowOperationKind {
-  despesa('Despesa'),
+  despesaOperacional('Despesa operacional'),
+  compraEstoque('Compra de estoque'),
   suprimento('Suprimento'),
   sangria('Sangria'),
   estorno('Estorno');
@@ -38,8 +39,11 @@ enum CashflowOperationKind {
       if (kind.label == label) return kind;
     }
     // Compatibilidade com labels legados ainda visíveis nalguns fluxos.
-    if (label == 'Saída' || label == 'Saida') {
-      return CashflowOperationKind.despesa;
+    if (label == 'Despesa' || label == 'Saída' || label == 'Saida') {
+      return CashflowOperationKind.despesaOperacional;
+    }
+    if (label == 'Compra' || label == 'Compra de stock') {
+      return CashflowOperationKind.compraEstoque;
     }
     if (label == 'Extorno') return CashflowOperationKind.estorno;
     return null;
@@ -179,7 +183,9 @@ class CashflowOperationResponse {
 /// Pré-seleção de UI apenas — a validação final fica no backend.
 String? suggestedOrigemForKind(CashflowOperationKind kind) {
   return switch (kind) {
-    CashflowOperationKind.despesa => CashflowOrigemValues.despesa,
+    CashflowOperationKind.despesaOperacional =>
+      CashflowOrigemValues.despesaOperacional,
+    CashflowOperationKind.compraEstoque => CashflowOrigemValues.compraEstoque,
     CashflowOperationKind.suprimento => CashflowOrigemValues.suprimento,
     CashflowOperationKind.sangria => CashflowOrigemValues.sangria,
     CashflowOperationKind.estorno => CashflowOrigemValues.estorno,

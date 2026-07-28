@@ -20,6 +20,7 @@ import '../providers/lots_provider.dart';
 import '../widgets/open_lote_details.dart';
 import '../widgets/lot_actions_helper.dart';
 import '../../../presentation/widgets/pharmacy_report_exports.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class LotsPage extends ConsumerStatefulWidget {
   const LotsPage({super.key});
@@ -138,7 +139,9 @@ class _LotsPageState extends ConsumerState<LotsPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+      onRefresh: () => controller.refresh(force: true),
+      child: EnterpriseModuleHub(
           mobileKpisHorizontalScroll: true,
           kpis: isMobile ? null : kpis,
           actions: null,
@@ -174,10 +177,6 @@ class _LotsPageState extends ConsumerState<LotsPage> {
                         enabled: !asyncState.isLoading,
                         path: reportPath,
                         queryParameters: reportQuery,
-                      ),
-                      IconButton(
-                        onPressed: () => controller.refresh(force: true),
-                        icon: const Icon(Icons.refresh),
                       ),
                     ],
                   ),
@@ -387,7 +386,8 @@ class _LotsPageState extends ConsumerState<LotsPage> {
                 ),
             ],
           ),
-        );
+        ),
+    );
       },
     );
   }

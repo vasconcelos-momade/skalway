@@ -47,10 +47,10 @@ export class GetCashflowContextUseCase {
         { value: "FATURA", label: "Fatura" },
         { value: "SUPRIMENTO", label: "Suprimento" },
         { value: "SANGRIA", label: "Sangria" },
-        { value: "DESPESA", label: "Despesa" },
+        { value: "DESPESA_OPERACIONAL", label: "Despesa operacional" },
+        { value: "COMPRA_ESTOQUE", label: "Compra de estoque" },
         { value: "ESTORNO", label: "Estorno" },
         { value: "AJUSTE", label: "Ajuste" },
-        { value: "COMPRA", label: "Compra (legado)" },
         { value: "OUTRO", label: "Outros" },
       ],
     };

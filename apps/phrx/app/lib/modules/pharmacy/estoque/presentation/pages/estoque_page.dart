@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../app/providers/auth_session_notifier.dart';
 import '../../../../../core/constants/report_paths.dart';
 import '../../../../../core/theme/design_tokens.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
@@ -170,7 +171,9 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
         final isDesktop = constraints.isDesktopOrWider;
         final isMobile = !constraints.isTabletOrWider;
 
-        return Scaffold(
+        return PageRefreshBinder(
+          onRefresh: () => controller.refreshCurrentPage(),
+          child: Scaffold(
           backgroundColor: t.bgPrimary,
           floatingActionButton: isMobile
               ? FloatingActionButton(
@@ -216,11 +219,6 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
                 onSearchChanged: controller.onSearchChanged,
                 onOpenMobileFilters: () => _openFilters(context, controller, state, categories),
                 trailingActions: [
-                  OutlinedButton.icon(
-                    onPressed: state.isLoading ? null : controller.refreshCurrentPage,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Atualizar'),
-                  ),
                   ...pharmacyReportActions(
                     ref: ref,
                     enabled: !state.isLoading,
@@ -296,6 +294,7 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
               ),
             ),
           ),
+        ),
         );
       },
     );

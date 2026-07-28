@@ -9,6 +9,7 @@ import '../../domain/models/dashboard_table_definition.dart';
 import '../../../../shared/widgets/dashboard/enterprise_filter_bar.dart';
 import 'dashboard_widgets.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 /// Configuração partilhada de filtros por tipo de painel.
 class DashboardFilterPreset {
@@ -69,13 +70,22 @@ class _DashboardScaffoldState extends ConsumerState<DashboardScaffold> {
 
   void _reload() => ref.invalidate(widget.provider(_query));
 
+  Future<void> _refreshPage() async {
+    ref.invalidate(widget.provider(_query));
+    try {
+      await ref.read(widget.provider(_query).future);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(widget.provider(_query));
     final filters = widget.filterPresetBuilder?.call(async.valueOrNull) ??
         widget.filterPreset;
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: _refreshPage,
+      child: EnterpriseModuleHub(
       title: widget.title,
       subtitle: widget.subtitle,
       tag: widget.tag,
@@ -97,6 +107,7 @@ class _DashboardScaffoldState extends ConsumerState<DashboardScaffold> {
         builder: (Map<String, dynamic> data) =>
             widget.contentBuilder(context, data, _query),
       ),
+    ),
     );
   }
 }

@@ -14,15 +14,59 @@ abstract final class DashboardDataUtils {
     return '$value$suffix';
   }
 
-  static List<Map<String, dynamic>> list(dynamic value) {
-    if (value is List) {
-      return value.whereType<Map<String, dynamic>>().toList();
-    }
-    return const [];
+  static Map<String, dynamic>? map(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
   }
 
-  static Map<String, dynamic>? map(dynamic value) {
-    return value is Map<String, dynamic> ? value : null;
+  static List<Map<String, dynamic>> list(dynamic value) {
+    if (value is! List) return const [];
+    final out = <Map<String, dynamic>>[];
+    for (final item in value) {
+      if (item is Map<String, dynamic>) {
+        out.add(item);
+      } else if (item is Map) {
+        out.add(Map<String, dynamic>.from(item));
+      }
+    }
+    return out;
+  }
+
+  /// Remove dias iniciais a zero para o gráfico mostrar a actividade recente.
+  static List<Map<String, dynamic>> compactTimeSeries(
+    List<Map<String, dynamic>> points, {
+    List<String> valueKeys = const ['receitas', 'despesas', 'saldo', 'total'],
+    int minPoints = 7,
+    int leadingPadding = 1,
+  }) {
+    if (points.length <= minPoints) return points;
+
+    var firstActive = -1;
+    for (var i = 0; i < points.length; i++) {
+      final point = points[i];
+      final active = valueKeys.any((key) => _asDouble(point[key]) != 0);
+      if (active) {
+        firstActive = i;
+        break;
+      }
+    }
+
+    if (firstActive < 0) {
+      return points.sublist(points.length - minPoints);
+    }
+
+    final earliestAllowed = points.length - minPoints;
+    final start = firstActive - leadingPadding;
+    final clampedStart =
+        start < 0 ? 0 : (start > earliestAllowed ? earliestAllowed : start);
+    return points.sublist(clampedStart);
+  }
+
+  static double _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0;
+    return 0;
   }
 
   static String label(dynamic value, {int max = 8}) {
@@ -51,7 +95,10 @@ abstract final class DashboardDataUtils {
 
   static String productName(Map<String, dynamic> row) {
     return text(
-      row['produtoNomeComercial'] ?? row['produtoNome'] ?? row['nomeComercial'] ?? row['nome'],
+      row['produtoNomeComercial'] ??
+          row['produtoNome'] ??
+          row['nomeComercial'] ??
+          row['nome'],
     );
   }
 }

@@ -52,6 +52,26 @@ export function registerFinanceRoutes(router: Router, prefix: string): void {
   );
 
   router.post(
+    `${prefix}/tenant/finance/cashflow/despesa-operacional`,
+    ...writeAuth,
+    async (context) =>
+      financeController.registerDespesaOperacional(
+        context.req,
+        getTenantAuth(context).userId,
+      ),
+  );
+
+  router.post(
+    `${prefix}/tenant/finance/cashflow/compra-estoque`,
+    ...writeAuth,
+    async (context) =>
+      financeController.registerCompraEstoque(
+        context.req,
+        getTenantAuth(context).userId,
+      ),
+  );
+
+  router.post(
     `${prefix}/tenant/finance/cashflow/suprimento`,
     ...writeAuth,
     async (context) =>

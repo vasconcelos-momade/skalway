@@ -128,11 +128,6 @@ class LoteDetailsContentState extends ConsumerState<LoteDetailsContent>
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Atualizar',
-                    onPressed: _load,
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                  IconButton(
                     tooltip: 'Fechar',
                     onPressed: widget.onClose,
                     icon: const Icon(Icons.close),

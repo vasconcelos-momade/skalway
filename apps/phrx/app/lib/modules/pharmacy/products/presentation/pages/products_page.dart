@@ -10,6 +10,7 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/dialogs/enterprise_overlay_tokens.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/providers/category_provider.dart';
 import '../../domain/entities/product.dart';
@@ -97,7 +98,9 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         final isDesktop = constraints.isDesktopOrWider;
         final isMobile = !constraints.isTabletOrWider;
 
-        return Scaffold(
+        return PageRefreshBinder(
+          onRefresh: () => controller.refreshCurrentPage(),
+          child: Scaffold(
           backgroundColor: t.bgPrimary,
           floatingActionButton: isMobile
               ? FloatingActionButton(
@@ -122,12 +125,6 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             actions: isMobile
                 ? null
                 : [
-                    OutlinedButton.icon(
-                      onPressed:
-                          state.isLoading ? null : () => controller.refreshCurrentPage(),
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Atualizar'),
-                    ),
                     ...pharmacyReportActions(
                       ref: ref,
                       enabled: !state.isLoading,
@@ -212,6 +209,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                   ),
               ],
             ),
+          ),
           ),
         );
       },

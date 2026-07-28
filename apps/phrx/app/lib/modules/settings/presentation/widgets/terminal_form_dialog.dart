@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../domain/entities/terminal.dart';
 
 class TerminalFormResult {
@@ -14,22 +15,47 @@ Future<TerminalFormResult?> showTerminalFormDialog(
   BuildContext context, {
   TerminalDetalhe? terminal,
 }) {
-  return AdaptiveNavigator.openEmbeddedForm<TerminalFormResult>(
+  final title = Text(terminal == null ? 'Novo terminal' : 'Editar terminal');
+  final width = AdaptiveNavigator.widthOf(context);
+  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
+
+  return AdaptiveNavigator.openPanel<TerminalFormResult>(
     context: context,
-    title: Text(terminal == null ? 'Novo terminal' : 'Editar terminal'),
+    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: terminal == null ? '/terminais/novo' : '/terminais/${terminal.id}',
     ),
-    formBuilder: (ctx, {required embedded}) =>
-        _TerminalFormDialog(terminal: terminal, embedded: embedded),
+    builder: (detailContext) {
+      if (AdaptiveNavigator.isMobile(detailContext)) {
+        return Scaffold(
+          appBar: AppBar(title: title),
+          body: SafeArea(
+            child: _TerminalFormDialog(terminal: terminal, embedded: true),
+          ),
+        );
+      }
+      return _TerminalFormDialog(
+        terminal: terminal,
+        embedded: true,
+        showHeader: true,
+        onClose: () => AdaptiveNavigator.cancel(detailContext),
+      );
+    },
   );
 }
 
 class _TerminalFormDialog extends StatefulWidget {
-  const _TerminalFormDialog({this.terminal, this.embedded = false});
+  const _TerminalFormDialog({
+    this.terminal,
+    this.embedded = false,
+    this.showHeader = false,
+    this.onClose,
+  });
 
   final TerminalDetalhe? terminal;
   final bool embedded;
+  final bool showHeader;
+  final VoidCallback? onClose;
 
   @override
   State<_TerminalFormDialog> createState() => _TerminalFormDialogState();
@@ -79,7 +105,7 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.terminal != null;
-    final content = Form(
+    final form = Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -124,36 +150,65 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
       ),
     );
 
+    final actions = [
+      OutlinedButton(
+        onPressed: () => AdaptiveNavigator.cancel(context),
+        child: const Text('Cancelar'),
+      ),
+      const SizedBox(width: 8),
+      FilledButton(
+        onPressed: _submit,
+        child: Text(isEditing ? 'Guardar' : 'Criar'),
+      ),
+    ];
+
     if (widget.embedded) {
-      return PharmaResponsiveDialog(
-        title: Text(isEditing ? 'Editar terminal' : 'Novo terminal'),
-        content: content,
-        actions: [
-          TextButton(
-            onPressed: () => AdaptiveNavigator.complete(context, null),
-            child: const Text('Cancelar'),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.showHeader) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isEditing ? 'Editar terminal' : 'Novo terminal',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  if (widget.onClose != null)
+                    IconButton(
+                      onPressed: widget.onClose,
+                      icon: const Icon(Icons.close),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+          ],
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: form,
+            ),
           ),
-          FilledButton(
-            onPressed: _submit,
-            child: Text(isEditing ? 'Guardar' : 'Criar'),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: actions,
+            ),
           ),
         ],
       );
     }
 
-    return AlertDialog(
+    return PharmaResponsiveDialog(
       title: Text(isEditing ? 'Editar terminal' : 'Novo terminal'),
-      content: SizedBox(width: 420, child: content),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(isEditing ? 'Guardar' : 'Criar'),
-        ),
-      ],
+      content: SizedBox(width: 420, child: form),
+      actions: actions,
     );
   }
 }

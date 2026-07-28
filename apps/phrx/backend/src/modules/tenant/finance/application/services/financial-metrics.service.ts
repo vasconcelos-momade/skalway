@@ -37,7 +37,10 @@ export type DreMetrics = {
 
 export type CashFlowMetrics = {
   vendas: number;
+  /** Saídas de caixa: DESPESA_OPERACIONAL + COMPRA_ESTOQUE (fórmula de saldo). */
   despesas: number;
+  despesasOperacionais: number;
+  comprasEstoque: number;
   suprimentos: number;
   sangrias: number;
   estornos: number;
@@ -193,7 +196,8 @@ export class FinancialMetricsService {
 
     const [
       vendasAgg,
-      despesasAgg,
+      despesasOperacionaisAgg,
+      comprasEstoqueAgg,
       suprimentosAgg,
       sangriasAgg,
       estornosAgg,
@@ -205,7 +209,11 @@ export class FinancialMetricsService {
         _sum: { valor: true },
       }),
       prisma.caixaMovimento.aggregate({
-        where: { ...caixaMovimentoPeriod, tipo: "DESPESA" },
+        where: { ...caixaMovimentoPeriod, tipo: "DESPESA_OPERACIONAL" },
+        _sum: { valor: true },
+      }),
+      prisma.caixaMovimento.aggregate({
+        where: { ...caixaMovimentoPeriod, tipo: "COMPRA_ESTOQUE" },
         _sum: { valor: true },
       }),
       prisma.caixaMovimento.aggregate({
@@ -228,7 +236,10 @@ export class FinancialMetricsService {
     ]);
 
     const vendas = round2(toNumber(vendasAgg._sum.valor));
-    const despesas = round2(toNumber(despesasAgg._sum.valor));
+    const despesasOperacionais = round2(toNumber(despesasOperacionaisAgg._sum.valor));
+    const comprasEstoque = round2(toNumber(comprasEstoqueAgg._sum.valor));
+    // Saídas de caixa (fórmula): operacionais + compra de estoque
+    const despesas = round2(despesasOperacionais + comprasEstoque);
     const suprimentos = round2(toNumber(suprimentosAgg._sum.valor));
     const sangrias = round2(toNumber(sangriasAgg._sum.valor));
     const estornos = round2(toNumber(estornosAgg._sum.valor));
@@ -249,6 +260,8 @@ export class FinancialMetricsService {
     return {
       vendas,
       despesas,
+      despesasOperacionais,
+      comprasEstoque,
       suprimentos,
       sangrias,
       estornos,
@@ -320,7 +333,11 @@ export class FinancialMetricsService {
 }
 
 function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Calendário local (TZ do processo) — alinhado com startOfDay / buckets diários.
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function buildDailyDreFlow(

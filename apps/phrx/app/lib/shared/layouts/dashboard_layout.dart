@@ -12,10 +12,11 @@ import '../../core/theme/dimensions.dart';
 import '../../core/theme/extensions.dart';
 import '../../core/theme/pharma_surface.dart';
 import '../responsive/pharma_screen_layout.dart';
+import '../widgets/menus/enterprise_dropdown_menu.dart';
 import '../widgets/navigation/app_nav_config.dart';
 import '../widgets/navigation/enterprise_sidebar.dart';
 import '../widgets/navigation/sidebar_menu_icon.dart';
-import '../widgets/sync/sync_status_strip.dart';
+import '../refresh/page_refresh.dart';
 import 'tablet_layout.dart';
 
 /// Shell enterprise: sidebar fixo no desktop (≥1280), drawer em tablet/mobile.
@@ -103,6 +104,7 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                   isDesktop: isDesktop,
                   isMobile: isMobile,
                   location: location,
+                  showSyncStrip: widget.showSyncStrip,
                   onLogout: () => _logout(context),
                   onOpenDrawer: () => _shellKey.currentState?.openDrawer(),
                 ),
@@ -228,6 +230,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
     required this.isDesktop,
     required this.isMobile,
     required this.location,
+    required this.showSyncStrip,
     required this.onLogout,
     required this.onOpenDrawer,
   });
@@ -235,6 +238,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
   final bool isDesktop;
   final bool isMobile;
   final String location;
+  final bool showSyncStrip;
   final VoidCallback onLogout;
   final VoidCallback onOpenDrawer;
 
@@ -353,7 +357,11 @@ class _EnterpriseTopBar extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SyncStatusStrip(compact: compactSync),
+                      if (showSyncStrip) ...[
+                        SyncStatusStrip(compact: compactSync),
+                        SizedBox(width: actionSpacing),
+                      ],
+                      const _PageRefreshAction(),
                       SizedBox(width: actionSpacing),
                       IconButton(
                         constraints: BoxConstraints(
@@ -423,6 +431,46 @@ class _EnterpriseTopBar extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PageRefreshAction extends ConsumerWidget {
+  const _PageRefreshAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.pharmaTokens;
+    final refresh = ref.watch(pageRefreshProvider);
+    final canRefresh = refresh.canRefresh;
+    final isRefreshing = refresh.isRefreshing;
+
+    return IconButton(
+      constraints: BoxConstraints(
+        minWidth: t.minTouchTarget,
+        minHeight: t.minTouchTarget,
+      ),
+      padding: EdgeInsets.zero,
+      tooltip: 'Atualizar',
+      onPressed: canRefresh
+          ? () => ref.read(pageRefreshProvider.notifier).refresh()
+          : null,
+      icon: isRefreshing
+          ? SizedBox(
+              width: t.iconMd,
+              height: t.iconMd,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: t.brandGreen,
+              ),
+            )
+          : Icon(
+              Icons.refresh_rounded,
+              color: canRefresh || isRefreshing
+                  ? t.textSecondary
+                  : t.textMuted.withValues(alpha: 0.45),
+              size: t.iconMd,
+            ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/api_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
@@ -67,7 +68,9 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return Scaffold(
+        return PageRefreshBinder(
+          onRefresh: () => controller.refreshCurrentPage(),
+          child: Scaffold(
           backgroundColor: t.bgPrimary,
           floatingActionButton: isMobile
               ? FloatingActionButton(
@@ -82,11 +85,6 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
             actions: isMobile
                 ? null
                 : [
-                    OutlinedButton.icon(
-                      onPressed: state.isLoading ? null : controller.refreshCurrentPage,
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Atualizar'),
-                    ),
                     FilledButton.icon(
                       onPressed: state.isLoading ? null : () => _openCreate(context),
                       icon: const Icon(Icons.add),
@@ -206,6 +204,7 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
                   ),
               ],
             ),
+          ),
           ),
         );
       },

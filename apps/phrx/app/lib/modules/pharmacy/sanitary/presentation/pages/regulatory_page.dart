@@ -17,6 +17,7 @@ import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
 import '../../../lots/presentation/widgets/lot_actions_helper.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class RegulatoryPage extends ConsumerStatefulWidget {
   const RegulatoryPage({super.key});
@@ -158,7 +159,9 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+      onRefresh: () async { await _loadSanitario(); },
+      child: EnterpriseModuleHub(
           title: 'Sanitário / Alertas',
           subtitle:
               'Validade, recall, quarentena, incineração e stock crítico.',
@@ -167,15 +170,12 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
           actions: isMobile
               ? null
               : [
-                  IconButton(
-                    onPressed: _loadSanitario,
-                    icon: const Icon(Icons.refresh),
-                  ),
                 ],
           kpis: isMobile ? null : kpis,
           filters: isMobile ? null : _buildSanitarioFilters(),
           child: _buildSanitarioBody(context, isMobile: isMobile, kpis: kpis),
-        );
+        ),
+    );
       },
     );
   }

@@ -5,7 +5,6 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/table_theme.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../domain/entities/product.dart';
-import 'produto_categoria_chip.dart';
 
 /// Tabela desktop/web do catálogo master — layout SaaS com hierarquia visual na coluna Nome.
 class ProdutoTable extends StatelessWidget {
@@ -26,7 +25,6 @@ class ProdutoTable extends StatelessWidget {
 
   static const _columnLabels = [
     'Nome',
-    'Categoria',
     'Estoque',
     'Status',
     'Ações',
@@ -54,7 +52,7 @@ class ProdutoTable extends StatelessWidget {
             onSort: _sortKeyForIndex(i) != null
                 ? () => _handleSort(_sortKeyForIndex(i)!)
                 : null,
-            numeric: i == 2,
+            numeric: i == 1,
           ),
       ],
       rowCount: items.length,
@@ -76,12 +74,6 @@ class ProdutoTable extends StatelessWidget {
           cells: [
             DataCell(
               _nameCell(context, product),
-            ),
-            DataCell(
-              ProdutoCategoriaChip(
-                label: product.categoriaNome ?? '—',
-                categoriaCodigo: product.categoriaCodigoFnm,
-              ),
             ),
             DataCell(
               _stockCell(context, product, isCriticalStock),
@@ -224,7 +216,7 @@ class ProdutoTable extends StatelessWidget {
   String? _sortKeyForIndex(int index) {
     return switch (index) {
       0 => 'nome',
-      2 => 'estoqueAtual',
+      1 => 'estoqueAtual',
       _ => null,
     };
   }
@@ -232,7 +224,7 @@ class ProdutoTable extends StatelessWidget {
   int? _sortColumnIndex() {
     return switch (sortBy) {
       'nome' => 0,
-      'estoqueAtual' => 2,
+      'estoqueAtual' => 1,
       _ => null,
     };
   }

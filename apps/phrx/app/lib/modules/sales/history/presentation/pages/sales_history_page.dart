@@ -19,6 +19,7 @@ import '../../../invoices/presentation/widgets/invoice_detail_screen.dart';
 import '../../../invoices/presentation/widgets/invoice_status_badge.dart';
 import '../../domain/entities/sales_history.dart';
 import '../providers/sales_history_provider.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class SalesHistoryPage extends ConsumerStatefulWidget {
   const SalesHistoryPage({super.key});
@@ -63,7 +64,9 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
       );
     }
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => notifier.refresh(),
+      child: EnterpriseModuleHub(
       title: 'Histórico de vendas',
       subtitle: 'Drill-down por terminal, operador e linha de receita.',
       tag: 'Terminal',
@@ -93,11 +96,6 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
             icon: Icon(Icons.download_outlined),
             label: Text('Exportar'),
           ),
-        ),
-        OutlinedButton.icon(
-          onPressed: state.isBusy ? null : notifier.refresh,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
       ],
       filters: Wrap(
@@ -163,6 +161,7 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
         ),
       ],
       child: _buildBody(context, state, notifier),
+    ),
     );
   }
 

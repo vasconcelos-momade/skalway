@@ -41,13 +41,22 @@ export class FinanceController {
     }
   }
 
-  /** @deprecated Prefer registerDespesa — mantido para compatibilidade de clientes. */
+  /** @deprecated Prefer registerDespesaOperacional — mantido para compatibilidade. */
   async registerSaida(req: Request, userId: string) {
-    return this.register(req, userId, "DESPESA");
+    return this.register(req, userId, "DESPESA_OPERACIONAL");
   }
 
+  /** @deprecated Prefer registerDespesaOperacional — alias do path /despesa. */
   async registerDespesa(req: Request, userId: string) {
-    return this.register(req, userId, "DESPESA");
+    return this.register(req, userId, "DESPESA_OPERACIONAL");
+  }
+
+  async registerDespesaOperacional(req: Request, userId: string) {
+    return this.register(req, userId, "DESPESA_OPERACIONAL");
+  }
+
+  async registerCompraEstoque(req: Request, userId: string) {
+    return this.register(req, userId, "COMPRA_ESTOQUE");
   }
 
   async registerSuprimento(req: Request, userId: string) {

@@ -11,6 +11,7 @@ import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../domain/entities/user_entities.dart';
 import '../providers/role_list_provider.dart';
 import '../widgets/role_permissions_editor_dialog.dart';
+import '../../../../../shared/refresh/page_refresh.dart';
 
 class UserProfilesPage extends ConsumerWidget {
   const UserProfilesPage({super.key});
@@ -22,16 +23,13 @@ class UserProfilesPage extends ConsumerWidget {
     final notifier = ref.read(roleListProvider.notifier);
     final totalUsers = state.roles.fold<int>(0, (sum, r) => sum + r.userCount);
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async { await notifier.load(); },
+      child: EnterpriseModuleHub(
       title: 'Perfis de acesso',
       subtitle: 'Conjuntos de permissões reutilizáveis por unidade.',
       tag: 'Administração',
       actions: [
-        OutlinedButton.icon(
-          onPressed: state.isBusy ? null : notifier.load,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
-        ),
       ],
       kpis: [
         EnterpriseStatCard(
@@ -58,6 +56,7 @@ class UserProfilesPage extends ConsumerWidget {
               onRetry: () => ref.read(sessionAccessProvider.notifier).refresh(),
               icon: Icons.lock_outline,
             ),
+    ),
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/providers/auth_session_notifier.dart';
 import '../../../app/providers/nav_groups_expanded_provider.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
@@ -106,15 +107,29 @@ class EnterpriseNavBrand extends StatelessWidget {
 }
 
 /// Logout discreto, integrado ao layout.
-class EnterpriseNavLogout extends StatelessWidget {
+class EnterpriseNavLogout extends ConsumerWidget {
   const EnterpriseNavLogout({super.key, required this.onLogout});
 
   final VoidCallback onLogout;
 
+  String _userInitials(String? name) {
+    final trimmed = name?.trim() ?? '';
+    if (trimmed.isEmpty) return '?';
+    final parts = trimmed
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final theme = Theme.of(context);
+    final user = ref.watch(authSessionProvider.select((auth) => auth.session?.user));
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -122,39 +137,97 @@ class EnterpriseNavLogout extends StatelessWidget {
         Divider(height: 1, color: t.border.withValues(alpha: 0.5)),
         Padding(
           padding: EdgeInsets.all(s.sm),
-          child: SizedBox(
-            height: t.compactControlHeight,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: t.posDanger,
-                side: BorderSide(color: t.posDanger.withValues(alpha: 0.5)),
-                padding: EdgeInsets.symmetric(horizontal: s.sm),
-                shape: RoundedRectangleBorder(
+          child: MenuAnchor(
+            alignmentOffset: const Offset(0, -8),
+            style: MenuStyle(
+              backgroundColor: WidgetStatePropertyAll(t.bgPrimary),
+              elevation: const WidgetStatePropertyAll(4),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(t.radiusMd),
+                  side: BorderSide(color: t.border.withValues(alpha: 0.5)),
                 ),
               ),
-              onPressed: onLogout,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.logout_rounded,
-                    size: DesignMetrics.iconSm,
-                  ),
-                  SizedBox(width: s.sm),
-                  Expanded(
-                    child: Text(
-                      'Encerrar sessão',
-                      style: Theme.of(context).textTheme.erpMenuItem.copyWith(
-                            color: t.posDanger,
-                            fontWeight: FontWeight.w500,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
             ),
+            menuChildren: [
+              MenuItemButton(
+                onPressed: onLogout,
+                leadingIcon: Icon(
+                  Icons.logout_rounded,
+                  color: t.posDanger,
+                  size: DesignMetrics.iconSm,
+                ),
+                child: Text(
+                  'Encerrar sessão',
+                  style: theme.textTheme.erpMenuItem.copyWith(
+                    color: t.posDanger,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+            builder: (context, controller, child) {
+              return _NavHoverTile(
+                onTap: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: s.sm,
+                    vertical: s.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: t.brandGreen.withValues(alpha: 0.2),
+                        child: Text(
+                          _userInitials(user?.name),
+                          style: theme.textTheme.erpOverline.copyWith(
+                            color: t.brandGreen,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: s.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              user?.name ?? 'Utilizador',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.erpMenuItem.copyWith(
+                                color: t.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              user?.email ?? 'Sem e-mail',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.erpCaption.copyWith(
+                                color: t.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.unfold_more_rounded,
+                        size: DesignMetrics.iconSm,
+                        color: t.textMuted,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

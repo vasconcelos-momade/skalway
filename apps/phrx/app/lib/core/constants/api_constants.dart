@@ -62,6 +62,10 @@ abstract final class ApiConstants {
   static const tenantFinanceCashflowMovimentos =
       '/tenant/finance/cashflow/movimentos';
   static const tenantFinanceCashflowDespesa = '/tenant/finance/cashflow/despesa';
+  static const tenantFinanceCashflowDespesaOperacional =
+      '/tenant/finance/cashflow/despesa-operacional';
+  static const tenantFinanceCashflowCompraEstoque =
+      '/tenant/finance/cashflow/compra-estoque';
   /// Mantido apenas para compatibilidade com clientes legados.
   static const tenantFinanceCashflowSaida = '/tenant/finance/cashflow/saida';
   static const tenantFinanceCashflowSuprimento =

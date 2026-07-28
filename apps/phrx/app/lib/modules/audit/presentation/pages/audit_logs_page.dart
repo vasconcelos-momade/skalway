@@ -9,6 +9,7 @@ import '../../../../shared/responsive/responsive_builder.dart';
 import '../../domain/entities/audit_entities.dart';
 import '../providers/audit_providers.dart';
 import '../widgets/audit_adaptive_list_layout.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class AuditLogsPage extends ConsumerStatefulWidget {
   const AuditLogsPage({super.key});
@@ -102,7 +103,9 @@ class _AuditLogsPageState extends ConsumerState<AuditLogsPage> {
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
 
-        return EnterpriseModuleHub(
+        return PageRefreshBinder(
+      onRefresh: () => notifier.refresh(),
+      child: EnterpriseModuleHub(
           title: 'Logs',
           subtitle:
               'Registo imutável de alterações com encadeamento criptográfico.',
@@ -129,11 +132,6 @@ class _AuditLogsPageState extends ConsumerState<AuditLogsPage> {
             onGoToPage: notifier.goToPage,
             onPageSizeChanged: notifier.setPageSize,
             headerActions: [
-              OutlinedButton.icon(
-                onPressed: state.isBusy ? null : notifier.refresh,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Atualizar'),
-              ),
             ],
             columns: const [
               DataColumn(label: Text('ACÇÃO')),
@@ -164,7 +162,8 @@ class _AuditLogsPageState extends ConsumerState<AuditLogsPage> {
             ),
             itemId: (log) => log.id,
           ),
-        );
+        ),
+    );
       },
     );
   }

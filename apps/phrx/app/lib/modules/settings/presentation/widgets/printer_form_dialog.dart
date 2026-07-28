@@ -6,6 +6,7 @@ import '../../../../platform/printing/thermal/printer_connection.dart';
 import '../../../../platform/printing/thermal/printer_discovery.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../domain/entities/printer.dart';
 
 class PrinterFormResult {
@@ -18,31 +19,53 @@ Future<PrinterFormResult?> showPrinterFormDialog(
   BuildContext context, {
   PrinterDetalhe? printer,
 }) {
-  return AdaptiveNavigator.openEmbeddedForm<PrinterFormResult>(
+  final title = Text(printer == null ? 'Nova impressora' : 'Editar impressora');
+  final width = AdaptiveNavigator.widthOf(context);
+  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
+
+  return AdaptiveNavigator.openPanel<PrinterFormResult>(
     context: context,
-    title: Text(printer == null ? 'Nova impressora' : 'Editar impressora'),
+    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: printer == null ? '/impressoras/nova' : '/impressoras/${printer.id}',
     ),
-    formBuilder: (ctx, {required embedded}) =>
-        _PrinterFormDialog(printer: printer, embedded: embedded),
+    builder: (detailContext) {
+      if (AdaptiveNavigator.isMobile(detailContext)) {
+        return Scaffold(
+          appBar: AppBar(title: title),
+          body: SafeArea(
+            child: _PrinterFormDialog(printer: printer, embedded: true),
+          ),
+        );
+      }
+      return _PrinterFormDialog(
+        printer: printer,
+        embedded: true,
+        showHeader: true,
+        onClose: () => AdaptiveNavigator.cancel(detailContext),
+      );
+    },
   );
 }
 
 class _PrinterFormDialog extends ConsumerStatefulWidget {
-  const _PrinterFormDialog({this.printer, this.embedded = false});
+  const _PrinterFormDialog({
+    this.printer,
+    this.embedded = false,
+    this.showHeader = false,
+    this.onClose,
+  });
 
   final PrinterDetalhe? printer;
   final bool embedded;
+  final bool showHeader;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<_PrinterFormDialog> createState() => _PrinterFormDialogState();
 }
 
 class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
-  static const _types = ['ESC_POS', 'A4', 'LABEL'];
-  static const _connections = ['NETWORK', 'BLUETOOTH', 'PDF', 'USB'];
-
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   late final TextEditingController _ip;
@@ -52,8 +75,9 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
   late String _type;
   late String _connection;
   late bool _active;
-  List<PrinterConnection> _bluetoothDevices = const [];
+
   bool _discovering = false;
+  List<PrinterConnection> _bluetoothDevices = const [];
 
   @override
   void initState() {
@@ -126,12 +150,28 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.printer != null;
-    final content = Form(
+
+    final form = Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          DropdownButtonFormField<String>(
+            initialValue: _connection,
+            decoration: const InputDecoration(labelText: 'Tipo de ligação *'),
+            items: const [
+              DropdownMenuItem(value: 'NETWORK', child: Text('Rede (IP/WIFI)')),
+              DropdownMenuItem(value: 'USB', child: Text('USB (Android/Desktop)')),
+              DropdownMenuItem(value: 'BLUETOOTH', child: Text('Bluetooth')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _connection = value);
+              }
+            },
+          ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _name,
             decoration: const InputDecoration(labelText: 'Nome *'),
@@ -142,66 +182,33 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
               return null;
             },
           ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _types.contains(_type) ? _type : _types.first,
-            decoration: const InputDecoration(labelText: 'Tipo *'),
-            items: [
-              for (final type in _types)
-                DropdownMenuItem(value: type, child: Text(type)),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              setState(() => _type = value);
-            },
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _connections.contains(_connection)
-                ? _connection
-                : _connections.first,
-            decoration: const InputDecoration(labelText: 'Ligação *'),
-            items: [
-              for (final connection in _connections)
-                DropdownMenuItem(value: connection, child: Text(connection)),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              setState(() => _connection = value);
-            },
-          ),
-          if (_needsAddress) ...[
+          if (_connection == 'NETWORK') ...[
             const SizedBox(height: 12),
             TextFormField(
               controller: _ip,
-              decoration: InputDecoration(
-                labelText: _connection == 'NETWORK'
-                    ? 'IP / Host *'
-                    : 'Endereço Bluetooth *',
+              decoration: const InputDecoration(
+                labelText: 'Endereço IP *',
+                hintText: 'ex: 192.168.1.100',
               ),
               validator: (value) {
-                if (!_needsAddress) return null;
                 if (value == null || value.trim().isEmpty) {
-                  return _connection == 'NETWORK'
-                      ? 'IP é obrigatório para impressoras de rede'
-                      : 'Endereço Bluetooth é obrigatório';
+                  return 'IP é obrigatório para impressoras de rede';
                 }
                 return null;
               },
             ),
-          ],
-          if (_connection == 'NETWORK') ...[
             const SizedBox(height: 12),
             TextFormField(
               controller: _port,
-              decoration: const InputDecoration(labelText: 'Porta'),
+              decoration: const InputDecoration(
+                labelText: 'Porta *',
+                hintText: 'ex: 9100',
+              ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return null;
-                final port = int.tryParse(value.trim());
-                if (port == null || port < 1 || port > 65535) {
-                  return 'Porta inválida';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Porta é obrigatória';
                 }
                 return null;
               },
@@ -265,39 +272,68 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
       ),
     );
 
+    final actions = [
+      OutlinedButton(
+        onPressed: () => AdaptiveNavigator.cancel(context),
+        child: const Text('Cancelar'),
+      ),
+      const SizedBox(width: 8),
+      FilledButton(
+        onPressed: _submit,
+        child: Text(isEditing ? 'Guardar' : 'Criar'),
+      ),
+    ];
+
     if (widget.embedded) {
-      return PharmaResponsiveDialog(
-        title: Text(isEditing ? 'Editar impressora' : 'Nova impressora'),
-        content: SingleChildScrollView(child: content),
-        actions: [
-          TextButton(
-            onPressed: () => AdaptiveNavigator.complete(context, null),
-            child: const Text('Cancelar'),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.showHeader) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isEditing ? 'Editar impressora' : 'Nova impressora',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  if (widget.onClose != null)
+                    IconButton(
+                      onPressed: widget.onClose,
+                      icon: const Icon(Icons.close),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+          ],
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: form,
+            ),
           ),
-          FilledButton(
-            onPressed: _submit,
-            child: Text(isEditing ? 'Guardar' : 'Criar'),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: actions,
+            ),
           ),
         ],
       );
     }
 
-    return AlertDialog(
+    return PharmaResponsiveDialog(
       title: Text(isEditing ? 'Editar impressora' : 'Nova impressora'),
       content: SizedBox(
         width: 440,
-        child: SingleChildScrollView(child: content),
+        child: SingleChildScrollView(child: form),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(isEditing ? 'Guardar' : 'Criar'),
-        ),
-      ],
+      actions: actions,
     );
   }
 }

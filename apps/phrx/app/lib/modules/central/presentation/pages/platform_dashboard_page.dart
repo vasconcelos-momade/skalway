@@ -11,6 +11,7 @@ import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../providers/platform_providers.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class PlatformDashboardPage extends ConsumerWidget {
   const PlatformDashboardPage({super.key});
@@ -21,18 +22,14 @@ class PlatformDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(platformDashboardProvider);
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => ref.read(platformDashboardProvider.notifier).refresh(),
+      child: EnterpriseModuleHub(
       title: 'Dashboard',
       subtitle: 'Visão executiva da plataforma SaaS.',
       tag: 'Plataforma',
       scrollable: true,
       actions: [
-        OutlinedButton.icon(
-          onPressed: () =>
-              ref.read(platformDashboardProvider.notifier).refresh(),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
-        ),
       ],
       kpis: async.maybeWhen(
         data: (stats) => [
@@ -127,6 +124,7 @@ class PlatformDashboardPage extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

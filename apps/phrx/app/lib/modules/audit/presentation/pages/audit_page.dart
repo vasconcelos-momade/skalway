@@ -16,6 +16,7 @@ import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../providers/audit_providers.dart';
 import '../widgets/audit_report_exports.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class AuditPage extends ConsumerWidget {
   const AuditPage({super.key});
@@ -28,7 +29,9 @@ class AuditPage extends ConsumerWidget {
     final notifier = ref.read(auditDashboardProvider.notifier);
     final dash = state.dashboard;
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () async { await notifier.load(); },
+      child: EnterpriseModuleHub(
       title: 'Auditoria',
       subtitle: 'Trilho imutável de operações, permissões e eventos críticos.',
       tag: 'Auditoria',
@@ -38,11 +41,6 @@ class AuditPage extends ConsumerWidget {
           enabled: !state.isBusy,
           path: ReportPaths.auditDashboard,
           queryParameters: const {},
-        ),
-        OutlinedButton.icon(
-          onPressed: state.isBusy ? null : notifier.load,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
         FilledButton.icon(
           onPressed: () => context.go(AppRoutePaths.auditTimeline),
@@ -77,6 +75,7 @@ class AuditPage extends ConsumerWidget {
         ),
       ],
       child: _buildBody(context, state, notifier),
+    ),
     );
   }
 

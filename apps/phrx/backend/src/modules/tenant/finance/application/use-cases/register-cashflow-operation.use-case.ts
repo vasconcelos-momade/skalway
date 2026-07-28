@@ -7,7 +7,12 @@ import type {
 } from "../dto/cashflow.dto";
 
 /** Operações manuais de tesouraria (não incluem VENDA — essa vem do POS). */
-export type CashflowOperationKind = "DESPESA" | "SUPRIMENTO" | "SANGRIA" | "ESTORNO";
+export type CashflowOperationKind =
+  | "DESPESA_OPERACIONAL"
+  | "COMPRA_ESTOQUE"
+  | "SUPRIMENTO"
+  | "SANGRIA"
+  | "ESTORNO";
 
 type RegisterCashflowOperationInput = CashflowOperationBody & {
   userId: string;
@@ -20,21 +25,21 @@ function round2(value: number) {
 
 /**
  * Ledger financeiro (DRE) separado do saldo físico:
- * - DESPESA → EXPENSE (ou PURCHASE se origem COMPRA)
+ * - DESPESA_OPERACIONAL → EXPENSE (impacta Lucro Líquido)
+ * - COMPRA_ESTOQUE → PURCHASE (não impacta Lucro; custo via CMV na venda)
  * - SANGRIA → ADJUSTMENT (sai do caixa, NÃO é despesa)
  * - SUPRIMENTO → ADJUSTMENT (entra no caixa, NÃO é receita)
  * - ESTORNO → ADJUSTMENT (ajusta saldo, NÃO é receita)
  */
 function resolveFinancialMovementType(
   kind: CashflowOperationKind,
-  origem: CashflowOrigem,
 ): "EXPENSE" | "PURCHASE" | "ADJUSTMENT" {
-  if (kind === "DESPESA" && origem === "COMPRA") return "PURCHASE";
-  if (kind === "DESPESA") return "EXPENSE";
+  if (kind === "DESPESA_OPERACIONAL") return "EXPENSE";
+  if (kind === "COMPRA_ESTOQUE") return "PURCHASE";
   return "ADJUSTMENT";
 }
 
-/** SUPRIMENTO/ESTORNO (correção) entram; DESPESA/SANGRIA saem. Não é receita. */
+/** SUPRIMENTO/ESTORNO (correção) entram; DESPESA_OPERACIONAL/COMPRA_ESTOQUE/SANGRIA saem. */
 function resolveDirection(kind: CashflowOperationKind): "increment" | "decrement" {
   return kind === "SUPRIMENTO" || kind === "ESTORNO" ? "increment" : "decrement";
 }
@@ -49,11 +54,17 @@ function defaultOrigem(
       return "SUPRIMENTO";
     case "SANGRIA":
       return "SANGRIA";
-    case "DESPESA":
-      return "DESPESA";
+    case "DESPESA_OPERACIONAL":
+      return "DESPESA_OPERACIONAL";
+    case "COMPRA_ESTOQUE":
+      return "COMPRA_ESTOQUE";
     case "ESTORNO":
       return "ESTORNO";
   }
+}
+
+function allowsCategoria(kind: CashflowOperationKind): boolean {
+  return kind === "DESPESA_OPERACIONAL" || kind === "COMPRA_ESTOQUE";
 }
 
 export class RegisterCashflowOperationUseCase {
@@ -111,13 +122,19 @@ export class RegisterCashflowOperationUseCase {
         input.descricao?.trim() ||
         `${input.kind} (${origem})`;
 
+      const categoria = allowsCategoria(input.kind)
+        ? input.kind === "COMPRA_ESTOQUE"
+          ? (input.categoria ?? "COMPRA_STOCK")
+          : (input.categoria ?? "OUTRO")
+        : null;
+
       const movimento = await tx.caixaMovimento.create({
         data: {
           caixaId: sessao.caixaId,
           userId: BigInt(input.userId),
           tipo: input.kind,
           origem,
-          categoria: input.kind === "DESPESA" ? (input.categoria ?? null) : null,
+          categoria,
           valor,
           saldoAnterior,
           saldoFinal,
@@ -134,7 +151,7 @@ export class RegisterCashflowOperationUseCase {
         },
       });
 
-      const financialType = resolveFinancialMovementType(input.kind, origem);
+      const financialType = resolveFinancialMovementType(input.kind);
       const financialMovement = await tx.financialMovement.create({
         data: {
           userId: BigInt(input.userId),

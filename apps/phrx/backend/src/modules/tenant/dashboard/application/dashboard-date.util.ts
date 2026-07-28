@@ -29,7 +29,11 @@ export function daysAgo(days: number, from = new Date()): Date {
 }
 
 export function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Calendário local (TZ do processo, ex. Africa/Maputo) — NÃO usar toISOString (UTC).
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export function toNumber(value: unknown): number {

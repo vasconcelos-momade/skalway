@@ -13,6 +13,7 @@ import '../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 import '../widgets/register_tenant_form_dialog.dart';
+import '../../../../shared/refresh/page_refresh.dart';
 
 class PlatformTenantsPage extends ConsumerStatefulWidget {
   const PlatformTenantsPage({super.key});
@@ -37,7 +38,9 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
     final notifier = ref.read(platformTenantsProvider.notifier);
     final currency = NumberFormat.currency(symbol: 'MT ', decimalDigits: 0);
 
-    return EnterpriseModuleHub(
+    return PageRefreshBinder(
+      onRefresh: () => notifier.refresh(),
+      child: EnterpriseModuleHub(
       title: 'Clientes',
       subtitle: 'Tenants registados na plataforma.',
       tag: 'Plataforma',
@@ -46,11 +49,6 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
           onPressed: () => _createTenant(context, ref),
           icon: const Icon(Icons.add_rounded),
           label: const Text('Novo cliente'),
-        ),
-        OutlinedButton.icon(
-          onPressed: () => notifier.refresh(),
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Atualizar'),
         ),
       ],
       filters: EnterpriseSearchField(
@@ -71,6 +69,7 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
           onOpen: (id) => context.go(AppRoutePaths.platformTenantDetailPath(id)),
         ),
       ),
+    ),
     );
   }
 

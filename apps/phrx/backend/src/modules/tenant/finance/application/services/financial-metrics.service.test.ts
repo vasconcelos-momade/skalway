@@ -68,8 +68,10 @@ describe("FinancialMetricsService", () => {
           switch (where.tipo) {
             case "VENDA":
               return { _sum: { valor: 500 } };
-            case "DESPESA":
-              return { _sum: { valor: 90 } };
+            case "DESPESA_OPERACIONAL":
+              return { _sum: { valor: 70 } };
+            case "COMPRA_ESTOQUE":
+              return { _sum: { valor: 20 } };
             case "SUPRIMENTO":
               return { _sum: { valor: 40 } };
             case "SANGRIA":
@@ -96,12 +98,14 @@ describe("FinancialMetricsService", () => {
     });
 
     expect(metrics.vendas).toBe(500);
+    expect(metrics.despesasOperacionais).toBe(70);
+    expect(metrics.comprasEstoque).toBe(20);
     expect(metrics.despesas).toBe(90);
     expect(metrics.suprimentos).toBe(40);
     expect(metrics.sangrias).toBe(30);
     expect(metrics.estornos).toBe(10);
     expect(metrics.estornosSigned).toBe(10);
-    expect(metrics.saldoInicial).toBe(130);
+    expect(metrics.saldoInicial).toBe(120);
     expect(metrics.saldoFinal).toBe(550);
     expect(metrics.saldoAtual).toBe(550);
     expect(metrics.entradas).toBe(550);

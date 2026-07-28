@@ -17,10 +17,12 @@ abstract final class ExecutiveDashboardKpis {
 
     final margem = _asDouble(kpis[FinanceMetricsKeys.margem]);
     final crescimento = _asDouble(kpis['crescimento']);
+    final criticos = _asDouble(kpis['produtosCriticos']);
 
     return [
+      // Primários (layout enterprise)
       EnterpriseKpiCard(
-        title: 'Faturamento',
+        title: 'Receita total',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.faturamento),
         unit: 'MZN',
         icon: Icons.payments_outlined,
@@ -28,21 +30,12 @@ abstract final class ExecutiveDashboardKpis {
         onTap: () => context.go(AppRoutePaths.financeRevenue),
       ),
       EnterpriseKpiCard(
-        title: 'Lucro líquido',
+        title: 'Lucro',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.lucroLiquido),
         unit: 'MZN',
         icon: Icons.trending_up,
         trend: EnterpriseKpiTrend.positive,
         onTap: () => context.go(AppRoutePaths.financeExpenses),
-      ),
-      EnterpriseKpiCard(
-        title: 'Margem de lucro',
-        value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.margem),
-        unit: '%',
-        icon: Icons.donut_large_outlined,
-        trend: margem >= 0
-            ? EnterpriseKpiTrend.positive
-            : EnterpriseKpiTrend.negative,
       ),
       EnterpriseKpiCard(
         title: 'Saldo de caixa',
@@ -51,6 +44,25 @@ abstract final class ExecutiveDashboardKpis {
         icon: Icons.account_balance_wallet_outlined,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.financeCashflow),
+      ),
+      EnterpriseKpiCard(
+        title: 'Produtos críticos',
+        value: DashboardDataUtils.kpi(kpis, 'produtosCriticos'),
+        icon: Icons.warning_amber_outlined,
+        trend: criticos > 0
+            ? EnterpriseKpiTrend.negative
+            : EnterpriseKpiTrend.neutral,
+        onTap: () => context.go(AppRoutePaths.pharmacyStock),
+      ),
+      // Secundários
+      EnterpriseKpiCard(
+        title: 'Margem de lucro',
+        value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.margem),
+        unit: '%',
+        icon: Icons.donut_large_outlined,
+        trend: margem >= 0
+            ? EnterpriseKpiTrend.positive
+            : EnterpriseKpiTrend.negative,
       ),
       EnterpriseKpiCard(
         title: 'N.º de vendas',
@@ -64,13 +76,6 @@ abstract final class ExecutiveDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.ticketMedio),
         unit: 'MZN',
         icon: Icons.sell_outlined,
-        trend: EnterpriseKpiTrend.neutral,
-      ),
-      EnterpriseKpiCard(
-        title: 'Contas a receber',
-        value: DashboardDataUtils.kpi(kpis, 'contasReceber'),
-        unit: 'MZN',
-        icon: Icons.request_quote_outlined,
         trend: EnterpriseKpiTrend.neutral,
       ),
       EnterpriseKpiCard(
