@@ -1,10 +1,15 @@
 import {
+  addInventoryItemSchema,
+  listInventoryEligibleProductsQuerySchema,
   listInventoryItemsQuerySchema,
   openInventorySchema,
   recordInventoryCountSchema,
 } from "../../application/dto/inventory.dto";
+import { AddInventoryItemUseCase } from "../../application/use-cases/inventory/add-inventory-item.use-case";
 import { CancelInventoryUseCase } from "../../application/use-cases/inventory/cancel-inventory.use-case";
+import { DeleteInventoryItemUseCase } from "../../application/use-cases/inventory/delete-inventory-item.use-case";
 import { GetInventoryDetailUseCase } from "../../application/use-cases/inventory/get-inventory-detail.use-case";
+import { ListInventoryEligibleProductsUseCase } from "../../application/use-cases/inventory/list-inventory-eligible-products.use-case";
 import { ListInventoryItemsUseCase } from "../../application/use-cases/inventory/list-inventory-items.use-case";
 import { ListInventoriesUseCase } from "../../application/use-cases/inventory/list-inventories.use-case";
 import { OpenInventoryUseCase } from "../../application/use-cases/inventory/open-inventory.use-case";
@@ -22,8 +27,11 @@ export class InventoryController {
   private listUseCase = new ListInventoriesUseCase();
   private getDetailUseCase = new GetInventoryDetailUseCase();
   private listItemsUseCase = new ListInventoryItemsUseCase();
+  private listEligibleProductsUseCase = new ListInventoryEligibleProductsUseCase();
   private startCountingUseCase = new StartInventoryCountingUseCase();
+  private addItemUseCase = new AddInventoryItemUseCase();
   private recordCountUseCase = new RecordInventoryCountUseCase();
+  private deleteItemUseCase = new DeleteInventoryItemUseCase();
   private reconcileUseCase = new ReconcileInventoryUseCase();
   private cancelUseCase = new CancelInventoryUseCase();
 
@@ -55,6 +63,23 @@ export class InventoryController {
       | undefined;
     const data = await this.listUseCase.execute({ status });
     return Response.json(this.serialize(data));
+  }
+
+  async listEligibleProducts(req: Request) {
+    try {
+      const url = new URL(req.url);
+      const params = parseSearchParams(url, listInventoryEligibleProductsQuerySchema);
+      const data = await this.listEligibleProductsUseCase.execute({
+        query: params.q,
+        categoriaId: params.categoriaId,
+        estadoSanitario: params.estadoSanitario,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return Response.json(this.serialize(data));
+    } catch (error: unknown) {
+      return controllerErrorResponse(error);
+    }
   }
 
   async getInventoryDetail(req: Request) {
@@ -97,6 +122,19 @@ export class InventoryController {
     }
   }
 
+  async addInventoryItem(req: Request) {
+    try {
+      const url = new URL(req.url);
+      const parts = url.pathname.split("/");
+      const inventarioId = parts[parts.length - 2];
+      const body = await parseJsonBody(req, addInventoryItemSchema);
+      const data = await this.addItemUseCase.execute(inventarioId, body);
+      return Response.json(this.serialize(data), { status: 201 });
+    } catch (error: unknown) {
+      return controllerErrorResponse(error);
+    }
+  }
+
   async startCounting(req: Request) {
     try {
       const url = new URL(req.url);
@@ -121,6 +159,19 @@ export class InventoryController {
         itemId,
         body,
       );
+      return Response.json(this.serialize(data));
+    } catch (error: unknown) {
+      return controllerErrorResponse(error);
+    }
+  }
+
+  async deleteInventoryItem(req: Request) {
+    try {
+      const url = new URL(req.url);
+      const parts = url.pathname.split("/");
+      const inventarioId = parts[parts.length - 3];
+      const itemId = parts[parts.length - 1];
+      const data = await this.deleteItemUseCase.execute(inventarioId, itemId);
       return Response.json(this.serialize(data));
     } catch (error: unknown) {
       return controllerErrorResponse(error);

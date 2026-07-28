@@ -7,32 +7,40 @@ import '../../../../../core/contracts/pagination_response.dart';
 import '../../../../../core/errors/api_failure.dart';
 import '../../data/repositories/inventario_repository_impl.dart';
 import '../../domain/entities/inventario.dart';
-import 'inventario_provider.dart';
 
 class InventoryCatalogState {
   const InventoryCatalogState({
-    this.inventoryId,
-    this.items = const <InventarioItem>[],
+    this.items = const <InventarioProdutoApto>[],
     this.query = '',
+    this.categoriaId,
+    this.estadoSanitario = 'VALIDO',
     this.page = 1,
     this.pageSize = 20,
     this.hasMore = false,
     this.totalCount,
+    this.stockTotalPage = 0,
     this.isLoading = false,
     this.isInitialized = false,
     this.errorMessage,
   });
 
-  final String? inventoryId;
-  final List<InventarioItem> items;
+  final List<InventarioProdutoApto> items;
   final String query;
+  final String? categoriaId;
+  final String estadoSanitario;
   final int page;
   final int pageSize;
   final bool hasMore;
   final int? totalCount;
+  final double stockTotalPage;
   final bool isLoading;
   final bool isInitialized;
   final String? errorMessage;
+
+  bool get hasFilters =>
+      query.isNotEmpty ||
+      (categoriaId != null && categoriaId!.isNotEmpty) ||
+      estadoSanitario != 'VALIDO';
 
   int? get resolvedTotalCount {
     if (totalCount != null) return totalCount;
@@ -46,13 +54,16 @@ class InventoryCatalogState {
   }
 
   InventoryCatalogState copyWith({
-    String? inventoryId,
-    List<InventarioItem>? items,
+    List<InventarioProdutoApto>? items,
     String? query,
+    String? categoriaId,
+    bool clearCategoriaId = false,
+    String? estadoSanitario,
     int? page,
     int? pageSize,
     bool? hasMore,
     int? totalCount,
+    double? stockTotalPage,
     bool? isLoading,
     bool? isInitialized,
     String? errorMessage,
@@ -60,13 +71,16 @@ class InventoryCatalogState {
     bool clearTotalCount = false,
   }) {
     return InventoryCatalogState(
-      inventoryId: inventoryId ?? this.inventoryId,
       items: items ?? this.items,
       query: query ?? this.query,
+      categoriaId:
+          clearCategoriaId ? null : (categoriaId ?? this.categoriaId),
+      estadoSanitario: estadoSanitario ?? this.estadoSanitario,
       page: page ?? this.page,
       pageSize: pageSize ?? this.pageSize,
       hasMore: hasMore ?? this.hasMore,
       totalCount: clearTotalCount ? null : (totalCount ?? this.totalCount),
+      stockTotalPage: stockTotalPage ?? this.stockTotalPage,
       isLoading: isLoading ?? this.isLoading,
       isInitialized: isInitialized ?? this.isInitialized,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -83,15 +97,8 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
     ref.onDispose(() {
       _debounce?.cancel();
     });
-
-    final inventoryId = ref.watch(
-      inventarioProvider.select((state) => state.activeInventory?.id),
-    );
-    final nextState = InventoryCatalogState(inventoryId: inventoryId);
-    if (inventoryId != null) {
-      Future.microtask(fetchCurrentPage);
-    }
-    return nextState;
+    Future.microtask(fetchCurrentPage);
+    return const InventoryCatalogState(isLoading: true);
   }
 
   void onSearchChanged(String value) {
@@ -108,6 +115,42 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
       clearError: true,
     );
     _debounce = Timer(const Duration(milliseconds: 350), fetchCurrentPage);
+  }
+
+  Future<void> setCategoriaFilter(String? categoriaId) async {
+    state = state.copyWith(
+      clearCategoriaId: categoriaId == null || categoriaId.isEmpty,
+      categoriaId: categoriaId,
+      page: 1,
+      isLoading: true,
+      clearError: true,
+      clearTotalCount: true,
+    );
+    await fetchCurrentPage();
+  }
+
+  Future<void> setEstadoSanitarioFilter(String? value) async {
+    state = state.copyWith(
+      estadoSanitario: value == null || value.isEmpty ? 'VALIDO' : value,
+      page: 1,
+      isLoading: true,
+      clearError: true,
+      clearTotalCount: true,
+    );
+    await fetchCurrentPage();
+  }
+
+  Future<void> clearFilters() async {
+    state = state.copyWith(
+      query: '',
+      clearCategoriaId: true,
+      estadoSanitario: 'VALIDO',
+      page: 1,
+      isLoading: true,
+      clearError: true,
+      clearTotalCount: true,
+    );
+    await fetchCurrentPage();
   }
 
   Future<void> goToPage(int page) async {
@@ -136,25 +179,20 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
   }
 
   Future<void> fetchCurrentPage({bool force = false}) async {
-    final inventoryId = state.inventoryId;
-    if (inventoryId == null || inventoryId.isEmpty) {
-      state = const InventoryCatalogState(isInitialized: true);
-      return;
-    }
-
     final requestId = ++_requestId;
     final cacheKey = InventoryCatalogCachePolicy.itemPageKey(
-      inventoryId: inventoryId,
-      query: state.query,
+      inventoryId: 'produtos-aptos',
+      query:
+          '${state.query}|${state.categoriaId ?? ''}|${state.estadoSanitario}',
       page: state.page,
       pageSize: state.pageSize,
     );
 
     if (!force) {
       final cached =
-          InventoryCatalogCachePolicy.get<PaginationResponse<InventarioItem>>(
-            cacheKey,
-          );
+          InventoryCatalogCachePolicy.get<PaginationResponse<InventarioProdutoApto>>(
+        cacheKey,
+      );
       if (cached != null) {
         state = state.copyWith(
           items: cached.items,
@@ -162,6 +200,10 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
           pageSize: cached.pageSize,
           hasMore: cached.hasMore,
           totalCount: cached.totalCount,
+          stockTotalPage: cached.items.fold<double>(
+            0,
+            (sum, item) => sum + item.stockAtual,
+          ),
           isLoading: false,
           isInitialized: true,
           clearError: true,
@@ -175,41 +217,41 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
     try {
       final response = await ref
           .read(inventarioRepositoryProvider)
-          .listarItensInventario(
-            inventarioId: inventoryId,
+          .listarProdutosAptos(
             query: state.query,
+            categoriaId: state.categoriaId,
+            estadoSanitario: state.estadoSanitario,
             page: state.page,
             pageSize: state.pageSize,
           );
 
-      if (requestId != _requestId) {
-        return;
-      }
+      if (requestId != _requestId) return;
 
       InventoryCatalogCachePolicy.put(cacheKey, response);
+
       state = state.copyWith(
         items: response.items,
         page: response.page,
         pageSize: response.pageSize,
         hasMore: response.hasMore,
         totalCount: response.totalCount,
+        stockTotalPage: response.items.fold<double>(
+          0,
+          (sum, item) => sum + item.stockAtual,
+        ),
         isLoading: false,
         isInitialized: true,
         clearError: true,
       );
     } on ApiFailure catch (e) {
-      if (requestId != _requestId) {
-        return;
-      }
+      if (requestId != _requestId) return;
       state = state.copyWith(
         isLoading: false,
         isInitialized: true,
         errorMessage: e.message,
       );
     } catch (e) {
-      if (requestId != _requestId) {
-        return;
-      }
+      if (requestId != _requestId) return;
       state = state.copyWith(
         isLoading: false,
         isInitialized: true,
@@ -220,7 +262,6 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
 }
 
 final inventoryCatalogProvider =
-    NotifierProvider.autoDispose<
-      InventoryCatalogController,
-      InventoryCatalogState
-    >(InventoryCatalogController.new);
+    NotifierProvider.autoDispose<InventoryCatalogController, InventoryCatalogState>(
+      InventoryCatalogController.new,
+    );

@@ -60,25 +60,27 @@ export class ListInventoryItemsUseCase {
       ...(andFilters.length > 0 ? { AND: andFilters } : {}),
     };
 
-    const items = await prisma.inventarioItem.findMany({
-      where,
-      include: inventarioItemInclude,
-      orderBy: [
-        { produto: { nomeComercial: "asc" } },
-        { lote: { numeroLote: "asc" } },
-        { id: "asc" },
-      ],
-      skip: (page - 1) * pageSize,
-      take: pageSize + 1,
-    });
-
-    const mapped = items.map(mapInventarioItem);
+    const [totalCount, items] = await Promise.all([
+      prisma.inventarioItem.count({ where }),
+      prisma.inventarioItem.findMany({
+        where,
+        include: inventarioItemInclude,
+        orderBy: [
+          { produto: { nomeComercial: "asc" } },
+          { lote: { numeroLote: "asc" } },
+          { id: "asc" },
+        ],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
 
     return {
-      items: mapped.slice(0, pageSize),
+      items: items.map(mapInventarioItem),
       page,
       pageSize,
-      hasMore: items.length > pageSize,
+      totalCount,
+      hasMore: page * pageSize < totalCount,
     };
   }
 }

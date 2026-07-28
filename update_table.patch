@@ -1,0 +1,15 @@
+--- apps/phrx/app/lib/shared/widgets/tables/enterprise_data_table.dart
++++ apps/phrx/app/lib/shared/widgets/tables/enterprise_data_table.dart
+@@ -1,5 +1,6 @@
+ import 'package:flutter/material.dart';
++import 'package:data_table_2/data_table_2.dart';
+ 
+ import '../../../core/theme/design_metrics.dart';
+ import '../../../core/theme/design_tokens.dart';
+ import '../../../core/theme/extensions.dart';
+ import '../../../core/theme/pharma_surface.dart';
+ import '../../responsive/breakpoints.dart' as responsive;
+ import '../../responsive/pharma_screen_layout.dart';
++import '../inputs/enterprise_search_field.dart';
+ 
+ typedef EnterpriseRowBuilder = DataRow Function(BuildContext context, int index);

@@ -30,6 +30,30 @@ class InventarioRepositoryImpl implements InventarioRepository {
   }
 
   @override
+  Future<PaginationResponse<InventarioProdutoApto>> listarProdutosAptos({
+    String? query,
+    String? categoriaId,
+    String? estadoSanitario,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _remoteDataSource.listarProdutosAptos(
+      query: query,
+      categoriaId: categoriaId,
+      estadoSanitario: estadoSanitario,
+      page: page,
+      pageSize: pageSize,
+    );
+    return PaginationResponse<InventarioProdutoApto>(
+      items: response.items.map((item) => item.toEntity()).toList(),
+      page: response.page,
+      pageSize: response.pageSize,
+      hasMore: response.hasMore,
+      totalCount: response.totalCount,
+    );
+  }
+
+  @override
   Future<PaginationResponse<InventarioItem>> listarItensInventario({
     required String inventarioId,
     String? query,
@@ -47,6 +71,7 @@ class InventarioRepositoryImpl implements InventarioRepository {
       page: response.page,
       pageSize: response.pageSize,
       hasMore: response.hasMore,
+      totalCount: response.totalCount,
       summary: response.summary,
     );
   }
@@ -64,6 +89,18 @@ class InventarioRepositoryImpl implements InventarioRepository {
   }
 
   @override
+  Future<InventarioItem> adicionarItem({
+    required String inventarioId,
+    required AdicionarInventarioItemRequest request,
+  }) async {
+    final response = await _remoteDataSource.adicionarItem(
+      inventarioId: inventarioId,
+      request: AdicionarInventarioItemRequestModel.fromEntity(request),
+    );
+    return response.toEntity();
+  }
+
+  @override
   Future<InventarioItem> registarContagem({
     required String inventarioId,
     required String itemId,
@@ -75,6 +112,17 @@ class InventarioRepositoryImpl implements InventarioRepository {
       estoqueContado: estoqueContado,
     );
     return response.toEntity();
+  }
+
+  @override
+  Future<void> removerItem({
+    required String inventarioId,
+    required String itemId,
+  }) async {
+    await _remoteDataSource.removerItem(
+      inventarioId: inventarioId,
+      itemId: itemId,
+    );
   }
 
   @override

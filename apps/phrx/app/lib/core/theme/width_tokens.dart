@@ -22,6 +22,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
     required this.dialogTabletFraction,
     required this.dialogDesktopFraction,
     required this.dialogContentCapFraction,
+    required this.dropdownMenu,
+    required this.dropdownMenuMin,
   });
 
   final double contentMax;
@@ -38,6 +40,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
   final double dialogTabletFraction;
   final double dialogDesktopFraction;
   final double dialogContentCapFraction;
+  final double dropdownMenu;
+  final double dropdownMenuMin;
 
   factory WidthTokens.standard() {
     return const WidthTokens(
@@ -55,6 +59,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
       dialogTabletFraction: DesignMetrics.dialogWidthFractionTablet,
       dialogDesktopFraction: DesignMetrics.dialogWidthFractionDesktop,
       dialogContentCapFraction: DesignMetrics.dialogWidthCapContentFraction,
+      dropdownMenu: DesignMetrics.dropdownMenuWidth,
+      dropdownMenuMin: DesignMetrics.dropdownMenuMinWidth,
     );
   }
 
@@ -87,6 +93,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
     double? dialogTabletFraction,
     double? dialogDesktopFraction,
     double? dialogContentCapFraction,
+    double? dropdownMenu,
+    double? dropdownMenuMin,
   }) {
     return WidthTokens(
       contentMax: contentMax ?? this.contentMax,
@@ -104,6 +112,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
       dialogDesktopFraction: dialogDesktopFraction ?? this.dialogDesktopFraction,
       dialogContentCapFraction:
           dialogContentCapFraction ?? this.dialogContentCapFraction,
+      dropdownMenu: dropdownMenu ?? this.dropdownMenu,
+      dropdownMenuMin: dropdownMenuMin ?? this.dropdownMenuMin,
     );
   }
 
@@ -132,6 +142,8 @@ class WidthTokens extends ThemeExtension<WidthTokens> {
         other.dialogContentCapFraction,
         t,
       )!,
+      dropdownMenu: lerpDouble(dropdownMenu, other.dropdownMenu, t)!,
+      dropdownMenuMin: lerpDouble(dropdownMenuMin, other.dropdownMenuMin, t)!,
     );
   }
 }

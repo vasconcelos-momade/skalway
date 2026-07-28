@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
-import '../../../core/theme/shadows.dart';
+import '../../../core/theme/pharma_border_tokens.dart';
+import '../../../core/theme/pharma_color_tokens.dart' hide PharmaColorTokensX;
 
 /// Item de menu para [EnterpriseDropdownMenu].
 class EnterpriseDropdownItem<T> {
@@ -24,6 +25,8 @@ class EnterpriseDropdownItem<T> {
 }
 
 /// Menu dropdown enterprise — superfície elevada, borda e sombra via Design Tokens.
+///
+/// Estilização centralizada para reutilização (tema claro/escuro consistente).
 class EnterpriseDropdownMenu<T> extends StatelessWidget {
   const EnterpriseDropdownMenu({
     super.key,
@@ -40,22 +43,32 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final colors = context.colors;
+    final borders = context.borders;
     final textTheme = Theme.of(context).textTheme;
     final elevation = context.elevationTokens;
+    final shadows = context.shadows;
+    final widths = context.widths;
+    final radius = BorderRadius.circular(t.radiusMd);
+    final menuWidth = width ?? widths.dropdownMenu;
 
     return Material(
       color: Colors.transparent,
       elevation: elevation.level2,
-      shadowColor: t.textPrimary.withValues(alpha: 0.18),
-      borderRadius: BorderRadius.circular(t.radiusMd),
+      shadowColor: colors.overlay,
+      borderRadius: radius,
+      clipBehavior: Clip.antiAlias,
       child: Container(
-        width: width,
-        constraints: BoxConstraints(minWidth: width ?? 200),
+        width: menuWidth,
+        constraints: BoxConstraints(
+          minWidth: widths.dropdownMenuMin,
+          maxWidth: menuWidth,
+        ),
         decoration: BoxDecoration(
-          color: t.card,
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          border: Border.all(color: t.border, width: 1),
-          boxShadow: ShadowScale.sm,
+          color: colors.surfaceContainerHigh,
+          borderRadius: radius,
+          border: Border.all(color: t.border, width: borders.borderThin),
+          boxShadow: shadows.sm,
         ),
         padding: EdgeInsets.symmetric(vertical: s.xs),
         child: Column(
@@ -67,6 +80,8 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
                 item: item,
                 onSelected: onSelected,
                 tokens: t,
+                colors: colors,
+                borders: borders,
                 spacing: s,
                 textTheme: textTheme,
               ),
@@ -82,6 +97,8 @@ class _EnterpriseDropdownTile<T> extends StatefulWidget {
     required this.item,
     required this.onSelected,
     required this.tokens,
+    required this.colors,
+    required this.borders,
     required this.spacing,
     required this.textTheme,
   });
@@ -89,6 +106,8 @@ class _EnterpriseDropdownTile<T> extends StatefulWidget {
   final EnterpriseDropdownItem<T> item;
   final ValueChanged<T> onSelected;
   final PharmaTokens tokens;
+  final PharmaColorTokens colors;
+  final PharmaBorderTokens borders;
   final DensityTokens spacing;
   final TextTheme textTheme;
 
@@ -105,21 +124,28 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
   @override
   Widget build(BuildContext context) {
     final t = widget.tokens;
+    final colors = widget.colors;
+    final borders = widget.borders;
     final s = widget.spacing;
     final enabled = widget.item.enabled;
     final selected = widget.item.selected;
+    final motion = context.motion;
 
     Color? background;
     if (!enabled) {
       background = null;
     } else if (_pressed) {
-      background = t.cardHover;
-    } else if (_hovered || _focused || selected) {
-      background = t.bgSecondary;
+      background = colors.pressed;
+    } else if (_focused) {
+      background = colors.focused;
+    } else if (_hovered) {
+      background = colors.hover;
+    } else if (selected) {
+      background = colors.selected;
     }
 
     final foreground = !enabled
-        ? t.textMuted.withValues(alpha: 0.5)
+        ? colors.neutral
         : selected
             ? t.brandBlue
             : t.textPrimary;
@@ -150,11 +176,21 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
                 }
               : null,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            curve: Curves.easeOut,
+            duration: motion.durationFast,
+            curve: motion.easeOut,
             constraints: BoxConstraints(minHeight: t.controlHeight),
             padding: EdgeInsets.symmetric(horizontal: s.md, vertical: s.sm),
-            color: background,
+            decoration: BoxDecoration(
+              color: background,
+              border: _focused && enabled
+                  ? Border(
+                      left: BorderSide(
+                        color: t.brandBlue,
+                        width: borders.focusBorder,
+                      ),
+                    )
+                  : null,
+            ),
             child: Row(
               children: [
                 if (widget.item.icon != null) ...[
@@ -185,10 +221,12 @@ Future<T?> showEnterpriseDropdownMenu<T>({
   required BuildContext context,
   required RelativeRect position,
   required List<EnterpriseDropdownItem<T>> items,
-  double width = 220,
+  double? width,
 }) {
   final completer = Completer<T?>();
   late OverlayEntry entry;
+  final menuWidth = width ?? context.widths.dropdownMenu;
+  final edgeInset = context.spacing.sm;
 
   entry = OverlayEntry(
     builder: (ctx) {
@@ -204,9 +242,9 @@ Future<T?> showEnterpriseDropdownMenu<T>({
             ),
           ),
           CustomSingleChildLayout(
-            delegate: _DropdownMenuLayout(position),
+            delegate: _DropdownMenuLayout(position, edgeInset),
             child: EnterpriseDropdownMenu<T>(
-              width: width,
+              width: menuWidth,
               items: items,
               onSelected: (value) {
                 entry.remove();
@@ -224,9 +262,10 @@ Future<T?> showEnterpriseDropdownMenu<T>({
 }
 
 class _DropdownMenuLayout extends SingleChildLayoutDelegate {
-  _DropdownMenuLayout(this.position);
+  _DropdownMenuLayout(this.position, this.edgeInset);
 
   final RelativeRect position;
+  final double edgeInset;
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
@@ -241,7 +280,7 @@ class _DropdownMenuLayout extends SingleChildLayoutDelegate {
     var x = position.left;
     var y = size.height - position.bottom;
     if (x + childSize.width > size.width) {
-      x = size.width - childSize.width - 8;
+      x = size.width - childSize.width - edgeInset;
     }
     if (y + childSize.height > size.height) {
       y = position.top - childSize.height;
@@ -254,5 +293,5 @@ class _DropdownMenuLayout extends SingleChildLayoutDelegate {
 
   @override
   bool shouldRelayout(covariant _DropdownMenuLayout oldDelegate) =>
-      position != oldDelegate.position;
+      position != oldDelegate.position || edgeInset != oldDelegate.edgeInset;
 }

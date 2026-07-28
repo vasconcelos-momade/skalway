@@ -4,8 +4,10 @@ import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 import '../../../core/theme/pharma_surface.dart';
-import '../../responsive/breakpoints.dart' as responsive;
 import '../../responsive/pharma_screen_layout.dart';
+import 'enterprise_table_toolbar.dart';
+import 'enterprise_table_header.dart';
+import 'enterprise_table_body.dart';
 
 typedef EnterpriseRowBuilder = DataRow Function(BuildContext context, int index);
 
@@ -55,6 +57,11 @@ class EnterpriseDataTable extends StatelessWidget {
     this.isLoading = false,
     this.onLoadMore,
     this.onRefresh,
+    this.searchHint,
+    this.searchController,
+    this.onSearchChanged,
+    this.toolbarActions,
+    this.filterWidgets,
   });
 
   final List<DataColumn> columns;
@@ -75,62 +82,64 @@ class EnterpriseDataTable extends StatelessWidget {
   final VoidCallback? onLoadMore;
   final Future<void> Function()? onRefresh;
 
-  Widget _buildTableContent(BuildContext context, BoxConstraints c, PharmaTokens t, DensityTokens s) {
-    final viewportWidth = c.maxWidth.isFinite
-        ? c.maxWidth
-        : responsive.Breakpoints.tablet;
+  /// Toolbar properties
+  final String? searchHint;
+  final TextEditingController? searchController;
+  final ValueChanged<String>? onSearchChanged;
+  final List<Widget>? toolbarActions;
+  final List<Widget>? filterWidgets;
 
-    final tableBody = SizedBox(
-      width: viewportWidth,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          DataTable(
-            showCheckboxColumn: showCheckboxColumn,
-            sortColumnIndex: sortColumnIndex,
-            sortAscending: sortAscending,
-            onSelectAll: onSelectAll,
-            headingRowColor: WidgetStatePropertyAll(
-              t.bgSecondary.withValues(alpha: 0.92),
-            ),
-            dataRowMinHeight:
-                dataRowMinHeight ?? DesignMetrics.tableRowHeightMin,
-            dataRowMaxHeight:
-                dataRowMaxHeight ?? DesignMetrics.tableRowHeightMax,
-            horizontalMargin: PharmaScreenLayout.isDesktop(context)
-                ? s.lg
-                : s.md,
-            columnSpacing: columnSpacing ??
-                (PharmaScreenLayout.isDesktop(context) ? s.xxl : s.lg),
-            columns: columns,
-            rows: List.generate(rowCount, (i) => rowBuilder(context, i)),
-          ),
-          if (hasMore || isLoading)
-            Padding(
-              padding: EdgeInsets.all(s.md),
-              child: Center(
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : TextButton(
-                        onPressed: onLoadMore,
-                        child: const Text('Carregar mais'),
-                      ),
-              ),
-            ),
-        ],
-      ),
+  Widget _buildTableContent(BuildContext context, BoxConstraints c, PharmaTokens t, DensityTokens s) {
+    final boundedHeight = c.hasBoundedHeight && c.maxHeight.isFinite;
+
+    final header = EnterpriseTableHeader(
+      columns: columns,
+      sortColumnIndex: sortColumnIndex,
+      sortAscending: sortAscending,
+      onSelectAll: onSelectAll,
     );
 
-    // Scroll horizontal só quando o viewport é estreito para muitas colunas.
-    if (viewportWidth < responsive.Breakpoints.tablet && columns.length > 4) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: tableBody,
-      );
-    }
+    final dataTable = EnterpriseTableBody(
+      header: header,
+      rows: List.generate(rowCount, (i) => rowBuilder(context, i)),
+      showCheckboxColumn: showCheckboxColumn,
+      dataRowMinHeight: dataRowMinHeight,
+      dataRowMaxHeight: dataRowMaxHeight,
+      columnSpacing: columnSpacing,
+    );
 
-    return tableBody;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        EnterpriseTableToolbar(
+          searchHint: searchHint,
+          searchController: searchController,
+          onSearchChanged: onSearchChanged,
+          toolbarActions: toolbarActions,
+          filterWidgets: filterWidgets,
+        ),
+        if (boundedHeight)
+          Flexible(child: dataTable)
+        else
+          SizedBox(
+            height: rowCount * (dataRowMaxHeight ?? DesignMetrics.tableRowHeightMax) + DesignMetrics.tableRowHeightMin + 20, // Aproximação para altura
+            child: dataTable,
+          ),
+        if (hasMore || isLoading)
+          Padding(
+            padding: EdgeInsets.all(s.md),
+            child: Center(
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : TextButton(
+                      onPressed: onLoadMore,
+                      child: const Text('Carregar mais'),
+                    ),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -236,13 +245,6 @@ class EnterpriseDataTable extends StatelessWidget {
         if (c.maxWidth.isFinite) {
           tableContent = SizedBox(
             width: c.maxWidth,
-            child: tableContent,
-          );
-        }
-
-        if (boundedHeight) {
-          tableContent = SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
             child: tableContent,
           );
         }

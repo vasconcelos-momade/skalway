@@ -1,9 +1,9 @@
 import { getPrisma } from "../../../../../../infrastructure/prisma/tenant-prisma.factory";
 import {
-  getQuantidadeTotalFromMovements,
-  syncStockBalanceCache,
-} from "../../../domain/produto-stock.service";
-import { syncLoteStockBalanceCache } from "../../../domain/lote-stock.service";
+  getLoteQuantidadeFromMovements,
+  syncLoteStockBalanceCache,
+} from "../../../domain/lote-stock.service";
+import { syncStockBalanceCache } from "../../../domain/produto-stock.service";
 import { inventarioItemInclude, mapInventarioDetalhe } from "./inventory.mapper";
 
 export class ReconcileInventoryUseCase {
@@ -24,16 +24,19 @@ export class ReconcileInventoryUseCase {
       }
 
       if (inventario.status !== "EM_CONTAGEM") {
-        throw new Error("Apenas inventários em contagem podem ser reconciliados");
+        throw new Error("Apenas inventários em contagem podem ser concluídos");
       }
 
       const itensComDivergencia = inventario.itens.filter(
-        (item: { divergencia: unknown }) => Number(item.divergencia) !== 0,
+        (item: { divergencia: unknown; loteId: bigint | null }) =>
+          Number(item.divergencia) !== 0 && item.loteId != null,
       );
 
       const produtoIds = [
         ...new Set(
-          itensComDivergencia.map((item: { produtoId: bigint }) => item.produtoId.toString()),
+          itensComDivergencia.map((item: { produtoId: bigint }) =>
+            item.produtoId.toString(),
+          ),
         ),
       ].map((pid) => BigInt(pid));
 
@@ -41,52 +44,41 @@ export class ReconcileInventoryUseCase {
         await tx.$executeRaw`SELECT id FROM produtos WHERE id = ${produtoId} FOR UPDATE`;
       }
 
+      for (const item of itensComDivergencia) {
+        const loteId = item.loteId as bigint;
+        await tx.$executeRaw`SELECT id FROM lotes WHERE id = ${loteId} FOR UPDATE`;
+
+        const estoqueAnterior = await getLoteQuantidadeFromMovements(tx, loteId);
+        const estoqueFinal = Math.max(0, Number(item.estoqueContado));
+        const delta = estoqueFinal - estoqueAnterior;
+
+        if (delta === 0) {
+          continue;
+        }
+
+        await tx.estoqueMovimento.create({
+          data: {
+            produtoId: item.produtoId,
+            loteId,
+            userId: BigInt(userId),
+            tipo: "AJUSTE",
+            quantidade: Math.abs(delta),
+            estoqueAnterior,
+            estoqueFinal,
+            origem: "RECONCILIACAO_INVENTARIO",
+            observacoes: `Conclusão Inventário ${inventario.codigo}`,
+          },
+        });
+
+        await syncLoteStockBalanceCache(tx, { id: loteId });
+      }
+
       for (const produtoId of produtoIds) {
-        const estoqueAnterior = await getQuantidadeTotalFromMovements(tx, produtoId);
-        const itensProduto = itensComDivergencia.filter(
-          (item: { produtoId: bigint }) => item.produtoId === produtoId,
-        );
-
-        for (const item of itensProduto) {
-          if (!item.loteId) continue;
-
-          await tx.$executeRaw`SELECT id FROM lotes WHERE id = ${item.loteId} FOR UPDATE`;
-        }
-
-        const novoEstoque = itensProduto.reduce(
-          (sum: number, item: { estoqueContado: unknown }) =>
-            sum + Number(item.estoqueContado),
-          0,
-        );
-
-        if (itensProduto.length > 0) {
-          await tx.estoqueMovimento.create({
-            data: {
-              produtoId,
-              loteId: itensProduto[0]?.loteId ?? null,
-              userId: BigInt(userId),
-              tipo: "AJUSTE",
-              quantidade: Math.abs(novoEstoque - estoqueAnterior),
-              estoqueAnterior,
-              estoqueFinal: novoEstoque,
-              origem: "RECONCILIACAO_INVENTARIO",
-              observacoes: `Reconciliação Inventário ${inventario.codigo}`,
-            },
-          });
-
-          await syncStockBalanceCache(tx, produtoId);
-
-          for (const item of itensProduto) {
-            if (item.loteId) {
-              await syncLoteStockBalanceCache(tx, { id: item.loteId });
-            }
-          }
-
-          await tx.produto.update({
-            where: { id: produtoId },
-            data: { version: { increment: 1 } },
-          });
-        }
+        await syncStockBalanceCache(tx, produtoId);
+        await tx.produto.update({
+          where: { id: produtoId },
+          data: { version: { increment: 1 } },
+        });
       }
 
       const updated = await tx.inventario.update({

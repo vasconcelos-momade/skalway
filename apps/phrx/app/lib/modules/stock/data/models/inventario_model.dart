@@ -19,6 +19,101 @@ class AbrirInventarioRequestModel {
   }
 }
 
+class AdicionarInventarioItemRequestModel {
+  const AdicionarInventarioItemRequestModel({
+    required this.produtoId,
+    required this.loteId,
+    required this.estoqueContado,
+    this.observacao,
+  });
+
+  final String produtoId;
+  final String loteId;
+  final double estoqueContado;
+  final String? observacao;
+
+  factory AdicionarInventarioItemRequestModel.fromEntity(
+    AdicionarInventarioItemRequest entity,
+  ) {
+    return AdicionarInventarioItemRequestModel(
+      produtoId: entity.produtoId,
+      loteId: entity.loteId,
+      estoqueContado: entity.estoqueContado,
+      observacao: entity.observacao,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'produtoId': produtoId,
+      'loteId': loteId,
+      'estoqueContado': estoqueContado,
+      if (observacao != null && observacao!.trim().isNotEmpty)
+        'observacao': observacao!.trim(),
+    };
+  }
+}
+
+class InventarioProdutoAptoModel {
+  const InventarioProdutoAptoModel({
+    required this.id,
+    required this.nomeComercial,
+    this.nomeGenerico,
+    this.dosagem,
+    this.forma,
+    this.barcode,
+    this.categoriaId,
+    this.categoriaNome,
+    required this.estadoSanitario,
+    required this.stockAtual,
+    required this.lotesCount,
+  });
+
+  final String id;
+  final String nomeComercial;
+  final String? nomeGenerico;
+  final String? dosagem;
+  final String? forma;
+  final String? barcode;
+  final String? categoriaId;
+  final String? categoriaNome;
+  final String estadoSanitario;
+  final double stockAtual;
+  final int lotesCount;
+
+  factory InventarioProdutoAptoModel.fromJson(Map<String, dynamic> json) {
+    return InventarioProdutoAptoModel(
+      id: json['id'].toString(),
+      nomeComercial: json['nomeComercial'] as String? ?? '',
+      nomeGenerico: json['nomeGenerico'] as String?,
+      dosagem: json['dosagem'] as String?,
+      forma: json['forma'] as String?,
+      barcode: json['barcode'] as String?,
+      categoriaId: json['categoriaId']?.toString(),
+      categoriaNome: json['categoriaNome'] as String?,
+      estadoSanitario: json['estadoSanitario'] as String? ?? 'VALIDO',
+      stockAtual: _toDouble(json['stockAtual']),
+      lotesCount: _toInt(json['lotesCount']),
+    );
+  }
+
+  InventarioProdutoApto toEntity() {
+    return InventarioProdutoApto(
+      id: id,
+      nomeComercial: nomeComercial,
+      nomeGenerico: nomeGenerico,
+      dosagem: dosagem,
+      forma: forma,
+      barcode: barcode,
+      categoriaId: categoriaId,
+      categoriaNome: categoriaNome,
+      estadoSanitario: estadoSanitario,
+      stockAtual: stockAtual,
+      lotesCount: lotesCount,
+    );
+  }
+}
+
 class InventarioResumoModel {
   const InventarioResumoModel({
     required this.id,

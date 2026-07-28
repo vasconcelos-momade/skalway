@@ -55,6 +55,49 @@ class AbrirInventarioRequest {
   final String? observacao;
 }
 
+class AdicionarInventarioItemRequest {
+  const AdicionarInventarioItemRequest({
+    required this.produtoId,
+    required this.loteId,
+    required this.estoqueContado,
+    this.observacao,
+  });
+
+  final String produtoId;
+  final String loteId;
+  final double estoqueContado;
+  final String? observacao;
+}
+
+/// Produto apto para inventário (uma linha por produto; stock = Σ lotes).
+class InventarioProdutoApto {
+  const InventarioProdutoApto({
+    required this.id,
+    required this.nomeComercial,
+    this.nomeGenerico,
+    this.dosagem,
+    this.forma,
+    this.barcode,
+    this.categoriaId,
+    this.categoriaNome,
+    required this.estadoSanitario,
+    required this.stockAtual,
+    required this.lotesCount,
+  });
+
+  final String id;
+  final String nomeComercial;
+  final String? nomeGenerico;
+  final String? dosagem;
+  final String? forma;
+  final String? barcode;
+  final String? categoriaId;
+  final String? categoriaNome;
+  final String estadoSanitario;
+  final double stockAtual;
+  final int lotesCount;
+}
+
 class InventarioResumo {
   const InventarioResumo({
     required this.id,

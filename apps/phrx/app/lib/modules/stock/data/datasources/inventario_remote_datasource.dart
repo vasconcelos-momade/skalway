@@ -16,6 +16,13 @@ abstract class InventarioRemoteDataSource {
   Future<List<InventarioResumoModel>> listarInventarios({
     InventarioStatus? status,
   });
+  Future<PaginationResponse<InventarioProdutoAptoModel>> listarProdutosAptos({
+    String? query,
+    String? categoriaId,
+    String? estadoSanitario,
+    int page = 1,
+    int pageSize = 20,
+  });
   Future<PaginationResponse<InventarioItemModel>> listarItensInventario({
     required String inventarioId,
     String? query,
@@ -24,10 +31,18 @@ abstract class InventarioRemoteDataSource {
   });
   Future<InventarioDetalheModel> obterInventario(String inventarioId);
   Future<InventarioDetalheModel> iniciarContagem(String inventarioId);
+  Future<InventarioItemModel> adicionarItem({
+    required String inventarioId,
+    required AdicionarInventarioItemRequestModel request,
+  });
   Future<InventarioItemModel> registarContagem({
     required String inventarioId,
     required String itemId,
     required double estoqueContado,
+  });
+  Future<void> removerItem({
+    required String inventarioId,
+    required String itemId,
   });
   Future<InventarioDetalheModel> reconciliar(String inventarioId);
   Future<InventarioDetalheModel> cancelar(String inventarioId);
@@ -77,6 +92,50 @@ class InventarioRemoteDataSourceImpl implements InventarioRemoteDataSource {
             .toList();
       }
       return const <InventarioResumoModel>[];
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  @override
+  Future<PaginationResponse<InventarioProdutoAptoModel>> listarProdutosAptos({
+    String? query,
+    String? categoriaId,
+    String? estadoSanitario,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.tenantInventariosProdutosAptos,
+        queryParameters: <String, dynamic>{
+          if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
+          if (categoriaId != null && categoriaId.isNotEmpty)
+            'categoriaId': categoriaId,
+          if (estadoSanitario != null && estadoSanitario.isNotEmpty)
+            'estadoSanitario': estadoSanitario,
+          'page': page,
+          'pageSize': pageSize,
+        },
+      );
+      final data = response.data;
+      if (data == null) {
+        return const PaginationResponse<InventarioProdutoAptoModel>(items: []);
+      }
+
+      final payload = ApiEnvelope.unwrapMap(data);
+      final items = (payload['items'] as List<dynamic>? ?? <dynamic>[])
+          .whereType<Map<String, dynamic>>()
+          .map(InventarioProdutoAptoModel.fromJson)
+          .toList();
+
+      return PaginationResponse<InventarioProdutoAptoModel>(
+        items: items,
+        page: payload['page'] as int? ?? page,
+        pageSize: payload['pageSize'] as int? ?? pageSize,
+        hasMore: payload['hasMore'] as bool? ?? false,
+        totalCount: payload['totalCount'] as int?,
+      );
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }
@@ -156,6 +215,27 @@ class InventarioRemoteDataSourceImpl implements InventarioRemoteDataSource {
   }
 
   @override
+  Future<InventarioItemModel> adicionarItem({
+    required String inventarioId,
+    required AdicionarInventarioItemRequestModel request,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.tenantInventarioItens(inventarioId),
+        data: request.toJson(),
+      );
+      return InventarioItemModel.fromJson(
+        _expectMap(
+          response.data,
+          fallback: 'Resposta inválida ao adicionar item ao inventário.',
+        ),
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  @override
   Future<InventarioItemModel> registarContagem({
     required String inventarioId,
     required String itemId,
@@ -171,6 +251,20 @@ class InventarioRemoteDataSourceImpl implements InventarioRemoteDataSource {
           response.data,
           fallback: 'Resposta inválida ao registar contagem.',
         ),
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  @override
+  Future<void> removerItem({
+    required String inventarioId,
+    required String itemId,
+  }) async {
+    try {
+      await _dio.delete<Map<String, dynamic>>(
+        ApiConstants.tenantInventarioItem(inventarioId, itemId),
       );
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);

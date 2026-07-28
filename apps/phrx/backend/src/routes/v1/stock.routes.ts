@@ -154,6 +154,14 @@ function registerInventoryRoutes(router: Router, prefix: string): void {
   );
 
   router.get(
+    `${prefix}/tenant/inventarios/produtos-aptos`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("INVENTARIO", "VIEW"),
+    async (context) => inventoryController.listEligibleProducts(context.req),
+  );
+
+  router.get(
     `${prefix}/tenant/inventarios/:inventarioId`,
     tenantAuthMiddleware(),
     tenantBranchContextMiddleware(),
@@ -167,6 +175,15 @@ function registerInventoryRoutes(router: Router, prefix: string): void {
     tenantBranchContextMiddleware(),
     requirePermission("INVENTARIO", "VIEW"),
     async (context) => inventoryController.listInventoryItems(context.req),
+  );
+
+  router.post(
+    `${prefix}/tenant/inventarios/:inventarioId/itens`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("INVENTARIO", "UPDATE"),
+    auditMiddleware,
+    async (context) => inventoryController.addInventoryItem(context.req),
   );
 
   router.post(
@@ -185,6 +202,15 @@ function registerInventoryRoutes(router: Router, prefix: string): void {
     requirePermission("INVENTARIO", "UPDATE"),
     auditMiddleware,
     async (context) => inventoryController.recordCount(context.req),
+  );
+
+  router.delete(
+    `${prefix}/tenant/inventarios/:inventarioId/itens/:itemId`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("INVENTARIO", "UPDATE"),
+    auditMiddleware,
+    async (context) => inventoryController.deleteInventoryItem(context.req),
   );
 
   router.post(

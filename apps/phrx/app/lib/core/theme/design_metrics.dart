@@ -91,6 +91,10 @@ abstract final class DesignMetrics {
   /// Altura máxima do menu de sugestões (typeahead / selects).
   static const double suggestionsMenuMaxHeight = 280;
 
+  /// Larguras padrão de menus dropdown enterprise.
+  static const double dropdownMenuWidth = 220;
+  static const double dropdownMenuMinWidth = 200;
+
   static const double sideSheetSizeSmall = 400;
   static const double sideSheetSizeMedium = 560;
   static const double sideSheetSizeLarge = 640;

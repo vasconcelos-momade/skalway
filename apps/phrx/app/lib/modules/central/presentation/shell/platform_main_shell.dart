@@ -27,7 +27,6 @@ class PlatformMainShell extends ConsumerWidget {
     return DashboardLayout(
       navItemsOverride: platformNav,
       appTitle: 'Skalway Admin',
-      showSyncStrip: false,
       child: child,
     );
   }

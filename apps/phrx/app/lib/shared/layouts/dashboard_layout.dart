@@ -27,14 +27,12 @@ class DashboardLayout extends ConsumerStatefulWidget {
     this.navItemsOverride,
     this.navSectionsOverride,
     this.appTitle = 'Pharma ERP',
-    this.showSyncStrip = true,
   });
 
   final Widget child;
   final List<AppNavItem>? navItemsOverride;
   final List<AppNavSection>? navSectionsOverride;
   final String appTitle;
-  final bool showSyncStrip;
 
   @override
   ConsumerState<DashboardLayout> createState() => _DashboardLayoutState();
@@ -104,8 +102,6 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                   isDesktop: isDesktop,
                   isMobile: isMobile,
                   location: location,
-                  showSyncStrip: widget.showSyncStrip,
-                  onLogout: () => _logout(context),
                   onOpenDrawer: () => _shellKey.currentState?.openDrawer(),
                 ),
                 Expanded(
@@ -230,16 +226,12 @@ class _EnterpriseTopBar extends ConsumerWidget {
     required this.isDesktop,
     required this.isMobile,
     required this.location,
-    required this.showSyncStrip,
-    required this.onLogout,
     required this.onOpenDrawer,
   });
 
   final bool isDesktop;
   final bool isMobile;
   final String location;
-  final bool showSyncStrip;
-  final VoidCallback onLogout;
   final VoidCallback onOpenDrawer;
 
   @override
@@ -247,19 +239,16 @@ class _EnterpriseTopBar extends ConsumerWidget {
     final t = context.pharmaTokens;
     final s = context.spacing;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final userName = ref.watch(
-      authSessionProvider.select((auth) => auth.session?.user.name),
-    );
+    final themeMode = ref.watch(appThemeModeProvider);
     final section =
         navSectionTitleForPath(location) ?? AppRouteTitles.sectionFor(location);
-    final compactSync = isMobile || MediaQuery.sizeOf(context).width < 520;
+    final compactActions = isMobile || MediaQuery.sizeOf(context).width < 520;
     final pagePadding = PharmaScreenLayout.pagePadding(context);
     final horizontalPadding = EdgeInsets.only(
       left: pagePadding.left,
       right: pagePadding.right,
     );
-    final actionSpacing = compactSync ? s.sm : s.md;
+    final actionSpacing = compactActions ? s.sm : s.md;
 
     return Material(
       color: t.bgPrimary,
@@ -357,72 +346,9 @@ class _EnterpriseTopBar extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (showSyncStrip) ...[
-                        SyncStatusStrip(compact: compactSync),
-                        SizedBox(width: actionSpacing),
-                      ],
                       const _PageRefreshAction(),
                       SizedBox(width: actionSpacing),
-                      IconButton(
-                        constraints: BoxConstraints(
-                          minWidth: t.minTouchTarget,
-                          minHeight: t.minTouchTarget,
-                        ),
-                        padding: EdgeInsets.zero,
-                        tooltip: isDark ? 'Tema claro' : 'Tema escuro',
-                        onPressed: () {
-                          ref.read(appThemeModeProvider.notifier).toggle();
-                        },
-                        icon: Icon(
-                          isDark
-                              ? Icons.light_mode_outlined
-                              : Icons.dark_mode_outlined,
-                          color: t.textSecondary,
-                          size: t.iconMd,
-                        ),
-                      ),
-                      SizedBox(width: actionSpacing),
-                      PopupMenuButton<String>(
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(
-                          minWidth: t.minTouchTarget,
-                          minHeight: t.minTouchTarget,
-                        ),
-                        tooltip: 'Conta',
-                        child: CircleAvatar(
-                          radius: t.avatarMd / 2,
-                          backgroundColor: t.brandGreen.withValues(alpha: 0.2),
-                          child: Text(
-                            _userInitials(userName),
-                            style: theme.textTheme.erpOverline.copyWith(
-                              color: t.brandGreen,
-                            ),
-                          ),
-                        ),
-                        onSelected: (v) {
-                          if (v == 'logout') {
-                            onLogout();
-                          }
-                          if (v == 'settings') {
-                            context.go(AppRoutePaths.settings);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'profile',
-                            child: Text('Perfil'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'settings',
-                            child: Text('Configurações'),
-                          ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem(
-                            value: 'logout',
-                            child: Text('Sair'),
-                          ),
-                        ],
-                      ),
+                      _ThemeModeMenuButton(themeMode: themeMode),
                     ],
                   ),
                 ),
@@ -431,6 +357,82 @@ class _EnterpriseTopBar extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ThemeModeMenuButton extends ConsumerWidget {
+  const _ThemeModeMenuButton({required this.themeMode});
+
+  final ThemeMode themeMode;
+
+  IconData get _icon => switch (themeMode) {
+        ThemeMode.light => Icons.light_mode_outlined,
+        ThemeMode.dark => Icons.dark_mode_outlined,
+        ThemeMode.system => Icons.brightness_auto_outlined,
+      };
+
+  String get _tooltip => switch (themeMode) {
+        ThemeMode.light => 'Tema claro',
+        ThemeMode.dark => 'Tema escuro',
+        ThemeMode.system => 'Tema do sistema',
+      };
+
+  Future<void> _openMenu(BuildContext context, WidgetRef ref) async {
+    final box = context.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+
+    final offset = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(offset.dx, offset.dy, box.size.width, box.size.height),
+      Offset.zero & overlay.size,
+    );
+
+    final selected = await showEnterpriseDropdownMenu<ThemeMode>(
+      context: context,
+      position: position,
+      items: [
+        EnterpriseDropdownItem(
+          value: ThemeMode.light,
+          label: 'Tema claro',
+          icon: Icons.light_mode_outlined,
+          selected: themeMode == ThemeMode.light,
+        ),
+        EnterpriseDropdownItem(
+          value: ThemeMode.dark,
+          label: 'Tema escuro',
+          icon: Icons.dark_mode_outlined,
+          selected: themeMode == ThemeMode.dark,
+        ),
+        EnterpriseDropdownItem(
+          value: ThemeMode.system,
+          label: 'Tema do sistema',
+          icon: Icons.brightness_auto_outlined,
+          selected: themeMode == ThemeMode.system,
+        ),
+      ],
+    );
+
+    if (selected != null) {
+      ref.read(appThemeModeProvider.notifier).setMode(selected);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.pharmaTokens;
+
+    return IconButton(
+      constraints: BoxConstraints(
+        minWidth: t.minTouchTarget,
+        minHeight: t.minTouchTarget,
+      ),
+      padding: EdgeInsets.zero,
+      tooltip: _tooltip,
+      onPressed: () => _openMenu(context, ref),
+      icon: Icon(_icon, color: t.textSecondary, size: t.iconMd),
     );
   }
 }
@@ -473,18 +475,6 @@ class _PageRefreshAction extends ConsumerWidget {
             ),
     );
   }
-}
-
-String _userInitials(String? name) {
-  final trimmed = name?.trim() ?? '';
-  if (trimmed.isEmpty) return '?';
-  final parts = trimmed
-      .split(RegExp(r'\s+'))
-      .where((part) => part.isNotEmpty)
-      .toList();
-  if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
-      .toUpperCase();
 }
 
 class _DrawerNav extends StatelessWidget {

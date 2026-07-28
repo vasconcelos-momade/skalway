@@ -1,0 +1,113 @@
+--- apps/phrx/app/lib/shared/widgets/tables/enterprise_data_table.dart
++++ apps/phrx/app/lib/shared/widgets/tables/enterprise_data_table.dart
+@@ -1,5 +1,4 @@
+ import 'package:flutter/material.dart';
+-import 'package:data_table_2/data_table_2.dart';
+ 
+ import '../../../core/theme/design_metrics.dart';
+ import '../../../core/theme/design_tokens.dart';
+@@ -8,6 +7,9 @@
+ import '../../responsive/breakpoints.dart' as responsive;
+ import '../../responsive/pharma_screen_layout.dart';
+ import '../inputs/enterprise_search_field.dart';
++import 'enterprise_table_toolbar.dart';
++import 'enterprise_table_header.dart';
++import 'enterprise_table_body.dart';
+ 
+ typedef EnterpriseRowBuilder = DataRow Function(BuildContext context, int index);
+ 
+@@ -89,61 +91,24 @@
+   final List<Widget>? toolbarActions;
+   final List<Widget>? filterWidgets;
+ 
+-  Widget _buildToolbar(BuildContext context, PharmaTokens t, DensityTokens s) {
+-    final hasSearch = searchController != null;
+-    final hasFilters = (filterWidgets != null && filterWidgets!.isNotEmpty);
+-    final hasActions = (toolbarActions != null && toolbarActions!.isNotEmpty);
+-
+-    if (!hasSearch && !hasFilters && !hasActions) {
+-      return const SizedBox.shrink();
+-    }
+-
+-    return Padding(
+-      padding: EdgeInsets.all(s.md),
+-      child: Wrap(
+-        spacing: s.md,
+-        runSpacing: s.md,
+-        crossAxisAlignment: WrapCrossAlignment.center,
+-        children: [
+-          if (hasSearch)
+-            SizedBox(
+-              width: 320,
+-              child: EnterpriseSearchField(
+-                controller: searchController!,
+-                hintText: searchHint ?? 'Pesquisar...',
+-                onChanged: onSearchChanged ?? (_) {},
+-              ),
+-            ),
+-          if (hasFilters) ...filterWidgets!,
+-          if (hasActions) ...toolbarActions!,
+-        ],
+-      ),
+-    );
+-  }
+-
+   Widget _buildTableContent(BuildContext context, BoxConstraints c, PharmaTokens t, DensityTokens s) {
+     final boundedHeight = c.hasBoundedHeight && c.maxHeight.isFinite;
+ 
+-    final dataTable = DataTable2(
+-      showCheckboxColumn: showCheckboxColumn,
+-      sortColumnIndex: sortColumnIndex,
+-      sortAscending: sortAscending,
+-      onSelectAll: onSelectAll,
+-      headingRowColor: WidgetStatePropertyAll(
+-        t.bgSecondary.withValues(alpha: 0.92),
+-      ),
+-      dataRowHeight: dataRowMaxHeight ?? DesignMetrics.tableRowHeightMax,
+-      headingRowHeight: DesignMetrics.tableRowHeightMin,
+-      horizontalMargin: PharmaScreenLayout.isDesktop(context)
+-          ? s.lg
+-          : s.md,
+-      columnSpacing: columnSpacing ??
+-          (PharmaScreenLayout.isDesktop(context) ? s.xxl : s.lg),
+-      minWidth: responsive.Breakpoints.tablet,
+-      fixedTopRows: 1,
+-      empty: Center(
+-        child: Text(
+-          'Nenhum registo encontrado',
+-          style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
+-        ),
+-      ),
+-      columns: columns,
+-      rows: List.generate(rowCount, (i) => rowBuilder(context, i)),
++    final header = EnterpriseTableHeader(
++      columns: columns,
++      sortColumnIndex: sortColumnIndex,
++      sortAscending: sortAscending,
++      onSelectAll: onSelectAll,
++    );
++
++    final dataTable = EnterpriseTableBody(
++      header: header,
++      rows: List.generate(rowCount, (i) => rowBuilder(context, i)),
++      showCheckboxColumn: showCheckboxColumn,
++      dataRowMinHeight: dataRowMinHeight,
++      dataRowMaxHeight: dataRowMaxHeight,
++      columnSpacing: columnSpacing,
+     );
+ 
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       mainAxisSize: MainAxisSize.min,
+       children: [
+-        _buildToolbar(context, t, s),
++        EnterpriseTableToolbar(
++          searchHint: searchHint,
++          searchController: searchController,
++          onSearchChanged: onSearchChanged,
++          toolbarActions: toolbarActions,
++          filterWidgets: filterWidgets,
++        ),
+         if (boundedHeight)
+           Flexible(child: dataTable)
+         else
