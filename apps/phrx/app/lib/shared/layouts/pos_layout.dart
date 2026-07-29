@@ -183,7 +183,7 @@ class PosLayout extends ConsumerWidget {
           ),
           Expanded(
             child: Padding(
-              padding: t.density.pageInsets,
+              padding: EdgeInsets.symmetric(horizontal: t.density.gutter),
               child: child,
             ),
           ),

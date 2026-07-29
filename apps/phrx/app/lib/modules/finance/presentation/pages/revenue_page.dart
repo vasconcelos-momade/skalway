@@ -5,7 +5,6 @@ import '../../../../core/constants/report_paths.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
@@ -43,7 +42,6 @@ class _RevenuePageState extends ConsumerState<RevenuePage> {
       child: EnterpriseModuleHub(
       title: 'Receita / Faturamento',
       subtitle: 'Apenas vendas realizadas — separado do saldo físico de caixa.',
-      tag: AppNavSections.finance,
       scrollable: true,
       mobileKpisHorizontalScroll: true,
       actions: [

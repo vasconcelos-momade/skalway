@@ -10,9 +10,10 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
+import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
@@ -238,7 +239,6 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
           title: 'Livro de Psicotrópicos',
           subtitle:
               'Livro oficial de entradas e saídas com saldos, conformidade e auditoria regulatória.',
-          tag: 'Regulatório',
           mobileKpisHorizontalScroll: true,
           actions: isMobile
               ? null
@@ -408,51 +408,47 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
   }
 
   Widget _buildFilters() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        SizedBox(
-          width: 280,
-          child: TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: 'Documento, produto, lote...',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onSubmitted: (value) {
-              setState(() {
-                _search = value.trim();
-                _page = 1;
-              });
-              _load();
-            },
-          ),
-        ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _tipoMovimento,
-            decoration: const InputDecoration(
-              labelText: 'Movimento',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(value: 'ENTRADA', child: Text('Entrada')),
-              DropdownMenuItem(value: 'SAIDA', child: Text('Saída')),
-              DropdownMenuItem(
-                value: 'IMPORTACAO',
-                child: Text('Importação'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _tipoMovimento = value;
-                _page = 1;
-              });
-              _load();
-            },
-          ),
+    final hasFilters = _tipoMovimento != null;
+    return EnterpriseDesktopListToolbar(
+      searchController: _searchController,
+      searchHint: 'Documento, produto, lote...',
+      isLoading: _loading,
+      onSearchSubmitted: (value) {
+        setState(() {
+          _search = value.trim();
+          _page = 1;
+        });
+        _load();
+      },
+      hasFilters: hasFilters,
+      onClearFilters: () {
+        setState(() {
+          _tipoMovimento = null;
+          _page = 1;
+        });
+        _load();
+      },
+      onApplyFilters: () {},
+      filterWidgets: [
+        EnterpriseSelectField<String>(
+          key: ValueKey('psico-mov-$_tipoMovimento'),
+          label: 'Movimento',
+          emptyLabel: 'Todos',
+          value: _tipoMovimento,
+          options: const [
+            EnterpriseSelectOption(value: 'ENTRADA', label: 'Entrada'),
+            EnterpriseSelectOption(value: 'SAIDA', label: 'Saída'),
+            EnterpriseSelectOption(value: 'IMPORTACAO', label: 'Importação'),
+          ],
+          onChanged: _loading
+              ? null
+              : (value) {
+                  setState(() {
+                    _tipoMovimento = value;
+                    _page = 1;
+                  });
+                  _load();
+                },
         ),
       ],
     );

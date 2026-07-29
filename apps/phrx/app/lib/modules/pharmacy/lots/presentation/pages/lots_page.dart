@@ -9,12 +9,14 @@ import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
-import '../../../../../shared/widgets/inputs/enterprise_field_decoration.dart';
-import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../providers/lots_provider.dart';
 import '../widgets/open_lote_details.dart';
@@ -239,17 +241,17 @@ class _LotsPageState extends ConsumerState<LotsPage> {
                     : (current?.items.isEmpty ?? true) && !asyncState.isLoading
                     ? const Center(child: Text('Nenhum lote encontrado'))
                     : EnterpriseDataTable(
-                        columns: const [
-                          DataColumn(label: Text('PRODUTO')),
-                          DataColumn(label: Text('LOTE')),
-                          DataColumn(label: Text('VALIDADE')),
-                          DataColumn(label: Text('DIAS RESTANTES')),
-                          DataColumn(label: Text('STOCK')),
-                          DataColumn(label: Text('P. COMPRA')),
-                          DataColumn(label: Text('P. VENDA')),
-                          DataColumn(label: Text('ESTADO')),
-                          DataColumn(label: Text('ALERTAS')),
-                          DataColumn(label: Text('AÇÕES')),
+                        columns: [
+                          enterpriseDataColumn(context, 'Produto'),
+                          enterpriseDataColumn(context, 'Lote'),
+                          enterpriseDataColumn(context, 'Validade'),
+                          enterpriseDataColumn(context, 'Dias restantes', numeric: true),
+                          enterpriseDataColumn(context, 'Stock', numeric: true),
+                          enterpriseDataColumn(context, 'P. compra', numeric: true),
+                          enterpriseDataColumn(context, 'P. venda', numeric: true),
+                          enterpriseDataColumn(context, 'Estado'),
+                          enterpriseDataColumn(context, 'Alertas'),
+                          enterpriseDataColumn(context, 'Ações'),
                         ],
                         rowCount: current?.items.length ?? 0,
                         rowBuilder: (context, index) {
@@ -264,55 +266,43 @@ class _LotsPageState extends ConsumerState<LotsPage> {
                             onSelectChanged: null,
                             cells: [
                               DataCell(
-                                Text(item['produtoNomeComercial']?.toString() ?? item['produtoNome']?.toString() ?? '—'),
-                              ),
-                              DataCell(
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(item['numeroLote']?.toString() ?? '—'),
-                                    Text(
-                                      _loteSecondaryStatus(item),
-                                      style: Theme.of(context).textTheme.erpCaption.copyWith(
-                                            color: t.textMuted,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              DataCell(
-                                Text(
-                                  item['dataValidade']?.toString().substring(
-                                        0,
-                                        10,
-                                      ) ??
+                                TablePrimaryCell(
+                                  item['produtoNomeComercial']?.toString() ??
+                                      item['produtoNome']?.toString() ??
                                       '—',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.erpLabel.copyWith(color: color),
                                 ),
                               ),
                               DataCell(
-                                Text(_diasRestantesLabel(item['dataValidade'])),
-                              ),
-                              DataCell(
-                                Text(LoteStockUtils.formatDisponivel(item)),
-                              ),
-                              DataCell(
-                                Text(item['precoCompra']?.toString() ?? '—'),
-                              ),
-                              DataCell(
-                                Text(item['precoVenda']?.toString() ?? '—'),
-                              ),
-                              DataCell(
-                                Text(
-                                  item['estadoSanitario']?.toString() ?? '—',
+                                TablePrimaryCell(
+                                  item['numeroLote']?.toString() ?? '—',
+                                  subtitle: _loteSecondaryStatus(item),
                                 ),
                               ),
                               DataCell(
-                                Text(_alertaLabel(item)),
+                                TableMetadataCell(
+                                  item['dataValidade']?.toString().substring(0, 10),
+                                  color: color,
+                                ),
                               ),
+                              DataCell(
+                                TableNumericCell(_diasRestantesLabel(item['dataValidade'])),
+                              ),
+                              DataCell(
+                                TableNumericCell(LoteStockUtils.formatDisponivel(item)),
+                              ),
+                              DataCell(
+                                TableNumericCell(item['precoCompra']?.toString() ?? '—'),
+                              ),
+                              DataCell(
+                                TableNumericCell(item['precoVenda']?.toString() ?? '—'),
+                              ),
+                              DataCell(
+                                TableStatusCell(
+                                  label: item['estadoSanitario']?.toString() ?? '—',
+                                  showDot: false,
+                                ),
+                              ),
+                              DataCell(TableSecondaryCell(_alertaLabel(item))),
                               DataCell(
                                 isBusy
                                     ? const SizedBox(
@@ -322,51 +312,56 @@ class _LotsPageState extends ConsumerState<LotsPage> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : PopupMenuButton<String>(
+                                    : EnterpriseActionsMenuButton<String>(
                                         tooltip: 'Acções do lote',
-                                        onSelected: (action) =>
-                                            _handleAction(action, item),
-                                        itemBuilder: (context) => [
-                                          const PopupMenuItem(
+                                        items: [
+                                          const EnterpriseDropdownItem(
                                             value: 'editar_precos',
-                                            child: Text('Editar preços do lote'),
+                                            label: 'Editar preços do lote',
+                                            icon: Icons.price_change_outlined,
                                           ),
-                                          const PopupMenuItem(
+                                          const EnterpriseDropdownItem(
                                             value: 'editar_info',
-                                            child: Text('Editar informações do lote'),
+                                            label:
+                                                'Editar informações do lote',
+                                            icon: Icons.edit_outlined,
                                           ),
                                           if (LotActionsHelper.canMoveToQuarentena(
                                             item,
                                           ))
-                                            const PopupMenuItem(
+                                            const EnterpriseDropdownItem(
                                               value: 'quarentena',
-                                              child: Text(
-                                                'Mover para Quarentena',
-                                              ),
+                                              label: 'Mover para Quarentena',
+                                              icon: Icons.warning_amber_outlined,
                                             ),
                                           if (LotActionsHelper.canRevertQuarentena(
                                             item,
                                           ))
-                                            const PopupMenuItem(
+                                            const EnterpriseDropdownItem(
                                               value: 'reverter',
-                                              child: Text(
-                                                'Liberar lote',
-                                              ),
+                                              label: 'Liberar lote',
+                                              icon: Icons.check_circle_outline,
                                             ),
-                                          const PopupMenuItem(
+                                          const EnterpriseDropdownItem(
                                             value: 'historico',
-                                            child: Text('Visualizar histórico do lote'),
+                                            label:
+                                                'Visualizar histórico do lote',
+                                            icon: Icons.history,
                                           ),
-                                          const PopupMenuItem(
+                                          const EnterpriseDropdownItem(
                                             value: 'recall',
-                                            child: Text('Executar Recall'),
+                                            label: 'Executar Recall',
+                                            icon: Icons.report_outlined,
                                           ),
-                                          const PopupMenuItem(
+                                          const EnterpriseDropdownItem(
                                             value: 'devolver_fornecedor',
-                                            child: Text('Devolver lote ao fornecedor'),
+                                            label:
+                                                'Devolver lote ao fornecedor',
+                                            icon: Icons.undo,
                                           ),
                                         ],
-                                        icon: const Icon(Icons.more_vert),
+                                        onSelected: (action) =>
+                                            _handleAction(action, item),
                                       ),
                               ),
                             ],
@@ -672,130 +667,64 @@ class _LotsDesktopToolbar extends StatefulWidget {
 class _LotsDesktopToolbarState extends State<_LotsDesktopToolbar> {
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
     final state = widget.state;
     final hasFilters =
         (state?.estadoSanitario != null) ||
         (state?.disponibilidade != null) ||
         (state?.expirado != null);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 3,
-          child: EnterpriseSearchField(
-            controller: widget.searchController,
-            hintText: 'Pesquisar produto ou nº lote...',
-            onChanged: (_) {},
-            onSubmitted: widget.isLoading ? null : widget.onSearchSubmitted,
-          ),
+    return EnterpriseDesktopListToolbar(
+      searchController: widget.searchController,
+      searchHint: 'Pesquisar produto ou nº lote...',
+      isLoading: widget.isLoading,
+      onSearchSubmitted: widget.onSearchSubmitted,
+      hasFilters: hasFilters,
+      onClearFilters: () {
+        widget.onEstadoSanitarioChanged(null);
+        widget.onDisponibilidadeChanged(null);
+        widget.onExpiradoChanged(null);
+      },
+      onApplyFilters: () {},
+      filterWidgets: [
+        EnterpriseSelectField<String>(
+          key: ValueKey('lote-estado-${state?.estadoSanitario}'),
+          label: 'Estado sanitário',
+          emptyLabel: 'Todos',
+          value: state?.estadoSanitario,
+          options: const [
+            EnterpriseSelectOption(value: 'VALIDO', label: 'Válido'),
+            EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
+            EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+            EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
+          ],
+          onChanged: widget.isLoading ? null : widget.onEstadoSanitarioChanged,
         ),
-        SizedBox(width: s.md),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: state?.estadoSanitario,
-            decoration: _dropdownDecoration(context, 'Estado sanitário'),
-            items: const [
-              DropdownMenuItem<String?>(value: null, child: Text('Todos')),
-              DropdownMenuItem<String?>(value: 'VALIDO', child: Text('Válido')),
-              DropdownMenuItem<String?>(
-                value: 'EXPIRADO',
-                child: Text('Expirado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'QUARENTENA',
-                child: Text('Quarentena'),
-              ),
-              DropdownMenuItem<String?>(value: 'RECALL', child: Text('Recall')),
-            ],
-            onChanged: widget.isLoading
-                ? null
-                : widget.onEstadoSanitarioChanged,
-          ),
+        EnterpriseSelectField<String>(
+          key: ValueKey('lote-disp-${state?.disponibilidade}'),
+          label: 'Disponibilidade',
+          emptyLabel: 'Todas',
+          value: state?.disponibilidade,
+          options: const [
+            EnterpriseSelectOption(value: 'DISPONIVEL', label: 'Disponível'),
+            EnterpriseSelectOption(value: 'RESERVADO', label: 'Reservado'),
+            EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
+            EnterpriseSelectOption(value: 'INDISPONIVEL', label: 'Indisponível'),
+          ],
+          onChanged: widget.isLoading ? null : widget.onDisponibilidadeChanged,
         ),
-        SizedBox(width: s.md),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: state?.disponibilidade,
-            decoration: _dropdownDecoration(context, 'Disponibilidade'),
-            items: const [
-              DropdownMenuItem<String?>(value: null, child: Text('Todas')),
-              DropdownMenuItem<String?>(
-                value: 'DISPONIVEL',
-                child: Text('Disponível'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'RESERVADO',
-                child: Text('Reservado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'BLOQUEADO',
-                child: Text('Bloqueado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'INDISPONIVEL',
-                child: Text('Indisponível'),
-              ),
-            ],
-            onChanged: widget.isLoading
-                ? null
-                : widget.onDisponibilidadeChanged,
-          ),
+        EnterpriseSelectField<bool>(
+          key: ValueKey('lote-exp-${state?.expirado}'),
+          label: 'Validade',
+          emptyLabel: 'Todas',
+          value: state?.expirado,
+          options: const [
+            EnterpriseSelectOption(value: true, label: 'Expirados'),
+          ],
+          onChanged: widget.isLoading ? null : widget.onExpiradoChanged,
         ),
-        SizedBox(width: s.md),
-        SizedBox(
-          width: 140,
-          child: DropdownButtonFormField<bool?>(
-            initialValue: state?.expirado,
-            decoration: _dropdownDecoration(context, 'Validade'),
-            items: const [
-              DropdownMenuItem<bool?>(value: null, child: Text('Todas')),
-              DropdownMenuItem<bool?>(value: true, child: Text('Expirados')),
-            ],
-            onChanged: widget.isLoading ? null : widget.onExpiradoChanged,
-          ),
-        ),
-        if (hasFilters) ...[
-          SizedBox(width: s.sm),
-          TextButton.icon(
-            onPressed: widget.isLoading
-                ? null
-                : () {
-                    widget.onEstadoSanitarioChanged(null);
-                    widget.onDisponibilidadeChanged(null);
-                    widget.onExpiradoChanged(null);
-                  },
-            icon: Icon(
-              Icons.filter_alt_off_outlined,
-              size: context.pharmaTokens.iconSm,
-            ),
-            label: const Text('Limpar'),
-          ),
-        ],
-        if (widget.trailingActions.isNotEmpty) ...[
-          SizedBox(width: s.md),
-          Expanded(
-            flex: 2,
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Wrap(
-                spacing: s.sm,
-                runSpacing: s.sm,
-                alignment: WrapAlignment.end,
-                children: widget.trailingActions,
-              ),
-            ),
-          ),
-        ],
       ],
+      trailingActions: widget.trailingActions,
     );
-  }
-
-  InputDecoration _dropdownDecoration(BuildContext context, String label) {
-    return EnterpriseFieldDecoration.of(context, labelText: label);
   }
 }
 
@@ -876,50 +805,48 @@ class _LoteMobileCard extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(
-                        minWidth: t.minTouchTarget * 0.6,
-                        minHeight: t.minTouchTarget * 0.6,
-                      ),
-                      icon: Icon(
-                        Icons.more_vert,
-                        size: t.iconSm,
-                        color: t.textMuted,
-                      ),
-                      onSelected: onAction,
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
+                    EnterpriseActionsMenuButton<String>(
+                      compact: true,
+                      items: [
+                        const EnterpriseDropdownItem(
                           value: 'editar_precos',
-                          child: Text('Editar preços do lote'),
+                          label: 'Editar preços do lote',
+                          icon: Icons.price_change_outlined,
                         ),
-                        const PopupMenuItem(
+                        const EnterpriseDropdownItem(
                           value: 'editar_info',
-                          child: Text('Editar informações do lote'),
+                          label: 'Editar informações do lote',
+                          icon: Icons.edit_outlined,
                         ),
                         if (LotActionsHelper.canMoveToQuarentena(lote))
-                          const PopupMenuItem(
+                          const EnterpriseDropdownItem(
                             value: 'quarentena',
-                            child: Text('Mover para Quarentena'),
+                            label: 'Mover para Quarentena',
+                            icon: Icons.warning_amber_outlined,
                           ),
                         if (LotActionsHelper.canRevertQuarentena(lote))
-                          const PopupMenuItem(
+                          const EnterpriseDropdownItem(
                             value: 'reverter',
-                            child: Text('Liberar lote'),
+                            label: 'Liberar lote',
+                            icon: Icons.check_circle_outline,
                           ),
-                        const PopupMenuItem(
+                        const EnterpriseDropdownItem(
                           value: 'historico',
-                          child: Text('Visualizar histórico do lote'),
+                          label: 'Visualizar histórico do lote',
+                          icon: Icons.history,
                         ),
-                        const PopupMenuItem(
+                        const EnterpriseDropdownItem(
                           value: 'recall',
-                          child: Text('Executar Recall'),
+                          label: 'Executar Recall',
+                          icon: Icons.report_outlined,
                         ),
-                        const PopupMenuItem(
+                        const EnterpriseDropdownItem(
                           value: 'devolver_fornecedor',
-                          child: Text('Devolver lote ao fornecedor'),
+                          label: 'Devolver lote ao fornecedor',
+                          icon: Icons.undo,
                         ),
                       ],
+                      onSelected: onAction,
                     ),
                 ],
               ),

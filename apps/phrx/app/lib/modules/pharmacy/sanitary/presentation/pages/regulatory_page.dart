@@ -11,9 +11,11 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
 import '../../../lots/presentation/widgets/lot_actions_helper.dart';
@@ -181,85 +183,71 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
   }
 
   Widget _buildSanitarioFilters() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        SizedBox(
-          width: 280,
-          child: TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: 'Produto, lote, barcode...',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onSubmitted: (value) {
-              setState(() {
-                _search = value.trim();
-                _page = 1;
-              });
-              _loadSanitario();
-            },
-          ),
+    final hasFilters = _estado != null || _alertaTipo != null;
+    return EnterpriseDesktopListToolbar(
+      searchController: _searchController,
+      searchHint: 'Produto, lote, barcode...',
+      isLoading: _loadingSanitario,
+      onSearchSubmitted: (value) {
+        setState(() {
+          _search = value.trim();
+          _page = 1;
+        });
+        _loadSanitario();
+      },
+      hasFilters: hasFilters,
+      onClearFilters: () {
+        setState(() {
+          _estado = null;
+          _alertaTipo = null;
+          _page = 1;
+        });
+        _loadSanitario();
+      },
+      onApplyFilters: () {},
+      filterWidgets: [
+        EnterpriseSelectField<String>(
+          key: ValueKey('san-estado-$_estado'),
+          label: 'Estado',
+          emptyLabel: 'Todos',
+          value: _estado,
+          options: const [
+            EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
+            EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
+            EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+            EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
+            EnterpriseSelectOption(value: 'CRITICO', label: 'Crítico'),
+          ],
+          onChanged: _loadingSanitario
+              ? null
+              : (value) {
+                  setState(() {
+                    _estado = value;
+                    _page = 1;
+                  });
+                  _loadSanitario();
+                },
         ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _estado,
-            decoration: const InputDecoration(
-              labelText: 'Estado',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(value: 'EXPIRADO', child: Text('Expirado')),
-              DropdownMenuItem(value: 'RECALL', child: Text('Recall')),
-              DropdownMenuItem(value: 'QUARENTENA', child: Text('Quarentena')),
-              DropdownMenuItem(value: 'BLOQUEADO', child: Text('Bloqueado')),
-              DropdownMenuItem(value: 'CRITICO', child: Text('Crítico')),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _estado = value;
-                _page = 1;
-              });
-              _loadSanitario();
-            },
-          ),
-        ),
-        SizedBox(
-          width: 220,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _alertaTipo,
-            decoration: const InputDecoration(
-              labelText: 'Tipo de alerta',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(
-                value: 'LOTE_EXPIRADO',
-                child: Text('Lote expirado'),
-              ),
-              DropdownMenuItem(
-                value: 'LOTE_A_EXPIRAR',
-                child: Text('Lote a expirar'),
-              ),
-              DropdownMenuItem(
-                value: 'ESTOQUE_BAIXO',
-                child: Text('Stock baixo'),
-              ),
-              DropdownMenuItem(
-                value: 'PRODUTO_ESGOTADO',
-                child: Text('Esgotado'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _alertaTipo = value;
-                _page = 1;
-              });
-              _loadSanitario();
-            },
-          ),
+        EnterpriseSelectField<String>(
+          key: ValueKey('san-alerta-$_alertaTipo'),
+          label: 'Tipo de alerta',
+          emptyLabel: 'Todos',
+          value: _alertaTipo,
+          options: const [
+            EnterpriseSelectOption(value: 'LOTE_EXPIRADO', label: 'Lote expirado'),
+            EnterpriseSelectOption(value: 'LOTE_A_EXPIRAR', label: 'Lote a expirar'),
+            EnterpriseSelectOption(value: 'ESTOQUE_BAIXO', label: 'Stock baixo'),
+            EnterpriseSelectOption(value: 'PRODUTO_ESGOTADO', label: 'Esgotado'),
+          ],
+          onChanged: _loadingSanitario
+              ? null
+              : (value) {
+                  setState(() {
+                    _alertaTipo = value;
+                    _page = 1;
+                  });
+                  _loadSanitario();
+                },
         ),
       ],
     );
@@ -448,13 +436,13 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
               : EnterpriseDataTable(
                   adaptive: false,
                   showCheckboxColumn: false,
-                  columns: const [
-                    DataColumn(label: Text('PRODUTO')),
-                    DataColumn(label: Text('LOTE')),
-                    DataColumn(label: Text('VALIDADE')),
-                    DataColumn(label: Text('STATUS')),
-                    DataColumn(label: Text('ALERTA')),
-                    DataColumn(label: Text('STOCK')),
+                  columns: [
+                    enterpriseDataColumn(context, 'Produto'),
+                    enterpriseDataColumn(context, 'Lote'),
+                    enterpriseDataColumn(context, 'Validade'),
+                    enterpriseDataColumn(context, 'Status'),
+                    enterpriseDataColumn(context, 'Alerta'),
+                    enterpriseDataColumn(context, 'Stock', numeric: true),
                   ],
                   rowCount: _items.length,
                   rowBuilder: (context, index) {
@@ -464,22 +452,31 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
                           _openHistory(item['id'].toString()),
                       cells: [
                         DataCell(
-                          Text(item['produto']?['nome']?.toString() ?? '—'),
+                          TablePrimaryCell(
+                            item['produto']?['nome']?.toString() ?? '—',
+                          ),
                         ),
-                        DataCell(Text(item['numeroLote']?.toString() ?? '—')),
                         DataCell(
-                          Text(
-                            item['dataValidade']?.toString().substring(0, 10) ??
-                                '—',
+                          TableMetadataCell(item['numeroLote']?.toString()),
+                        ),
+                        DataCell(
+                          TableMetadataCell(
+                            item['dataValidade']?.toString().substring(0, 10),
                           ),
                         ),
                         DataCell(
                           _SanitaryBadge(label: item['status']?.toString()),
                         ),
                         DataCell(
-                          Text(item['latestAlert']?['tipo']?.toString() ?? '—'),
+                          TableSecondaryCell(
+                            item['latestAlert']?['tipo']?.toString() ?? '—',
+                          ),
                         ),
-                        DataCell(Text(LoteStockUtils.formatDisponivel(item))),
+                        DataCell(
+                          TableNumericCell(
+                            LoteStockUtils.formatDisponivel(item),
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -542,7 +539,7 @@ class _SanitaryBadge extends StatelessWidget {
       ),
       child: Text(
         value,
-        style: Theme.of(context).textTheme.erpLabel.copyWith(color: color),
+        style: Theme.of(context).textTheme.erpTableStatus.copyWith(color: color),
       ),
     );
   }

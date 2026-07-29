@@ -165,7 +165,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     padding: EdgeInsets.only(bottom: s.sm),
                     child: pharmacyReportError(ref),
                   ),
-                if (state.errorMessage != null)
+                if (state.errorMessage != null && !isDesktop)
                   Padding(
                     padding: EdgeInsets.only(bottom: s.sm),
                     child: Text(
@@ -176,37 +176,46 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     ),
                   ),
                 Expanded(
-                  child: !state.isInitialized && state.isLoading
-                      ? ProdutoLoading(isDesktop: isDesktop)
-                      : (isDesktop ? state.items.isEmpty : _accumulatedItems.isEmpty)
-                          ? const ProdutoEmptyState()
-                          : isDesktop
-                              ? ProdutoTable(
-                                  items: state.items,
-                                  sortBy: state.sortBy,
-                                  sortOrder: state.sortOrder,
-                                  onSort: controller.setSort,
-                                  onAction: (p, action) =>
-                                      _handleAction(context, ref, p, action),
-                                )
+                  child: isDesktop
+                      ? ProdutoTable(
+                          items: state.items,
+                          sortBy: state.sortBy,
+                          sortOrder: state.sortOrder,
+                          onSort: controller.setSort,
+                          onAction: (p, action) =>
+                              _handleAction(context, ref, p, action),
+                          isLoading: state.isLoading,
+                          errorMessage: state.errorMessage,
+                          onRetry: controller.refreshCurrentPage,
+                          onCreate: state.isLoading
+                              ? null
+                              : () => _openCreateDialog(context, ref),
+                          hasActiveFilters: state.hasFilters,
+                          onClearFilters: controller.clearFilters,
+                          pagination: ProdutoPagination(
+                            page: state.page,
+                            pageSize: state.pageSize,
+                            totalCount: state.totalCount ?? 0,
+                            isBusy: state.isLoading,
+                            onPageChanged: controller.goToPage,
+                            onPageSizeChanged: controller.setPageSize,
+                          ),
+                        )
+                      : !state.isInitialized && state.isLoading
+                          ? ProdutoLoading(isDesktop: isDesktop)
+                          : _accumulatedItems.isEmpty
+                              ? const ProdutoEmptyState()
                               : ProdutoList(
                                   items: _accumulatedItems,
                                   hasMore: state.hasMore,
                                   isLoading: state.isLoading,
-                                  onLoadMore: () => controller.goToPage(state.page + 1),
+                                  onLoadMore: () =>
+                                      controller.goToPage(state.page + 1),
                                   onItemTap: (_) {},
                                   onItemAction: (p, action) =>
                                       _handleAction(context, ref, p, action),
                                 ),
                 ),
-                if (isDesktop && state.isInitialized && state.totalCount != null)
-                  ProdutoPagination(
-                    page: state.page,
-                    pageSize: state.pageSize,
-                    totalCount: state.totalCount!,
-                    onPageChanged: controller.goToPage,
-                    onPageSizeChanged: controller.setPageSize,
-                  ),
               ],
             ),
           ),

@@ -111,8 +111,8 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
               labelText: widget.label,
               enabled: enabled,
               suffixIcon: Icon(
-                open ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                size: t.iconSm,
+                open ? Icons.expand_less : Icons.expand_more,
+                size: t.iconMd,
                 color: enabled ? t.textSecondary : t.textMuted,
               ),
             ).copyWith(

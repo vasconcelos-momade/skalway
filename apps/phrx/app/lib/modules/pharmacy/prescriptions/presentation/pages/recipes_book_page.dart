@@ -13,10 +13,14 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_filter_panel.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../regulatory/data/datasources/regulatory_remote_datasource.dart';
 import '../../../../../shared/refresh/page_refresh.dart';
@@ -568,7 +572,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
           subtitle: showingLivro
               ? 'Movimentos oficiais de livro de receitas com rastreio, auditoria e exportação.'
               : 'Receitas reais do backend com dispensa rastreável, conformidade e histórico clínico.',
-          tag: 'Regulatório',
           mobileKpisHorizontalScroll: true,
           actions: isMobile
               ? null
@@ -632,149 +635,136 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
   }
 
   Widget _buildReceitasFilters(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        SizedBox(
-          width: 260,
-          child: TextField(
-            controller: _receitasSearchController,
-            decoration: const InputDecoration(
-              hintText: 'Número, médico, paciente...',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onSubmitted: (value) {
-              setState(() {
-                _receitasSearch = value.trim();
-                _receitasPage = 1;
-              });
-              _loadReceitas();
-            },
-          ),
+    final hasFilters = _receitasStatus != null || _receitasOrigem != null;
+    return EnterpriseDesktopListToolbar(
+      searchController: _receitasSearchController,
+      searchHint: 'Número, médico, paciente...',
+      isLoading: _loadingReceitas,
+      onSearchSubmitted: (value) {
+        setState(() {
+          _receitasSearch = value.trim();
+          _receitasPage = 1;
+        });
+        _loadReceitas();
+      },
+      hasFilters: hasFilters,
+      onClearFilters: () {
+        setState(() {
+          _receitasStatus = null;
+          _receitasOrigem = null;
+          _receitasPage = 1;
+        });
+        _loadReceitas();
+      },
+      onApplyFilters: () {},
+      filterWidgets: [
+        EnterpriseSelectField<String>(
+          key: ValueKey('rec-status-$_receitasStatus'),
+          label: 'Estado',
+          emptyLabel: 'Todos',
+          value: _receitasStatus,
+          options: const [
+            EnterpriseSelectOption(value: 'PENDENTE', label: 'Pendente'),
+            EnterpriseSelectOption(value: 'UTILIZADA', label: 'Utilizada'),
+            EnterpriseSelectOption(value: 'EXPIRADA', label: 'Expirada'),
+          ],
+          onChanged: _loadingReceitas
+              ? null
+              : (value) {
+                  setState(() {
+                    _receitasStatus = value;
+                    _receitasPage = 1;
+                  });
+                  _loadReceitas();
+                },
         ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _receitasStatus,
-            decoration: const InputDecoration(
-              labelText: 'Estado',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(value: 'PENDENTE', child: Text('Pendente')),
-              DropdownMenuItem(value: 'UTILIZADA', child: Text('Utilizada')),
-              DropdownMenuItem(value: 'EXPIRADA', child: Text('Expirada')),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _receitasStatus = value;
-                _receitasPage = 1;
-              });
-              _loadReceitas();
-            },
-          ),
-        ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _receitasOrigem,
-            decoration: const InputDecoration(
-              labelText: 'Origem',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todas')),
-              DropdownMenuItem(value: 'FISICA', child: Text('Física')),
-              DropdownMenuItem(value: 'DIGITAL', child: Text('Digital')),
-              DropdownMenuItem(
-                value: 'SISTEMA_INTERNO',
-                child: Text('Sistema'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _receitasOrigem = value;
-                _receitasPage = 1;
-              });
-              _loadReceitas();
-            },
-          ),
+        EnterpriseSelectField<String>(
+          key: ValueKey('rec-origem-$_receitasOrigem'),
+          label: 'Origem',
+          emptyLabel: 'Todas',
+          value: _receitasOrigem,
+          options: const [
+            EnterpriseSelectOption(value: 'FISICA', label: 'Física'),
+            EnterpriseSelectOption(value: 'DIGITAL', label: 'Digital'),
+            EnterpriseSelectOption(value: 'SISTEMA_INTERNO', label: 'Sistema'),
+          ],
+          onChanged: _loadingReceitas
+              ? null
+              : (value) {
+                  setState(() {
+                    _receitasOrigem = value;
+                    _receitasPage = 1;
+                  });
+                  _loadReceitas();
+                },
         ),
       ],
     );
   }
 
   Widget _buildLivroFilters(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        SizedBox(
-          width: 260,
-          child: TextField(
-            controller: _livroSearchController,
-            decoration: const InputDecoration(
-              hintText: 'Receita, paciente, produto...',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onSubmitted: (value) {
-              setState(() {
-                _livroSearch = value.trim();
-                _livroPage = 1;
-              });
-              _loadLivro();
-            },
-          ),
+    final hasFilters = _livroTipoMovimento != null || _livroOrigem != null;
+    return EnterpriseDesktopListToolbar(
+      searchController: _livroSearchController,
+      searchHint: 'Receita, paciente, produto...',
+      isLoading: _loadingLivro,
+      onSearchSubmitted: (value) {
+        setState(() {
+          _livroSearch = value.trim();
+          _livroPage = 1;
+        });
+        _loadLivro();
+      },
+      hasFilters: hasFilters,
+      onClearFilters: () {
+        setState(() {
+          _livroTipoMovimento = null;
+          _livroOrigem = null;
+          _livroPage = 1;
+        });
+        _loadLivro();
+      },
+      onApplyFilters: () {},
+      filterWidgets: [
+        EnterpriseSelectField<String>(
+          key: ValueKey('livro-mov-$_livroTipoMovimento'),
+          label: 'Movimento',
+          emptyLabel: 'Todos',
+          value: _livroTipoMovimento,
+          options: const [
+            EnterpriseSelectOption(value: 'ENTRADA', label: 'Entrada'),
+            EnterpriseSelectOption(value: 'SAIDA', label: 'Saída'),
+            EnterpriseSelectOption(value: 'CANCELAMENTO', label: 'Cancelamento'),
+          ],
+          onChanged: _loadingLivro
+              ? null
+              : (value) {
+                  setState(() {
+                    _livroTipoMovimento = value;
+                    _livroPage = 1;
+                  });
+                  _loadLivro();
+                },
         ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _livroTipoMovimento,
-            decoration: const InputDecoration(
-              labelText: 'Movimento',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todos')),
-              DropdownMenuItem(value: 'ENTRADA', child: Text('Entrada')),
-              DropdownMenuItem(value: 'SAIDA', child: Text('Saída')),
-              DropdownMenuItem(
-                value: 'CANCELAMENTO',
-                child: Text('Cancelamento'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _livroTipoMovimento = value;
-                _livroPage = 1;
-              });
-              _loadLivro();
-            },
-          ),
-        ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<String?>(
-            initialValue: _livroOrigem,
-            decoration: const InputDecoration(
-              labelText: 'Origem',
-            ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Todas')),
-              DropdownMenuItem(value: 'FISICA', child: Text('Física')),
-              DropdownMenuItem(value: 'DIGITAL', child: Text('Digital')),
-              DropdownMenuItem(
-                value: 'SISTEMA_INTERNO',
-                child: Text('Sistema'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _livroOrigem = value;
-                _livroPage = 1;
-              });
-              _loadLivro();
-            },
-          ),
+        EnterpriseSelectField<String>(
+          key: ValueKey('livro-origem-$_livroOrigem'),
+          label: 'Origem',
+          emptyLabel: 'Todas',
+          value: _livroOrigem,
+          options: const [
+            EnterpriseSelectOption(value: 'FISICA', label: 'Física'),
+            EnterpriseSelectOption(value: 'DIGITAL', label: 'Digital'),
+            EnterpriseSelectOption(value: 'SISTEMA_INTERNO', label: 'Sistema'),
+          ],
+          onChanged: _loadingLivro
+              ? null
+              : (value) {
+                  setState(() {
+                    _livroOrigem = value;
+                    _livroPage = 1;
+                  });
+                  _loadLivro();
+                },
         ),
       ],
     );
@@ -806,7 +796,53 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             });
             _loadReceitas();
           },
-          onOpenFilters: () {},
+          onOpenFilters: () {
+            EnterpriseTableFilterPanel.present(
+              context: context,
+              title: 'Filtros',
+              filters: [
+                EnterpriseSelectField<String>(
+                  key: ValueKey('m-rec-status-$_receitasStatus'),
+                  label: 'Estado',
+                  emptyLabel: 'Todos',
+                  value: _receitasStatus,
+                  options: const [
+                    EnterpriseSelectOption(value: 'PENDENTE', label: 'Pendente'),
+                    EnterpriseSelectOption(value: 'UTILIZADA', label: 'Utilizada'),
+                    EnterpriseSelectOption(value: 'EXPIRADA', label: 'Expirada'),
+                  ],
+                  onChanged: (value) => setState(() => _receitasStatus = value),
+                ),
+                EnterpriseSelectField<String>(
+                  key: ValueKey('m-rec-origem-$_receitasOrigem'),
+                  label: 'Origem',
+                  emptyLabel: 'Todas',
+                  value: _receitasOrigem,
+                  options: const [
+                    EnterpriseSelectOption(value: 'FISICA', label: 'Física'),
+                    EnterpriseSelectOption(value: 'DIGITAL', label: 'Digital'),
+                    EnterpriseSelectOption(
+                      value: 'SISTEMA_INTERNO',
+                      label: 'Sistema',
+                    ),
+                  ],
+                  onChanged: (value) => setState(() => _receitasOrigem = value),
+                ),
+              ],
+              onClear: () {
+                setState(() {
+                  _receitasStatus = null;
+                  _receitasOrigem = null;
+                  _receitasPage = 1;
+                });
+                _loadReceitas();
+              },
+              onApply: () {
+                setState(() => _receitasPage = 1);
+                _loadReceitas();
+              },
+            );
+          },
           onClearFilters: () async {
             setState(() {
               _receitasSearch = '';
@@ -839,15 +875,24 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
               ),
             ],
             onTap: () => _openReceitaDetail(item['id'].toString()),
-            actions: PopupMenuButton<String>(
+            actions: EnterpriseActionsMenuButton<String>(
+              items: const [
+                EnterpriseDropdownItem(
+                  value: 'edit',
+                  label: 'Editar',
+                  icon: Icons.edit_outlined,
+                ),
+                EnterpriseDropdownItem(
+                  value: 'delete',
+                  label: 'Remover',
+                  icon: Icons.delete_outline,
+                  destructive: true,
+                ),
+              ],
               onSelected: (value) {
                 if (value == 'edit') _openReceitaForm(item);
                 if (value == 'delete') _deleteReceita(item);
               },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Text('Editar')),
-                PopupMenuItem(value: 'delete', child: Text('Remover')),
-              ],
             ),
           );
         },
@@ -987,7 +1032,57 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             });
             _loadLivro();
           },
-          onOpenFilters: () {},
+          onOpenFilters: () {
+            EnterpriseTableFilterPanel.present(
+              context: context,
+              title: 'Filtros',
+              filters: [
+                EnterpriseSelectField<String>(
+                  key: ValueKey('m-livro-mov-$_livroTipoMovimento'),
+                  label: 'Movimento',
+                  emptyLabel: 'Todos',
+                  value: _livroTipoMovimento,
+                  options: const [
+                    EnterpriseSelectOption(value: 'ENTRADA', label: 'Entrada'),
+                    EnterpriseSelectOption(value: 'SAIDA', label: 'Saída'),
+                    EnterpriseSelectOption(
+                      value: 'CANCELAMENTO',
+                      label: 'Cancelamento',
+                    ),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _livroTipoMovimento = value),
+                ),
+                EnterpriseSelectField<String>(
+                  key: ValueKey('m-livro-origem-$_livroOrigem'),
+                  label: 'Origem',
+                  emptyLabel: 'Todas',
+                  value: _livroOrigem,
+                  options: const [
+                    EnterpriseSelectOption(value: 'FISICA', label: 'Física'),
+                    EnterpriseSelectOption(value: 'DIGITAL', label: 'Digital'),
+                    EnterpriseSelectOption(
+                      value: 'SISTEMA_INTERNO',
+                      label: 'Sistema',
+                    ),
+                  ],
+                  onChanged: (value) => setState(() => _livroOrigem = value),
+                ),
+              ],
+              onClear: () {
+                setState(() {
+                  _livroTipoMovimento = null;
+                  _livroOrigem = null;
+                  _livroPage = 1;
+                });
+                _loadLivro();
+              },
+              onApply: () {
+                setState(() => _livroPage = 1);
+                _loadLivro();
+              },
+            );
+          },
           onClearFilters: () async {
             setState(() {
               _livroSearch = '';

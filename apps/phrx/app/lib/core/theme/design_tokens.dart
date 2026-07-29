@@ -44,7 +44,7 @@ class DensityTokens {
   final EdgeInsets inputPadding;
 
   /// Margens do conteúdo principal (shell das páginas de módulo).
-  EdgeInsets get pageInsets => EdgeInsets.fromLTRB(gutter, md, gutter, lg);
+  EdgeInsets get pageInsets => EdgeInsets.fromLTRB(gutter, md, gutter, xxl);
 
   static const DensityTokens mobile = DensityTokens(
     level: DensityLevel.mobile,
@@ -121,6 +121,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
   const PharmaTokens({
     required this.bgPrimary,
     required this.bgSecondary,
+    required this.inputBg,
     required this.card,
     required this.cardHover,
     required this.border,
@@ -161,6 +162,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
 
   final Color bgPrimary;
   final Color bgSecondary;
+  final Color inputBg;
   final Color card;
   final Color cardHover;
   final Color border;
@@ -206,6 +208,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     return PharmaTokens(
       bgPrimary: AppColors.ink950,
       bgSecondary: AppColors.ink900,
+      inputBg: const Color(0xFF1B2735), // Fundo dark suavizado para manter contraste sem pesar visualmente
       card: AppColors.ink800,
       cardHover: const Color(0xFF171D26),
       border: const Color(0xFF1F2937),
@@ -249,6 +252,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     return PharmaTokens(
       bgPrimary: AppColors.cloud50,
       bgSecondary: AppColors.cloud100,
+      inputBg: Colors.white, // Elevação máxima no light (contrasta com a borda e fundo da página)
       card: Colors.white,
       cardHover: const Color(0xFFFAFBFC),
       border: AppColors.cloud200,
@@ -292,6 +296,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
   PharmaTokens copyWith({
     Color? bgPrimary,
     Color? bgSecondary,
+    Color? inputBg,
     Color? card,
     Color? cardHover,
     Color? border,
@@ -332,6 +337,7 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     return PharmaTokens(
       bgPrimary: bgPrimary ?? this.bgPrimary,
       bgSecondary: bgSecondary ?? this.bgSecondary,
+      inputBg: inputBg ?? this.inputBg,
       card: card ?? this.card,
       cardHover: cardHover ?? this.cardHover,
       border: border ?? this.border,

@@ -11,9 +11,11 @@ import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/enterprise_pagination.dart';
+import '../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/fornecedor.dart';
 import '../providers/fornecedor_list_provider.dart';
 import '../widgets/fornecedor_form_dialog.dart';
@@ -80,7 +82,6 @@ class _FornecedoresPageState extends ConsumerState<FornecedoresPage> {
           body: EnterpriseModuleHub(
             title: 'Fornecedores',
             subtitle: 'Gestão de fornecedores e contactos comerciais.',
-            tag: AppNavSections.pharmacy,
             actions: isMobile
                 ? null
                 : [
@@ -135,62 +136,70 @@ class _FornecedoresPageState extends ConsumerState<FornecedoresPage> {
                           totalCount: state.totalCount,
                         )
                       : EnterpriseDataTable(
+                          searchController: _searchController,
+                          searchHint: 'Nome, NUIT, email...',
+                          onSearchChanged: controller.onSearchChanged,
+                          isLoading: state.isLoading,
                           showCheckboxColumn: false,
-                          columns: const [
-                            DataColumn(label: Text('NOME')),
-                            DataColumn(label: Text('NUIT')),
-                            DataColumn(label: Text('TELEFONE')),
-                            DataColumn(label: Text('EMAIL')),
-                            DataColumn(label: Text('CIDADE')),
-                            DataColumn(label: Text('AÇÕES')),
+                          columns: [
+                            enterpriseDataColumn(context, 'Nome'),
+                            enterpriseDataColumn(context, 'NUIT'),
+                            enterpriseDataColumn(context, 'Telefone'),
+                            enterpriseDataColumn(context, 'Email'),
+                            enterpriseDataColumn(context, 'Cidade'),
+                            enterpriseDataColumn(context, 'Ações'),
                           ],
                           rowCount: state.items.length,
                           rowBuilder: (context, index) {
                             final item = state.items[index];
                             return DataRow(
                               cells: [
-                                DataCell(Text(item.nome)),
-                                DataCell(Text(item.nuit ?? '—')),
-                                DataCell(Text(item.telefone ?? '—')),
-                                DataCell(Text(item.email ?? '—')),
-                                DataCell(Text(item.cidade ?? '—')),
+                                DataCell(TablePrimaryCell(item.nome)),
+                                DataCell(TableMetadataCell(item.nuit)),
+                                DataCell(TableMetadataCell(item.telefone)),
+                                DataCell(TableMetadataCell(item.email)),
+                                DataCell(TableMetadataCell(item.cidade)),
                                 DataCell(
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      OutlinedButton.icon(
-                                        onPressed: () => _openEdit(context, item),
-                                        icon: const Icon(Icons.edit_outlined, size: 18),
-                                        label: const Text('Editar'),
+                                  EnterpriseActionsMenuButton<String>(
+                                    compact: true,
+                                    items: const [
+                                      EnterpriseDropdownItem(
+                                        value: 'editar',
+                                        label: 'Editar',
+                                        icon: Icons.edit_outlined,
                                       ),
-                                      const SizedBox(width: 8),
-                                      OutlinedButton.icon(
-                                        onPressed: () => _confirmDelete(context, item),
-                                        icon: const Icon(Icons.delete_outline, size: 18),
-                                        label: const Text('Excluir'),
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: t.posDanger,
-                                          side: BorderSide(color: t.posDanger.withValues(alpha: 0.5)),
-                                        ),
+                                      EnterpriseDropdownItem(
+                                        value: 'excluir',
+                                        label: 'Eliminar',
+                                        icon: Icons.delete_outline,
+                                        destructive: true,
                                       ),
                                     ],
+                                    onSelected: (action) {
+                                      if (action == 'editar') {
+                                        _openEdit(context, item);
+                                      } else if (action == 'excluir') {
+                                        _confirmDelete(context, item);
+                                      }
+                                    },
                                   ),
                                 ),
                               ],
                             );
                           },
+                          pagination: state.totalCount != null
+                              ? EnterprisePagination(
+                                  page: state.page,
+                                  pageSize: state.pageSize,
+                                  totalCount: state.totalCount!,
+                                  itemLabel: 'fornecedores',
+                                  onPageChanged: controller.goToPage,
+                                  onPageSizeChanged: controller.setPageSize,
+                                  isBusy: state.isLoading,
+                                )
+                              : null,
                         ),
                 ),
-                if (!isMobile && state.totalCount != null)
-                  EnterprisePagination(
-                    page: state.page,
-                    pageSize: state.pageSize,
-                    totalCount: state.totalCount!,
-                    itemLabel: 'fornecedores',
-                    onPageChanged: controller.goToPage,
-                    onPageSizeChanged: controller.setPageSize,
-                    isBusy: state.isLoading,
-                  ),
               ],
             ),
           ),
@@ -269,19 +278,24 @@ class _FornecedorCard extends StatelessWidget {
         label: fornecedor.ativo ? 'ACTIVO' : 'INACTIVO',
         color: fornecedor.ativo ? t.posSuccess : t.textMuted,
       ),
-      actions: PopupMenuButton<String>(
-        icon: Icon(Icons.more_vert, color: t.textSecondary),
+      actions: EnterpriseActionsMenuButton<String>(
+        items: const [
+          EnterpriseDropdownItem(
+            value: 'edit',
+            label: 'Editar',
+            icon: Icons.edit_outlined,
+          ),
+          EnterpriseDropdownItem(
+            value: 'delete',
+            label: 'Excluir',
+            icon: Icons.delete_outline,
+            destructive: true,
+          ),
+        ],
         onSelected: (value) {
           if (value == 'edit') onEdit();
           if (value == 'delete') onDelete();
         },
-        itemBuilder: (context) => [
-          const PopupMenuItem(value: 'edit', child: Text('Editar')),
-          PopupMenuItem(
-            value: 'delete',
-            child: Text('Excluir', style: TextStyle(color: t.posDanger)),
-          ),
-        ],
       ),
     );
   }

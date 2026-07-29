@@ -12,8 +12,11 @@ import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
-import '../../../../../shared/widgets/tables/table_typography.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
+import '../../../../../core/theme/component_theme.dart';
 import '../../domain/entities/customer.dart';
 import '../providers/customer_list_provider.dart';
 import '../../data/repositories/customer_repository_impl.dart';
@@ -47,7 +50,6 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
     final state = ref.watch(customerListProvider);
     final notifier = ref.read(customerListProvider.notifier);
     final reportState = ref.watch(reportControllerProvider);
@@ -69,31 +71,52 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
       subtitle: 'CRM operacional, limites de crédito e convénios hospitalares.',
       tag: 'Terminal',
       actions: [
-        PopupMenuButton<String>(
-          enabled: !state.isBusy && !reportState.isSubmitting,
-          tooltip: 'Exportar',
-          onSelected: (value) {
-            if (value == 'pdf') {
-              reportController.downloadPdf(
-                path: ReportPaths.customers,
-                queryParameters: reportQuery,
-              );
-              return;
-            }
-            reportController.exportCsv(
-              path: ReportPaths.customers,
-              queryParameters: reportQuery,
+        Builder(
+          builder: (anchorContext) {
+            final t = context.pharmaTokens;
+            final compactStyle = PharmaComponentTheme.outlined(
+              t,
+              Theme.of(context).colorScheme,
+              compact: true,
+            );
+            return OutlinedButton.icon(
+              style: compactStyle,
+              onPressed: state.isBusy || reportState.isSubmitting
+                  ? null
+                  : () async {
+                      final selected =
+                          await showEnterpriseDropdownMenuFrom<String>(
+                        context: context,
+                        anchorContext: anchorContext,
+                        items: const [
+                          EnterpriseDropdownItem(
+                            value: 'pdf',
+                            label: 'Exportar PDF',
+                            icon: Icons.picture_as_pdf_outlined,
+                          ),
+                          EnterpriseDropdownItem(
+                            value: 'csv',
+                            label: 'Exportar CSV',
+                            icon: Icons.table_chart_outlined,
+                          ),
+                        ],
+                      );
+                      if (selected == 'pdf') {
+                        reportController.downloadPdf(
+                          path: ReportPaths.customers,
+                          queryParameters: reportQuery,
+                        );
+                      } else if (selected == 'csv') {
+                        reportController.exportCsv(
+                          path: ReportPaths.customers,
+                          queryParameters: reportQuery,
+                        );
+                      }
+                    },
+              icon: Icon(Icons.download_outlined, size: t.iconSm),
+              label: const Text('Exportar'),
             );
           },
-          itemBuilder: (context) => const [
-            PopupMenuItem<String>(value: 'pdf', child: Text('Exportar PDF')),
-            PopupMenuItem<String>(value: 'csv', child: Text('Exportar CSV')),
-          ],
-          child: OutlinedButton.icon(
-            onPressed: null,
-            icon: Icon(Icons.download_outlined),
-            label: Text('Exportar'),
-          ),
         ),
         FilledButton.icon(
           onPressed: state.isBusy ? null : () => _openCreateSheet(context),
@@ -101,62 +124,7 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
           label: const Text('Novo cliente'),
         ),
       ],
-      filters: Wrap(
-        spacing: s.sm,
-        runSpacing: s.sm,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          SizedBox(
-            width: 280,
-            child: TextField(
-              controller: _searchController,
-              onChanged: notifier.onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Nome, NUIT, telefone ou email...',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 200,
-            child: EnterpriseSelectField<String>(
-              label: 'Tipo',
-              emptyLabel: 'Todos os tipos',
-              value: state.query.tipo,
-              options: const [
-                EnterpriseSelectOption<String>(
-                  value: 'PACIENTE',
-                  label: 'Paciente',
-                ),
-                EnterpriseSelectOption<String>(
-                  value: 'EMPRESA',
-                  label: 'Empresa',
-                ),
-                EnterpriseSelectOption<String>(
-                  value: 'CONVENIO',
-                  label: 'Convénio',
-                ),
-              ],
-              onChanged: state.isBusy ? null : notifier.setTipoFilter,
-            ),
-          ),
-          FilterChip(
-            label: const Text('Com crédito'),
-            selected: state.query.comCredito == true,
-            onSelected: state.isBusy
-                ? null
-                : (_) => notifier.setComCreditoFilter(
-                    state.query.comCredito == true ? null : true,
-                  ),
-          ),
-          if (state.query.hasFilters)
-            TextButton.icon(
-              onPressed: state.isBusy ? null : notifier.clearFilters,
-              icon: const Icon(Icons.filter_alt_off_outlined),
-              label: const Text('Limpar'),
-            ),
-        ],
-      ),
+      filters: null,
       kpis: [
         EnterpriseStatCard(
           title: 'Total clientes',
@@ -233,6 +201,49 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
           ),
         Expanded(
           child: EnterpriseDataTable(
+            searchController: _searchController,
+            searchHint: 'Nome, NUIT, telefone ou email...',
+            onSearchChanged: notifier.onSearchChanged,
+            filters: [
+              EnterpriseSelectField<String>(
+                key: ValueKey('customer-tipo-${state.query.tipo}'),
+                label: 'Tipo',
+                emptyLabel: 'Todos os tipos',
+                value: state.query.tipo,
+                options: const [
+                  EnterpriseSelectOption<String>(
+                    value: 'PACIENTE',
+                    label: 'Paciente',
+                  ),
+                  EnterpriseSelectOption<String>(
+                    value: 'EMPRESA',
+                    label: 'Empresa',
+                  ),
+                  EnterpriseSelectOption<String>(
+                    value: 'CONVENIO',
+                    label: 'Convénio',
+                  ),
+                ],
+                onChanged: state.isBusy ? null : notifier.setTipoFilter,
+              ),
+              FilterChip(
+                label: const Text('Com crédito'),
+                selected: state.query.comCredito == true,
+                onSelected: state.isBusy
+                    ? null
+                    : (_) => notifier.setComCreditoFilter(
+                          state.query.comCredito == true ? null : true,
+                        ),
+              ),
+            ],
+            hasActiveFilters:
+                state.query.tipo != null || state.query.comCredito != null,
+            onClearFilters: () async {
+              await notifier.setTipoFilter(null);
+              await notifier.setComCreditoFilter(null);
+            },
+            onApplyFilters: () {},
+            showCheckboxColumn: false,
             columns: [
               for (final label in [
                 'Cliente',
@@ -243,11 +254,10 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
                 'Registo',
                 'Ações',
               ])
-                DataColumn(
-                  label: Text(
-                    label.toUpperCase(),
-                    style: TableTypography.header(context),
-                  ),
+                enterpriseDataColumn(
+                  context,
+                  label,
+                  numeric: label == 'Saldo' || label == 'Faturas',
                 ),
             ],
             rowCount: state.items.length,
@@ -255,53 +265,37 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
               final c = state.items[index];
               return DataRow(
                 cells: [
+                  DataCell(TablePrimaryCell(c.nome)),
+                  DataCell(TableSecondaryCell(_tipoLabel(c.tipo))),
+                  DataCell(TableMetadataCell(c.nuit)),
                   DataCell(
-                    Text(c.nome, style: TableTypography.primary(context)),
-                  ),
-                  DataCell(
-                    Text(
-                      _tipoLabel(c.tipo),
-                      style: Theme.of(context).textTheme.erpBodySecondary
-                          .copyWith(color: t.textSecondary),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      c.nuit ?? '—',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
+                    TableNumericCell(
                       '${_currency.format(c.saldoAtual)} MT',
-                      style: TableTypography.primary(
-                        context,
-                        color: c.saldoAtual > 0 ? t.posWarning : t.brandGreen,
-                      ),
+                      color: c.saldoAtual > 0 ? t.posWarning : t.brandGreen,
                     ),
                   ),
                   DataCell(
-                    Text(
+                    TableNumericCell(
                       '${c.faturaCount}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.erpBodySecondary.copyWith(color: t.brandBlue),
+                      color: t.brandBlue,
                     ),
                   ),
+                  DataCell(TableMetadataCell(dateFmt.format(c.createdAt))),
                   DataCell(
-                    Text(
-                      dateFmt.format(c.createdAt),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    ),
-                  ),
-                  DataCell(
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      tooltip: 'Ações',
+                    EnterpriseActionsMenuButton<String>(
+                      items: [
+                        const EnterpriseDropdownItem(
+                          value: 'edit',
+                          label: 'Editar',
+                          icon: Icons.edit_outlined,
+                        ),
+                        if (c.tipo == 'EMPRESA' || c.tipo == 'FIADO')
+                          const EnterpriseDropdownItem(
+                            value: 'contas',
+                            label: 'Contas a Pagar',
+                            icon: Icons.account_balance_wallet_outlined,
+                          ),
+                      ],
                       onSelected: (value) {
                         if (value == 'edit') {
                           _openEditSheet(context, c);
@@ -309,17 +303,6 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
                           // TODO: Navigate to Contas a Pagar or perform related action
                         }
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Text('Editar'),
-                        ),
-                        if (c.tipo == 'EMPRESA' || c.tipo == 'FIADO')
-                          const PopupMenuItem(
-                            value: 'contas',
-                            child: Text('Contas a Pagar'),
-                          ),
-                      ],
                     ),
                   ),
                 ],

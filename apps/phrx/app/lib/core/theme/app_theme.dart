@@ -48,7 +48,12 @@ abstract final class AppTheme {
     ).apply(bodyColor: tokens.textPrimary, displayColor: tokens.textPrimary);
 
     final dashboardTheme = DashboardTheme.fromLegacy(tokens);
-    final tableTheme = TableTheme.fromLegacy(tokens, textTheme: textTheme);
+    final tableTheme = TableTheme.fromLegacy(
+      tokens,
+      textTheme: textTheme,
+      scheme: scheme,
+      colors: colorTokens,
+    );
     final specificHealthcareTheme = HealthcareTheme.fromLegacy(tokens);
     final specificNavigationTheme = NavigationThemeData.fromLegacy(tokens);
 
@@ -199,13 +204,20 @@ abstract final class AppTheme {
     );
   }
 
-  static final Map<DensityLevel, ThemeData> _lightCache = {};
-  static final Map<DensityLevel, ThemeData> _darkCache = {};
+  static const _enterpriseThemeRevision = 4;
+  static final Map<(DensityLevel, int), ThemeData> _lightCache = {};
+  static final Map<(DensityLevel, int), ThemeData> _darkCache = {};
+
+  /// Invalida cache de temas (útil após alterações a tokens / TableTheme).
+  static void clearEnterpriseThemeCache() {
+    _lightCache.clear();
+    _darkCache.clear();
+  }
 
   static ThemeData lightEnterprise({
     DensityTokens density = DensityTokens.comfortable,
   }) {
-    return _lightCache.putIfAbsent(density.level, () {
+    return _lightCache.putIfAbsent((density.level, _enterpriseThemeRevision), () {
       final tokens = PharmaTokens.enterpriseLight(density: density);
       final scheme = ColorScheme.light(
         surface: tokens.bgSecondary,
@@ -231,7 +243,7 @@ abstract final class AppTheme {
   static ThemeData darkEnterprise({
     DensityTokens density = DensityTokens.comfortable,
   }) {
-    return _darkCache.putIfAbsent(density.level, () {
+    return _darkCache.putIfAbsent((density.level, _enterpriseThemeRevision), () {
       final tokens = PharmaTokens.enterpriseDark(density: density);
       final scheme = ColorScheme.dark(
         surface: tokens.bgSecondary,

@@ -15,6 +15,7 @@ class EnterpriseDropdownItem<T> {
     this.icon,
     this.enabled = true,
     this.selected = false,
+    this.destructive = false,
   });
 
   final T value;
@@ -22,11 +23,15 @@ class EnterpriseDropdownItem<T> {
   final IconData? icon;
   final bool enabled;
   final bool selected;
+
+  /// Estilo de perigo (ex.: Eliminar / Desactivar).
+  final bool destructive;
 }
 
 /// Menu dropdown enterprise — superfície elevada, borda e sombra via Design Tokens.
 ///
-/// Estilização centralizada para reutilização (tema claro/escuro consistente).
+/// Estilização centralizada para reutilização em filtros, coluna Acções e menus
+/// do sistema (tema claro/escuro consistente).
 class EnterpriseDropdownMenu<T> extends StatelessWidget {
   const EnterpriseDropdownMenu({
     super.key,
@@ -39,6 +44,21 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
   final ValueChanged<T> onSelected;
   final double? width;
 
+  /// Decoração partilhada (filtros dropdown / menus) — Surface Elevation 2.
+  static BoxDecoration surfaceDecoration(BuildContext context) {
+    final t = context.pharmaTokens;
+    final colors = context.colors;
+    final borders = context.borders;
+    final radius = BorderRadius.circular(context.radius.md);
+
+    return BoxDecoration(
+      color: colors.surfaceContainerHigh,
+      borderRadius: radius,
+      border: Border.all(color: t.border, width: borders.borderThin),
+      boxShadow: context.shadows.sm,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
@@ -47,9 +67,8 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
     final borders = context.borders;
     final textTheme = Theme.of(context).textTheme;
     final elevation = context.elevationTokens;
-    final shadows = context.shadows;
     final widths = context.widths;
-    final radius = BorderRadius.circular(t.radiusMd);
+    final radius = BorderRadius.circular(context.radius.md);
     final menuWidth = width ?? widths.dropdownMenu;
 
     return Material(
@@ -64,12 +83,7 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
           minWidth: widths.dropdownMenuMin,
           maxWidth: menuWidth,
         ),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHigh,
-          borderRadius: radius,
-          border: Border.all(color: t.border, width: borders.borderThin),
-          boxShadow: shadows.sm,
-        ),
+        decoration: surfaceDecoration(context),
         padding: EdgeInsets.symmetric(vertical: s.xs),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -129,6 +143,7 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
     final s = widget.spacing;
     final enabled = widget.item.enabled;
     final selected = widget.item.selected;
+    final destructive = widget.item.destructive;
     final motion = context.motion;
 
     Color? background;
@@ -146,9 +161,11 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
 
     final foreground = !enabled
         ? colors.neutral
-        : selected
-            ? t.brandBlue
-            : t.textPrimary;
+        : destructive
+            ? t.posDanger
+            : selected
+                ? t.brandBlue
+                : t.textPrimary;
 
     return FocusableActionDetector(
       enabled: enabled,
@@ -185,7 +202,7 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
               border: _focused && enabled
                   ? Border(
                       left: BorderSide(
-                        color: t.brandBlue,
+                        color: destructive ? t.posDanger : t.brandBlue,
                         width: borders.focusBorder,
                       ),
                     )
@@ -206,7 +223,11 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
                   ),
                 ),
                 if (selected)
-                  Icon(Icons.check_rounded, size: t.iconSm, color: t.brandBlue),
+                  Icon(
+                    Icons.check_rounded,
+                    size: t.iconSm,
+                    color: destructive ? t.posDanger : t.brandBlue,
+                  ),
               ],
             ),
           ),
@@ -259,6 +280,34 @@ Future<T?> showEnterpriseDropdownMenu<T>({
 
   Overlay.of(context).insert(entry);
   return completer.future;
+}
+
+/// Abre o menu ancorado ao [anchorContext] (ex.: IconButton da coluna Acções).
+Future<T?> showEnterpriseDropdownMenuFrom<T>({
+  required BuildContext context,
+  required BuildContext anchorContext,
+  required List<EnterpriseDropdownItem<T>> items,
+  double? width,
+}) {
+  final box = anchorContext.findRenderObject() as RenderBox?;
+  final overlay =
+      Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (box == null || overlay == null || !box.hasSize) {
+    return Future<T?>.value(null);
+  }
+
+  final offset = box.localToGlobal(Offset.zero, ancestor: overlay);
+  final position = RelativeRect.fromRect(
+    Rect.fromLTWH(offset.dx, offset.dy, box.size.width, box.size.height),
+    Offset.zero & overlay.size,
+  );
+
+  return showEnterpriseDropdownMenu<T>(
+    context: context,
+    position: position,
+    items: items,
+    width: width,
+  );
 }
 
 class _DropdownMenuLayout extends SingleChildLayoutDelegate {

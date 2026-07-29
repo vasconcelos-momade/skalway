@@ -12,9 +12,11 @@ import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/enterprise_pagination.dart';
+import '../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/printer.dart';
 import '../../services/default_printer_service.dart';
 import '../providers/printer_list_provider.dart';
@@ -97,7 +99,6 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
           body: EnterpriseModuleHub(
             title: 'Impressoras',
             subtitle: 'ESC/POS, rede, PDF e teste de impressão.',
-            tag: AppNavSections.system,
             actions: isMobile
                 ? null
                 : [
@@ -136,16 +137,6 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
                               ? _buildMobile(context, t, state, controller)
                               : _buildDesktop(context, t, state, controller),
                 ),
-                if (!isMobile && state.totalCount != null)
-                  EnterprisePagination(
-                    page: state.page,
-                    pageSize: state.pageSize,
-                    totalCount: state.totalCount!,
-                    itemLabel: 'impressoras',
-                    onPageChanged: controller.goToPage,
-                    onPageSizeChanged: controller.setPageSize,
-                    isBusy: state.isLoading,
-                  ),
               ],
             ),
           ),
@@ -218,14 +209,18 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
     PrinterListController controller,
   ) {
     return EnterpriseDataTable(
+      searchController: _searchController,
+      searchHint: 'Nome, IP ou modelo...',
+      onSearchChanged: controller.onSearchChanged,
+      isLoading: state.isLoading,
       showCheckboxColumn: false,
-      columns: const [
-        DataColumn(label: Text('NOME')),
-        DataColumn(label: Text('TIPO')),
-        DataColumn(label: Text('LIGAÇÃO')),
-        DataColumn(label: Text('ENDEREÇO')),
-        DataColumn(label: Text('ESTADO')),
-        DataColumn(label: Text('AÇÕES')),
+      columns: [
+        enterpriseDataColumn(context, 'Nome'),
+        enterpriseDataColumn(context, 'Tipo'),
+        enterpriseDataColumn(context, 'Ligação'),
+        enterpriseDataColumn(context, 'Endereço'),
+        enterpriseDataColumn(context, 'Estado'),
+        enterpriseDataColumn(context, 'Ações'),
       ],
       rowCount: state.items.length,
       rowBuilder: (context, index) {
@@ -233,24 +228,49 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
         final isDefault = item.id == _defaultPrinterId;
         return DataRow(
           cells: [
-            DataCell(Text(item.name)),
-            DataCell(Text(item.type)),
-            DataCell(Text(item.connection)),
-            DataCell(Text(item.addressSummary)),
+            DataCell(TablePrimaryCell(item.name)),
+            DataCell(TableSecondaryCell(item.type)),
+            DataCell(TableSecondaryCell(item.connection)),
+            DataCell(TableMetadataCell(item.addressSummary)),
             DataCell(
-              Text(
-                isDefault
+              TableStatusCell(
+                label: isDefault
                     ? 'Predefinida'
                     : (item.active ? 'Activa' : 'Inactiva'),
-                style: Theme.of(context).textTheme.erpLabel.copyWith(
-                      color: isDefault
-                          ? t.brandGreen
-                          : (item.active ? t.textPrimary : t.textMuted),
-                    ),
+                active: item.active,
+                color: isDefault
+                    ? t.brandGreen
+                    : (item.active ? null : t.textMuted),
+                showDot: false,
               ),
             ),
             DataCell(
-              PopupMenuButton<String>(
+              EnterpriseActionsMenuButton<String>(
+                compact: true,
+                items: [
+                  const EnterpriseDropdownItem(
+                    value: 'editar',
+                    label: 'Editar',
+                    icon: Icons.edit_outlined,
+                  ),
+                  const EnterpriseDropdownItem(
+                    value: 'testar',
+                    label: 'Testar impressão',
+                    icon: Icons.print_outlined,
+                  ),
+                  if (item.isNetwork || item.isBluetooth)
+                    const EnterpriseDropdownItem(
+                      value: 'predefinida',
+                      label: 'Definir predefinida',
+                      icon: Icons.star_outline,
+                    ),
+                  const EnterpriseDropdownItem(
+                    value: 'excluir',
+                    label: 'Eliminar',
+                    icon: Icons.delete_outline,
+                    destructive: true,
+                  ),
+                ],
                 onSelected: (action) {
                   switch (action) {
                     case 'editar':
@@ -263,28 +283,22 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
                       _confirmDelete(context, item);
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'editar', child: Text('Editar')),
-                  const PopupMenuItem(
-                    value: 'testar',
-                    child: Text('Testar impressão'),
-                  ),
-                  if (item.isNetwork || item.isBluetooth)
-                    const PopupMenuItem(
-                      value: 'predefinida',
-                      child: Text('Definir predefinida'),
-                    ),
-                  const PopupMenuItem(
-                    value: 'excluir',
-                    child: Text('Eliminar'),
-                  ),
-                ],
-                icon: const Icon(Icons.more_vert),
               ),
             ),
           ],
         );
       },
+      pagination: state.totalCount != null
+          ? EnterprisePagination(
+              page: state.page,
+              pageSize: state.pageSize,
+              totalCount: state.totalCount!,
+              itemLabel: 'impressoras',
+              onPageChanged: controller.goToPage,
+              onPageSizeChanged: controller.setPageSize,
+              isBusy: state.isLoading,
+            )
+          : null,
     );
   }
 

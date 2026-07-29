@@ -149,14 +149,41 @@ abstract final class PharmaComponentTheme {
     TextTheme? textTheme,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
+    final fillColor = isDark
+        ? Color.alphaBlend(
+            Colors.white.withValues(alpha: 0.03),
+            tokens.inputBg,
+          )
+        : tokens.inputBg;
+    final baseBorderColor = isDark
+        ? Color.alphaBlend(
+            Colors.white.withValues(alpha: 0.16),
+            tokens.inputBg,
+          )
+        : tokens.border.withValues(alpha: 0.92);
+    final disabledBorderColor = isDark
+        ? Color.alphaBlend(
+            Colors.white.withValues(alpha: 0.08),
+            tokens.inputBg,
+          )
+        : baseBorderColor.withValues(alpha: 0.55);
+    final focusedBorderColor = isDark
+        ? Color.alphaBlend(
+            scheme.primary.withValues(alpha: 0.42),
+            tokens.inputBg,
+          )
+        : scheme.primary.withValues(alpha: 0.78);
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(tokens.radiusMd),
-      borderSide: BorderSide(color: tokens.border, width: 1),
+      borderSide: BorderSide(
+        color: baseBorderColor,
+        width: 1.2,
+      ),
     );
 
     return InputDecorationTheme(
       filled: true,
-      fillColor: isDark ? tokens.card.withValues(alpha: 0.35) : Colors.white,
+      fillColor: fillColor,
       // isDense:false → minContainerHeight = kMinInteractiveDimension (48)
       // = [PharmaTokens.controlHeight]. isDense:true usa só a altura do texto
       // e deixa os campos mais baixos que os botões.
@@ -180,12 +207,25 @@ abstract final class PharmaComponentTheme {
         maxHeight: tokens.controlHeight,
       ),
       border: border,
-      enabledBorder: border,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        borderSide: BorderSide(
+          color: baseBorderColor,
+          width: 1.2,
+        ),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        borderSide: BorderSide(
+          color: disabledBorderColor,
+          width: 1,
+        ),
+      ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
         borderSide: BorderSide(
-          color: scheme.primary,
-          width: 2,
+          color: focusedBorderColor,
+          width: 1.6,
         ),
       ),
       errorBorder: OutlineInputBorder(
@@ -194,9 +234,17 @@ abstract final class PharmaComponentTheme {
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
-        borderSide: BorderSide(color: tokens.posDanger, width: 2),
+        borderSide: BorderSide(color: tokens.posDanger, width: 1.5),
       ),
-      labelStyle: theme.erpSelectLabel.copyWith(color: tokens.textSecondary),
+      labelStyle: theme.erpSelectLabel.copyWith(
+        color: tokens.textSecondary,
+        fontWeight: FontWeight.w500,
+      ),
+      floatingLabelStyle: theme.erpSelectLabel.copyWith(
+        color: scheme.primary,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+      ),
       hintStyle: theme.erpBody.copyWith(color: tokens.textMuted),
     );
   }

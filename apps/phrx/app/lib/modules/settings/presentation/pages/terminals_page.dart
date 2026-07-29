@@ -12,9 +12,11 @@ import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/enterprise_pagination.dart';
+import '../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/terminal.dart';
 import '../providers/terminal_list_provider.dart';
 import '../widgets/terminal_form_dialog.dart';
@@ -81,7 +83,6 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
           body: EnterpriseModuleHub(
             title: 'Terminais',
             subtitle: 'Registo de dispositivos POS e caixas associadas.',
-            tag: AppNavSections.system,
             actions: isMobile
                 ? null
                 : [
@@ -152,27 +153,50 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
                               totalCount: state.totalCount,
                             )
                           : EnterpriseDataTable(
+                              searchController: _searchController,
+                              searchHint: 'Código, nome ou localização...',
+                              onSearchChanged: controller.onSearchChanged,
+                              isLoading: state.isLoading,
                               showCheckboxColumn: false,
-                              columns: const [
-                                DataColumn(label: Text('CÓDIGO')),
-                                DataColumn(label: Text('NOME')),
-                                DataColumn(label: Text('LOCALIZAÇÃO')),
-                                DataColumn(label: Text('CAIXA')),
-                                DataColumn(label: Text('ESTADO')),
-                                DataColumn(label: Text('AÇÕES')),
+                              columns: [
+                                enterpriseDataColumn(context, 'Código'),
+                                enterpriseDataColumn(context, 'Nome'),
+                                enterpriseDataColumn(context, 'Localização'),
+                                enterpriseDataColumn(context, 'Caixa'),
+                                enterpriseDataColumn(context, 'Estado'),
+                                enterpriseDataColumn(context, 'Ações'),
                               ],
                               rowCount: state.items.length,
                               rowBuilder: (context, index) {
                                 final item = state.items[index];
                                 return DataRow(
                                   cells: [
-                                    DataCell(Text(item.codigo)),
-                                    DataCell(Text(item.nome)),
-                                    DataCell(Text(item.localizacao ?? '—')),
-                                    DataCell(Text(item.caixaId ?? '—')),
-                                    DataCell(Text(item.ativo ? 'Activo' : 'Inactivo')),
+                                    DataCell(TableMetadataCell(item.codigo)),
+                                    DataCell(TablePrimaryCell(item.nome)),
+                                    DataCell(TableMetadataCell(item.localizacao)),
+                                    DataCell(TableMetadataCell(item.caixaId)),
                                     DataCell(
-                                      PopupMenuButton<String>(
+                                      TableStatusCell(
+                                        label: item.ativo ? 'Activo' : 'Inactivo',
+                                        active: item.ativo,
+                                      ),
+                                    ),
+                                    DataCell(
+                                      EnterpriseActionsMenuButton<String>(
+                                        compact: true,
+                                        items: const [
+                                          EnterpriseDropdownItem(
+                                            value: 'editar',
+                                            label: 'Editar',
+                                            icon: Icons.edit_outlined,
+                                          ),
+                                          EnterpriseDropdownItem(
+                                            value: 'excluir',
+                                            label: 'Eliminar',
+                                            icon: Icons.delete_outline,
+                                            destructive: true,
+                                          ),
+                                        ],
                                         onSelected: (action) {
                                           if (action == 'editar') {
                                             _openEdit(context, item);
@@ -180,28 +204,24 @@ class _TerminalsPageState extends ConsumerState<TerminalsPage> {
                                             _confirmDelete(context, item);
                                           }
                                         },
-                                        itemBuilder: (context) => const [
-                                          PopupMenuItem(value: 'editar', child: Text('Editar')),
-                                          PopupMenuItem(value: 'excluir', child: Text('Eliminar')),
-                                        ],
-                                        icon: const Icon(Icons.more_vert),
                                       ),
                                     ),
                                   ],
                                 );
                               },
+                              pagination: state.totalCount != null
+                                  ? EnterprisePagination(
+                                      page: state.page,
+                                      pageSize: state.pageSize,
+                                      totalCount: state.totalCount!,
+                                      itemLabel: 'terminais',
+                                      onPageChanged: controller.goToPage,
+                                      onPageSizeChanged: controller.setPageSize,
+                                      isBusy: state.isLoading,
+                                    )
+                                  : null,
                             ),
                 ),
-                if (!isMobile && state.totalCount != null)
-                  EnterprisePagination(
-                    page: state.page,
-                    pageSize: state.pageSize,
-                    totalCount: state.totalCount!,
-                    itemLabel: 'terminais',
-                    onPageChanged: controller.goToPage,
-                    onPageSizeChanged: controller.setPageSize,
-                    isBusy: state.isLoading,
-                  ),
               ],
             ),
           ),

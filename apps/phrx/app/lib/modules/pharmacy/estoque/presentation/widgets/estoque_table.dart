@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/estoque_item.dart';
 import 'estoque_actions_menu.dart';
 import 'estoque_badges.dart';
@@ -36,9 +36,7 @@ class EstoqueTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
     final s = context.spacing;
-    final textTheme = Theme.of(context).textTheme;
 
     return EnterpriseDataTable(
       adaptive: false,
@@ -48,12 +46,10 @@ class EstoqueTable extends StatelessWidget {
       columnSpacing: s.md,
       columns: [
         for (var i = 0; i < _columnLabels.length; i++)
-          DataColumn(
+          enterpriseDataColumn(
+            context,
+            _columnLabels[i],
             numeric: i >= 3 && i <= 7,
-            label: Text(
-              _columnLabels[i].toUpperCase(),
-              style: textTheme.erpTableHeader.copyWith(color: t.textMuted),
-            ),
           ),
       ],
       rowCount: items.length,
@@ -61,39 +57,48 @@ class EstoqueTable extends StatelessWidget {
         final item = items[index];
         return DataRow(
           cells: [
-            DataCell(_produtoCell(context, item)),
-            DataCell(Text(item.numeroLote)),
+            DataCell(
+              TablePrimaryCell(
+                item.produtoDisplayLabel,
+                subtitle: item.produtoNomeGenerico,
+              ),
+            ),
+            DataCell(TableMetadataCell(item.numeroLote)),
             DataCell(
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_formatDate(item.dataValidade)),
+                  TableMetadataCell(_formatDate(item.dataValidade)),
                   EstoqueBadges.validade(context, item),
                 ],
               ),
             ),
-            DataCell(Text(item.precoCompra.toStringAsFixed(2))),
-            DataCell(Text(item.precoVenda?.toStringAsFixed(2) ?? '—')),
+            DataCell(TableNumericCell(item.precoCompra.toStringAsFixed(2))),
+            DataCell(
+              TableNumericCell(item.precoVenda?.toStringAsFixed(2) ?? '—'),
+            ),
             DataCell(
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(LoteStockUtils.formatDisponivelFromNum(item.quantidadeDisponivel)),
+                  TableNumericCell(
+                    LoteStockUtils.formatDisponivelFromNum(item.quantidadeDisponivel),
+                  ),
                   EstoqueBadges.stock(context, item),
                 ],
               ),
             ),
             DataCell(
-              Text(
+              TableNumericCell(
                 LoteStockUtils.formatDisponivelFromNum(item.quantidadeQuarentena),
               ),
             ),
             DataCell(
-              Text(
+              TableNumericCell(
                 LoteStockUtils.formatDisponivelFromNum(item.quantidadeIncinerada),
               ),
             ),
@@ -107,32 +112,6 @@ class EstoqueTable extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _produtoCell(BuildContext context, EstoqueItem item) {
-    final t = context.pharmaTokens;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          item.produtoDisplayLabel,
-          style: textTheme.erpTablePrimary.copyWith(color: t.textPrimary),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if ((item.produtoNomeGenerico ?? '').isNotEmpty)
-          Text(
-            item.produtoNomeGenerico!,
-            style: textTheme.erpCaption.copyWith(color: t.textMuted),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-      ],
     );
   }
 

@@ -21,7 +21,10 @@ import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/fnm_categories.dart';
 import '../providers/category_provider.dart';
@@ -174,44 +177,50 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
                       ),
                     )
                   : EnterpriseDataTable(
-                      columns: const [
-                        DataColumn(label: Text('NOME')),
-                        DataColumn(label: Text('DESCRIÇÃO')),
-                        DataColumn(label: Text('PRODUTOS')),
-                        DataColumn(label: Text('ESTADO')),
-                        DataColumn(label: Text('AÇÕES')),
+                      columns: [
+                        enterpriseDataColumn(context, 'Nome'),
+                        enterpriseDataColumn(context, 'Descrição'),
+                        enterpriseDataColumn(context, 'Produtos', numeric: true),
+                        enterpriseDataColumn(context, 'Estado'),
+                        enterpriseDataColumn(context, 'Ações'),
                       ],
                       rowCount: state.items.length,
                       rowBuilder: (context, index) {
                         final item = state.items[index];
                         return DataRow(
                           cells: [
-                            DataCell(Text(fnmCategoryLabel(item.nome))),
-                            DataCell(Text(item.descricao ?? '—')),
-                            DataCell(Text('${item.productCount}')),
+                            DataCell(TablePrimaryCell(fnmCategoryLabel(item.nome))),
+                            DataCell(TableSecondaryCell(item.descricao ?? '—')),
+                            DataCell(TableNumericCell('${item.productCount}')),
                             DataCell(_StatusChip(ativo: item.ativo)),
-                            DataCell(PopupMenuButton<String>(
-                              padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(
-                                minWidth: t.minTouchTarget * 0.6,
-                                minHeight: t.minTouchTarget * 0.6,
+                            DataCell(
+                              EnterpriseActionsMenuButton<String>(
+                                compact: true,
+                                items: const [
+                                  EnterpriseDropdownItem(
+                                    value: 'editar',
+                                    label: 'Editar',
+                                    icon: Icons.edit_outlined,
+                                  ),
+                                  EnterpriseDropdownItem(
+                                    value: 'excluir',
+                                    label: 'Excluir',
+                                    icon: Icons.delete_outline,
+                                    destructive: true,
+                                  ),
+                                ],
+                                onSelected: (action) {
+                                  switch (action) {
+                                    case 'editar':
+                                      _openForm(context, category: item);
+                                      break;
+                                    case 'excluir':
+                                      _confirmDelete(context, item);
+                                      break;
+                                  }
+                                },
                               ),
-                              icon: Icon(Icons.more_vert, size: t.iconSm, color: t.textMuted),
-                              onSelected: (action) {
-                                switch (action) {
-                                  case 'editar':
-                                    _openForm(context, category: item);
-                                    break;
-                                  case 'excluir':
-                                    _confirmDelete(context, item);
-                                    break;
-                                }
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(value: 'editar', child: Text('Editar')),
-                                PopupMenuItem(value: 'excluir', child: Text('Excluir')),
-                              ],
-                            )),
+                            ),
                           ],
                         );
                       },
@@ -654,13 +663,21 @@ class _CategoryMobileCard extends StatelessWidget {
         emphasized: true,
       ),
       onTap: onTap,
-      actions: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(
-          minWidth: t.minTouchTarget * 0.6,
-          minHeight: t.minTouchTarget * 0.6,
-        ),
-        icon: Icon(Icons.more_vert, size: t.iconSm, color: t.textMuted),
+      actions: EnterpriseActionsMenuButton<String>(
+        compact: true,
+        items: const [
+          EnterpriseDropdownItem(
+            value: 'editar',
+            label: 'Editar',
+            icon: Icons.edit_outlined,
+          ),
+          EnterpriseDropdownItem(
+            value: 'excluir',
+            label: 'Excluir',
+            icon: Icons.delete_outline,
+            destructive: true,
+          ),
+        ],
         onSelected: (action) {
           switch (action) {
             case 'editar':
@@ -671,10 +688,6 @@ class _CategoryMobileCard extends StatelessWidget {
               break;
           }
         },
-        itemBuilder: (context) => const [
-          PopupMenuItem(value: 'editar', child: Text('Editar')),
-          PopupMenuItem(value: 'excluir', child: Text('Excluir')),
-        ],
       ),
     );
   }

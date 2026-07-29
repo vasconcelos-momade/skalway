@@ -109,7 +109,6 @@ class _AuditLogsPageState extends ConsumerState<AuditLogsPage> {
           title: 'Logs',
           subtitle:
               'Registo imutável de alterações com encadeamento criptográfico.',
-          tag: 'Auditoria',
           actions: null,
           filters: null,
           mobileKpisHorizontalScroll: true,

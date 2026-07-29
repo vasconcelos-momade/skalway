@@ -10,7 +10,6 @@ import '../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../shared/widgets/inputs/async_type_ahead_field.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../../../pharmacy/estoque/data/datasources/estoque_remote_datasource.dart';
@@ -60,7 +59,6 @@ class _PurchaseSuggestionsPageState
       title: 'Sugestão de Compra',
       subtitle:
           'Lista consolidada de produtos para reposição — automáticos e manuais.',
-      tag: AppNavSections.pharmacy,
       mobileKpisHorizontalScroll: true,
       actions: [
         if (!isMobile)
@@ -515,4 +513,3 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
     );
   }
 }
-

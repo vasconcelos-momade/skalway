@@ -87,45 +87,66 @@ class ModuleEmptyState extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.onClearFilters,
+    this.primaryActionLabel,
+    this.onPrimaryAction,
+    this.primaryActionIcon = Icons.add_rounded,
   });
 
   final String title;
   final String? subtitle;
   final VoidCallback? onClearFilters;
+  final String? primaryActionLabel;
+  final VoidCallback? onPrimaryAction;
+  final IconData primaryActionIcon;
 
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inbox_outlined, size: DesignMetrics.iconMd, color: t.textMuted),
-          SizedBox(height: s.md),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.erpCardTitle.copyWith(
-                  color: t.textPrimary,
-                ),
-          ),
-          if (subtitle != null) ...[
-            SizedBox(height: s.sm),
+      child: Padding(
+        padding: EdgeInsets.all(s.lg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_outlined, size: DesignMetrics.iconMd, color: t.textMuted),
+            SizedBox(height: s.md),
             Text(
-              subtitle!,
-              style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
+              title,
+              style: Theme.of(context).textTheme.erpCardTitle.copyWith(
+                    color: t.textPrimary,
+                  ),
               textAlign: TextAlign.center,
             ),
+            if (subtitle != null) ...[
+              SizedBox(height: s.sm),
+              Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.erpBodySecondary.copyWith(
+                      color: t.textMuted,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (onPrimaryAction != null && primaryActionLabel != null) ...[
+              SizedBox(height: s.lg),
+              FilledButton.icon(
+                onPressed: onPrimaryAction,
+                icon: Icon(primaryActionIcon),
+                label: Text(primaryActionLabel!),
+              ),
+            ],
+            if (onClearFilters != null) ...[
+              SizedBox(height: s.md),
+              OutlinedButton.icon(
+                onPressed: onClearFilters,
+                icon: const Icon(Icons.filter_alt_off_outlined),
+                label: const Text('Limpar filtros'),
+              ),
+            ],
           ],
-          if (onClearFilters != null) ...[
-            SizedBox(height: s.lg),
-            OutlinedButton.icon(
-              onPressed: onClearFilters,
-              icon: const Icon(Icons.filter_alt_off_outlined),
-              label: const Text('Limpar filtros'),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

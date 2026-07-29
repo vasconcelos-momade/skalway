@@ -5,7 +5,7 @@ import 'package:phrx/shared/widgets/inputs/enterprise_select_field.dart';
 import 'package:phrx/shared/widgets/layout/enterprise_mobile_toolbar.dart';
 
 void main() {
-  testWidgets('desktop toolbar search+select layout does not assert', (
+  testWidgets('desktop toolbar search+filters button layout does not assert', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1280, 800));
@@ -64,8 +64,15 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('Todos'), findsOneWidget);
+    // Filtros agrupados no botão — não inline na toolbar.
+    expect(find.text('Filtros *'), findsOneWidget);
+    expect(find.text('Todos'), findsNothing);
+    expect(find.text('Novo'), findsOneWidget);
     expect(find.text('Item 0'), findsOneWidget);
+
+    await tester.tap(find.text('Filtros *'));
+    await tester.pumpAndSettle();
+    expect(find.text('Todos'), findsOneWidget);
   });
 }
 

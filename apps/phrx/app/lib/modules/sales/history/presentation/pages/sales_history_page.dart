@@ -10,8 +10,10 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
-import '../../../../../shared/widgets/tables/table_typography.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
+import '../../../../../core/theme/component_theme.dart';
 import '../../../../stock/presentation/widgets/movimentacoes_pagination.dart';
 import '../../../invoices/domain/entities/invoice_summary.dart';
 import '../../../invoices/presentation/providers/invoice_detail_provider.dart';
@@ -49,7 +51,6 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
     final state = ref.watch(salesHistoryProvider);
     final notifier = ref.read(salesHistoryProvider.notifier);
     final reportState = ref.watch(reportControllerProvider);
@@ -71,67 +72,55 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
       subtitle: 'Drill-down por terminal, operador e linha de receita.',
       tag: 'Terminal',
       actions: [
-        PopupMenuButton<String>(
-          enabled: state.items.isNotEmpty && !reportState.isSubmitting,
-          tooltip: 'Exportar',
-          onSelected: (value) {
-            if (value == 'pdf') {
-              reportController.downloadPdf(
-                path: ReportPaths.salesHistory,
-                queryParameters: reportQuery,
-              );
-              return;
-            }
-            reportController.exportCsv(
-              path: ReportPaths.salesHistory,
-              queryParameters: reportQuery,
+        Builder(
+          builder: (anchorContext) {
+            final t = context.pharmaTokens;
+            final compactStyle = PharmaComponentTheme.outlined(
+              t,
+              Theme.of(context).colorScheme,
+              compact: true,
+            );
+            return OutlinedButton.icon(
+              style: compactStyle,
+              onPressed: state.items.isEmpty || reportState.isSubmitting
+                  ? null
+                  : () async {
+                      final selected =
+                          await showEnterpriseDropdownMenuFrom<String>(
+                        context: context,
+                        anchorContext: anchorContext,
+                        items: const [
+                          EnterpriseDropdownItem(
+                            value: 'pdf',
+                            label: 'Exportar PDF',
+                            icon: Icons.picture_as_pdf_outlined,
+                          ),
+                          EnterpriseDropdownItem(
+                            value: 'csv',
+                            label: 'Exportar CSV',
+                            icon: Icons.table_chart_outlined,
+                          ),
+                        ],
+                      );
+                      if (selected == 'pdf') {
+                        reportController.downloadPdf(
+                          path: ReportPaths.salesHistory,
+                          queryParameters: reportQuery,
+                        );
+                      } else if (selected == 'csv') {
+                        reportController.exportCsv(
+                          path: ReportPaths.salesHistory,
+                          queryParameters: reportQuery,
+                        );
+                      }
+                    },
+              icon: Icon(Icons.download_outlined, size: t.iconSm),
+              label: const Text('Exportar'),
             );
           },
-          itemBuilder: (context) => const [
-            PopupMenuItem<String>(value: 'pdf', child: Text('Exportar PDF')),
-            PopupMenuItem<String>(value: 'csv', child: Text('Exportar CSV')),
-          ],
-          child: OutlinedButton.icon(
-            onPressed: null,
-            icon: Icon(Icons.download_outlined),
-            label: Text('Exportar'),
-          ),
         ),
       ],
-      filters: Wrap(
-        spacing: s.sm,
-        runSpacing: s.sm,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          SizedBox(
-            width: 280,
-            child: TextField(
-              controller: _searchController,
-              onChanged: notifier.onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Nº fatura, cliente ou terminal...',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-          for (final filter in SalesHistoryQuickFilter.values.where(
-            (f) => f != SalesHistoryQuickFilter.none,
-          ))
-            FilterChip(
-              label: Text(_quickFilterLabel(filter)),
-              selected: state.query.quickFilter == filter,
-              onSelected: state.isBusy
-                  ? null
-                  : (_) => notifier.setQuickFilter(filter),
-            ),
-          if (state.query.hasFilters)
-            TextButton.icon(
-              onPressed: state.isBusy ? null : notifier.clearFilters,
-              icon: const Icon(Icons.filter_alt_off_outlined),
-              label: const Text('Limpar'),
-            ),
-        ],
-      ),
+      filters: null,
       kpis: [
         EnterpriseStatCard(
           title: 'Vendas',
@@ -213,6 +202,27 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
           ),
         Expanded(
           child: EnterpriseDataTable(
+            searchController: _searchController,
+            searchHint: 'Nº fatura, cliente ou terminal...',
+            onSearchChanged: notifier.onSearchChanged,
+            filters: [
+              for (final filter in SalesHistoryQuickFilter.values.where(
+                (f) => f != SalesHistoryQuickFilter.none,
+              ))
+                FilterChip(
+                  label: Text(_quickFilterLabel(filter)),
+                  selected: state.query.quickFilter == filter,
+                  onSelected: state.isBusy
+                      ? null
+                      : (_) => notifier.setQuickFilter(filter),
+                ),
+            ],
+            hasActiveFilters:
+                state.query.quickFilter != SalesHistoryQuickFilter.none,
+            onClearFilters: () =>
+                notifier.setQuickFilter(SalesHistoryQuickFilter.none),
+            onApplyFilters: () {},
+            showCheckboxColumn: false,
             columns: [
               for (final label in [
                 'Fatura',
@@ -222,11 +232,10 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
                 'Estado',
                 'Data',
               ])
-                DataColumn(
-                  label: Text(
-                    label.toUpperCase(),
-                    style: TableTypography.header(context),
-                  ),
+                enterpriseDataColumn(
+                  context,
+                  label,
+                  numeric: label == 'Total',
                 ),
             ],
             rowCount: state.items.length,
@@ -235,42 +244,21 @@ class _SalesHistoryPageState extends ConsumerState<SalesHistoryPage> {
               return DataRow(
                 onSelectChanged: (_) => _openInvoiceDetail(inv),
                 cells: [
+                  DataCell(TablePrimaryCell(inv.numero)),
+                  DataCell(TableSecondaryCell(inv.cliente?.nome ?? '—')),
                   DataCell(
-                    Text(inv.numero, style: TableTypography.primary(context)),
-                  ),
-                  DataCell(
-                    Text(
-                      inv.cliente?.nome ?? '—',
-                      style: Theme.of(context).textTheme.erpBodySecondary
-                          .copyWith(color: t.textSecondary),
+                    TableMetadataCell(
+                      inv.terminal?.codigo ?? inv.terminal?.nome,
                     ),
                   ),
                   DataCell(
-                    Text(
-                      inv.terminal?.codigo ?? inv.terminal?.nome ?? '—',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
+                    TableNumericCell(
                       '${_currency.format(inv.total)} MT',
-                      style: TableTypography.primary(
-                        context,
-                        color: t.brandGreen,
-                      ),
+                      color: t.brandGreen,
                     ),
                   ),
                   DataCell(InvoiceStatusBadge(status: inv.estado)),
-                  DataCell(
-                    Text(
-                      _dateTime.format(inv.createdAt),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    ),
-                  ),
+                  DataCell(TableMetadataCell(_dateTime.format(inv.createdAt))),
                 ],
               );
             },

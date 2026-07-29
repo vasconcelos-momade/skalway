@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/session_access_notifier.dart';
-import '../../../../../core/theme/design_tokens.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../domain/entities/estoque_item.dart';
 import 'estoque_lote_actions_helper.dart';
 import 'estoque_stock_entry_helper.dart';
@@ -38,49 +39,42 @@ class EstoqueActionsMenu extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final t = context.pharmaTokens;
-
-    return PopupMenuButton<String>(
-      tooltip: 'Acções',
-      constraints: compact
-          ? BoxConstraints(
-              minWidth: t.minTouchTarget * 0.6,
-              minHeight: t.minTouchTarget * 0.6,
-            )
-          : null,
-      icon: Icon(
-        Icons.more_vert,
-        size: compact ? t.iconSm : t.iconMd,
-        color: t.textMuted,
-      ),
+    return EnterpriseActionsMenuButton<String>(
+      compact: compact,
+      items: actions,
       onSelected: (action) =>
           _handleAction(context, ref, action, item, fornecedores),
-      itemBuilder: (context) => actions,
     );
   }
 
-  static List<PopupMenuEntry<String>> _buildActions(
+  static List<EnterpriseDropdownItem<String>> _buildActions(
     SessionAccessState access,
     EstoqueItem item,
   ) {
-    final entries = <PopupMenuEntry<String>>[];
+    final entries = <EnterpriseDropdownItem<String>>[];
 
-    void add(String value, String label) {
-      entries.add(PopupMenuItem(value: value, child: Text(label)));
+    void add(String value, String label, IconData icon) {
+      entries.add(
+        EnterpriseDropdownItem(value: value, label: label, icon: icon),
+      );
     }
 
     if (access.can('LOTES', 'CREATE_LOTE')) {
-      add('entrada', 'Entrada');
+      add('entrada', 'Entrada', Icons.add_box_outlined);
     }
     if (access.can('LOTES', 'UPDATE')) {
-      add('editar', 'Editar lote');
-      add('preco', 'Alterar preço do lote');
+      add('editar', 'Editar lote', Icons.edit_outlined);
+      add('preco', 'Alterar preço do lote', Icons.price_change_outlined);
       if (item.acoesPermitidas.isNotEmpty) {
-        add('sanitaria', 'Movimentação sanitária');
+        add(
+          'sanitaria',
+          'Movimentação sanitária',
+          Icons.health_and_safety_outlined,
+        );
       }
     }
     if (access.can('INVENTARIO', 'ADJUST_STOCK')) {
-      add('ajustar', 'Ajustar stock');
+      add('ajustar', 'Ajustar stock', Icons.tune_outlined);
     }
 
     return entries;

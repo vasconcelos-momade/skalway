@@ -9,7 +9,6 @@ import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/navigation/app_nav_config.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -219,7 +218,6 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
           child: EnterpriseModuleHub(
           title: 'Fluxo de caixa',
           subtitle: 'Movimentações que alteram o saldo físico do caixa.',
-          tag: AppNavSections.finance,
           scrollable: false,
           mobileKpisHorizontalScroll: true,
           kpis: isMobile ? null : kpiCards,

@@ -6,7 +6,7 @@ import '../../../../../core/theme/table_theme.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
-import '../../../../../shared/widgets/tables/table_typography.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
 import 'pdv_catalog_utils.dart';
 
@@ -58,7 +58,7 @@ class PdvProductTable extends StatelessWidget {
       columnSpacing: s.xxl,
       columns: [
         for (final label in _columns)
-          DataColumn(label: TableTypography.headerLabel(context, label)),
+          enterpriseDataColumn(context, label, numeric: label == 'PREÇO' || label == 'STOCK'),
       ],
       rowCount: items.length,
       rowBuilder: (context, index) {
@@ -80,21 +80,10 @@ class PdvProductTable extends StatelessWidget {
           onSelectChanged: canInteract ? (_) => onAdd(product) : null,
           cells: [
             DataCell(_nameCell(context, product)),
-            DataCell(TableTypography.cellText(context, pdvFormatMoney(product.precoVenda))),
-            DataCell(TableTypography.cellText(context, pdvFormatDate(product.dataValidade))),
-            DataCell(
-              TableTypography.cellText(
-                context,
-                product.lote?.trim().isNotEmpty == true ? product.lote! : '—',
-              ),
-            ),
-            DataCell(
-              TableTypography.cellText(
-                context,
-                '${product.estoqueAtual.toInt()}',
-                style: TableTypography.primary(context),
-              ),
-            ),
+            DataCell(TableNumericCell(pdvFormatMoney(product.precoVenda))),
+            DataCell(TableMetadataCell(pdvFormatDate(product.dataValidade))),
+            DataCell(TableMetadataCell(product.lote)),
+            DataCell(TableNumericCell('${product.estoqueAtual.toInt()}')),
             DataCell(
               Align(
                 alignment: Alignment.center,
@@ -118,9 +107,6 @@ class PdvProductTable extends StatelessWidget {
   }
 
   Widget _nameCell(BuildContext context, Product product) {
-    final t = context.pharmaTokens;
-    final s = context.spacing;
-    final textTheme = Theme.of(context).textTheme;
     final substancia = product.nomeGenerico?.trim();
     final title = pdvProductDisplayTitle(
       nomeComercial: product.nomeComercial,
@@ -128,26 +114,6 @@ class PdvProductTable extends StatelessWidget {
       forma: product.forma,
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: textTheme.erpTablePrimary.copyWith(color: t.textPrimary),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (substancia != null && substancia.isNotEmpty) ...[
-          SizedBox(height: s.xxs),
-          Text(
-            substancia,
-            style: textTheme.erpTableMeta.copyWith(color: t.textSecondary),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ],
-    );
+    return TablePrimaryCell(title, subtitle: substancia);
   }
 }

@@ -103,12 +103,6 @@ class EnterprisePagination extends StatelessWidget {
                 summaryText,
                 style: theme.textTheme.erpTableSecondary.copyWith(color: t.textPrimary),
               ),
-              _PageSizeSelector(
-                pageSize: pageSize,
-                options: pageSizeOptions,
-                enabled: !isBusy,
-                onChanged: onPageSizeChanged,
-              ),
             ],
           );
 

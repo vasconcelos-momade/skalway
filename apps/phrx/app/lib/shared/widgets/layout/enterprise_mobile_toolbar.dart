@@ -4,6 +4,7 @@ import '../../../core/theme/component_theme.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 import '../inputs/enterprise_search_field.dart';
+import '../tables/enterprise_table_filter_panel.dart';
 
 /// Barra de ferramentas mobile com pesquisa, filtros e exportação.
 class EnterpriseMobileToolbar extends StatelessWidget {
@@ -135,7 +136,10 @@ class EnterpriseMobileToolbar extends StatelessWidget {
   }
 }
 
-/// Linha de toolbar desktop: pesquisa + filtros inline + acções à direita.
+/// Linha de toolbar desktop: pesquisa + [Filtros ▾] + acções à direita.
+///
+/// Filtros abrem [EnterpriseTableFilterPanel] (dropdown) em vez de selects
+/// inline — padrão enterprise (Fluent / Carbon / Ant Design).
 class EnterpriseDesktopListToolbar extends StatefulWidget {
   const EnterpriseDesktopListToolbar({
     super.key,
@@ -146,6 +150,9 @@ class EnterpriseDesktopListToolbar extends StatefulWidget {
     required this.filterWidgets,
     this.hasFilters = false,
     this.onClearFilters,
+    this.onApplyFilters,
+    this.onOpenFilters,
+    this.filterTitle = 'Filtros',
     this.trailingActions = const [],
   });
 
@@ -153,16 +160,23 @@ class EnterpriseDesktopListToolbar extends StatefulWidget {
   final String searchHint;
   final bool isLoading;
   final ValueChanged<String> onSearchSubmitted;
+
+  /// Campos do painel de filtros (não renderizados inline).
   final List<Widget> filterWidgets;
   final bool hasFilters;
   final VoidCallback? onClearFilters;
+  final VoidCallback? onApplyFilters;
+  final VoidCallback? onOpenFilters;
+  final String filterTitle;
   final List<Widget> trailingActions;
 
   @override
-  State<EnterpriseDesktopListToolbar> createState() => _EnterpriseDesktopListToolbarState();
+  State<EnterpriseDesktopListToolbar> createState() =>
+      _EnterpriseDesktopListToolbarState();
 }
 
-class _EnterpriseDesktopListToolbarState extends State<EnterpriseDesktopListToolbar> {
+class _EnterpriseDesktopListToolbarState
+    extends State<EnterpriseDesktopListToolbar> {
   @override
   void initState() {
     super.initState();
@@ -188,25 +202,44 @@ class _EnterpriseDesktopListToolbarState extends State<EnterpriseDesktopListTool
     if (mounted) setState(() {});
   }
 
+  void _openFilters(BuildContext buttonContext) {
+    if (widget.onOpenFilters != null) {
+      widget.onOpenFilters!();
+      return;
+    }
+    if (widget.filterWidgets.isEmpty) return;
+
+    EnterpriseTableFilterPanel.present(
+      context: context,
+      anchorContext: buttonContext,
+      filters: widget.filterWidgets,
+      title: widget.filterTitle,
+      onClear: widget.onClearFilters,
+      onApply: widget.onApplyFilters ?? () {},
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
-    final hasClear = widget.hasFilters && widget.onClearFilters != null;
-    final hasFiltersRow =
-        widget.filterWidgets.isNotEmpty || hasClear;
+    final scheme = Theme.of(context).colorScheme;
+    final hasFilterTrigger =
+        widget.filterWidgets.isNotEmpty || widget.onOpenFilters != null;
     final hasTrailing = widget.trailingActions.isNotEmpty;
+    final compactStyle = PharmaComponentTheme.outlined(
+      t,
+      scheme,
+      compact: true,
+    );
 
-    // Row com filhos de largura intrínseca (search 320 + selects + acções)
-    // rebenta em viewports ~580px (sidebar expandida). Flexible + Wrap
-    // permitem encolher / quebrar linha sem RenderFlex overflow.
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Flexible(
           flex: 2,
           child: Align(
-            alignment: Alignment.topLeft,
+            alignment: Alignment.centerLeft,
             child: IgnorePointer(
               ignoring: widget.isLoading,
               child: EnterpriseSearchField(
@@ -217,37 +250,50 @@ class _EnterpriseDesktopListToolbarState extends State<EnterpriseDesktopListTool
             ),
           ),
         ),
-        if (hasFiltersRow) ...[
+        if (hasFilterTrigger || hasTrailing) ...[
           SizedBox(width: s.md),
           Flexible(
             flex: 3,
-            child: Wrap(
-              spacing: s.md,
-              runSpacing: s.sm,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ...widget.filterWidgets,
-                if (hasClear)
-                  TextButton.icon(
-                    onPressed:
-                        widget.isLoading ? null : widget.onClearFilters,
-                    icon: Icon(
-                      Icons.filter_alt_off_outlined,
-                      size: t.iconSm,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                spacing: s.sm,
+                runSpacing: s.sm,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.end,
+                children: [
+                  if (hasFilterTrigger)
+                    Builder(
+                      builder: (buttonContext) {
+                        final label =
+                            widget.hasFilters ? 'Filtros *' : 'Filtros';
+                        return OutlinedButton.icon(
+                          style: compactStyle,
+                          onPressed: widget.isLoading
+                              ? null
+                              : () => _openFilters(buttonContext),
+                          icon: Icon(
+                            Icons.filter_list_rounded,
+                            size: t.iconSm,
+                          ),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(label),
+                              SizedBox(width: s.xxs),
+                              Icon(
+                                Icons.arrow_drop_down_rounded,
+                                size: t.iconSm,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                    label: const Text('Limpar'),
-                  ),
-              ],
+                  ...widget.trailingActions,
+                ],
+              ),
             ),
-          ),
-        ],
-        if (hasTrailing) ...[
-          SizedBox(width: s.md),
-          Wrap(
-            spacing: s.sm,
-            runSpacing: s.sm,
-            alignment: WrapAlignment.end,
-            children: widget.trailingActions,
           ),
         ],
       ],

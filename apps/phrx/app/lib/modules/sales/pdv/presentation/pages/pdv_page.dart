@@ -768,7 +768,13 @@ class _PdvPageState extends ConsumerState<PdvPage>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(flex: 5, child: catalog),
-              SizedBox(width: s.lg),
+              SizedBox(width: s.md),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: t.border,
+              ),
+              SizedBox(width: s.md),
               SizedBox(
                 width: 560,
                 child: cartPane,

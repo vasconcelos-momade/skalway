@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'design_metrics.dart';
 import 'design_tokens.dart';
+import 'pharma_color_tokens.dart';
 import 'typography.dart';
 
 @immutable
@@ -13,6 +14,9 @@ class TableTheme extends ThemeExtension<TableTheme> {
     required this.dividerColor,
     required this.hoverColor,
     required this.selectedColor,
+    required this.zebraEvenColor,
+    required this.zebraOddColor,
+    this.zebraEnabled = true,
   });
 
   final Color headerBackgroundColor;
@@ -22,17 +26,49 @@ class TableTheme extends ThemeExtension<TableTheme> {
   final Color hoverColor;
   final Color selectedColor;
 
-  factory TableTheme.fromLegacy(PharmaTokens tokens, {TextTheme? textTheme}) {
+  /// Linha par (base da tabela).
+  final Color zebraEvenColor;
+
+  /// Linha ímpar — contraste visível face à par (Carbon / Fluent).
+  final Color zebraOddColor;
+
+  /// Activa zebra striping nas [EnterpriseDataTable]s.
+  final bool zebraEnabled;
+
+  factory TableTheme.fromLegacy(
+    PharmaTokens tokens, {
+    TextTheme? textTheme,
+    ColorScheme? scheme,
+    PharmaColorTokens? colors,
+  }) {
     final theme = textTheme ?? ThemeData().textTheme;
+    final isDark = (scheme?.brightness ?? Brightness.light) == Brightness.dark;
+    // Alinha com PharmaSurface da tabela (surfaceContainerHighest / card).
+    final base = colors?.surfaceContainerHighest ?? tokens.card;
+    final onSurface = scheme?.onSurface ?? tokens.textPrimary;
+
+    // Contraste enterprise (Carbon / Fluent): odd bem distinto da superfície.
+    final odd = Color.alphaBlend(
+      onSurface.withValues(alpha: isDark ? 0.16 : 0.06),
+      base,
+    );
+
     return TableTheme(
-      headerBackgroundColor: tokens.bgSecondary,
+      headerBackgroundColor:
+          colors?.surfaceContainerHigh ?? tokens.bgSecondary,
       headerTextStyle: theme.erpTableHeader.copyWith(
         color: tokens.textPrimary,
       ),
       rowHeight: DesignMetrics.tableRowHeightMax,
-      dividerColor: tokens.border,
-      hoverColor: tokens.cardHover,
-      selectedColor: tokens.brandGreen.withValues(alpha: 0.12),
+      // Divisores discretos: reduzir alpha em ambos os temas (Carbon / Fluent).
+      dividerColor: (scheme?.outlineVariant ?? tokens.border)
+          .withValues(alpha: isDark ? 0.20 : 0.30),
+      hoverColor: colors?.hover ?? tokens.cardHover,
+      selectedColor:
+          colors?.selected ?? tokens.brandGreen.withValues(alpha: 0.12),
+      zebraEvenColor: base,
+      zebraOddColor: odd,
+      zebraEnabled: true,
     );
   }
 
@@ -44,14 +80,21 @@ class TableTheme extends ThemeExtension<TableTheme> {
     Color? dividerColor,
     Color? hoverColor,
     Color? selectedColor,
+    Color? zebraEvenColor,
+    Color? zebraOddColor,
+    bool? zebraEnabled,
   }) {
     return TableTheme(
-      headerBackgroundColor: headerBackgroundColor ?? this.headerBackgroundColor,
+      headerBackgroundColor:
+          headerBackgroundColor ?? this.headerBackgroundColor,
       headerTextStyle: headerTextStyle ?? this.headerTextStyle,
       rowHeight: rowHeight ?? this.rowHeight,
       dividerColor: dividerColor ?? this.dividerColor,
       hoverColor: hoverColor ?? this.hoverColor,
       selectedColor: selectedColor ?? this.selectedColor,
+      zebraEvenColor: zebraEvenColor ?? this.zebraEvenColor,
+      zebraOddColor: zebraOddColor ?? this.zebraOddColor,
+      zebraEnabled: zebraEnabled ?? this.zebraEnabled,
     );
   }
 
@@ -60,20 +103,14 @@ class TableTheme extends ThemeExtension<TableTheme> {
     if (other is! TableTheme) return this;
     return t < 0.5 ? this : other;
   }
-
-  static double? lerpDouble(num? a, num? b, double t) {
-    if (a == null && b == null) return null;
-    a ??= 0.0;
-    b ??= 0.0;
-    return a + (b - a) * t;
-  }
 }
 
 extension TableThemeX on BuildContext {
   TableTheme get tableTheme =>
       Theme.of(this).extension<TableTheme>() ??
       TableTheme.fromLegacy(
-        Theme.of(this).extension<PharmaTokens>() ?? PharmaTokens.enterpriseLight(),
+        Theme.of(this).extension<PharmaTokens>() ??
+            PharmaTokens.enterpriseLight(),
         textTheme: Theme.of(this).textTheme,
       );
 }

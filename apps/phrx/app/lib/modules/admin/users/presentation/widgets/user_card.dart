@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../domain/entities/user_entities.dart';
 
 class UserCard extends StatelessWidget {
@@ -23,7 +24,6 @@ class UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final s = context.spacing;
     final active = user.active;
 
     return EnterpriseListCard(
@@ -38,67 +38,30 @@ class UserCard extends StatelessWidget {
         EnterpriseListCardMeta(label: _roleLabel(user.role), color: t.brandBlue),
         EnterpriseListCardMeta(label: 'Registo: ${_dateFmt.format(user.createdAt)}'),
       ],
-      onTap: null, // Para interagir apenas via menu de ações
-      actions: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(
-          minWidth: t.minTouchTarget * 0.6,
-          minHeight: t.minTouchTarget * 0.6,
-        ),
-        icon: Icon(Icons.more_vert, size: t.iconSm, color: t.textMuted),
-        tooltip: 'Ações',
-        onSelected: onAction,
-        itemBuilder: (context) => [
-          PopupMenuItem(
+      onTap: null,
+      actions: EnterpriseActionsMenuButton<String>(
+        compact: true,
+        items: [
+          const EnterpriseDropdownItem(
             value: 'details',
-            child: Row(
-              children: [
-                Icon(Icons.visibility_outlined, size: t.iconSm, color: t.textPrimary),
-                SizedBox(width: s.sm),
-                Text(
-                  'Detalhes',
-                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                        color: t.textPrimary,
-                      ),
-                ),
-              ],
-            ),
+            label: 'Detalhes',
+            icon: Icons.visibility_outlined,
           ),
-          PopupMenuItem(
+          const EnterpriseDropdownItem(
             value: 'edit',
-            child: Row(
-              children: [
-                Icon(Icons.edit_outlined, size: t.iconSm, color: t.textPrimary),
-                SizedBox(width: s.sm),
-                Text(
-                  'Editar',
-                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                        color: t.textPrimary,
-                      ),
-                ),
-              ],
-            ),
+            label: 'Editar',
+            icon: Icons.edit_outlined,
           ),
-          PopupMenuItem(
+          EnterpriseDropdownItem(
             value: 'toggle',
-            child: Row(
-              children: [
-                Icon(
-                  active ? Icons.person_off_outlined : Icons.person_outline,
-                  size: t.iconSm,
-                  color: active ? t.posDanger : t.textPrimary,
-                ),
-                SizedBox(width: s.sm),
-                Text(
-                  active ? 'Desactivar' : 'Activar',
-                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                        color: active ? t.posDanger : t.textPrimary,
-                      ),
-                ),
-              ],
-            ),
+            label: active ? 'Desactivar' : 'Activar',
+            icon: active
+                ? Icons.person_off_outlined
+                : Icons.person_outline,
+            destructive: active,
           ),
         ],
+        onSelected: onAction,
       ),
     );
   }

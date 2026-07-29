@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 
 class CashflowMobileCard extends StatelessWidget {
   const CashflowMobileCard({
@@ -67,19 +69,19 @@ class CashflowMobileCard extends StatelessWidget {
           emphasized: true,
         ),
       ],
-      actions: PopupMenuButton<String>(
-        icon: Icon(Icons.more_vert, color: t.textSecondary),
+      actions: EnterpriseActionsMenuButton<String>(
+        items: const [
+          EnterpriseDropdownItem(
+            value: 'descricao',
+            label: 'Ver Descrição',
+            icon: Icons.description_outlined,
+          ),
+        ],
         onSelected: (value) {
           if (value == 'descricao') {
             _showDescription(context, descricao);
           }
         },
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'descricao',
-            child: Text('Ver Descrição'),
-          ),
-        ],
       ),
     );
   }

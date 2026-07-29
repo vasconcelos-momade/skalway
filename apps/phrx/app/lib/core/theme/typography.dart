@@ -337,6 +337,17 @@ extension EnterpriseTextTheme on TextTheme {
         height: 1.25,
       );
 
-  /// Texto auxiliar em tabelas/paginação (13px).
-  TextStyle get erpTableMeta => erpBodySecondary.copyWith(height: 1.3);
+  /// Códigos, emails, referências e textos auxiliares (13px).
+  TextStyle get erpTableMetadata => erpBodySecondary.copyWith(height: 1.3);
+
+  /// Legado — preferir [erpTableMetadata].
+  TextStyle get erpTableMeta => erpTableMetadata;
+
+  /// Valores numéricos e financeiros (14px, alinhamento tabular).
+  TextStyle get erpTableNumeric => erpTablePrimary.copyWith(
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
+
+  /// Estados e badges de situação — 13px / w400, discreto.
+  TextStyle get erpTableStatus => erpBodySecondary.copyWith(height: 1.25);
 }

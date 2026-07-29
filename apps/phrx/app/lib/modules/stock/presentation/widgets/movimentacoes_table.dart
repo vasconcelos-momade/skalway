@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
-import '../../../../shared/widgets/tables/table_typography.dart';
+import '../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../domain/entities/movimentacao.dart';
 
 class MovimentacoesTable extends StatelessWidget {
@@ -14,19 +14,18 @@ class MovimentacoesTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final textTheme = Theme.of(context).textTheme;
 
     return EnterpriseDataTable(
       columns: [
-        DataColumn(label: TableTypography.headerLabel(context, 'Data')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Tipo')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Produto')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Lote')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Qtd')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Stock')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Origem')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Documento')),
-        DataColumn(label: TableTypography.headerLabel(context, 'Utilizador')),
+        enterpriseDataColumn(context, 'Data'),
+        enterpriseDataColumn(context, 'Tipo'),
+        enterpriseDataColumn(context, 'Produto'),
+        enterpriseDataColumn(context, 'Lote'),
+        enterpriseDataColumn(context, 'Qtd', numeric: true),
+        enterpriseDataColumn(context, 'Stock'),
+        enterpriseDataColumn(context, 'Origem'),
+        enterpriseDataColumn(context, 'Documento'),
+        enterpriseDataColumn(context, 'Utilizador'),
       ],
       rowCount: items.length,
       rowBuilder: (context, index) {
@@ -40,12 +39,7 @@ class MovimentacoesTable extends StatelessWidget {
 
         return DataRow(
           cells: [
-            DataCell(
-              TableTypography.cellText(
-                context,
-                _formatDateTime(item.createdAt),
-              ),
-            ),
+            DataCell(TableMetadataCell(_formatDateTime(item.createdAt))),
             DataCell(
               Container(
                 padding: EdgeInsets.symmetric(
@@ -57,44 +51,24 @@ class MovimentacoesTable extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: tipoColor.withValues(alpha: 0.35)),
                 ),
-                child: Text(
-                  item.tipoLabel,
-                  style: textTheme.erpTableSecondary.copyWith(color: tipoColor),
+                child: TableStatusCell(
+                  label: item.tipoLabel,
+                  color: tipoColor,
+                  showDot: false,
                 ),
               ),
             ),
-            DataCell(TableTypography.cellText(context, produtoLabel)),
+            DataCell(TablePrimaryCell(produtoLabel)),
+            DataCell(TableMetadataCell(item.lote?.numeroLote)),
+            DataCell(TableNumericCell(_formatQty(item.quantidade))),
             DataCell(
-              TableTypography.cellText(
-                context,
-                item.lote?.numeroLote ?? '—',
-              ),
-            ),
-            DataCell(
-              TableTypography.cellText(
-                context,
-                _formatQty(item.quantidade),
-                style: TableTypography.primary(context),
-              ),
-            ),
-            DataCell(
-              TableTypography.cellText(
-                context,
+              TableMetadataCell(
                 '${_formatQty(item.estoqueAnterior)} → ${_formatQty(item.estoqueFinal)}',
-                muted: true,
               ),
             ),
-            DataCell(TableTypography.cellText(context, item.origemLabel)),
-            DataCell(
-              TableTypography.cellText(
-                context,
-                item.documentoReferencia ?? '—',
-                muted: true,
-              ),
-            ),
-            DataCell(
-              TableTypography.cellText(context, item.user?.nome ?? '—'),
-            ),
+            DataCell(TableSecondaryCell(item.origemLabel)),
+            DataCell(TableMetadataCell(item.documentoReferencia)),
+            DataCell(TableSecondaryCell(item.user?.nome ?? '—')),
           ],
         );
       },

@@ -13,9 +13,11 @@ import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
+import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../../shared/widgets/tables/enterprise_pagination.dart';
+import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../data/repositories/user_repository_impl.dart';
 import '../../domain/entities/user_entities.dart';
 import '../providers/user_list_provider.dart';
@@ -104,7 +106,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
           body: EnterpriseModuleHub(
             title: 'Utilizadores',
             subtitle: 'RBAC, multi-inquilino e políticas de sessão.',
-            tag: 'Administração',
             mobileKpisHorizontalScroll: isMobile,
             actions: isMobile
                 ? null
@@ -121,16 +122,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                       label: const Text('Novo utilizador'),
                     ),
                   ],
-            filters: isMobile
-                ? null
-                : IgnorePointer(
-                    ignoring: state.isBusy,
-                    child: EnterpriseSearchField(
-                      controller: _searchController,
-                      hintText: 'Nome ou email...',
-                      onChanged: notifier.onSearchChanged,
-                    ),
-                  ),
+            filters: null,
             kpis: [
               EnterpriseStatCard(
                 title: 'Total',
@@ -161,6 +153,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                             UserMobileToolbar(
                               searchController: _searchController,
                               state: state,
+                              notifier: notifier,
                               onSearchChanged: notifier.onSearchChanged,
                               onRefresh: notifier.refresh,
                               reportAction: adminReportActions(
@@ -230,12 +223,29 @@ class _UsersPageState extends ConsumerState<UsersPage> {
         : state.items;
 
     if (!isMobile) {
+      final hasTableFilters =
+          state.query.role != null || state.query.active != null;
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            flex: recentAccess.isEmpty ? 1 : 3,
             child: EnterpriseDataTable(
+              searchController: _searchController,
+              searchHint: 'Nome ou email...',
+              onSearchChanged: notifier.onSearchChanged,
+              filters: userTableFilterFields(
+                state: state,
+                notifier: notifier,
+              ),
+              hasActiveFilters: hasTableFilters,
+              onClearFilters: () async {
+                await notifier.setRoleFilter(null);
+                await notifier.setActiveFilter(null);
+              },
+              onApplyFilters: () {},
+              isLoading: state.isBusy,
+              showCheckboxColumn: false,
               columns: [
                 for (final label in [
                   'Nome',
@@ -245,44 +255,55 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   'Registo',
                   'Ações',
                 ])
-                  DataColumn(
-                    label: Text(
-                      label.toUpperCase(),
-                      style: Theme.of(context).textTheme.erpOverline.copyWith(color: t.textMuted),
-                    ),
-                  ),
+                  enterpriseDataColumn(context, label),
               ],
               rowCount: state.items.length,
               rowBuilder: (context, index) {
                 final u = state.items[index];
                 return DataRow(
                   cells: [
-                    DataCell(Text(
-                      u.name,
-                      style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
-                    )),
-                    DataCell(Text(
-                      u.email ?? '—',
-                      style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textSecondary),
-                    )),
-                    DataCell(Text(
-                      _roleLabel(u.role),
-                      style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.brandBlue),
-                    )),
-                    DataCell(Text(
-                      u.active ? 'Activo' : 'Inactivo',
-                      style: Theme.of(context).textTheme.erpTabLabel.copyWith(
-                            color: u.active ? t.brandGreen : t.posDanger,
-                          ),
-                    )),
-                    DataCell(Text(
-                      _dateFmt.format(u.createdAt),
-                      style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    )),
+                    DataCell(TablePrimaryCell(u.name)),
+                    DataCell(TableMetadataCell(u.email)),
                     DataCell(
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: t.textMuted, size: t.iconSm),
-                        tooltip: 'Ações',
+                      TableSecondaryCell(
+                        _roleLabel(u.role),
+                        color: t.brandBlue,
+                      ),
+                    ),
+                    DataCell(
+                      TableStatusCell(
+                        label: u.active ? 'Activo' : 'Inactivo',
+                        active: u.active,
+                        color: u.active ? t.brandGreen : t.posDanger,
+                        showDot: false,
+                      ),
+                    ),
+                    DataCell(
+                      TableMetadataCell(_dateFmt.format(u.createdAt)),
+                    ),
+                    DataCell(
+                      EnterpriseActionsMenuButton<String>(
+                        compact: true,
+                        items: [
+                          const EnterpriseDropdownItem(
+                            value: 'details',
+                            label: 'Detalhes',
+                            icon: Icons.visibility_outlined,
+                          ),
+                          const EnterpriseDropdownItem(
+                            value: 'edit',
+                            label: 'Editar',
+                            icon: Icons.edit_outlined,
+                          ),
+                          EnterpriseDropdownItem(
+                            value: 'toggle',
+                            label: u.active ? 'Desactivar' : 'Activar',
+                            icon: u.active
+                                ? Icons.person_off_outlined
+                                : Icons.person_outline,
+                            destructive: u.active,
+                          ),
+                        ],
                         onSelected: (value) {
                           if (value == 'details') {
                             _openDetails(context, u);
@@ -292,114 +313,23 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                             _toggleActive(context, u);
                           }
                         },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'details',
-                            child: Row(
-                              children: [
-                                Icon(Icons.visibility_outlined, size: t.iconSm, color: t.textPrimary),
-                                SizedBox(width: s.sm),
-                                Text(
-                                  'Detalhes',
-                                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                                    color: t.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: t.iconSm, color: t.textPrimary),
-                                SizedBox(width: s.sm),
-                                Text(
-                                  'Editar',
-                                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                                    color: t.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'toggle',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  u.active
-                                      ? Icons.person_off_outlined
-                                      : Icons.person_outline,
-                                  size: t.iconSm,
-                                  color: u.active ? t.posDanger : t.textPrimary,
-                                ),
-                                SizedBox(width: s.sm),
-                                Text(
-                                  u.active ? 'Desactivar' : 'Activar',
-                                  style: Theme.of(context).textTheme.erpBody.copyWith(
-                                    color: u.active ? t.posDanger : t.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],
                 );
               },
-            ),
-          ),
-          if (recentAccess.isNotEmpty) ...[
-            SizedBox(height: s.md),
-            Text(
-              'Últimos acessos',
-              style: Theme.of(context).textTheme.erpTabLabel.copyWith(color: t.textPrimary),
-            ),
-            SizedBox(height: s.sm),
-            Expanded(
-              flex: 2,
-              child: ListView.separated(
-                itemCount: recentAccess.length,
-                separatorBuilder: (_, _) =>
-                    Divider(color: t.border.withValues(alpha: 0.35)),
-                itemBuilder: (context, index) {
-                  final access = recentAccess[index];
-                  return ListTile(
-                    dense: true,
-                    leading: Icon(Icons.login, color: t.brandBlue, size: 20),
-                    title: Text(
-                      access.userName ?? 'Utilizador',
-                      style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
-                    ),
-                    subtitle: Text(
-                      '${access.action} • ${_dateTimeFmt.format(access.createdAt)}',
-                      style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
-                    ),
-                    trailing: access.userEmail != null
-                        ? Text(
-                            access.userEmail!,
-                            style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
-                          )
-                        : null,
-                  );
-                },
+              pagination: EnterprisePagination(
+                page: state.query.page,
+                pageSize: state.query.pageSize,
+                totalCount: state.totalCount,
+                hasMore: state.hasMore,
+                itemsOnPage: state.items.length,
+                isBusy: state.isBusy,
+                itemLabel: 'utilizadores',
+                onPageChanged: notifier.goToPage,
+                onPageSizeChanged: notifier.setPageSize,
               ),
             ),
-          ],
-          SizedBox(height: s.md),
-          EnterprisePagination(
-            page: state.query.page,
-            pageSize: state.query.pageSize,
-            totalCount: state.totalCount,
-            hasMore: state.hasMore,
-            itemsOnPage: state.items.length,
-            isBusy: state.isBusy,
-            itemLabel: 'utilizadores',
-            onPageChanged: notifier.goToPage,
-            onPageSizeChanged: notifier.setPageSize,
           ),
         ],
       );
