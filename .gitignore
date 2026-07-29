@@ -12,3 +12,4 @@ build/
 apps/phrx/backend/src/infrastructure/prisma/tenant/generated/
 apps/phrx/app/analyze_output.txt
 apps/phrx/prompt.txt
+.~lock*
