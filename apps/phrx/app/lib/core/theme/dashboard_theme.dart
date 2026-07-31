@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'border_tokens.dart';
 import 'design_tokens.dart';
+import 'radius_tokens.dart';
+import 'spacing_tokens.dart';
 
 @immutable
 class DashboardTheme extends ThemeExtension<DashboardTheme> {
@@ -33,6 +36,11 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
     required this.trendUpColor,
     required this.trendDownColor,
     required this.badgeRadius,
+    required this.legendSwatchSize,
+    required this.progressBarHeight,
+    required this.rankBadgeSize,
+    required this.chartMinWidth,
+    required this.chartMaxWidth,
   });
 
   final EdgeInsets cardPadding;
@@ -63,6 +71,11 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
   final Color trendUpColor;
   final Color trendDownColor;
   final double badgeRadius;
+  final double legendSwatchSize;
+  final double progressBarHeight;
+  final double rankBadgeSize;
+  final double chartMinWidth;
+  final double chartMaxWidth;
 
   factory DashboardTheme.fromLegacy(PharmaTokens tokens) {
     final chartHeight = tokens.density.xxxl * 9 + tokens.density.xl;
@@ -74,15 +87,15 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
       chartMaxHeight: chartHeight + tokens.density.xl,
       chartAspectRatio: 16 / 9,
       pieChartAspectRatio: 4 / 3,
-      chartGridStrokeWidth: 1,
+      chartGridStrokeWidth: BorderTokens.width,
       chartGridAlpha: 0.22,
       chartAreaFillAlpha: 0.10,
       pieEmptySectionAlpha: 0.35,
       chartPrimaryLineWidth: 2.5,
-      chartSecondaryLineWidth: 2,
+      chartSecondaryLineWidth: BorderTokens.width * 2,
       chartBarWidth: tokens.density.lg + tokens.density.xxs,
       chartIndexedBarWidth: tokens.density.lg + tokens.density.xs,
-      chartBarRadius: tokens.radiusMd / 3,
+      chartBarRadius: RadiusTokens.sm,
       chartAxisReservedSizeLine: tokens.density.lg + tokens.density.xxs,
       chartAxisReservedSizeBar: tokens.density.lg + tokens.density.xs,
       chartAxisLabelSpace: tokens.density.xxs,
@@ -95,6 +108,11 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
       trendUpColor: tokens.brandGreen,
       trendDownColor: tokens.posDanger,
       badgeRadius: tokens.radiusMd,
+      legendSwatchSize: SpacingTokens.sm,
+      progressBarHeight: SpacingTokens.sm,
+      rankBadgeSize: SpacingTokens.xl,
+      chartMinWidth: tokens.contentMaxWidth * 0.2,
+      chartMaxWidth: tokens.contentMaxWidth,
     );
   }
 
@@ -128,6 +146,11 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
     Color? trendUpColor,
     Color? trendDownColor,
     double? badgeRadius,
+    double? legendSwatchSize,
+    double? progressBarHeight,
+    double? rankBadgeSize,
+    double? chartMinWidth,
+    double? chartMaxWidth,
   }) {
     return DashboardTheme(
       cardPadding: cardPadding ?? this.cardPadding,
@@ -142,15 +165,19 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
       chartAreaFillAlpha: chartAreaFillAlpha ?? this.chartAreaFillAlpha,
       pieEmptySectionAlpha: pieEmptySectionAlpha ?? this.pieEmptySectionAlpha,
       chartPrimaryLineWidth: chartPrimaryLineWidth ?? this.chartPrimaryLineWidth,
-      chartSecondaryLineWidth: chartSecondaryLineWidth ?? this.chartSecondaryLineWidth,
+      chartSecondaryLineWidth:
+          chartSecondaryLineWidth ?? this.chartSecondaryLineWidth,
       chartBarWidth: chartBarWidth ?? this.chartBarWidth,
       chartIndexedBarWidth: chartIndexedBarWidth ?? this.chartIndexedBarWidth,
       chartBarRadius: chartBarRadius ?? this.chartBarRadius,
-      chartAxisReservedSizeLine: chartAxisReservedSizeLine ?? this.chartAxisReservedSizeLine,
-      chartAxisReservedSizeBar: chartAxisReservedSizeBar ?? this.chartAxisReservedSizeBar,
+      chartAxisReservedSizeLine:
+          chartAxisReservedSizeLine ?? this.chartAxisReservedSizeLine,
+      chartAxisReservedSizeBar:
+          chartAxisReservedSizeBar ?? this.chartAxisReservedSizeBar,
       chartAxisLabelSpace: chartAxisLabelSpace ?? this.chartAxisLabelSpace,
       chartBarLabelAngle: chartBarLabelAngle ?? this.chartBarLabelAngle,
-      chartIndexedBarLabelAngle: chartIndexedBarLabelAngle ?? this.chartIndexedBarLabelAngle,
+      chartIndexedBarLabelAngle:
+          chartIndexedBarLabelAngle ?? this.chartIndexedBarLabelAngle,
       chartTitleSpacing: chartTitleSpacing ?? this.chartTitleSpacing,
       pieSectionSpace: pieSectionSpace ?? this.pieSectionSpace,
       pieCenterSpaceRadius: pieCenterSpaceRadius ?? this.pieCenterSpaceRadius,
@@ -158,6 +185,11 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
       trendUpColor: trendUpColor ?? this.trendUpColor,
       trendDownColor: trendDownColor ?? this.trendDownColor,
       badgeRadius: badgeRadius ?? this.badgeRadius,
+      legendSwatchSize: legendSwatchSize ?? this.legendSwatchSize,
+      progressBarHeight: progressBarHeight ?? this.progressBarHeight,
+      rankBadgeSize: rankBadgeSize ?? this.rankBadgeSize,
+      chartMinWidth: chartMinWidth ?? this.chartMinWidth,
+      chartMaxWidth: chartMaxWidth ?? this.chartMaxWidth,
     );
   }
 
@@ -166,19 +198,13 @@ class DashboardTheme extends ThemeExtension<DashboardTheme> {
     if (other is! DashboardTheme) return this;
     return t < 0.5 ? this : other;
   }
-
-  static double? lerpDouble(num? a, num? b, double t) {
-    if (a == null && b == null) return null;
-    a ??= 0.0;
-    b ??= 0.0;
-    return a + (b - a) * t;
-  }
 }
 
 extension DashboardThemeX on BuildContext {
   DashboardTheme get dashboardTheme =>
       Theme.of(this).extension<DashboardTheme>() ??
       DashboardTheme.fromLegacy(
-        Theme.of(this).extension<PharmaTokens>() ?? PharmaTokens.enterpriseLight(),
+        Theme.of(this).extension<PharmaTokens>() ??
+            PharmaTokens.enterpriseLight(),
       );
 }

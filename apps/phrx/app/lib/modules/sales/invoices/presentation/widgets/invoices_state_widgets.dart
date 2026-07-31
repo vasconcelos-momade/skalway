@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
-import '../../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../providers/invoice_list_provider.dart';
 
 class InvoicesLoadingSkeleton extends StatelessWidget {
@@ -11,32 +11,7 @@ class InvoicesLoadingSkeleton extends StatelessWidget {
   final bool embedded;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-    final s = context.spacing;
-    final isMobile = context.pharmaScreen == PharmaScreenSize.mobile;
-    final itemCount = isMobile ? 6 : 8;
-
-    return ListView.separated(
-      shrinkWrap: embedded,
-      physics: embedded
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: itemCount,
-      separatorBuilder: (_, _) => SizedBox(height: s.sm),
-      itemBuilder: (context, index) {
-        final height = isMobile ? 142.0 : 58.0;
-        return Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: t.card.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(t.radiusXl),
-            border: Border.all(color: t.border.withValues(alpha: 0.35)),
-          ),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => const ModuleLoadingState();
 }
 
 class InvoicesInfoBanner extends StatelessWidget {

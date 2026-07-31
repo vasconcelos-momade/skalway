@@ -143,7 +143,7 @@ class _EnterpriseDateFieldState extends State<EnterpriseDateField> {
     final t = context.pharmaTokens;
     final theme = Theme.of(context);
 
-    return TextFormField(
+    final field = TextFormField(
       controller: _controller,
       enabled: widget.enabled,
       keyboardType: TextInputType.number,
@@ -154,7 +154,6 @@ class _EnterpriseDateFieldState extends State<EnterpriseDateField> {
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,
-        labelText: widget.labelText,
         hintText: widget.hintText,
         enabled: widget.enabled,
         suffixIcon: IconButton(
@@ -168,5 +167,7 @@ class _EnterpriseDateFieldState extends State<EnterpriseDateField> {
         ),
       ).copyWith(counterText: ''),
     );
+
+    return EnterpriseFieldGroup(labelText: widget.labelText, child: field);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/theme/extensions.dart';
 
 /// Decoração canónica de campos enterprise.
 ///
@@ -68,6 +69,43 @@ abstract final class EnterpriseFieldDecoration {
         horizontal: horizontal,
         vertical: t.density.inputPadding.top,
       ),
+    );
+  }
+}
+
+class EnterpriseFieldGroup extends StatelessWidget {
+  const EnterpriseFieldGroup({
+    super.key,
+    this.labelText,
+    required this.child,
+  });
+
+  final String? labelText;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = labelText?.trim();
+    if (label == null || label.isEmpty) return child;
+
+    final t = context.pharmaTokens;
+    final s = context.spacing;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: s.xxs, bottom: s.xs),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.erpFieldLabel.copyWith(
+                  color: t.textSecondary,
+                ),
+          ),
+        ),
+        child,
+      ],
     );
   }
 }

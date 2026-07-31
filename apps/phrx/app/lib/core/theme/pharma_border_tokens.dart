@@ -2,6 +2,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
+import 'border_tokens.dart';
 import 'design_tokens.dart';
 
 /// Border tokens (espessuras + foco/seleção) como ThemeExtension.
@@ -23,13 +24,19 @@ class PharmaBorderTokens extends ThemeExtension<PharmaBorderTokens> {
 
   factory PharmaBorderTokens.fromLegacy(PharmaTokens tokens) {
     return const PharmaBorderTokens(
-      borderThin: 1,
-      borderMedium: 1.5,
-      borderStrong: 2,
-      focusBorder: 2,
-      selectedBorder: 2,
+      borderThin: BorderTokens.width,
+      borderMedium: BorderTokens.width,
+      borderStrong: BorderTokens.width,
+      focusBorder: BorderTokens.width,
+      selectedBorder: BorderTokens.width,
     );
   }
+
+  /// Cor de borda default (via tokens do tema).
+  static Color colorDefault(PharmaTokens tokens) => tokens.border;
+
+  /// Cor de borda subtle (via tokens do tema).
+  static Color colorSubtle(PharmaTokens tokens) => tokens.borderSubtle;
 
   @override
   PharmaBorderTokens copyWith({

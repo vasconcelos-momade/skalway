@@ -11,6 +11,7 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
     required this.primary,
     required this.secondary,
     required this.tertiary,
+    required this.primarySubtle,
     required this.surface,
     required this.surfaceVariant,
     required this.surfaceContainer,
@@ -33,11 +34,21 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
     required this.error,
     required this.info,
     required this.neutral,
+    required this.successSubtle,
+    required this.warningSubtle,
+    required this.errorSubtle,
+    required this.infoSubtle,
+    required this.neutralSubtle,
+    required this.fieldHover,
+    required this.fieldDisabled,
+    required this.sidebarActiveBackground,
+    required this.sidebarActiveIndicator,
   });
 
   final Color primary;
   final Color secondary;
   final Color tertiary;
+  final Color primarySubtle;
 
   final Color surface;
   final Color surfaceVariant;
@@ -66,32 +77,47 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
   final Color error;
   final Color info;
   final Color neutral;
+  final Color successSubtle;
+  final Color warningSubtle;
+  final Color errorSubtle;
+  final Color infoSubtle;
+  final Color neutralSubtle;
+  final Color fieldHover;
+  final Color fieldDisabled;
+  final Color sidebarActiveBackground;
+  final Color sidebarActiveIndicator;
 
   factory PharmaColorTokens.fromLegacy({
     required PharmaTokens tokens,
     required ColorScheme scheme,
   }) {
     final isDark = scheme.brightness == Brightness.dark;
+    final primarySubtle = Color.alphaBlend(
+      scheme.primary.withValues(alpha: isDark ? 0.14 : 0.06),
+      tokens.surface1,
+    );
 
     return PharmaColorTokens(
       primary: scheme.primary,
       secondary: scheme.secondary,
       tertiary: scheme.tertiary,
-      surface: scheme.surface,
-      surfaceVariant: scheme.surfaceContainerHighest,
-      surfaceContainer: scheme.surfaceContainer,
-      surfaceContainerLow: scheme.surfaceContainerLow,
-      surfaceContainerHigh: scheme.surfaceContainerHigh,
-      surfaceContainerHighest: scheme.surfaceContainerHighest,
-      background: tokens.bgPrimary,
-      backgroundSecondary: tokens.bgSecondary,
-      overlay: tokens.card.withValues(alpha: isDark ? 0.65 : 0.92),
-      divider: tokens.border.withValues(alpha: isDark ? 0.5 : 0.7),
-      hover: scheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.06),
-      pressed: scheme.onSurface.withValues(alpha: isDark ? 0.18 : 0.10),
-      focused: scheme.primary.withValues(alpha: isDark ? 0.45 : 0.25),
-      selected: scheme.primary.withValues(alpha: isDark ? 0.25 : 0.14),
-      disabled: scheme.onSurface.withValues(alpha: 0.12),
+      primarySubtle: primarySubtle,
+      // Hierarquia de superfícies 0–4 via tokens.
+      surface: tokens.surface1,
+      surfaceVariant: tokens.surface2,
+      surfaceContainerLow: tokens.surface1,
+      surfaceContainer: tokens.surface2,
+      surfaceContainerHigh: tokens.surface3,
+      surfaceContainerHighest: tokens.surface3,
+      background: tokens.surface0,
+      backgroundSecondary: tokens.surface1,
+      overlay: tokens.surface4,
+      divider: tokens.borderSubtle,
+      hover: tokens.surface2,
+      pressed: tokens.surface3,
+      focused: scheme.primary.withValues(alpha: isDark ? 0.28 : 0.18),
+      selected: primarySubtle,
+      disabled: tokens.textDisabled.withValues(alpha: 0.38),
       inverseSurface: scheme.inverseSurface,
       inversePrimary: scheme.inversePrimary,
       success: tokens.posSuccess,
@@ -99,6 +125,27 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
       error: tokens.posDanger,
       info: tokens.posInfo,
       neutral: tokens.textMuted,
+      successSubtle: Color.alphaBlend(
+        tokens.posSuccess.withValues(alpha: isDark ? 0.18 : 0.10),
+        tokens.surface2,
+      ),
+      warningSubtle: Color.alphaBlend(
+        tokens.posWarning.withValues(alpha: isDark ? 0.18 : 0.10),
+        tokens.surface2,
+      ),
+      errorSubtle: Color.alphaBlend(
+        tokens.posDanger.withValues(alpha: isDark ? 0.18 : 0.10),
+        tokens.surface2,
+      ),
+      infoSubtle: Color.alphaBlend(
+        tokens.posInfo.withValues(alpha: isDark ? 0.18 : 0.10),
+        tokens.surface2,
+      ),
+      neutralSubtle: isDark ? tokens.surface3 : tokens.surface1,
+      fieldHover: isDark ? tokens.surface4 : tokens.surface1,
+      fieldDisabled: isDark ? tokens.surface2 : tokens.surface1,
+      sidebarActiveBackground: primarySubtle,
+      sidebarActiveIndicator: scheme.primary,
     );
   }
 
@@ -107,6 +154,7 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
     Color? primary,
     Color? secondary,
     Color? tertiary,
+    Color? primarySubtle,
     Color? surface,
     Color? surfaceVariant,
     Color? surfaceContainer,
@@ -129,11 +177,21 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
     Color? error,
     Color? info,
     Color? neutral,
+    Color? successSubtle,
+    Color? warningSubtle,
+    Color? errorSubtle,
+    Color? infoSubtle,
+    Color? neutralSubtle,
+    Color? fieldHover,
+    Color? fieldDisabled,
+    Color? sidebarActiveBackground,
+    Color? sidebarActiveIndicator,
   }) {
     return PharmaColorTokens(
       primary: primary ?? this.primary,
       secondary: secondary ?? this.secondary,
       tertiary: tertiary ?? this.tertiary,
+      primarySubtle: primarySubtle ?? this.primarySubtle,
       surface: surface ?? this.surface,
       surfaceVariant: surfaceVariant ?? this.surfaceVariant,
       surfaceContainer: surfaceContainer ?? this.surfaceContainer,
@@ -157,6 +215,17 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
       error: error ?? this.error,
       info: info ?? this.info,
       neutral: neutral ?? this.neutral,
+      successSubtle: successSubtle ?? this.successSubtle,
+      warningSubtle: warningSubtle ?? this.warningSubtle,
+      errorSubtle: errorSubtle ?? this.errorSubtle,
+      infoSubtle: infoSubtle ?? this.infoSubtle,
+      neutralSubtle: neutralSubtle ?? this.neutralSubtle,
+      fieldHover: fieldHover ?? this.fieldHover,
+      fieldDisabled: fieldDisabled ?? this.fieldDisabled,
+      sidebarActiveBackground:
+          sidebarActiveBackground ?? this.sidebarActiveBackground,
+      sidebarActiveIndicator:
+          sidebarActiveIndicator ?? this.sidebarActiveIndicator,
     );
   }
 

@@ -276,53 +276,40 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
                   style: Theme.of(context).textTheme.erpSectionTitle,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                DropdownButtonFormField<String?>(
-                  initialValue: estado,
-                  decoration: const InputDecoration(
-                    labelText: 'Estado',
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('Todos')),
-                    DropdownMenuItem(
-                      value: 'EXPIRADO',
-                      child: Text('Expirado'),
-                    ),
-                    DropdownMenuItem(value: 'RECALL', child: Text('Recall')),
-                    DropdownMenuItem(
-                      value: 'QUARENTENA',
-                      child: Text('Quarentena'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'BLOQUEADO',
-                      child: Text('Bloqueado'),
-                    ),
-                    DropdownMenuItem(value: 'CRITICO', child: Text('Crítico')),
+                EnterpriseSelectField<String>(
+                  label: 'Estado',
+                  value: estado,
+                  emptyLabel: 'Todos',
+                  options: const [
+                    EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
+                    EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
+                    EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+                    EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
+                    EnterpriseSelectOption(value: 'CRITICO', label: 'Crítico'),
                   ],
                   onChanged: (value) => setModalState(() => estado = value),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                DropdownButtonFormField<String?>(
-                  initialValue: alertaTipo,
-                  decoration: const InputDecoration(
-                    labelText: 'Tipo de alerta',
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('Todos')),
-                    DropdownMenuItem(
+                EnterpriseSelectField<String>(
+                  label: 'Tipo de alerta',
+                  value: alertaTipo,
+                  emptyLabel: 'Todos',
+                  options: const [
+                    EnterpriseSelectOption(
                       value: 'LOTE_EXPIRADO',
-                      child: Text('Lote expirado'),
+                      label: 'Lote expirado',
                     ),
-                    DropdownMenuItem(
+                    EnterpriseSelectOption(
                       value: 'LOTE_A_EXPIRAR',
-                      child: Text('Lote a expirar'),
+                      label: 'Lote a expirar',
                     ),
-                    DropdownMenuItem(
+                    EnterpriseSelectOption(
                       value: 'ESTOQUE_BAIXO',
-                      child: Text('Stock baixo'),
+                      label: 'Stock baixo',
                     ),
-                    DropdownMenuItem(
+                    EnterpriseSelectOption(
                       value: 'PRODUTO_ESGOTADO',
-                      child: Text('Esgotado'),
+                      label: 'Esgotado',
                     ),
                   ],
                   onChanged: (value) => setModalState(() => alertaTipo = value),
@@ -525,17 +512,18 @@ class _SanitaryBadge extends StatelessWidget {
     final value = label ?? '—';
     final color = switch (value) {
       'EXPIRADO' => t.posDanger,
-      'RECALL' => Colors.deepOrange,
-      'QUARENTENA' => t.posWarning,
-      'BLOQUEADO' => Colors.amber.shade800,
-      'CRITICO' => Colors.redAccent,
+      'RECALL' => t.recall,
+      'QUARENTENA' => t.quarantine,
+      'BLOQUEADO' => t.posWarning,
+      'CRITICO' => t.posDanger,
       _ => t.brandGreen,
     };
+    final s = context.spacing;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: s.sm, vertical: s.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(RadiusScale.full),
       ),
       child: Text(
         value,

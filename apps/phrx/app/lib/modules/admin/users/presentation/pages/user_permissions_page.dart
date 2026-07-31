@@ -8,6 +8,7 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../providers/permission_matrix_provider.dart';
@@ -55,18 +56,22 @@ class UserPermissionsPage extends ConsumerWidget {
         runSpacing: s.sm,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          DropdownButton<String?>(
-            value: state.selectedRole,
-            hint: const Text('Filtrar por perfil'),
-            items: [
-              const DropdownMenuItem(value: null, child: Text('Todos os perfis')),
-              for (final g in dash.grantsByRole)
-                DropdownMenuItem(
-                  value: g.role,
-                  child: Text('${g.role} (${g.count})'),
-                ),
-            ],
-            onChanged: state.isBusy ? null : notifier.setRoleFilter,
+          SizedBox(
+            width: 240,
+            child: EnterpriseSelectField<String>(
+              label: 'Filtrar por perfil',
+              value: state.selectedRole,
+              emptyLabel: 'Todos os perfis',
+              enabled: !state.isBusy,
+              options: [
+                for (final grant in dash.grantsByRole)
+                  EnterpriseSelectOption<String>(
+                    value: grant.role,
+                    label: '${grant.role} (${grant.count})',
+                  ),
+              ],
+              onChanged: notifier.setRoleFilter,
+            ),
           ),
           if (state.canEdit)
             Text(

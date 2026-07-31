@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../domain/entities/customer.dart';
@@ -182,15 +183,13 @@ class _CustomerFormState extends State<CustomerForm> {
                 (v == null || v.trim().isEmpty) ? 'Nome obrigatório' : null,
           ),
           SizedBox(height: s.md),
-          DropdownButtonFormField<String>(
+          EnterpriseSelectFormField<String>(
+            label: 'Tipo',
             initialValue: _tipo,
-            decoration: const InputDecoration(
-              labelText: 'Tipo',
-            ),
-            items: const [
-              DropdownMenuItem(value: 'PACIENTE', child: Text('Paciente')),
-              DropdownMenuItem(value: 'EMPRESA', child: Text('Empresa')),
-              DropdownMenuItem(value: 'CONVENIO', child: Text('Convénio')),
+            options: const [
+              EnterpriseSelectOption(value: 'PACIENTE', label: 'Paciente'),
+              EnterpriseSelectOption(value: 'EMPRESA', label: 'Empresa'),
+              EnterpriseSelectOption(value: 'CONVENIO', label: 'Convénio'),
             ],
             onChanged: (v) => setState(() => _tipo = v ?? 'PACIENTE'),
           ),

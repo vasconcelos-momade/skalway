@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'design_metrics.dart';
 import 'design_tokens.dart';
 import 'pharma_color_tokens.dart';
-import 'typography.dart';
+import 'table_tokens.dart';
 
 @immutable
 class TableTheme extends ThemeExtension<TableTheme> {
@@ -29,7 +28,7 @@ class TableTheme extends ThemeExtension<TableTheme> {
   /// Linha par (base da tabela).
   final Color zebraEvenColor;
 
-  /// Linha ímpar — contraste visível face à par (Carbon / Fluent).
+  /// Linha ímpar — contraste subtil (2–3%).
   final Color zebraOddColor;
 
   /// Activa zebra striping nas [EnterpriseDataTable]s.
@@ -43,31 +42,19 @@ class TableTheme extends ThemeExtension<TableTheme> {
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
     final isDark = (scheme?.brightness ?? Brightness.light) == Brightness.dark;
-    // Alinha com PharmaSurface da tabela (surfaceContainerHighest / card).
-    final base = colors?.surfaceContainerHighest ?? tokens.card;
-    final onSurface = scheme?.onSurface ?? tokens.textPrimary;
-
-    // Contraste enterprise (Carbon / Fluent): odd bem distinto da superfície.
-    final odd = Color.alphaBlend(
-      onSurface.withValues(alpha: isDark ? 0.16 : 0.06),
-      base,
-    );
+    final table = TableTokens.fromPharma(tokens, isDark: isDark);
 
     return TableTheme(
-      headerBackgroundColor:
-          colors?.surfaceContainerHigh ?? tokens.bgSecondary,
-      headerTextStyle: theme.erpTableHeader.copyWith(
-        color: tokens.textPrimary,
+      headerBackgroundColor: colors?.surfaceContainerLow ?? table.headerBackground,
+      headerTextStyle: table.headerStyle(theme, tokens).copyWith(
+        color: tokens.textSecondary,
       ),
-      rowHeight: DesignMetrics.tableRowHeightMax,
-      // Divisores discretos: reduzir alpha em ambos os temas (Carbon / Fluent).
-      dividerColor: (scheme?.outlineVariant ?? tokens.border)
-          .withValues(alpha: isDark ? 0.20 : 0.30),
-      hoverColor: colors?.hover ?? tokens.cardHover,
-      selectedColor:
-          colors?.selected ?? tokens.brandGreen.withValues(alpha: 0.12),
-      zebraEvenColor: base,
-      zebraOddColor: odd,
+      rowHeight: table.rowHeightMax,
+      dividerColor: colors?.divider ?? table.divider,
+      hoverColor: colors?.neutralSubtle ?? table.hover,
+      selectedColor: colors?.primarySubtle ?? table.selected,
+      zebraEvenColor: table.rowBackground,
+      zebraOddColor: colors?.neutralSubtle ?? table.zebraOdd,
       zebraEnabled: true,
     );
   }

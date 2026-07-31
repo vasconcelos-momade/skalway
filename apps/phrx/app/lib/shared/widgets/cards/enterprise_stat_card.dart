@@ -41,15 +41,16 @@ class EnterpriseStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final textTheme = context.typography;
     final s = context.spacing;
     final compact = density == StatCardDensity.compact;
     final (Color fg, Color bg) = switch (accent) {
-      StatCardAccent.positive => (t.brandGreen, t.brandGreen.withValues(alpha: 0.1)),
-      StatCardAccent.warning => (t.posWarning, t.posWarning.withValues(alpha: 0.1)),
-      StatCardAccent.danger => (t.posDanger, t.posDanger.withValues(alpha: 0.1)),
-      StatCardAccent.info => (t.brandBlue, t.brandBlue.withValues(alpha: 0.12)),
-      StatCardAccent.neutral => (t.textSecondary, t.textMuted.withValues(alpha: 0.12)),
+      StatCardAccent.positive => (t.posSuccess, colors.successSubtle),
+      StatCardAccent.warning => (t.posWarning, colors.warningSubtle),
+      StatCardAccent.danger => (t.posDanger, colors.errorSubtle),
+      StatCardAccent.info => (t.posInfo, colors.infoSubtle),
+      StatCardAccent.neutral => (t.textSecondary, colors.neutralSubtle),
     };
 
     final pad = compact
@@ -65,11 +66,7 @@ class EnterpriseStatCard extends StatelessWidget {
     final valueStyle = AppTypography.kpiValue(textTheme, compact: compact).copyWith(
       letterSpacing: -0.3,
       height: 1.0,
-      color: accent == StatCardAccent.danger
-          ? t.posDanger
-          : accent == StatCardAccent.info
-              ? t.brandBlue
-              : t.textPrimary,
+      color: accent == StatCardAccent.danger ? t.posDanger : t.textPrimary,
     );
 
     final content = Column(
@@ -92,7 +89,7 @@ class EnterpriseStatCard extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: s.xs, vertical: s.xxs),
                   decoration: BoxDecoration(
-                    color: fg.withValues(alpha: 0.15),
+                    color: bg,
                     borderRadius: BorderRadius.circular(t.radiusSm),
                   ),
                   child: Text(
@@ -131,10 +128,11 @@ class EnterpriseStatCard extends StatelessWidget {
     );
 
     return PharmaSurface(
+      color: t.surface2,
       padding: pad,
       onTap: onTap,
-      hoverColor: onTap != null ? fg.withValues(alpha: 0.06) : null,
-      splashColor: onTap != null ? fg.withValues(alpha: 0.08) : null,
+      hoverColor: onTap != null ? t.cardHover : null,
+      splashColor: onTap != null ? t.surface3 : null,
       child: content,
     );
   }

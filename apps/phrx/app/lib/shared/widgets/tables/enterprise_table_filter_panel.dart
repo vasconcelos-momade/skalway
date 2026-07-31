@@ -85,7 +85,7 @@ class EnterpriseTableFilterPanel extends StatelessWidget {
                   ),
             ),
             SizedBox(height: gap),
-            Divider(height: 1, color: t.border.withValues(alpha: 0.5)),
+            Divider(height: 1, color: t.border),
             SizedBox(height: gap),
             for (var i = 0; i < filters.length; i++) ...[
               if (i > 0) SizedBox(height: gap),

@@ -9,6 +9,7 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../data/repositories/cashflow_repository_impl.dart';
 import '../../domain/entities/cashflow_operation.dart';
@@ -282,27 +283,23 @@ class _CashflowOperationDialogState
               },
             ),
             SizedBox(height: s.md),
-            DropdownButtonFormField<String>(
+            EnterpriseSelectFormField<String>(
               key: ValueKey('origem-${cashflow.caixaId}-$_origem'),
-              initialValue: _origem != null &&
-                      cashflow.origens.any((o) => o.value == _origem)
-                  ? _origem
-                  : null,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Origem / Destino',
-              ),
-              items: cashflow.origens
-                  .map(
-                    (option) => DropdownMenuItem<String>(
-                      value: option.value,
-                      child: Text(option.label),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _submitting
-                  ? null
-                  : (value) => setState(() => _origem = value),
+              label: 'Origem / Destino',
+              initialValue:
+                  _origem != null &&
+                          cashflow.origens.any((option) => option.value == _origem)
+                      ? _origem
+                      : null,
+              enabled: !_submitting,
+              options: [
+                for (final option in cashflow.origens)
+                  EnterpriseSelectOption<String>(
+                    value: option.value,
+                    label: option.label,
+                  ),
+              ],
+              onChanged: (value) => setState(() => _origem = value),
               validator: (value) =>
                   value == null || value.isEmpty ? 'Selecione a origem' : null,
             ),

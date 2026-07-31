@@ -33,18 +33,16 @@ class PharmaNavigationTokens extends ThemeExtension<PharmaNavigationTokens> {
     required PharmaTokens tokens,
     required ColorScheme scheme,
   }) {
-    final isDark = scheme.brightness == Brightness.dark;
-
     return PharmaNavigationTokens(
-      sidebarBackground: tokens.bgSecondary,
-      sidebarBorder: tokens.border.withValues(alpha: isDark ? 0.6 : 0.85),
-      sidebarSelected: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14),
-      sidebarHover: scheme.onSurface.withValues(alpha: isDark ? 0.10 : 0.06),
-      topbarBackground: tokens.bgSecondary,
-      topbarBorder: tokens.border.withValues(alpha: isDark ? 0.55 : 0.75),
-      navigationRail: tokens.bgSecondary,
-      drawerBackground: tokens.bgSecondary,
-      drawerBorder: tokens.border.withValues(alpha: isDark ? 0.55 : 0.75),
+      sidebarBackground: tokens.surface1,
+      sidebarBorder: tokens.borderSubtle,
+      sidebarSelected: tokens.surface3,
+      sidebarHover: tokens.surface2,
+      topbarBackground: tokens.surface1,
+      topbarBorder: tokens.borderSubtle,
+      navigationRail: tokens.surface1,
+      drawerBackground: tokens.surface1,
+      drawerBorder: tokens.borderSubtle,
     );
   }
 

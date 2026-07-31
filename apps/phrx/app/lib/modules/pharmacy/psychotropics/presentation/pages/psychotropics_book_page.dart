@@ -467,18 +467,16 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  DropdownButtonFormField<String?>(
-                    initialValue: tipo,
-                    decoration: const InputDecoration(
-                      labelText: 'Movimento',
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('Todos')),
-                      DropdownMenuItem(value: 'ENTRADA', child: Text('Entrada')),
-                      DropdownMenuItem(value: 'SAIDA', child: Text('Saída')),
-                      DropdownMenuItem(
+                  EnterpriseSelectField<String>(
+                    label: 'Movimento',
+                    value: tipo,
+                    emptyLabel: 'Todos',
+                    options: const [
+                      EnterpriseSelectOption(value: 'ENTRADA', label: 'Entrada'),
+                      EnterpriseSelectOption(value: 'SAIDA', label: 'Saída'),
+                      EnterpriseSelectOption(
                         value: 'IMPORTACAO',
-                        child: Text('Importação'),
+                        label: 'Importação',
                       ),
                     ],
                     onChanged: (value) => setModalState(() => tipo = value),

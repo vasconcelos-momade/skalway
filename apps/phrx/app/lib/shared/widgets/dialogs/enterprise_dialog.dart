@@ -72,7 +72,7 @@ class EnterpriseDialog extends StatelessWidget {
     }
 
     return Dialog(
-      backgroundColor: t.card,
+      backgroundColor: t.surface4,
       elevation: 0,
       clipBehavior: Clip.antiAlias,
       insetPadding: EdgeInsets.symmetric(
@@ -81,11 +81,7 @@ class EnterpriseDialog extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.dialog(t)),
-        side: BorderSide(
-          color: t.border.withValues(
-            alpha: Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.85,
-          ),
-        ),
+        side: BorderSide(color: t.borderSubtle),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -98,7 +94,7 @@ class EnterpriseDialog extends StatelessWidget {
             boxShadow: AppShadows.dialog(context),
           ),
           child: Material(
-            color: t.card,
+            color: t.surface4,
             child: Shortcuts(
               shortcuts: const {
                 SingleActivator(LogicalKeyboardKey.escape): _DismissIntent(),

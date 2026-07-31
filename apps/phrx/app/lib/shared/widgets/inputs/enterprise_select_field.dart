@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/theme/extensions.dart';
 import '../../../core/theme/typography.dart';
 import 'enterprise_field_decoration.dart';
 
@@ -10,10 +11,7 @@ import 'enterprise_field_decoration.dart';
 /// - hover cinza **dentro** do campo
 /// - menu abre **abaixo** do input ([MenuAnchor])
 class EnterpriseSelectOption<T> {
-  const EnterpriseSelectOption({
-    required this.value,
-    required this.label,
-  });
+  const EnterpriseSelectOption({required this.value, required this.label});
 
   final T value;
   final String label;
@@ -29,6 +27,8 @@ class EnterpriseSelectField<T> extends StatefulWidget {
     this.emptyLabel,
     this.width,
     this.menuMaxHeight,
+    this.prefixIcon,
+    this.errorText,
     this.enabled = true,
   });
 
@@ -43,6 +43,8 @@ class EnterpriseSelectField<T> extends StatefulWidget {
 
   /// Altura máxima do menu. Por omissão: [DesignMetrics.dialogSizeSmall].
   final double? menuMaxHeight;
+  final Widget? prefixIcon;
+  final String? errorText;
   final bool enabled;
 
   @override
@@ -75,10 +77,9 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
     final enabled = widget.enabled && widget.onChanged != null;
     final menuMaxHeight = widget.menuMaxHeight ?? DesignMetrics.dialogSizeSmall;
 
@@ -86,15 +87,16 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
       builder: (context, constraints) {
         final menuWidth =
             constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : widget.width;
+            ? constraints.maxWidth
+            : widget.width;
 
         return MenuAnchor(
           consumeOutsideTap: true,
           style: MenuStyle(
             alignment: AlignmentDirectional.bottomStart,
-            backgroundColor:
-                WidgetStatePropertyAll(scheme.surfaceContainerHighest),
+            backgroundColor: WidgetStatePropertyAll(
+              scheme.surfaceContainerHighest,
+            ),
             maximumSize: WidgetStatePropertyAll(
               Size(double.infinity, menuMaxHeight),
             ),
@@ -106,19 +108,21 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
             final open = controller.isOpen;
             final showHover = enabled && (_hovering || open);
 
-            final decoration = EnterpriseFieldDecoration.of(
-              context,
-              labelText: widget.label,
-              enabled: enabled,
-              suffixIcon: Icon(
-                open ? Icons.expand_less : Icons.expand_more,
-                size: t.iconMd,
-                color: enabled ? t.textSecondary : t.textMuted,
-              ),
-            ).copyWith(
-              hoverColor:
-                  scheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.06),
-            );
+            final decoration =
+                EnterpriseFieldDecoration.of(
+                  context,
+                  hintText: widget.emptyLabel ?? 'Selecionar',
+                  errorText: widget.errorText,
+                  enabled: enabled,
+                  prefixIcon: widget.prefixIcon,
+                  suffixIcon: Icon(
+                    open ? Icons.expand_less : Icons.expand_more,
+                    size: t.iconMd,
+                    color: enabled ? t.textSecondary : t.textMuted,
+                  ),
+                ).copyWith(
+                  hoverColor: colors.fieldHover,
+                );
 
             return MouseRegion(
               cursor: enabled
@@ -146,7 +150,7 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                     _displayLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.erpBody.copyWith(
+                    style: textTheme.erpSelectValue.copyWith(
                       color: enabled ? t.textPrimary : t.textMuted,
                     ),
                   ),
@@ -163,7 +167,11 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                         widget.onChanged?.call(null);
                       },
                 trailingIcon: !_hasValue
-                    ? Icon(Icons.check, size: t.iconSm, color: scheme.primary)
+                    ? Icon(
+                        Icons.check,
+                        size: t.iconSm,
+                        color: colors.sidebarActiveIndicator,
+                      )
                     : null,
                 child: Text(
                   widget.emptyLabel!,
@@ -178,7 +186,11 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                         widget.onChanged?.call(option.value);
                       },
                 trailingIcon: _hasValue && option.value == widget.value
-                    ? Icon(Icons.check, size: t.iconSm, color: scheme.primary)
+                    ? Icon(
+                        Icons.check,
+                        size: t.iconSm,
+                        color: colors.sidebarActiveIndicator,
+                      )
                     : null,
                 child: Text(
                   option.label,
@@ -191,7 +203,44 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
       },
     );
 
-    if (widget.width == null) return field;
-    return SizedBox(width: widget.width, child: field);
+    final wrapped = widget.width == null ? field : SizedBox(width: widget.width, child: field);
+    return EnterpriseFieldGroup(labelText: widget.label, child: wrapped);
   }
+}
+
+class EnterpriseSelectFormField<T> extends FormField<T> {
+  EnterpriseSelectFormField({
+    super.key,
+    required String label,
+    required List<EnterpriseSelectOption<T>> options,
+    required ValueChanged<T?>? onChanged,
+    super.initialValue,
+    String? emptyLabel,
+    double? width,
+    double? menuMaxHeight,
+    Widget? prefixIcon,
+    bool enabled = true,
+    super.validator,
+    super.autovalidateMode,
+  }) : super(
+         builder: (field) {
+           return EnterpriseSelectField<T>(
+             label: label,
+             options: options,
+             value: field.value,
+             emptyLabel: emptyLabel,
+             width: width,
+             menuMaxHeight: menuMaxHeight,
+             prefixIcon: prefixIcon,
+             errorText: field.errorText,
+             enabled: enabled,
+             onChanged: !enabled
+                 ? null
+                 : (value) {
+                     field.didChange(value);
+                     onChanged?.call(value);
+                   },
+           );
+         },
+       );
 }

@@ -75,7 +75,7 @@ class EnterpriseTextFormField extends StatelessWidget {
     final t = context.pharmaTokens;
     final theme = Theme.of(context);
 
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       focusNode: focusNode,
       initialValue: controller == null ? initialValue : null,
@@ -102,7 +102,6 @@ class EnterpriseTextFormField extends StatelessWidget {
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,
-        labelText: labelText,
         hintText: hintText,
         helperText: helperText,
         errorText: errorText,
@@ -113,6 +112,8 @@ class EnterpriseTextFormField extends StatelessWidget {
         multiline: _multiline,
       ),
     );
+
+    return EnterpriseFieldGroup(labelText: labelText, child: field);
   }
 }
 
@@ -166,7 +167,7 @@ class EnterpriseTextField extends StatelessWidget {
     final t = context.pharmaTokens;
     final theme = Theme.of(context);
 
-    return TextField(
+    final field = TextField(
       controller: controller,
       focusNode: focusNode,
       keyboardType: keyboardType,
@@ -186,7 +187,6 @@ class EnterpriseTextField extends StatelessWidget {
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,
-        labelText: labelText,
         hintText: hintText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
@@ -194,5 +194,7 @@ class EnterpriseTextField extends StatelessWidget {
         multiline: _multiline,
       ),
     );
+
+    return EnterpriseFieldGroup(labelText: labelText, child: field);
   }
 }

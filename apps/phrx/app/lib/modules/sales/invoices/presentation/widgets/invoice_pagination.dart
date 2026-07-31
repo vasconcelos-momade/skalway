@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 
 class InvoicePagination extends StatelessWidget {
   const InvoicePagination({
@@ -48,22 +49,24 @@ class InvoicePagination extends StatelessWidget {
               ),
         ),
         const Spacer(),
-        DropdownButton<int>(
-          value: pageSizeOptions.contains(pageSize)
-              ? pageSize
-              : pageSizeOptions.first,
-          style: Theme.of(context).textTheme.erpTableSecondary,
-          items: pageSizeOptions
-              .map(
-                (value) => DropdownMenuItem<int>(
+        SizedBox(
+          width: 150,
+          child: EnterpriseSelectField<int>(
+            label: 'Por página',
+            value: pageSizeOptions.contains(pageSize)
+                ? pageSize
+                : pageSizeOptions.first,
+            enabled: !isBusy,
+            options: [
+              for (final value in pageSizeOptions)
+                EnterpriseSelectOption<int>(
                   value: value,
-                  child: Text('$value / página'),
+                  label: '$value / página',
                 ),
-              )
-              .toList(growable: false),
-          onChanged: isBusy
-              ? null
-              : (value) => value != null ? onPageSizeChanged?.call(value) : null,
+            ],
+            onChanged: (value) =>
+                value != null ? onPageSizeChanged?.call(value) : null,
+          ),
         ),
         SizedBox(width: s.md),
         OutlinedButton.icon(

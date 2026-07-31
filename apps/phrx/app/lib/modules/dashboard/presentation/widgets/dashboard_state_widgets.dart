@@ -1,39 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/design_metrics.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
-import '../../../../shared/widgets/loading/skeleton_loaders.dart';
+import '../../../../shared/widgets/feedback/module_data_states.dart';
 
 class DashboardLoadingState extends StatelessWidget {
   const DashboardLoadingState({super.key, this.kpiCount = 4});
 
+  /// Mantido por compatibilidade de API; ignorado.
   final int kpiCount;
 
   @override
-  Widget build(BuildContext context) {
-    final s = context.spacing;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Wrap(
-          spacing: s.sm,
-          runSpacing: s.sm,
-          children: List.generate(
-            kpiCount,
-            (_) => SizedBox(
-              width: 180,
-              height: 88,
-              child: SkeletonBox(height: 88, radius: context.pharmaTokens.radiusMd),
-            ),
-          ),
-        ),
-        SizedBox(height: s.lg),
-        SkeletonBox(height: 220, radius: context.pharmaTokens.radiusMd),
-        SizedBox(height: s.md),
-        SkeletonBox(height: 220, radius: context.pharmaTokens.radiusMd),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const ModuleLoadingState();
 }
 
 class DashboardErrorState extends StatelessWidget {
@@ -56,7 +35,11 @@ class DashboardErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: t.posDanger),
+            Icon(
+              Icons.cloud_off_rounded,
+              size: DesignMetrics.minTouchTarget,
+              color: t.posDanger,
+            ),
             SizedBox(height: s.md),
             Text(
               'Não foi possível carregar o painel',
@@ -108,7 +91,7 @@ class DashboardEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 44, color: t.textMuted),
+              Icon(icon, size: DesignMetrics.minTouchTarget, color: t.textMuted),
               SizedBox(height: s.sm),
             ],
             if (title != null && title!.isNotEmpty) ...[

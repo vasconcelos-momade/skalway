@@ -6,6 +6,7 @@ import '../../../../platform/printing/thermal/printer_connection.dart';
 import '../../../../platform/printing/thermal/printer_discovery.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../domain/entities/printer.dart';
 
@@ -157,13 +158,22 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DropdownButtonFormField<String>(
+          EnterpriseSelectFormField<String>(
+            label: 'Tipo de ligação *',
             initialValue: _connection,
-            decoration: const InputDecoration(labelText: 'Tipo de ligação *'),
-            items: const [
-              DropdownMenuItem(value: 'NETWORK', child: Text('Rede (IP/WIFI)')),
-              DropdownMenuItem(value: 'USB', child: Text('USB (Android/Desktop)')),
-              DropdownMenuItem(value: 'BLUETOOTH', child: Text('Bluetooth')),
+            options: const [
+              EnterpriseSelectOption(
+                value: 'NETWORK',
+                label: 'Rede (IP/WIFI)',
+              ),
+              EnterpriseSelectOption(
+                value: 'USB',
+                label: 'USB (Android/Desktop)',
+              ),
+              EnterpriseSelectOption(
+                value: 'BLUETOOTH',
+                label: 'Bluetooth',
+              ),
             ],
             onChanged: (value) {
               if (value != null) {

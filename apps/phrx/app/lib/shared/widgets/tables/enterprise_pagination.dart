@@ -74,15 +74,16 @@ class EnterprisePagination extends StatelessWidget {
     if (_hasKnownTotal && totalCount == 0 && (itemsOnPage ?? 0) == 0) {
       return const SizedBox.shrink();
     }
-    if (!_hasKnownTotal && page == 1 && hasMore != true && (itemsOnPage ?? 0) == 0) {
+    if (!_hasKnownTotal &&
+        page == 1 &&
+        hasMore != true &&
+        (itemsOnPage ?? 0) == 0) {
       return const SizedBox.shrink();
     }
 
     final t = context.pharmaTokens;
     final s = context.spacing;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final summaryText = _hasKnownTotal
         ? 'Mostrando $_start-$_end de $_resolvedTotalCount $itemLabel'
@@ -101,7 +102,9 @@ class EnterprisePagination extends StatelessWidget {
             children: [
               Text(
                 summaryText,
-                style: theme.textTheme.erpTableSecondary.copyWith(color: t.textPrimary),
+                style: theme.textTheme.erpTableSecondary.copyWith(
+                  color: t.textPrimary,
+                ),
               ),
             ],
           );
@@ -109,11 +112,9 @@ class EnterprisePagination extends StatelessWidget {
           final pagination = Align(
             alignment: Alignment.centerRight,
             child: PharmaSurface(
-              color: scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.3 : 0.5),
-              borderRadius: BorderRadius.circular(t.radius3xl),
-              border: Border.all(
-                color: scheme.outline.withValues(alpha: isDark ? 0.6 : 0.8),
-              ),
+              color: t.inputBg,
+              borderRadius: BorderRadius.circular(t.radiusMd),
+              border: Border.all(color: t.border),
               padding: EdgeInsets.symmetric(horizontal: s.xs, vertical: s.xxs),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -121,7 +122,9 @@ class EnterprisePagination extends StatelessWidget {
                   _PaginationSegmentButton(
                     icon: Icons.chevron_left_rounded,
                     enabled: _canGoBack,
-                    onPressed: _canGoBack ? () => onPageChanged(page - 1) : null,
+                    onPressed: _canGoBack
+                        ? () => onPageChanged(page - 1)
+                        : null,
                   ),
                   SizedBox(width: s.xs),
                   for (final item in _buildPageItems()) ...[
@@ -144,7 +147,9 @@ class EnterprisePagination extends StatelessWidget {
                   _PaginationSegmentButton(
                     icon: Icons.chevron_right_rounded,
                     enabled: _canGoForward,
-                    onPressed: _canGoForward ? () => onPageChanged(page + 1) : null,
+                    onPressed: _canGoForward
+                        ? () => onPageChanged(page + 1)
+                        : null,
                   ),
                 ],
               ),
@@ -183,75 +188,8 @@ class EnterprisePagination extends StatelessWidget {
   }
 }
 
-class _PageSizeSelector extends StatelessWidget {
-  const _PageSizeSelector({
-    required this.pageSize,
-    required this.options,
-    required this.onChanged,
-    this.enabled = true,
-  });
-
-  final int pageSize;
-  final List<int> options;
-  final bool enabled;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-    final theme = Theme.of(context);
-    final selectedValue = options.contains(pageSize) ? pageSize : options.first;
-    final valueStyle = theme.textTheme.erpTableSecondary.copyWith(color: t.textPrimary);
-
-    return PharmaSurface(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.density.sm,
-        vertical: t.density.xs,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Itens por pagina',
-            style: theme.textTheme.erpTableSecondary.copyWith(color: t.textSecondary),
-          ),
-          SizedBox(width: context.spacing.xs),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: selectedValue,
-              isDense: true,
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: t.iconSm,
-                color: t.textMuted,
-              ),
-              style: valueStyle,
-              items: options
-                  .map(
-                    (size) => DropdownMenuItem<int>(
-                      value: size,
-                      child: Text('$size', style: valueStyle),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: enabled
-                  ? (value) {
-                      if (value != null) onChanged(value);
-                    }
-                  : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PaginationGap extends StatelessWidget {
-  const _PaginationGap({
-    required this.label,
-    required this.textColor,
-  });
+  const _PaginationGap({required this.label, required this.textColor});
 
   final String label;
   final Color textColor;
@@ -265,7 +203,9 @@ class _PaginationGap extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: Theme.of(context).textTheme.erpTableSecondary.copyWith(color: textColor),
+          style: Theme.of(
+            context,
+          ).textTheme.erpTableSecondary.copyWith(color: textColor),
         ),
       ),
     );
@@ -290,7 +230,7 @@ class _PaginationSegmentButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final scheme = Theme.of(context).colorScheme;
+    final colors = context.colors;
     final size = t.compactControlHeight;
 
     return SizedBox(
@@ -305,28 +245,34 @@ class _PaginationSegmentButton extends StatelessWidget {
             maximumSize: WidgetStateProperty.all(Size.square(size)),
             shape: WidgetStateProperty.all(const CircleBorder()),
             backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (!enabled) return scheme.surface.withValues(alpha: 0);
-              if (selected) {
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                return scheme.primary.withValues(alpha: isDark ? 0.25 : 0.15);
+              if (!enabled) return Colors.transparent;
+              if (selected) return colors.primarySubtle;
+              if (states.contains(WidgetState.pressed)) {
+                return colors.neutralSubtle;
               }
-              if (states.contains(WidgetState.pressed)) return scheme.onSurface.withValues(alpha: 0.12);
-              if (states.contains(WidgetState.hovered)) return scheme.onSurface.withValues(alpha: 0.08);
-              if (states.contains(WidgetState.focused)) return scheme.onSurface.withValues(alpha: 0.12);
-              return scheme.surface.withValues(alpha: 0);
+              if (states.contains(WidgetState.hovered)) {
+                return colors.neutralSubtle;
+              }
+              if (states.contains(WidgetState.focused)) {
+                return colors.neutralSubtle;
+              }
+              return Colors.transparent;
             }),
             foregroundColor: WidgetStateProperty.resolveWith((states) {
               if (!enabled) return t.textMuted.withValues(alpha: 0.5);
-              if (selected) {
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                return scheme.primary.withValues(alpha: isDark ? 0.9 : 0.85);
-              }
+              if (selected) return colors.sidebarActiveIndicator;
               return t.textPrimary;
             }),
             overlayColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.pressed)) return scheme.onSurface.withValues(alpha: 0.12);
-              if (states.contains(WidgetState.hovered)) return scheme.onSurface.withValues(alpha: 0.08);
-              if (states.contains(WidgetState.focused)) return scheme.onSurface.withValues(alpha: 0.12);
+              if (states.contains(WidgetState.pressed)) {
+                return colors.neutralSubtle;
+              }
+              if (states.contains(WidgetState.hovered)) {
+                return colors.neutralSubtle;
+              }
+              if (states.contains(WidgetState.focused)) {
+                return colors.neutralSubtle;
+              }
               return null;
             }),
           ),
@@ -336,8 +282,8 @@ class _PaginationSegmentButton extends StatelessWidget {
             : Text(
                 label!,
                 style: Theme.of(context).textTheme.erpTableSecondary.copyWith(
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    ),
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                ),
               ),
       ),
     );

@@ -51,19 +51,13 @@ class EnterpriseBottomSheet extends StatelessWidget {
         maxChildSize: maxChildSize,
         builder: (context, scrollController) {
           return Material(
-            color: t.card,
+            color: t.surface4,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(AppRadius.dialog(t)),
               ),
-              side: BorderSide(
-                color: t.border.withValues(
-                  alpha: Theme.of(context).brightness == Brightness.dark
-                      ? 0.55
-                      : 0.75,
-                ),
-              ),
+              side: BorderSide(color: t.borderSubtle),
             ),
             clipBehavior: Clip.antiAlias,
             child: Shortcuts(
@@ -87,11 +81,12 @@ class EnterpriseBottomSheet extends StatelessWidget {
                       Center(
                         child: Container(
                           margin: EdgeInsets.only(top: s.sm),
-                          width: 40,
-                          height: 4,
+                          width: SpacingTokens.xxxl,
+                          height: SpacingTokens.xs,
                           decoration: BoxDecoration(
                             color: t.border.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius:
+                                BorderRadius.circular(RadiusTokens.full),
                           ),
                         ),
                       ),

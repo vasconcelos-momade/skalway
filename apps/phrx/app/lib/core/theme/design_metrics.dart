@@ -1,13 +1,22 @@
 export 'spacing.dart';
 export 'spacing_tokens.dart';
 export 'radius.dart';
+export 'radius_tokens.dart';
 export 'elevation.dart';
 export 'shadows.dart';
+export 'shadow_tokens.dart';
 export 'motion.dart';
+export 'motion_tokens.dart';
 export 'breakpoints.dart';
 export 'width_tokens.dart';
+export 'border_tokens.dart';
+export 'surface_tokens.dart';
+export 'typography_tokens.dart';
+export 'icon_tokens.dart';
+export 'table_tokens.dart';
 
 import 'breakpoints.dart';
+import 'icon_tokens.dart';
 import 'spacing_tokens.dart';
 
 /// Métricas estruturais do ERP (altura de componentes, sidebars, touch targets).
@@ -24,8 +33,8 @@ abstract final class DesignMetrics {
   /// Altura compacta (botões de tabelas, paginações, ações secundárias discretas).
   static const double compactControlHeight = 40;
 
-  static const double iconMd = 24;
-  static const double iconSm = 18;
+  static const double iconMd = IconTokens.md;
+  static const double iconSm = IconTokens.sm;
   static const double avatarMd = compactControlHeight;
 
   static const double buttonIconSize = iconSm;

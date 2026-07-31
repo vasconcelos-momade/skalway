@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/design_metrics.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
-import '../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../shared/widgets/feedback/module_data_states.dart';
 
 class MovimentacoesLoadingSkeleton extends StatelessWidget {
   const MovimentacoesLoadingSkeleton({super.key, this.embedded = false});
@@ -10,32 +11,7 @@ class MovimentacoesLoadingSkeleton extends StatelessWidget {
   final bool embedded;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-    final s = context.spacing;
-    final isMobile = context.pharmaScreen == PharmaScreenSize.mobile;
-    final itemCount = isMobile ? 6 : 8;
-
-    return ListView.separated(
-      shrinkWrap: embedded,
-      physics: embedded
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: itemCount,
-      separatorBuilder: (_, _) => SizedBox(height: s.sm),
-      itemBuilder: (context, index) {
-        final height = isMobile ? 132.0 : 58.0;
-        return Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: t.card.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(t.radiusXl),
-            border: Border.all(color: t.border.withValues(alpha: 0.35)),
-          ),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => const ModuleLoadingState();
 }
 
 class MovimentacoesErrorState extends StatelessWidget {
@@ -58,7 +34,7 @@ class MovimentacoesErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: t.posDanger),
+            Icon(Icons.cloud_off_rounded, size: DesignMetrics.minTouchTarget, color: t.posDanger),
             SizedBox(height: s.md),
             Text(
               'Não foi possível carregar movimentos',
@@ -102,7 +78,7 @@ class MovimentacoesEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.swap_horiz_rounded, size: 48, color: t.textMuted),
+            Icon(Icons.swap_horiz_rounded, size: DesignMetrics.minTouchTarget, color: t.textMuted),
             SizedBox(height: s.md),
             Text(
               'Nenhum movimento encontrado',

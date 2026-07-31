@@ -55,7 +55,7 @@ class DensityTokens {
     lg: SpacingTokens.md,
     xl: SpacingTokens.lg,
     xxl: SpacingTokens.xl,
-    xxxl: SpacingTokens.xl,
+    xxxl: SpacingTokens.xxl,
     gutter: SpacingTokens.md,
     page: SpacingTokens.md,
     cardPadding: EdgeInsets.all(SpacingTokens.md),
@@ -78,7 +78,7 @@ class DensityTokens {
     lg: SpacingTokens.lg,
     xl: SpacingTokens.xl,
     xxl: SpacingTokens.xxl,
-    xxxl: SpacingTokens.xxl,
+    xxxl: SpacingTokens.xxxl,
     gutter: SpacingTokens.lg,
     page: SpacingTokens.lg,
     cardPadding: EdgeInsets.all(SpacingTokens.lg),
@@ -101,7 +101,7 @@ class DensityTokens {
     lg: SpacingTokens.lg,
     xl: SpacingTokens.xl,
     xxl: SpacingTokens.xxl,
-    xxxl: SpacingTokens.xxl,
+    xxxl: SpacingTokens.xxxl,
     gutter: SpacingTokens.lg,
     page: SpacingTokens.lg,
     cardPadding: EdgeInsets.all(SpacingTokens.lg),
@@ -124,10 +124,13 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     required this.inputBg,
     required this.card,
     required this.cardHover,
+    required this.overlay,
     required this.border,
+    required this.borderSubtle,
     required this.textPrimary,
     required this.textSecondary,
     required this.textMuted,
+    required this.textDisabled,
     required this.brandBlue,
     required this.brandBlueHover,
     required this.brandGreen,
@@ -160,15 +163,32 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     required this.density,
   });
 
+  /// Surface 0 — background da página.
   final Color bgPrimary;
+
+  /// Surface 1 — sidebar / app bar.
   final Color bgSecondary;
+
+  /// Surface 3 — input / toolbar (elevado face ao card).
   final Color inputBg;
+
+  /// Surface 2 — card / painéis de conteúdo.
   final Color card;
   final Color cardHover;
+
+  /// Surface 4 — dialog / dropdown / menu.
+  final Color overlay;
+
+  /// Borda default (~10% opacity).
   final Color border;
+
+  /// Borda subtle (~8% opacity).
+  final Color borderSubtle;
+
   final Color textPrimary;
   final Color textSecondary;
   final Color textMuted;
+  final Color textDisabled;
   final Color brandBlue;
   final Color brandBlueHover;
   final Color brandGreen;
@@ -200,21 +220,34 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
   final double contentMaxWidth;
   final DensityTokens density;
 
-  // Backward-compatible aliases used by older widgets/layouts.
-  double get radiusSm => radiusMd;
+  // Aliases semânticos da escala de superfícies (0–4).
+  Color get surface0 => bgPrimary;
+  Color get surface1 => bgSecondary;
+  Color get surface2 => card;
+  Color get surface3 => inputBg;
+  Color get surface4 => overlay;
+
+  // Radius canónico: sm=4, md=8, lg=10.
+  double get radiusSm => RadiusTokens.sm;
   double get radiusLg => radiusXl;
 
   static PharmaTokens enterpriseDark({DensityTokens density = DensityTokens.comfortable}) {
     return PharmaTokens(
-      bgPrimary: AppColors.ink950,
-      bgSecondary: AppColors.ink900,
-      inputBg: const Color(0xFF1B2735), // Fundo dark suavizado para manter contraste sem pesar visualmente
-      card: AppColors.ink800,
-      cardHover: const Color(0xFF171D26),
-      border: const Color(0xFF1F2937),
-      textPrimary: const Color(0xFFF5F7FA),
-      textSecondary: const Color(0xFF9CA3AF),
-      textMuted: const Color(0xFF6B7280),
+      bgPrimary: AppColorsDark.surface0,
+      bgSecondary: AppColorsDark.surface1,
+      card: AppColorsDark.surface2,
+      cardHover: Color.alphaBlend(
+        Colors.white.withValues(alpha: 0.03),
+        AppColorsDark.surface2,
+      ),
+      inputBg: AppColorsDark.surface3,
+      overlay: AppColorsDark.surface4,
+      border: AppColorsDark.border,
+      borderSubtle: AppColorsDark.borderSubtle,
+      textPrimary: AppColorsDark.textPrimary,
+      textSecondary: AppColorsDark.textSecondary,
+      textMuted: AppColorsDark.textDisabled,
+      textDisabled: AppColorsDark.textDisabled,
       brandBlue: AppColors.pharmaBlueSoft,
       brandBlueHover: AppColors.pharmaBlue,
       brandGreen: AppColors.hospitalGreenBright,
@@ -227,10 +260,10 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
       quarantine: const Color(0xFFFB923C),
       incineration: const Color(0xFFDC2626),
       recall: const Color(0xFFEAB308),
-      radiusMd: SpacingTokens.sm,
-      radiusXl: SpacingTokens.lg,
-      radius2xl: SpacingTokens.xl,
-      radius3xl: SpacingTokens.xxl,
+      radiusMd: RadiusTokens.md,
+      radiusXl: RadiusTokens.lg,
+      radius2xl: RadiusTokens.lg,
+      radius3xl: RadiusTokens.lg,
       minTouchTarget: DesignMetrics.minTouchTarget,
       controlHeight: DesignMetrics.controlHeight,
       compactControlHeight: DesignMetrics.compactControlHeight,
@@ -250,15 +283,21 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
 
   static PharmaTokens enterpriseLight({DensityTokens density = DensityTokens.comfortable}) {
     return PharmaTokens(
-      bgPrimary: AppColors.cloud50,
-      bgSecondary: AppColors.cloud100,
-      inputBg: Colors.white, // Elevação máxima no light (contrasta com a borda e fundo da página)
-      card: Colors.white,
-      cardHover: const Color(0xFFFAFBFC),
-      border: AppColors.cloud200,
-      textPrimary: const Color(0xFF0F172A),
-      textSecondary: AppColors.slate600,
-      textMuted: const Color(0xFF64748B),
+      bgPrimary: AppColorsLight.surface0,
+      bgSecondary: AppColorsLight.surface1,
+      card: AppColorsLight.surface2,
+      cardHover: Color.alphaBlend(
+        Colors.black.withValues(alpha: 0.02),
+        AppColorsLight.surface2,
+      ),
+      inputBg: AppColorsLight.surface3,
+      overlay: AppColorsLight.surface4,
+      border: AppColorsLight.border,
+      borderSubtle: AppColorsLight.borderSubtle,
+      textPrimary: AppColorsLight.textPrimary,
+      textSecondary: AppColorsLight.textSecondary,
+      textMuted: AppColorsLight.textDisabled,
+      textDisabled: AppColorsLight.textDisabled,
       brandBlue: AppColors.pharmaBlue,
       brandBlueHover: AppColors.pharmaBlueDeep,
       brandGreen: AppColors.hospitalGreen,
@@ -271,10 +310,10 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
       quarantine: const Color(0xFFEA580C),
       incineration: const Color(0xFFB91C1C),
       recall: const Color(0xFFCA8A04),
-      radiusMd: SpacingTokens.sm,
-      radiusXl: SpacingTokens.lg,
-      radius2xl: SpacingTokens.xl,
-      radius3xl: SpacingTokens.xxl,
+      radiusMd: RadiusTokens.md,
+      radiusXl: RadiusTokens.lg,
+      radius2xl: RadiusTokens.lg,
+      radius3xl: RadiusTokens.lg,
       minTouchTarget: DesignMetrics.minTouchTarget,
       controlHeight: DesignMetrics.controlHeight,
       compactControlHeight: DesignMetrics.compactControlHeight,
@@ -299,10 +338,13 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
     Color? inputBg,
     Color? card,
     Color? cardHover,
+    Color? overlay,
     Color? border,
+    Color? borderSubtle,
     Color? textPrimary,
     Color? textSecondary,
     Color? textMuted,
+    Color? textDisabled,
     Color? brandBlue,
     Color? brandBlueHover,
     Color? brandGreen,
@@ -340,10 +382,13 @@ class PharmaTokens extends ThemeExtension<PharmaTokens> {
       inputBg: inputBg ?? this.inputBg,
       card: card ?? this.card,
       cardHover: cardHover ?? this.cardHover,
+      overlay: overlay ?? this.overlay,
       border: border ?? this.border,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
+      textDisabled: textDisabled ?? this.textDisabled,
       brandBlue: brandBlue ?? this.brandBlue,
       brandBlueHover: brandBlueHover ?? this.brandBlueHover,
       brandGreen: brandGreen ?? this.brandGreen,

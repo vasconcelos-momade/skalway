@@ -8,6 +8,7 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
@@ -166,19 +167,30 @@ class _FefoPageState extends ConsumerState<FefoPage> with SingleTickerProviderSt
                     filterWidgets: [
                       SizedBox(
                         width: 220,
-                        child: DropdownButtonFormField<String?>(
-                          initialValue: state?.situacao,
-                          decoration: const InputDecoration(
-                            labelText: 'Situação auditoria',
-                          ),
-                          items: const [
-                            DropdownMenuItem<String?>(value: null, child: Text('Todas')),
-                            DropdownMenuItem<String?>(value: 'CONFORME', child: Text('Conforme')),
-                            DropdownMenuItem<String?>(value: 'VIOLACAO', child: Text('Violação')),
-                            DropdownMenuItem<String?>(value: 'EXPIRADO', child: Text('Expirado')),
-                            DropdownMenuItem<String?>(value: 'QUARENTENA', child: Text('Quarentena')),
+                        child: EnterpriseSelectField<String>(
+                          label: 'Situação auditoria',
+                          value: state?.situacao,
+                          emptyLabel: 'Todas',
+                          enabled: !asyncState.isLoading,
+                          options: const [
+                            EnterpriseSelectOption(
+                              value: 'CONFORME',
+                              label: 'Conforme',
+                            ),
+                            EnterpriseSelectOption(
+                              value: 'VIOLACAO',
+                              label: 'Violação',
+                            ),
+                            EnterpriseSelectOption(
+                              value: 'EXPIRADO',
+                              label: 'Expirado',
+                            ),
+                            EnterpriseSelectOption(
+                              value: 'QUARENTENA',
+                              label: 'Quarentena',
+                            ),
                           ],
-                          onChanged: asyncState.isLoading ? null : controller.setSituacao,
+                          onChanged: controller.setSituacao,
                         ),
                       ),
                     ],
@@ -515,17 +527,15 @@ class _FefoAuditFiltersSheet extends StatelessWidget {
                 style: Theme.of(context).textTheme.erpSectionTitle,
               ),
               SizedBox(height: s.md),
-              DropdownButtonFormField<String?>(
-                initialValue: situacao,
-                decoration: const InputDecoration(
-                  labelText: 'Situação',
-                ),
-                items: const [
-                  DropdownMenuItem<String?>(value: null, child: Text('Todas')),
-                  DropdownMenuItem<String?>(value: 'CONFORME', child: Text('Conforme')),
-                  DropdownMenuItem<String?>(value: 'VIOLACAO', child: Text('Violação')),
-                  DropdownMenuItem<String?>(value: 'EXPIRADO', child: Text('Expirado')),
-                  DropdownMenuItem<String?>(value: 'QUARENTENA', child: Text('Quarentena')),
+              EnterpriseSelectField<String>(
+                label: 'Situação',
+                value: situacao,
+                emptyLabel: 'Todas',
+                options: const [
+                  EnterpriseSelectOption(value: 'CONFORME', label: 'Conforme'),
+                  EnterpriseSelectOption(value: 'VIOLACAO', label: 'Violação'),
+                  EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
+                  EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
                 ],
                 onChanged: (value) => setState(() => situacao = value),
               ),

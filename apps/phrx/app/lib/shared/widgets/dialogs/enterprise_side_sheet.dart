@@ -193,13 +193,13 @@ class _EnterpriseSideSheetOverlayState<T>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: Motion.durationNormal,
-      reverseDuration: Motion.durationFast,
+      duration: MotionTokens.slow,
+      reverseDuration: MotionTokens.fast,
     );
     _slide = Tween<Offset>(
       begin: const Offset(1, 0),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Motion.emphasized));
+    ).animate(CurvedAnimation(parent: _controller, curve: MotionTokens.emphasized));
     _controller.forward();
   }
 
@@ -219,7 +219,6 @@ class _EnterpriseSideSheetOverlayState<T>
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final scheme = Theme.of(context).colorScheme;
 
     return Positioned.fill(
       child: Material(
@@ -231,7 +230,7 @@ class _EnterpriseSideSheetOverlayState<T>
               child: FadeTransition(
                 opacity: CurvedAnimation(
                   parent: _controller,
-                  curve: Curves.easeOut,
+                  curve: MotionTokens.ease,
                 ),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -250,19 +249,22 @@ class _EnterpriseSideSheetOverlayState<T>
                       width: widget.width,
                       height: double.infinity,
                       child: Material(
-                        color: scheme.surfaceContainerHigh,
-                        elevation: context.elevationTokens.level2,
+                        color: t.surface4,
+                        elevation: 0,
                         shadowColor: Colors.transparent,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: scheme.surfaceContainerHigh,
+                            color: t.surface4,
                             border: Border(
                               left: BorderSide(
-                                color: t.border,
-                                width: 1.0,
+                                color: t.borderSubtle,
+                                width: BorderTokens.width,
                               ),
                             ),
-                            boxShadow: AppShadows.dialog(context),
+                            boxShadow: AppShadows.panelEdge(
+                              context,
+                              fromLeft: false,
+                            ),
                           ),
                           child: Navigator(
                             onGenerateRoute: (_) => MaterialPageRoute<void>(

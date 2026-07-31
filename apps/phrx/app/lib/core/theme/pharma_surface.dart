@@ -43,18 +43,16 @@ class PharmaSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final radius = borderRadius ?? BorderRadius.circular(t.radiusMd);
     final resolvedBorder =
         border ??
         Border.all(
-          color: scheme.outline.withValues(alpha: isDark ? 0.6 : 0.85),
+          color: t.borderSubtle,
         );
 
     Widget content = DecoratedBox(
       decoration: BoxDecoration(
-        color: color ?? scheme.surfaceContainerHighest,
+        color: color ?? t.surface2,
         borderRadius: radius,
         border: resolvedBorder,
       ),
@@ -107,8 +105,8 @@ class PharmaInstantFilterChip extends StatelessWidget {
 
     return PharmaSurface(
       color: selected
-          ? scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14)
-          : scheme.surfaceContainerHighest,
+          ? scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12)
+          : t.surface3,
       padding: EdgeInsets.symmetric(
         horizontal: t.density.sm,
         vertical: t.density.xs,
@@ -151,15 +149,13 @@ class PharmaInstantField extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(t.radiusMd),
         border: Border.all(
-          color: scheme.outline.withValues(alpha: isDark ? 0.6 : 0.85),
+          color: t.border,
         ),
       ),
       child: TextField(

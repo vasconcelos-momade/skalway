@@ -7,6 +7,7 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 
 import '../../../customers/data/repositories/customer_repository_impl.dart';
@@ -218,19 +219,16 @@ class _SaveProformaInvoiceDialogState
               },
             ),
             if (!_manualClient)
-              DropdownButtonFormField<String>(
+              EnterpriseSelectFormField<String>(
+                label: 'Cliente do cadastro *',
                 initialValue: _clienteId,
-                decoration: const InputDecoration(
-                  labelText: 'Cliente do cadastro *',
-                ),
-                items: _customers
-                    .map(
-                      (c) => DropdownMenuItem<String>(
-                        value: c.id,
-                        child: Text(c.nome, overflow: TextOverflow.ellipsis),
-                      ),
-                    )
-                    .toList(growable: false),
+                options: [
+                  for (final customer in _customers)
+                    EnterpriseSelectOption<String>(
+                      value: customer.id,
+                      label: customer.nome,
+                    ),
+                ],
                 onChanged: (value) {
                   final customer = _findCustomerById(value);
                   setState(() => _applyCustomer(customer));

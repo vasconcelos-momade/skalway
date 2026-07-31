@@ -22,9 +22,13 @@ class InventoryMobileSummaryBar extends StatelessWidget {
     final s = context.spacing;
 
     return Material(
-      color: t.card,
+      color: t.surface2,
       borderRadius: BorderRadius.circular(t.radiusXl),
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(t.radiusXl),
+        side: BorderSide(color: t.borderSubtle),
+      ),
       child: InkWell(
         onTap: onOpen,
         borderRadius: BorderRadius.circular(t.radiusXl),

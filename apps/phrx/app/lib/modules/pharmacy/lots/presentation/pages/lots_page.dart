@@ -47,9 +47,9 @@ class _LotsPageState extends ConsumerState<LotsPage> {
       case 'EXPIRADO':
         return t.posDanger;
       case '30_DIAS':
-        return Colors.orange;
+        return t.posWarning;
       case '60_DIAS':
-        return Colors.amber.shade700;
+        return t.quarantine;
       default:
         return t.brandGreen;
     }
@@ -538,56 +538,32 @@ class _LotsFiltersBottomSheetState extends State<_LotsFiltersBottomSheet> {
         children: [
           Text('Filtros', style: Theme.of(context).textTheme.erpSectionTitle),
           SizedBox(height: s.md),
-          DropdownButtonFormField<String?>(
-            initialValue: _estadoSanitario,
-            decoration: const InputDecoration(
-              labelText: 'Estado sanitário',
-            ),
-            items: const [
-              DropdownMenuItem<String?>(value: null, child: Text('Todos')),
-              DropdownMenuItem<String?>(value: 'VALIDO', child: Text('Válido')),
-              DropdownMenuItem<String?>(
-                value: 'EXPIRADO',
-                child: Text('Expirado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'QUARENTENA',
-                child: Text('Quarentena'),
-              ),
-              DropdownMenuItem<String?>(value: 'RECALL', child: Text('Recall')),
+          EnterpriseSelectField<String>(
+            label: 'Estado sanitário',
+            value: _estadoSanitario,
+            emptyLabel: 'Todos',
+            enabled: !_submitting,
+            options: const [
+              EnterpriseSelectOption(value: 'VALIDO', label: 'Válido'),
+              EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
+              EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+              EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
             ],
-            onChanged: _submitting
-                ? null
-                : (value) => setState(() => _estadoSanitario = value),
+            onChanged: (value) => setState(() => _estadoSanitario = value),
           ),
           SizedBox(height: s.md),
-          DropdownButtonFormField<String?>(
-            initialValue: _disponibilidade,
-            decoration: const InputDecoration(
-              labelText: 'Disponibilidade',
-            ),
-            items: const [
-              DropdownMenuItem<String?>(value: null, child: Text('Todas')),
-              DropdownMenuItem<String?>(
-                value: 'DISPONIVEL',
-                child: Text('Disponível'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'RESERVADO',
-                child: Text('Reservado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'BLOQUEADO',
-                child: Text('Bloqueado'),
-              ),
-              DropdownMenuItem<String?>(
-                value: 'INDISPONIVEL',
-                child: Text('Indisponível'),
-              ),
+          EnterpriseSelectField<String>(
+            label: 'Disponibilidade',
+            value: _disponibilidade,
+            emptyLabel: 'Todas',
+            enabled: !_submitting,
+            options: const [
+              EnterpriseSelectOption(value: 'DISPONIVEL', label: 'Disponível'),
+              EnterpriseSelectOption(value: 'RESERVADO', label: 'Reservado'),
+              EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
+              EnterpriseSelectOption(value: 'INDISPONIVEL', label: 'Indisponível'),
             ],
-            onChanged: _submitting
-                ? null
-                : (value) => setState(() => _disponibilidade = value),
+            onChanged: (value) => setState(() => _disponibilidade = value),
           ),
           SizedBox(height: s.md),
           FilterChip(
@@ -969,16 +945,17 @@ class _LoteStatusChip extends StatelessWidget {
     final color = switch (normalized) {
       'VALIDO' => t.brandGreen,
       'EXPIRADO' => t.posDanger,
-      'QUARENTENA' => Colors.orange,
-      'RECALL' => Colors.deepOrange,
+      'QUARENTENA' => t.quarantine,
+      'RECALL' => t.recall,
       _ => t.textMuted,
     };
+    final s = context.spacing;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: s.sm, vertical: s.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(RadiusScale.full),
       ),
       child: Text(
         label,

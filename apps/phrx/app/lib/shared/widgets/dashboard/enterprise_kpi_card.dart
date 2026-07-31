@@ -111,7 +111,7 @@ class EnterpriseKpiCard extends StatelessWidget {
               Text(
                 value ?? '-',
                 style: textTheme.erpSectionTitle.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TypographyTokens.semibold,
                   color: t.textPrimary,
                 ),
               ),

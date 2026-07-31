@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-/// Escala canónica de espaçamento MD3 / ERP.
+/// Escala canónica de espaçamento enterprise.
 ///
-/// Valores permitidos: **4, 8, 12, 16, 24, 32**.
+/// Valores permitidos: **4, 8, 12, 16, 24, 32, 40**.
 abstract final class SpacingTokens {
   SpacingTokens._();
 
@@ -12,6 +12,7 @@ abstract final class SpacingTokens {
   static const double s16 = 16;
   static const double s24 = 24;
   static const double s32 = 32;
+  static const double s40 = 40;
 
   /// Aliases semânticos (mapeiam à escala canónica).
   static const double xs = s4;
@@ -20,6 +21,7 @@ abstract final class SpacingTokens {
   static const double lg = s16;
   static const double xl = s24;
   static const double xxl = s32;
+  static const double xxxl = s40;
 
   static const double gutter = s16;
   static const double page = s16;

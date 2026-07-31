@@ -4,26 +4,26 @@ import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 
+/// Loading mínimo — só indicador, sem skeletons / placeholders.
 class ModuleLoadingState extends StatelessWidget {
   const ModuleLoadingState({super.key, this.itemCount = 6});
 
+  /// Mantido por compatibilidade de API; ignorado.
   final int itemCount;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
     final s = context.spacing;
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: itemCount,
-      separatorBuilder: (_, _) => SizedBox(height: s.sm),
-      itemBuilder: (_, _) => Container(
-        height: DesignMetrics.topBarCompact,
-        decoration: BoxDecoration(
-          color: t.card.withValues(alpha: 0.65),
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          border: Border.all(color: t.border.withValues(alpha: 0.35)),
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: s.xxl),
+        child: SizedBox(
+          width: DesignMetrics.iconMd,
+          height: DesignMetrics.iconMd,
+          child: CircularProgressIndicator(
+            strokeWidth: DesignMetrics.buttonLoaderStrokeWidth,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ),
     );

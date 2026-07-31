@@ -210,13 +210,15 @@ class EnterpriseStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final s = context.spacing;
     final resolved = color ?? t.textMuted;
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: s.sm, vertical: s.xxs),
       decoration: BoxDecoration(
-        color: resolved.withValues(alpha: 0.12),
+        color: color == null ? colors.neutralSubtle : resolved.withValues(alpha: 0.12),
+        border: Border.all(color: t.borderSubtle),
         borderRadius: BorderRadius.circular(RadiusScale.full),
       ),
       child: Text(

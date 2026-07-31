@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../domain/entities/user_entities.dart';
 
@@ -164,16 +165,16 @@ class _UserFormDialogState extends State<UserFormDialog> {
             },
           ),
           SizedBox(height: s.md),
-          DropdownButtonFormField<String>(
+          EnterpriseSelectFormField<String>(
+            label: 'Perfil',
             initialValue: _role,
-            decoration: const InputDecoration(
-              labelText: 'Perfil',
-            ),
-            items: _roles
-                .map(
-                  (r) => DropdownMenuItem(value: r.$1, child: Text(r.$2)),
-                )
-                .toList(),
+            options: [
+              for (final role in _roles)
+                EnterpriseSelectOption<String>(
+                  value: role.$1,
+                  label: role.$2,
+                ),
+            ],
             onChanged: (v) => setState(() => _role = v ?? 'GERENTE'),
           ),
           SizedBox(height: s.sm),

@@ -8,6 +8,7 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../domain/entities/caixa_disponivel.dart';
 import '../../domain/entities/caixa_sessao.dart';
 import '../providers/caixa_sessao_provider.dart';
@@ -151,32 +152,23 @@ class _AbrirCaixaDialogState extends ConsumerState<AbrirCaixaDialog> {
                     ),
               ),
             ),
-          DropdownButtonFormField<CaixaDisponivel>(
+          EnterpriseSelectFormField<CaixaDisponivel>(
+            label: 'Selecionar Terminal',
             initialValue: selectedValue,
-            isExpanded: true,
-            items: caixas
-                .map(
-                  (caixa) => DropdownMenuItem<CaixaDisponivel>(
-                    value: caixa,
-                    child: Text(
-                      caixa.displayName,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: caixaState.isSubmitting
-                ? null
-                : (value) {
-                    setState(() {
-                      _selectedCaixa = value;
-                    });
-                  },
-            decoration: const InputDecoration(
-              labelText: 'Selecionar Terminal',
-              prefixIcon: Icon(Icons.devices_other_outlined),
-            ),
+            enabled: !caixaState.isSubmitting,
+            prefixIcon: const Icon(Icons.devices_other_outlined),
+            options: [
+              for (final caixa in caixas)
+                EnterpriseSelectOption<CaixaDisponivel>(
+                  value: caixa,
+                  label: caixa.displayName,
+                ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedCaixa = value;
+              });
+            },
             validator: (value) {
               if (value == null) {
                 return 'Selecione um terminal.';

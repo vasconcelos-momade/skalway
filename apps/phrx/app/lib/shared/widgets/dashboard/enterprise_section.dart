@@ -31,7 +31,7 @@ class EnterpriseSection extends StatelessWidget {
                 title,
                 style: textTheme.erpSectionTitle.copyWith(
                   color: t.textPrimary,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TypographyTokens.semibold,
                 ),
               ),
             ),

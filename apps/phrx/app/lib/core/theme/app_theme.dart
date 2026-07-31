@@ -5,7 +5,6 @@ import 'component_theme.dart';
 import 'design_tokens.dart';
 import 'pharma_border_tokens.dart';
 import 'pharma_color_tokens.dart';
-import 'pharma_dashboard_tokens.dart';
 import 'pharma_finance_tokens.dart';
 import 'pharma_healthcare_tokens.dart';
 import 'pharma_navigation_tokens.dart';
@@ -39,7 +38,6 @@ abstract final class AppTheme {
       tokens: tokens,
       scheme: scheme,
     );
-    final dashboardTokens = PharmaDashboardTokens.fromLegacy(tokens);
     final financeTokens = PharmaFinanceTokens.fromLegacy(tokens);
     final healthcareTokens = PharmaHealthcareTokens.fromLegacy(tokens);
 
@@ -70,7 +68,6 @@ abstract final class AppTheme {
         widthTokens,
         elevationTokens,
         navigationTokens,
-        dashboardTokens,
         financeTokens,
         healthcareTokens,
         dashboardTheme,
@@ -80,7 +77,7 @@ abstract final class AppTheme {
       ],
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: tokens.bgSecondary,
+        backgroundColor: tokens.bgPrimary,
         foregroundColor: tokens.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -105,6 +102,7 @@ abstract final class AppTheme {
         tokens,
         scheme,
         isDark: isDark,
+        colors: colorTokens,
         textTheme: textTheme,
       ),
       tooltipTheme: PharmaComponentTheme.tooltip(
@@ -132,6 +130,7 @@ abstract final class AppTheme {
           tokens,
           scheme,
           isDark: isDark,
+          colors: colorTokens,
           textTheme: textTheme,
         ),
       ),
@@ -139,6 +138,7 @@ abstract final class AppTheme {
         style: PharmaComponentTheme.filled(
           tokens,
           scheme,
+          colors: colorTokens,
           textTheme: textTheme,
         ),
       ),
@@ -146,17 +146,28 @@ abstract final class AppTheme {
         style: PharmaComponentTheme.outlined(
           tokens,
           scheme,
+          colors: colorTokens,
           textTheme: textTheme,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: PharmaComponentTheme.text(tokens, scheme, textTheme: textTheme),
+        style: PharmaComponentTheme.text(
+          tokens,
+          scheme,
+          colors: colorTokens,
+          textTheme: textTheme,
+        ),
       ),
-      iconButtonTheme: PharmaComponentTheme.iconButton(tokens, scheme),
+      iconButtonTheme: PharmaComponentTheme.iconButton(
+        tokens,
+        scheme,
+        colors: colorTokens,
+      ),
       inputDecorationTheme: PharmaComponentTheme.input(
         tokens,
         scheme,
         isDark: isDark,
+        colors: colorTokens,
         textTheme: textTheme,
       ),
       checkboxTheme: PharmaComponentTheme.checkbox(scheme),
@@ -166,6 +177,7 @@ abstract final class AppTheme {
       dividerTheme: PharmaComponentTheme.divider(tokens, isDark: isDark),
       dataTableTheme: PharmaComponentTheme.dataTable(
         tokens,
+        colors: colorTokens,
         textTheme: textTheme,
       ),
       listTileTheme: PharmaComponentTheme.listTile(tokens),
@@ -178,11 +190,13 @@ abstract final class AppTheme {
         tokens,
         scheme,
         isDark: isDark,
+        colors: colorTokens,
       ),
       navigationBarTheme: PharmaComponentTheme.navigationBar(
         tokens,
         scheme,
         isDark: isDark,
+        colors: colorTokens,
         textTheme: textTheme,
       ),
       progressIndicatorTheme: PharmaComponentTheme.progressIndicator(scheme),
@@ -204,7 +218,7 @@ abstract final class AppTheme {
     );
   }
 
-  static const _enterpriseThemeRevision = 4;
+  static const _enterpriseThemeRevision = 17;
   static final Map<(DensityLevel, int), ThemeData> _lightCache = {};
   static final Map<(DensityLevel, int), ThemeData> _darkCache = {};
 
@@ -220,7 +234,7 @@ abstract final class AppTheme {
     return _lightCache.putIfAbsent((density.level, _enterpriseThemeRevision), () {
       final tokens = PharmaTokens.enterpriseLight(density: density);
       final scheme = ColorScheme.light(
-        surface: tokens.bgSecondary,
+        surface: tokens.surface1,
         onSurface: tokens.textPrimary,
         primary: tokens.brandGreen,
         onPrimary: Colors.white,
@@ -229,7 +243,13 @@ abstract final class AppTheme {
         error: tokens.posDanger,
         onError: Colors.white,
         outline: tokens.border,
-        surfaceContainerHighest: tokens.card,
+        outlineVariant: tokens.border,
+        surfaceContainerLowest: tokens.surface0,
+        surfaceContainerLow: tokens.surface1,
+        surfaceContainer: tokens.surface2,
+        surfaceContainerHigh: tokens.surface3,
+        surfaceContainerHighest: tokens.surface3,
+        surfaceTint: Colors.transparent,
       );
 
       return _enterpriseTheme(
@@ -246,7 +266,7 @@ abstract final class AppTheme {
     return _darkCache.putIfAbsent((density.level, _enterpriseThemeRevision), () {
       final tokens = PharmaTokens.enterpriseDark(density: density);
       final scheme = ColorScheme.dark(
-        surface: tokens.bgSecondary,
+        surface: tokens.surface1,
         onSurface: tokens.textPrimary,
         primary: tokens.brandGreen,
         onPrimary: AppColors.ink950,
@@ -255,7 +275,13 @@ abstract final class AppTheme {
         error: tokens.posDanger,
         onError: Colors.white,
         outline: tokens.border,
-        surfaceContainerHighest: tokens.card,
+        outlineVariant: tokens.border,
+        surfaceContainerLowest: tokens.surface0,
+        surfaceContainerLow: tokens.surface1,
+        surfaceContainer: tokens.surface2,
+        surfaceContainerHigh: tokens.surface3,
+        surfaceContainerHighest: tokens.surface3,
+        surfaceTint: Colors.transparent,
       );
 
       return _enterpriseTheme(

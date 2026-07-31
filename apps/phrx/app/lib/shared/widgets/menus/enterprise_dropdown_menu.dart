@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 import '../../../core/theme/pharma_border_tokens.dart';
@@ -44,18 +45,17 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
   final ValueChanged<T> onSelected;
   final double? width;
 
-  /// Decoração partilhada (filtros dropdown / menus) — Surface Elevation 2.
+  /// Decoração partilhada (filtros dropdown / menus) — Surface 4.
   static BoxDecoration surfaceDecoration(BuildContext context) {
     final t = context.pharmaTokens;
-    final colors = context.colors;
     final borders = context.borders;
-    final radius = BorderRadius.circular(context.radius.md);
+    final radius = BorderRadius.circular(context.radius.lg);
 
     return BoxDecoration(
-      color: colors.surfaceContainerHigh,
+      color: t.surface4,
       borderRadius: radius,
-      border: Border.all(color: t.border, width: borders.borderThin),
-      boxShadow: context.shadows.sm,
+      border: Border.all(color: t.borderSubtle, width: borders.borderThin),
+      boxShadow: AppShadows.floating(context),
     );
   }
 
@@ -66,15 +66,14 @@ class EnterpriseDropdownMenu<T> extends StatelessWidget {
     final colors = context.colors;
     final borders = context.borders;
     final textTheme = Theme.of(context).textTheme;
-    final elevation = context.elevationTokens;
     final widths = context.widths;
     final radius = BorderRadius.circular(context.radius.md);
     final menuWidth = width ?? widths.dropdownMenu;
 
     return Material(
       color: Colors.transparent,
-      elevation: elevation.level2,
-      shadowColor: colors.overlay,
+      elevation: 0,
+      shadowColor: Colors.transparent,
       borderRadius: radius,
       clipBehavior: Clip.antiAlias,
       child: Container(

@@ -83,21 +83,21 @@ class PlatformDashboardPage extends ConsumerWidget {
             if (stats.alerts.isNotEmpty) ...[
               Text('Alertas',
                   style: Theme.of(context).textTheme.erpSectionTitle),
-              const SizedBox(height: 8),
+              SizedBox(height: context.spacing.sm),
               ...stats.alerts.map(
                 (a) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: context.spacing.sm),
                   child: EnterpriseListCard(
                     title: a,
                     leading: Icons.warning_amber_outlined,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: context.spacing.xl),
             ],
             Text('Últimos clientes',
                 style: Theme.of(context).textTheme.erpSectionTitle),
-            const SizedBox(height: 12),
+            SizedBox(height: context.spacing.md),
             EnterpriseDataTable(
               columns: const [
                 DataColumn(label: Text('Empresa')),

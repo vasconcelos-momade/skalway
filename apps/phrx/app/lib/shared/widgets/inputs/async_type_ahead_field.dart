@@ -44,7 +44,7 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
     final textTheme = theme.textTheme;
     final s = t.density;
 
-    return TypeAheadField<T>(
+    final field = TypeAheadField<T>(
       controller: controller,
       debounceDuration: debounceDuration,
       hideOnEmpty: true,
@@ -67,7 +67,6 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
           style: textTheme.erpBody.copyWith(color: t.textPrimary),
           decoration: EnterpriseFieldDecoration.of(
             context,
-            labelText: labelText,
             hintText: hintText,
             helperText: helperText,
             suffixIcon: Icon(
@@ -108,5 +107,7 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
         );
       },
     );
+
+    return EnterpriseFieldGroup(labelText: labelText, child: field);
   }
 }

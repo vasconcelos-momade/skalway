@@ -2,20 +2,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'typography_tokens.dart';
+
 /// **Inter** corpo / UI; **Poppins** títulos (estilo executivo).
 ///
 /// Na **web** usa apenas o `TextTheme` do Material (sem [GoogleFonts] em runtime).
 ///
-/// Escala oficial do Design System:
-/// - Display: 28 / 600
-/// - Titulo de pagina: 20 / 600
-/// - Titulo de secao e card: 16 / 600
-/// - AppBar: 18 / 600
-/// - Tabs: 14 / 500
-/// - Label: 14 / 500
-/// - Texto principal: 14 / 400
-/// - Texto secundario: 13 / 400
-/// - Caption / metadata: 12 / 400
+/// Escala oficial — ver [TypographyTokens].
 abstract final class AppTypography {
   AppTypography._();
 
@@ -74,7 +67,7 @@ abstract final class AppTypography {
       fontFamily: 'monospace',
       fontFeatures: const [FontFeature.tabularFigures()],
       fontSize: fontSize ?? base.fontSize,
-      fontWeight: fontWeight ?? FontWeight.w500,
+      fontWeight: fontWeight ?? TypographyTokens.medium,
       height: 1.35,
     );
     if (kIsWeb) return fallback;
@@ -87,7 +80,7 @@ abstract final class AppTypography {
   /// Overline — alias de [TextTheme.labelSmall] com tracking ERP.
   static TextStyle overline(TextTheme theme) => theme.erpOverline;
 
-  /// AppBar discreta (18px) — apenas contexto da rota, não o registo.
+  /// AppBar discreta — apenas contexto da rota, não o registo.
   static TextStyle appBarTitle(TextTheme theme) => theme.erpAppBarTitle;
 
   /// Título de página no conteúdo — escala oficial do ERP.
@@ -115,54 +108,54 @@ abstract final class AppTypography {
     }
     final inter = GoogleFonts.interTextTheme(base);
     final display = _poppinsTitle(
-      fontSize: 28,
-      fontWeight: FontWeight.w600,
+      fontSize: TypographyTokens.display,
+      fontWeight: TypographyTokens.semibold,
       letterSpacing: -0.2,
-      height: 1.15,
+      height: TypographyTokens.displayHeight,
     );
     final pageTitle = _poppinsTitle(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.heading,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.headingHeight,
     );
     final sectionTitle = _poppinsTitle(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.title,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.titleHeight,
     );
     final emphasisBody = _interBody(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.title,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.titleHeight,
     );
     final tabLabel = _interBody(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      height: 1.25,
+      fontSize: TypographyTokens.subtitle,
+      fontWeight: TypographyTokens.medium,
+      height: TypographyTokens.titleHeight,
     );
     final body = _interBody(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.body,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.bodyHeight,
     );
     final bodySecondary = _interBody(
-      fontSize: 13,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.bodySmall,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.bodyHeight,
     );
     final caption = _interBody(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.caption,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.captionHeight,
     );
     final label = _interBody(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
+      fontSize: TypographyTokens.label,
+      fontWeight: TypographyTokens.medium,
       letterSpacing: 0,
     );
     final microLabel = _interBody(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
+      fontSize: TypographyTokens.caption,
+      fontWeight: TypographyTokens.regular,
       letterSpacing: 0,
       height: 1.3,
     );
@@ -190,63 +183,63 @@ abstract final class AppTypography {
   static TextTheme _webEnterpriseTextTheme(TextTheme base) {
     final display = _webStyle(
       base.displayLarge,
-      fontSize: 28,
-      fontWeight: FontWeight.w600,
+      fontSize: TypographyTokens.display,
+      fontWeight: TypographyTokens.semibold,
       letterSpacing: -0.2,
-      height: 1.15,
+      height: TypographyTokens.displayHeight,
     );
     final pageTitle = _webStyle(
       base.headlineLarge,
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.heading,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.headingHeight,
     );
     final sectionTitle = _webStyle(
       base.headlineMedium,
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.title,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.titleHeight,
     );
     final emphasisBody = _webStyle(
       base.titleMedium,
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      height: 1.25,
+      fontSize: TypographyTokens.title,
+      fontWeight: TypographyTokens.semibold,
+      height: TypographyTokens.titleHeight,
     );
     final tabLabel = _webStyle(
       base.titleSmall,
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      height: 1.25,
+      fontSize: TypographyTokens.subtitle,
+      fontWeight: TypographyTokens.medium,
+      height: TypographyTokens.titleHeight,
     );
     final body = _webStyle(
       base.bodyLarge,
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.body,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.bodyHeight,
     );
     final bodySecondary = _webStyle(
       base.bodyMedium,
-      fontSize: 13,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.bodySmall,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.bodyHeight,
     );
     final caption = _webStyle(
       base.bodySmall,
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      height: 1.4,
+      fontSize: TypographyTokens.caption,
+      fontWeight: TypographyTokens.regular,
+      height: TypographyTokens.captionHeight,
     );
     final label = _webStyle(
       base.labelLarge,
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
+      fontSize: TypographyTokens.label,
+      fontWeight: TypographyTokens.medium,
       letterSpacing: 0,
     );
     final microLabel = _webStyle(
       base.labelSmall,
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
+      fontSize: TypographyTokens.caption,
+      fontWeight: TypographyTokens.regular,
       letterSpacing: 0,
       height: 1.3,
     );
@@ -282,10 +275,10 @@ extension EnterpriseTextTheme on TextTheme {
   TextStyle get erpCardTitle => titleLarge ?? const TextStyle();
   TextStyle get erpAppName => erpAppBarTitle;
   TextStyle get erpAppBarTitle => (titleLarge ?? const TextStyle()).copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
+        fontSize: TypographyTokens.appBar,
+        fontWeight: TypographyTokens.semibold,
         letterSpacing: 0,
-        height: 1.25,
+        height: TypographyTokens.titleHeight,
       );
 
   /// AppBar mantém a escala oficial em todos os breakpoints.
@@ -294,60 +287,70 @@ extension EnterpriseTextTheme on TextTheme {
   }
   TextStyle get erpTabLabel => titleSmall ?? const TextStyle();
   TextStyle get erpLabel => labelLarge ?? const TextStyle();
-  TextStyle get erpButtonPrimary => erpLabel.copyWith(fontWeight: FontWeight.w600);
-  TextStyle get erpButtonSecondary => erpLabel.copyWith(fontWeight: FontWeight.w500);
-  TextStyle get erpSelectLabel => erpLabel.copyWith(fontWeight: FontWeight.w500);
-  TextStyle get erpSelectValue => erpLabel.copyWith(fontWeight: FontWeight.w500);
+  TextStyle get erpButtonPrimary =>
+      erpLabel.copyWith(fontWeight: TypographyTokens.semibold);
+  TextStyle get erpButtonSecondary =>
+      erpLabel.copyWith(fontWeight: TypographyTokens.medium);
+  TextStyle get erpFieldLabel => erpBodySecondary.copyWith(
+        fontWeight: TypographyTokens.medium,
+        fontSize: TypographyTokens.bodySmall,
+        height: TypographyTokens.captionHeight,
+      );
+  TextStyle get erpSelectLabel => erpFieldLabel;
+  TextStyle get erpSelectValue =>
+      erpBody.copyWith(fontWeight: TypographyTokens.medium);
   TextStyle get erpMenuItem => erpTabLabel.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
+        fontSize: TypographyTokens.subtitle,
+        fontWeight: TypographyTokens.medium,
         height: 1.2,
       );
   TextStyle get erpMenuItemActive => erpMenuItem.copyWith(
-        fontWeight: FontWeight.w600,
+        fontWeight: TypographyTokens.semibold,
       );
   TextStyle get erpBody => bodyLarge ?? const TextStyle();
-  TextStyle get erpBodyMedium => erpBody.copyWith(fontWeight: FontWeight.w500);
-  TextStyle get erpBodyStrong => erpBody.copyWith(fontWeight: FontWeight.w600);
+  TextStyle get erpBodyMedium =>
+      erpBody.copyWith(fontWeight: TypographyTokens.medium);
+  TextStyle get erpBodyStrong =>
+      erpBody.copyWith(fontWeight: TypographyTokens.semibold);
   TextStyle get erpBodySecondary => bodyMedium ?? const TextStyle();
   TextStyle get erpCaption => bodySmall ?? const TextStyle();
   TextStyle get erpOverline => (labelSmall ?? const TextStyle()).copyWith(
-        fontWeight: FontWeight.w500,
+        fontWeight: TypographyTokens.medium,
         letterSpacing: 0.4,
         height: 1.2,
       );
 
-  /// Tipografia de tabelas — alinhada à sidebar ([erpTabLabel], 14px).
+  /// Tipografia de tabelas — alinhada à sidebar ([erpTabLabel]).
   TextStyle get erpTableHeader => erpTabLabel.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontSize: TypographyTokens.tableHeader,
+        fontWeight: TypographyTokens.semibold,
         letterSpacing: 0.2,
-        height: 1.25,
+        height: TypographyTokens.tableHeight,
       );
 
   TextStyle get erpTablePrimary => erpTabLabel.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        height: 1.25,
+        fontSize: TypographyTokens.tableCell,
+        fontWeight: TypographyTokens.semibold,
+        height: TypographyTokens.tableHeight,
       );
 
   TextStyle get erpTableSecondary => erpTabLabel.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        height: 1.25,
+        fontSize: TypographyTokens.tableCell,
+        fontWeight: TypographyTokens.medium,
+        height: TypographyTokens.tableHeight,
       );
 
-  /// Códigos, emails, referências e textos auxiliares (13px).
+  /// Códigos, emails, referências e textos auxiliares.
   TextStyle get erpTableMetadata => erpBodySecondary.copyWith(height: 1.3);
 
   /// Legado — preferir [erpTableMetadata].
   TextStyle get erpTableMeta => erpTableMetadata;
 
-  /// Valores numéricos e financeiros (14px, alinhamento tabular).
+  /// Valores numéricos e financeiros (alinhamento tabular).
   TextStyle get erpTableNumeric => erpTablePrimary.copyWith(
         fontFeatures: const [FontFeature.tabularFigures()],
       );
 
-  /// Estados e badges de situação — 13px / w400, discreto.
+  /// Estados e badges de situação.
   TextStyle get erpTableStatus => erpBodySecondary.copyWith(height: 1.25);
 }

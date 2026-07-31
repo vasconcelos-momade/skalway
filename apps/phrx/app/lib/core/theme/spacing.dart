@@ -15,13 +15,14 @@ abstract final class Spacing {
 
   static const double zero = 0;
 
-  // Escala canónica (4, 8, 12, 16, 24, 32)
+  // Escala canónica (4, 8, 12, 16, 24, 32, 40)
   static const double s4 = SpacingTokens.s4;
   static const double s8 = SpacingTokens.s8;
   static const double s12 = SpacingTokens.s12;
   static const double s16 = SpacingTokens.s16;
   static const double s24 = SpacingTokens.s24;
   static const double s32 = SpacingTokens.s32;
+  static const double s40 = SpacingTokens.s40;
 
   @Deprecated('Use SpacingTokens.s4 ou Spacing.s4')
   static const double s2 = SpacingTokens.s4;
@@ -31,9 +32,6 @@ abstract final class Spacing {
 
   @Deprecated('Use SpacingTokens.s24')
   static const double s28 = SpacingTokens.s24;
-
-  @Deprecated('Use SpacingTokens.s32')
-  static const double s40 = SpacingTokens.s32;
 
   @Deprecated('Use DesignMetrics.minTouchTarget (48)')
   static const double s48 = 48;
@@ -53,11 +51,11 @@ abstract final class Spacing {
   @Deprecated('Use SpacingTokens.xxl')
   static const double s96 = SpacingTokens.s32;
 
-  @Deprecated('Use SpacingTokens.xxl')
-  static const double s120 = SpacingTokens.s32;
+  @Deprecated('Use SpacingTokens.xxxl')
+  static const double s120 = SpacingTokens.s40;
 
-  @Deprecated('Use SpacingTokens.xxl')
-  static const double s160 = SpacingTokens.s32;
+  @Deprecated('Use SpacingTokens.xxxl')
+  static const double s160 = SpacingTokens.s40;
 
   static EdgeInsets all(double value) => SpacingTokens.all(value);
   static EdgeInsets horizontal(double value) => SpacingTokens.horizontal(value);
@@ -82,7 +80,7 @@ abstract final class AppSpacing {
   static const double xl = SpacingTokens.xl;
 
   static const double xxl = SpacingTokens.xxl;
-  static const double xxxl = SpacingTokens.xxl;
+  static const double xxxl = SpacingTokens.xxxl;
   static const double gutter = SpacingTokens.gutter;
   static const double page = SpacingTokens.page;
 

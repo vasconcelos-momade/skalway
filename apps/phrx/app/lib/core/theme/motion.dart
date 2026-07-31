@@ -1,20 +1,23 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/animation.dart';
 
+import 'motion_tokens.dart';
+
+export 'motion_tokens.dart';
+
+/// Aliases legados de motion — preferir [MotionTokens].
 abstract final class Motion {
   Motion._();
 
-  // Durations
-  static const Duration durationFastest = Duration(milliseconds: 100);
-  static const Duration durationFaster = Duration(milliseconds: 150);
-  static const Duration durationFast = Duration(milliseconds: 200);
-  static const Duration durationNormal = Duration(milliseconds: 250);
+  static const Duration durationFastest = MotionTokens.fast;
+  static const Duration durationFaster = MotionTokens.fast;
+  static const Duration durationFast = MotionTokens.normal;
+  static const Duration durationNormal = MotionTokens.slow;
   static const Duration durationSlow = Duration(milliseconds: 300);
   static const Duration durationSlower = Duration(milliseconds: 400);
 
-  // Curves
   static const Curve ease = Curves.ease;
-  static const Curve easeIn = Curves.easeIn;
-  static const Curve easeOut = Curves.easeOut;
-  static const Curve easeInOut = Curves.easeInOut;
-  static const Curve emphasized = Curves.fastOutSlowIn;
+  static const Curve easeIn = MotionTokens.easeIn;
+  static const Curve easeOut = MotionTokens.ease;
+  static const Curve easeInOut = MotionTokens.easeInOut;
+  static const Curve emphasized = MotionTokens.emphasized;
 }

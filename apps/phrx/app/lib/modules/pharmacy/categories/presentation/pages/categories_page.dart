@@ -479,19 +479,18 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<String>(
+        EnterpriseSelectFormField<String>(
+          label: 'Categoria FNM *',
           initialValue: nomeOptions.contains(_nomeSelecionado)
               ? _nomeSelecionado
               : null,
-          decoration: const InputDecoration(labelText: 'Categoria FNM *'),
-          items: nomeOptions
-              .map(
-                (nome) => DropdownMenuItem<String>(
-                  value: nome,
-                  child: Text(fnmCategoryLabel(nome)),
-                ),
-              )
-              .toList(growable: false),
+          options: [
+            for (final nome in nomeOptions)
+              EnterpriseSelectOption<String>(
+                value: nome,
+                label: fnmCategoryLabel(nome),
+              ),
+          ],
           onChanged: (value) => setState(() => _nomeSelecionado = value),
           validator: (value) =>
               value == null || value.trim().isEmpty ? 'Categoria obrigatória' : null,

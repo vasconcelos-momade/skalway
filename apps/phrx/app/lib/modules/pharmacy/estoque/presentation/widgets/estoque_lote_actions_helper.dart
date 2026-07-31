@@ -9,6 +9,7 @@ import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../data/datasources/estoque_remote_datasource.dart';
 import '../../domain/entities/estoque_item.dart';
@@ -727,20 +728,18 @@ class _MovimentacaoSanitariaFormContentState
               style: Theme.of(context).textTheme.bodyMedium,
             )
           else
-            DropdownButtonFormField<String>(
+            EnterpriseSelectFormField<String>(
               key: ValueKey('sanitaria-tipo-$_tipo'),
-              initialValue: _acoesPermitidas.contains(_tipo) ? _tipo : _acoesPermitidas.first,
-              decoration: const InputDecoration(
-                labelText: 'Tipo de movimentação',
-              ),
-              items: _acoesPermitidas
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: Text(_tipoLabels[value] ?? value),
-                    ),
-                  )
-                  .toList(),
+              label: 'Tipo de movimentação',
+              initialValue:
+                  _acoesPermitidas.contains(_tipo) ? _tipo : _acoesPermitidas.first,
+              options: [
+                for (final value in _acoesPermitidas)
+                  EnterpriseSelectOption<String>(
+                    value: value,
+                    label: _tipoLabels[value] ?? value,
+                  ),
+              ],
               onChanged: (value) {
                 if (value == null) return;
                 setState(() => _tipo = value);

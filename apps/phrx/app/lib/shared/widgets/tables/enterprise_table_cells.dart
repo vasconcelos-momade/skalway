@@ -196,14 +196,14 @@ class TableStatusCell extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 6,
-          height: 6,
+          width: SpacingTokens.xs,
+          height: SpacingTokens.xs,
           decoration: BoxDecoration(
             color: indicatorColor,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: SpacingTokens.sm),
         Text(
           label,
           style: TableTypography.status(

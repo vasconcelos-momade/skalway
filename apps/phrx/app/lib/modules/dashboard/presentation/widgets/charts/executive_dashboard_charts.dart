@@ -183,7 +183,10 @@ class _MonthDeltaChip extends StatelessWidget {
     final sign = positive ? '+' : '';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.xs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(t.radiusMd),
@@ -193,7 +196,7 @@ class _MonthDeltaChip extends StatelessWidget {
         '$sign${deltaPercent.toStringAsFixed(1)}% vs mês anterior',
         style: Theme.of(context).textTheme.erpOverline.copyWith(
               color: color,
-              fontWeight: FontWeight.w700,
+              fontWeight: TypographyTokens.semibold,
             ),
       ),
     );
@@ -237,13 +240,13 @@ class _CategoryDonutWithLeader extends StatelessWidget {
                             .erpOverline
                             .copyWith(color: t.textMuted),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: SpacingTokens.xs),
                       Text(
                         leader.label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.erpCaption.copyWith(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: TypographyTokens.semibold,
                               color: t.textPrimary,
                             ),
                       ),
@@ -254,7 +257,7 @@ class _CategoryDonutWithLeader extends StatelessWidget {
                   '${pct.toStringAsFixed(0)}%',
                   style: Theme.of(context).textTheme.erpSectionTitle.copyWith(
                         color: t.brandGreen,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TypographyTokens.semibold,
                       ),
                 ),
               ],

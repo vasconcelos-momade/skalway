@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/extensions/async_value_extensions.dart';
-import '../../../../core/theme/spacing.dart';
+import '../../../../core/theme/spacing_tokens.dart';
 import '../../data/datasources/dashboard_remote_datasource.dart';
 import '../../domain/dashboard_query.dart';
 import '../../domain/models/dashboard_table_definition.dart';
@@ -117,7 +117,8 @@ class DashboardSectionGap extends StatelessWidget {
   const DashboardSectionGap({super.key});
 
   @override
-  Widget build(BuildContext context) => const SizedBox(height: AppSpacing.lg);
+  Widget build(BuildContext context) =>
+      SizedBox(height: SpacingTokens.lg);
 }
 
 typedef DashboardTableFetcher = Future<Map<String, dynamic>> Function({

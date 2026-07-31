@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/providers/auth_session_notifier.dart';
 import '../../../app/providers/nav_groups_expanded_provider.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/dimensions.dart';
@@ -15,7 +16,7 @@ import 'app_nav_config.dart';
 /// - Grupos com ícone + chevron (colapsáveis)
 /// - Submenus mais indentados
 /// - Activo: fundo discreto e indicador minimalista
-/// - Sem poluição visual (sem caixas pesadas, sombras ou UPPERCASE)
+/// - Elevação mínima + borda vertical face ao body
 class EnterpriseSidebar extends StatelessWidget {
   const EnterpriseSidebar({
     super.key,
@@ -35,12 +36,17 @@ class EnterpriseSidebar extends StatelessWidget {
     return SizedBox(
       width: AppDimensions.sidebarExpanded,
       child: Material(
-        color: t.bgSecondary,
+        color: t.surface1,
         child: DecoratedBox(
           decoration: BoxDecoration(
+            color: t.surface1,
             border: Border(
-              right: BorderSide(color: t.border.withValues(alpha: 0.5)),
+              right: BorderSide(
+                color: t.border,
+                width: BorderTokens.width,
+              ),
             ),
+            boxShadow: AppShadows.panelEdge(context, fromLeft: true),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,6 +133,7 @@ class EnterpriseNavLogout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final s = context.spacing;
     final theme = Theme.of(context);
     final user = ref.watch(authSessionProvider.select((auth) => auth.session?.user));
@@ -134,18 +141,19 @@ class EnterpriseNavLogout extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Divider(height: 1, color: t.border.withValues(alpha: 0.5)),
+        Divider(height: 1, color: t.border),
         Padding(
           padding: EdgeInsets.all(s.sm),
           child: MenuAnchor(
-            alignmentOffset: const Offset(0, -8),
+            alignmentOffset: Offset(0, -SpacingTokens.sm),
             style: MenuStyle(
-              backgroundColor: WidgetStatePropertyAll(t.bgPrimary),
-              elevation: const WidgetStatePropertyAll(4),
+              backgroundColor: WidgetStatePropertyAll(t.surface4),
+              elevation: const WidgetStatePropertyAll(0),
+              shadowColor: const WidgetStatePropertyAll(Colors.transparent),
               shape: WidgetStatePropertyAll(
                 RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(t.radiusMd),
-                  side: BorderSide(color: t.border.withValues(alpha: 0.5)),
+                  borderRadius: BorderRadius.circular(t.radiusXl),
+                  side: BorderSide(color: t.borderSubtle),
                 ),
               ),
             ),
@@ -183,12 +191,12 @@ class EnterpriseNavLogout extends ConsumerWidget {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        radius: 16,
-                        backgroundColor: t.brandGreen.withValues(alpha: 0.2),
+                        radius: SpacingTokens.lg / 2,
+                        backgroundColor: colors.primarySubtle,
                         child: Text(
                           _userInitials(user?.name),
                           style: theme.textTheme.erpOverline.copyWith(
-                            color: t.brandGreen,
+                            color: colors.sidebarActiveIndicator,
                           ),
                         ),
                       ),
@@ -422,6 +430,7 @@ class _NavSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final s = context.spacing;
     final theme = Theme.of(context);
 
@@ -444,19 +453,19 @@ class _NavSearchField extends StatelessWidget {
             minHeight: t.compactControlHeight,
           ),
           contentPadding: EdgeInsets.symmetric(horizontal: s.sm),
-          filled: true,
-          fillColor: t.bgPrimary,
+          filled: false,
+          fillColor: Colors.transparent,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide(color: t.border.withValues(alpha: 0.3)),
+            borderSide: BorderSide(color: t.borderSubtle),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide(color: t.border.withValues(alpha: 0.3)),
+            borderSide: BorderSide(color: t.borderSubtle),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide(color: t.brandGreen.withValues(alpha: 0.5)),
+            borderSide: BorderSide(color: colors.sidebarActiveIndicator),
           ),
         ),
       ),
@@ -484,8 +493,8 @@ class _NavGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final s = context.spacing;
-    const double indicatorWidth = 4.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -495,16 +504,18 @@ class _NavGroup extends StatelessWidget {
           child: Container(
             height: t.compactControlHeight, // Mesma altura do input search
             decoration: BoxDecoration(
-              color: groupActive ? t.brandGreen.withValues(alpha: 0.1) : Colors.transparent,
+              color: groupActive ? colors.sidebarActiveBackground : Colors.transparent,
               borderRadius: BorderRadius.circular(t.radiusMd),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                    width: indicatorWidth,
+                    width: 3,
                     decoration: BoxDecoration(
-                      color: groupActive ? t.brandGreen : Colors.transparent,
+                      color: groupActive
+                          ? colors.sidebarActiveIndicator
+                          : Colors.transparent,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(t.radiusMd),
                         bottomLeft: Radius.circular(t.radiusMd),
@@ -528,7 +539,6 @@ class _NavGroup extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.erpMenuItem.copyWith(
-                                    fontSize: 15,
                                     color: groupActive ? t.textPrimary : t.textSecondary,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -539,11 +549,11 @@ class _NavGroup extends StatelessWidget {
                                 padding: EdgeInsets.only(right: s.sm),
                                 child: AnimatedRotation(
                                 turns: expanded ? 0.25 : 0.0,
-                                duration: Motion.durationFaster,
-                                curve: Motion.easeOut,
+                                duration: MotionTokens.durationFast,
+                                curve: MotionTokens.ease,
                                 child: Icon(
                                   Icons.keyboard_arrow_right_rounded,
-                                  size: 18,
+                                  size: DesignMetrics.iconSm,
                                   color: groupActive ? t.textPrimary : t.textMuted,
                                 ),
                               ),
@@ -556,20 +566,20 @@ class _NavGroup extends StatelessWidget {
           ),
         ),
         AnimatedSize(
-          duration: Motion.durationFaster,
-          curve: Motion.easeOut,
+          duration: MotionTokens.durationFast,
+          curve: MotionTokens.ease,
           alignment: Alignment.topCenter,
           child: expanded
               ? Padding(
                   padding: EdgeInsets.only(
-                    left: indicatorWidth + s.sm + (DesignMetrics.iconSm / 2),
+                    left: SpacingTokens.xs + s.sm + (DesignMetrics.iconSm / 2),
                     top: s.sm,
                   ),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border(
                         left: BorderSide(
-                          color: t.border.withValues(alpha: 0.2),
+                          color: t.borderSubtle,
                           width: 1.0,
                         ),
                       ),
@@ -602,6 +612,7 @@ class _NavLeafTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final s = context.spacing;
 
     return Padding(
@@ -619,9 +630,7 @@ class _NavLeafTile extends StatelessWidget {
                 topRight: Radius.circular(t.radiusSm),
                 bottomRight: Radius.circular(t.radiusSm),
               ),
-              color: active
-                  ? t.brandGreen.withValues(alpha: 0.08)
-                  : Colors.transparent,
+              color: active ? colors.sidebarActiveBackground : Colors.transparent,
             ),
             padding: EdgeInsets.symmetric(
               horizontal: s.sm,
@@ -629,28 +638,29 @@ class _NavLeafTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Transform.translate(
-                  offset: const Offset(-7, 0), // Puxa o ícone para alinhar sobre a linha esquerda
-                  child: Icon(
-                    Icons.radio_button_unchecked,
-                    size: 14,
-                    color: active ? t.brandGreen : t.textMuted.withValues(alpha: 0.5),
+                Container(
+                  width: 3,
+                  height: SpacingTokens.lg,
+                  decoration: BoxDecoration(
+                    color: active
+                        ? colors.sidebarActiveIndicator
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(t.radiusSm),
                   ),
                 ),
-                SizedBox(width: s.xs),
+                SizedBox(width: s.sm),
                 Expanded(
-                  child: Transform.translate(
-                    offset: const Offset(-7, 0), // Ajusta o texto para manter o espaçamento correcto
-                    child: Text(
+                  child: Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.erpMenuItem.copyWith(
                             color: active ? t.textPrimary : t.textMuted,
-                            fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                            fontWeight: active
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                     ),
-                  ),
                 ),
               ],
             ),
@@ -676,15 +686,16 @@ class _NavHoverTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
 
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(t.radiusSm),
       child: InkWell(
         borderRadius: BorderRadius.circular(t.radiusSm),
-        hoverColor: t.textPrimary.withValues(alpha: 0.04),
-        splashColor: t.textPrimary.withValues(alpha: 0.08),
-        highlightColor: t.textPrimary.withValues(alpha: 0.05),
+        hoverColor: colors.neutralSubtle,
+        splashColor: colors.fieldHover,
+        highlightColor: colors.neutralSubtle,
         onTap: onTap,
         child: child,
       ),

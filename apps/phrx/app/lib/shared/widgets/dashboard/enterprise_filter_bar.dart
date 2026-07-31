@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/spacing.dart';
+import '../../../core/theme/design_metrics.dart';
+import '../../../core/theme/design_tokens.dart';
 import '../../responsive/pharma_screen_layout.dart';
 import '../../../modules/dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../modules/dashboard/domain/dashboard_query.dart';
@@ -92,18 +93,21 @@ class _EnterpriseFilterBarState extends ConsumerState<EnterpriseFilterBar> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final spacing = context.spacing.sm;
+        final t = context.pharmaTokens;
         final availableWidth =
             constraints.maxWidth.isFinite && constraints.maxWidth > 0
                 ? constraints.maxWidth
                 : MediaQuery.sizeOf(context).width;
         final columns = PharmaScreenLayout.adaptiveCrossAxisCount(
           availableWidth,
-          280,
-          maxColumns: availableWidth >= 1440 ? 5 : 4,
+          DesignMetrics.dropdownMenuMinWidth + SpacingTokens.xxxl * 2,
+          maxColumns: availableWidth >= t.contentMaxWidth ? 5 : 4,
         );
         final fieldWidth =
-            ((availableWidth - (columns - 1) * spacing) / columns)
-                .clamp(220.0, 360.0);
+            ((availableWidth - (columns - 1) * spacing) / columns).clamp(
+              DesignMetrics.dropdownMenuWidth,
+              DesignMetrics.searchFieldMaxWidthDesktop + SpacingTokens.xxxl,
+            );
 
         Widget filterField(Widget child) => SizedBox(
               width: fieldWidth,

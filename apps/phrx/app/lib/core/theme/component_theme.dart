@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'design_metrics.dart';
 import 'design_tokens.dart';
-import 'pharma_surface.dart';
+import 'pharma_color_tokens.dart';
 import 'typography.dart';
 
 abstract final class PharmaComponentTheme {
@@ -18,7 +18,7 @@ abstract final class PharmaComponentTheme {
     final height = compact ? tokens.compactControlHeight : tokens.controlHeight;
     final horizontal = tokens.density.buttonPadding.left;
     return ButtonStyle(
-      animationDuration: kPharmaInstantThemeDuration,
+      animationDuration: MotionTokens.durationFast,
       minimumSize: WidgetStateProperty.all(
         Size(tokens.minTouchTarget, height),
       ),
@@ -42,14 +42,25 @@ abstract final class PharmaComponentTheme {
   static ButtonStyle filled(
     PharmaTokens tokens,
     ColorScheme scheme, {
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
     bool compact = false,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
+    final palette = colors;
     return _baseButtonStyle(tokens, textStyle: theme.erpButtonPrimary, compact: compact).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return scheme.onSurface.withValues(alpha: 0.12);
+          return palette?.disabled ?? scheme.onSurface.withValues(alpha: 0.12);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return tokens.brandGreenHover;
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return Color.alphaBlend(
+            scheme.onPrimary.withValues(alpha: 0.08),
+            scheme.primary,
+          );
         }
         return scheme.primary;
       }),
@@ -59,33 +70,68 @@ abstract final class PharmaComponentTheme {
         }
         return scheme.onPrimary;
       }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return Colors.white.withValues(alpha: 0.12);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return Colors.white.withValues(alpha: 0.06);
+        }
+        if (states.contains(WidgetState.focused)) {
+          return Colors.white.withValues(alpha: 0.08);
+        }
+        return null;
+      }),
     );
   }
 
   static ButtonStyle outlined(
     PharmaTokens tokens,
     ColorScheme scheme, {
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
     bool compact = false,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
+    final palette = colors;
     return _baseButtonStyle(
       tokens,
       textStyle: theme.erpButtonSecondary,
       compact: compact,
     ).copyWith(
-      backgroundColor: WidgetStateProperty.all(Colors.transparent),
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return palette?.primarySubtle ?? scheme.primary.withValues(alpha: 0.12);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return palette?.neutralSubtle ?? scheme.primary.withValues(alpha: 0.06);
+        }
+        return Colors.transparent;
+      }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return scheme.onSurface.withValues(alpha: 0.38);
         }
-        return scheme.primary;
+        return tokens.textPrimary;
       }),
       side: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return BorderSide(color: scheme.onSurface.withValues(alpha: 0.12));
+          return BorderSide(color: tokens.borderSubtle);
         }
-        return BorderSide(color: scheme.outline);
+        if (states.contains(WidgetState.focused) ||
+            states.contains(WidgetState.hovered)) {
+          return BorderSide(color: scheme.primary);
+        }
+        return BorderSide(color: tokens.border);
+      }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.primary.withValues(alpha: 0.10);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.primary.withValues(alpha: 0.06);
+        }
+        return null;
       }),
     );
   }
@@ -93,21 +139,40 @@ abstract final class PharmaComponentTheme {
   static ButtonStyle text(
     PharmaTokens tokens,
     ColorScheme scheme, {
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
     bool compact = false,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
+    final palette = colors;
     return _baseButtonStyle(
       tokens,
       textStyle: theme.erpButtonSecondary,
       compact: compact,
     ).copyWith(
-      backgroundColor: WidgetStateProperty.all(Colors.transparent),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return scheme.onSurface.withValues(alpha: 0.38);
         }
-        return scheme.primary;
+        return tokens.textSecondary;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.onSurface.withValues(alpha: 0.08);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.onSurface.withValues(alpha: 0.04);
+        }
+        return null;
+      }),
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return palette?.neutralSubtle ?? scheme.onSurface.withValues(alpha: 0.08);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return palette?.neutralSubtle ?? scheme.onSurface.withValues(alpha: 0.04);
+        }
+        return Colors.transparent;
       }),
     );
   }
@@ -115,12 +180,14 @@ abstract final class PharmaComponentTheme {
   static IconButtonThemeData iconButton(
     PharmaTokens tokens,
     ColorScheme scheme, {
+    PharmaColorTokens? colors,
     bool compact = false,
   }) {
     final size = compact ? tokens.compactControlHeight : tokens.controlHeight;
+    final palette = colors;
     return IconButtonThemeData(
       style: ButtonStyle(
-        animationDuration: kPharmaInstantThemeDuration,
+        animationDuration: MotionTokens.durationFast,
         minimumSize: WidgetStateProperty.all(Size.square(size)),
         maximumSize: WidgetStateProperty.all(Size.square(size)),
         fixedSize: WidgetStateProperty.all(Size.square(size)),
@@ -138,6 +205,18 @@ abstract final class PharmaComponentTheme {
           }
           return scheme.onSurface;
         }),
+        overlayColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed)) {
+            return palette?.neutralSubtle ?? scheme.onSurface.withValues(alpha: 0.10);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return palette?.neutralSubtle ?? scheme.onSurface.withValues(alpha: 0.06);
+          }
+          if (states.contains(WidgetState.focused)) {
+            return palette?.primarySubtle ?? scheme.primary.withValues(alpha: 0.10);
+          }
+          return null;
+        }),
       ),
     );
   }
@@ -146,53 +225,28 @@ abstract final class PharmaComponentTheme {
     PharmaTokens tokens,
     ColorScheme scheme, {
     required bool isDark,
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
-    final fillColor = isDark
-        ? Color.alphaBlend(
-            Colors.white.withValues(alpha: 0.03),
-            tokens.inputBg,
-          )
-        : tokens.inputBg;
-    final baseBorderColor = isDark
-        ? Color.alphaBlend(
-            Colors.white.withValues(alpha: 0.16),
-            tokens.inputBg,
-          )
-        : tokens.border.withValues(alpha: 0.92);
-    final disabledBorderColor = isDark
-        ? Color.alphaBlend(
-            Colors.white.withValues(alpha: 0.08),
-            tokens.inputBg,
-          )
-        : baseBorderColor.withValues(alpha: 0.55);
-    final focusedBorderColor = isDark
-        ? Color.alphaBlend(
-            scheme.primary.withValues(alpha: 0.42),
-            tokens.inputBg,
-          )
-        : scheme.primary.withValues(alpha: 0.78);
+    final palette = colors;
+    final baseBorderColor = tokens.border;
+    final disabledBorderColor = tokens.borderSubtle.withValues(alpha: 0.55);
+    final focusedBorderColor = scheme.primary;
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(tokens.radiusMd),
       borderSide: BorderSide(
         color: baseBorderColor,
-        width: 1.2,
+        width: BorderTokens.width,
       ),
     );
 
     return InputDecorationTheme(
-      filled: true,
-      fillColor: fillColor,
-      // isDense:false → minContainerHeight = kMinInteractiveDimension (48)
-      // = [PharmaTokens.controlHeight]. isDense:true usa só a altura do texto
-      // e deixa os campos mais baixos que os botões.
-      // Não usar decoration.constraints: o ConstrainedBox envolve label+helper
-      // e esmaga o campo (não é a altura da caixa do input).
+      filled: false,
+      fillColor: Colors.transparent,
+      hoverColor: palette?.fieldHover ?? Colors.transparent,
       isDense: false,
-      // auto: label dentro quando vazio; flutua para a borda ao focar/preencher.
-      floatingLabelBehavior: FloatingLabelBehavior.auto,
-      // Só padding horizontal — a altura vem do piso MD3 (igual aos botões).
+      floatingLabelBehavior: FloatingLabelBehavior.never,
       contentPadding: EdgeInsets.symmetric(
         horizontal: tokens.density.inputPadding.left,
       ),
@@ -211,41 +265,37 @@ abstract final class PharmaComponentTheme {
         borderRadius: BorderRadius.circular(tokens.radiusMd),
         borderSide: BorderSide(
           color: baseBorderColor,
-          width: 1.2,
+          width: BorderTokens.width,
         ),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
         borderSide: BorderSide(
           color: disabledBorderColor,
-          width: 1,
+          width: BorderTokens.width,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
         borderSide: BorderSide(
           color: focusedBorderColor,
-          width: 1.6,
+          width: BorderTokens.width,
         ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
-        borderSide: BorderSide(color: tokens.posDanger, width: 1),
+        borderSide: BorderSide(color: tokens.posDanger, width: BorderTokens.width),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
-        borderSide: BorderSide(color: tokens.posDanger, width: 1.5),
+        borderSide: BorderSide(color: tokens.posDanger, width: BorderTokens.width),
       ),
       labelStyle: theme.erpSelectLabel.copyWith(
         color: tokens.textSecondary,
         fontWeight: FontWeight.w500,
       ),
-      floatingLabelStyle: theme.erpSelectLabel.copyWith(
-        color: scheme.primary,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.2,
-      ),
-      hintStyle: theme.erpBody.copyWith(color: tokens.textMuted),
+      floatingLabelStyle: theme.erpFieldLabel.copyWith(color: tokens.textSecondary),
+      hintStyle: theme.erpBody.copyWith(color: tokens.textDisabled),
     );
   }
 
@@ -253,6 +303,7 @@ abstract final class PharmaComponentTheme {
     PharmaTokens tokens,
     ColorScheme scheme, {
     required bool isDark,
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
   }) {
     final label = (textTheme ?? ThemeData().textTheme).erpLabel.copyWith(
@@ -260,14 +311,12 @@ abstract final class PharmaComponentTheme {
       fontWeight: FontWeight.w600,
     );
     return ChipThemeData(
-      backgroundColor: tokens.card,
-      selectedColor: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14),
+      backgroundColor: colors?.neutralSubtle ?? tokens.card,
+      selectedColor: colors?.primarySubtle ?? scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12),
       disabledColor: scheme.onSurface.withValues(alpha: 0.08),
       labelStyle: label,
       secondaryLabelStyle: label,
-      side: BorderSide(
-        color: tokens.border.withValues(alpha: isDark ? 0.55 : 0.75),
-      ),
+      side: BorderSide(color: tokens.borderSubtle),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
       ),
@@ -286,11 +335,13 @@ abstract final class PharmaComponentTheme {
     final theme = textTheme ?? ThemeData().textTheme;
     return TooltipThemeData(
       decoration: BoxDecoration(
-        color: scheme.inverseSurface,
+        color: tokens.overlay,
         borderRadius: BorderRadius.circular(tokens.radiusMd),
+        border: Border.all(color: tokens.border),
       ),
-      textStyle: theme.erpCaption.copyWith(color: scheme.onInverseSurface),
+      textStyle: theme.erpCaption.copyWith(color: tokens.textPrimary),
       preferBelow: true,
+      waitDuration: MotionTokens.fast,
     );
   }
 
@@ -301,12 +352,14 @@ abstract final class PharmaComponentTheme {
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
     return SnackBarThemeData(
-      backgroundColor: scheme.inverseSurface,
-      contentTextStyle: theme.erpBody.copyWith(color: scheme.onInverseSurface),
-      actionTextColor: scheme.inversePrimary,
+      backgroundColor: tokens.overlay,
+      contentTextStyle: theme.erpBody.copyWith(color: tokens.textPrimary),
+      actionTextColor: scheme.primary,
       behavior: SnackBarBehavior.floating,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
+        side: BorderSide(color: tokens.border),
       ),
     );
   }
@@ -314,43 +367,46 @@ abstract final class PharmaComponentTheme {
   static ScrollbarThemeData scrollbar(PharmaTokens tokens) {
     return ScrollbarThemeData(
       radius: Radius.circular(tokens.radiusMd),
-      thickness: WidgetStateProperty.all(8),
+      thickness: WidgetStateProperty.all(6),
       thumbVisibility: WidgetStateProperty.all(false),
     );
   }
 
   static CardThemeData card(PharmaTokens tokens, {required bool isDark}) {
     return CardThemeData(
-      color: tokens.card,
+      color: tokens.surface2,
       elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
-        side: BorderSide(
-          color: tokens.border.withValues(alpha: isDark ? 0.6 : 0.85),
-        ),
+        side: BorderSide(color: tokens.borderSubtle),
       ),
     );
   }
 
   static DialogThemeData dialog(PharmaTokens tokens, {required bool isDark}) {
     return DialogThemeData(
-      backgroundColor: tokens.card,
+      backgroundColor: tokens.surface4,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radiusMd),
-        side: BorderSide(
-          color: tokens.border.withValues(alpha: isDark ? 0.6 : 0.85),
-        ),
+        borderRadius: BorderRadius.circular(tokens.radiusXl),
+        side: BorderSide(color: tokens.borderSubtle),
       ),
     );
   }
 
   static BottomSheetThemeData bottomSheet(PharmaTokens tokens) {
     return BottomSheetThemeData(
-      backgroundColor: tokens.card,
+      backgroundColor: tokens.surface4,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(tokens.radiusMd),
+          top: Radius.circular(tokens.radiusXl),
         ),
+        side: BorderSide(color: tokens.borderSubtle),
       ),
     );
   }
@@ -361,9 +417,12 @@ abstract final class PharmaComponentTheme {
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
     return PopupMenuThemeData(
-      color: tokens.card,
+      color: tokens.surface4,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        borderRadius: BorderRadius.circular(tokens.radiusXl),
+        side: BorderSide(color: tokens.borderSubtle),
       ),
       textStyle: theme.erpMenuItem.copyWith(color: tokens.textPrimary),
     );
@@ -372,10 +431,14 @@ abstract final class PharmaComponentTheme {
   static MenuThemeData menu(PharmaTokens tokens, {TextTheme? textTheme}) {
     return MenuThemeData(
       style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(tokens.card),
+        backgroundColor: WidgetStateProperty.all(tokens.surface4),
+        elevation: const WidgetStatePropertyAll(0),
+        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(tokens.radiusMd),
+            borderRadius: BorderRadius.circular(tokens.radiusXl),
+            side: BorderSide(color: tokens.borderSubtle),
           ),
         ),
       ),
@@ -396,8 +459,17 @@ abstract final class PharmaComponentTheme {
       checkColor: WidgetStateProperty.all(scheme.onPrimary),
       side: BorderSide(color: scheme.outline),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(RadiusScale.xs),
+        borderRadius: BorderRadius.circular(RadiusTokens.sm),
       ),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.primary.withValues(alpha: 0.06);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.primary.withValues(alpha: 0.10);
+        }
+        return null;
+      }),
     );
   }
 
@@ -419,6 +491,15 @@ abstract final class PharmaComponentTheme {
             ? scheme.primary.withValues(alpha: 0.6)
             : scheme.onSurface.withValues(alpha: 0.25);
       }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.primary.withValues(alpha: 0.06);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.primary.withValues(alpha: 0.10);
+        }
+        return null;
+      }),
     );
   }
 
@@ -432,6 +513,15 @@ abstract final class PharmaComponentTheme {
             ? scheme.primary
             : scheme.onSurface;
       }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.primary.withValues(alpha: 0.06);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.primary.withValues(alpha: 0.10);
+        }
+        return null;
+      }),
     );
   }
 
@@ -441,7 +531,7 @@ abstract final class PharmaComponentTheme {
       activeTrackColor: scheme.primary,
       inactiveTrackColor: scheme.onSurface.withValues(alpha: 0.18),
       thumbColor: scheme.primary,
-      overlayColor: scheme.primary.withValues(alpha: 0.12),
+      overlayColor: scheme.primary.withValues(alpha: 0.10),
       valueIndicatorColor: scheme.inverseSurface,
       valueIndicatorTextStyle: theme.erpCaption.copyWith(
         color: scheme.onInverseSurface,
@@ -451,24 +541,29 @@ abstract final class PharmaComponentTheme {
 
   static DividerThemeData divider(PharmaTokens tokens, {required bool isDark}) {
     return DividerThemeData(
-      color: tokens.border.withValues(alpha: isDark ? 0.5 : 0.7),
+      color: tokens.border,
+      thickness: 1,
+      space: 1,
     );
   }
 
   static DataTableThemeData dataTable(
     PharmaTokens tokens, {
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
     return DataTableThemeData(
-      headingRowColor: WidgetStateProperty.all(tokens.bgSecondary),
+      headingRowColor: WidgetStateProperty.all(
+        colors?.surfaceContainerLow ?? tokens.surface1,
+      ),
       headingTextStyle: theme.erpTableHeader.copyWith(
-        color: tokens.textPrimary,
+        color: tokens.textSecondary,
       ),
       dataTextStyle: theme.erpTableSecondary.copyWith(
         color: tokens.textPrimary,
       ),
-      dividerThickness: 1,
+      dividerThickness: BorderTokens.width,
       horizontalMargin: tokens.density.md,
       columnSpacing: tokens.density.lg,
       dataRowMinHeight: DesignMetrics.tableRowHeightMin,
@@ -483,6 +578,7 @@ abstract final class PharmaComponentTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
       ),
+      selectedTileColor: tokens.surface3,
     );
   }
 
@@ -509,10 +605,13 @@ abstract final class PharmaComponentTheme {
     PharmaTokens tokens,
     ColorScheme scheme, {
     required bool isDark,
+    PharmaColorTokens? colors,
   }) {
     return NavigationDrawerThemeData(
       backgroundColor: tokens.bgSecondary,
-      indicatorColor: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14),
+      indicatorColor:
+          colors?.sidebarActiveBackground ??
+          scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12),
     );
   }
 
@@ -520,16 +619,22 @@ abstract final class PharmaComponentTheme {
     PharmaTokens tokens,
     ColorScheme scheme, {
     required bool isDark,
+    PharmaColorTokens? colors,
     TextTheme? textTheme,
   }) {
     final theme = textTheme ?? ThemeData().textTheme;
     return NavigationBarThemeData(
       backgroundColor: tokens.bgSecondary,
-      indicatorColor: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.14),
+      indicatorColor:
+          colors?.sidebarActiveBackground ??
+          scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return selected
-            ? theme.erpMenuItemActive.copyWith(color: scheme.primary)
+            ? theme.erpMenuItemActive.copyWith(color: tokens.textPrimary)
             : theme.erpMenuItem.copyWith(color: tokens.textSecondary);
       }),
       height: DesignMetrics.tabHeightMax,
@@ -559,7 +664,7 @@ abstract final class PharmaComponentTheme {
         color: tokens.textSecondary,
       ),
       indicatorColor: scheme.primary,
-      dividerColor: tokens.border.withValues(alpha: isDark ? 0.5 : 0.7),
+      dividerColor: tokens.border,
       labelPadding: EdgeInsets.symmetric(horizontal: tokens.density.md),
     );
   }

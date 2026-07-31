@@ -49,9 +49,9 @@ class _ExpiryPageState extends ConsumerState<ExpiryPage> {
       case 'EXPIRADO':
         return t.posDanger;
       case 'ATE_30_DIAS':
-        return Colors.orange;
+        return t.posWarning;
       case 'ATE_60_DIAS':
-        return Colors.amber.shade700;
+        return t.quarantine;
       default:
         return t.textPrimary;
     }

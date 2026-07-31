@@ -8,6 +8,7 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/async_type_ahead_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/estoque_item.dart';
 import '../providers/estoque_provider.dart';
@@ -242,20 +243,17 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DropdownButtonFormField<String>(
+                EnterpriseSelectFormField<String>(
                   key: ValueKey('fornecedor-$_fornecedorId'),
+                  label: 'Fornecedor',
                   initialValue: _fornecedorId,
-                  decoration: const InputDecoration(
-                    labelText: 'Fornecedor',
-                  ),
-                  items: widget.fornecedores
-                      .map(
-                        (f) => DropdownMenuItem(
-                          value: f.id,
-                          child: Text(f.nome),
-                        ),
-                      )
-                      .toList(),
+                  options: [
+                    for (final fornecedor in widget.fornecedores)
+                      EnterpriseSelectOption<String>(
+                        value: fornecedor.id,
+                        label: fornecedor.nome,
+                      ),
+                  ],
                   onChanged: (value) => setState(() => _fornecedorId = value),
                 ),
                 SizedBox(height: s.sm),

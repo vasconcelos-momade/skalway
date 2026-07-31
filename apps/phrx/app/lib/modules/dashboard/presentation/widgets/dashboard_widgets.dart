@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/contracts/pagination_response.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/dashboard_theme.dart';
+import '../../../../core/theme/design_metrics.dart';
 import '../../../../core/theme/extensions.dart';
 import '../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
@@ -97,7 +99,7 @@ Widget _dashboardChartEmptyState(
     builder: (context, constraints) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -106,7 +108,7 @@ Widget _dashboardChartEmptyState(
                 size: 28,
                 color: t.textMuted.withValues(alpha: 0.7),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: SpacingTokens.sm),
               Text(
                 resolvedTitle,
                 maxLines: 2,
@@ -114,11 +116,11 @@ Widget _dashboardChartEmptyState(
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.erpBody.copyWith(
                       color: t.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TypographyTokens.semibold,
                     ),
               ),
               if (resolvedSubtitle != null) ...[
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: SpacingTokens.xs),
                 Text(
                   resolvedSubtitle,
                   maxLines: 3,
@@ -178,9 +180,10 @@ Widget _dashboardChartLegend({
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
+      final dash = context.dashboardTheme;
       final legend = Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.xs,
+        spacing: SpacingTokens.sm,
+        runSpacing: SpacingTokens.xs,
         children: [
           for (final (label, color) in items)
             ConstrainedBox(
@@ -193,14 +196,14 @@ Widget _dashboardChartLegend({
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: dash.legendSwatchSize,
+                    height: dash.legendSwatchSize,
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(RadiusTokens.sm),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: SpacingTokens.sm),
                   Flexible(
                     child: Text(
                       label,
@@ -226,9 +229,15 @@ Widget _dashboardChartLegend({
   );
 }
 
-double _dashboardChartMinWidthForCount(int count, {double perItem = 52}) {
-  if (count <= 0) return 280;
-  return (count * perItem).clamp(280, 1600).toDouble();
+double _dashboardChartMinWidthForCount(
+  BuildContext context,
+  int count, {
+  double? perItem,
+}) {
+  final dash = context.dashboardTheme;
+  final item = perItem ?? dash.rankBadgeSize * 2 + SpacingTokens.xs;
+  if (count <= 0) return dash.chartMinWidth;
+  return (count * item).clamp(dash.chartMinWidth, dash.chartMaxWidth).toDouble();
 }
 
 Widget _dashboardAxisLabel({
@@ -239,7 +248,7 @@ Widget _dashboardAxisLabel({
 }) {
   return SideTitleWidget(
     meta: meta,
-    space: 8,
+    space: context.dashboardTheme.chartAxisLabelSpace + SpacingTokens.sm,
     angle: angle,
     child: Text(
       label,
@@ -297,22 +306,22 @@ Widget dashboardLineChart({
   }
   final chartMax = maxY < 1 ? 1.0 : maxY * 1.25;
   final minWidth = labelKey == null
-      ? 280.0
-      : _dashboardChartMinWidthForCount(points.length, perItem: 56);
+      ? context.dashboardTheme.chartMinWidth
+      : _dashboardChartMinWidthForCount(context, points.length, perItem: SpacingTokens.xxxl + SpacingTokens.lg);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       if (headerTrailing != null) ...[
         Align(alignment: Alignment.centerRight, child: headerTrailing),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: SpacingTokens.xs),
       ],
       Expanded(
         child: _dashboardScrollableChart(
           minWidth: minWidth,
           scrollToEnd: true,
           child: Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
+            padding: EdgeInsets.only(top: SpacingTokens.sm, bottom: SpacingTokens.xs, right: SpacingTokens.xs),
             child: LineChart(
               LineChartData(
                 minY: 0,
@@ -323,8 +332,8 @@ Widget dashboardLineChart({
                   drawVerticalLine: false,
                   horizontalInterval: chartMax / 4,
                   getDrawingHorizontalLine: (v) => FlLine(
-                    color: t.border.withValues(alpha: 0.22),
-                    strokeWidth: 1,
+                    color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha),
+                    strokeWidth: context.dashboardTheme.chartGridStrokeWidth,
                   ),
                 ),
                 borderData: FlBorderData(show: false),
@@ -339,7 +348,7 @@ Widget dashboardLineChart({
                             '${item.y.toStringAsFixed(2)} MZN',
                             Theme.of(context).textTheme.erpCaption.copyWith(
                                   color: t.textPrimary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TypographyTokens.semibold,
                                 ),
                           ),
                         )
@@ -354,7 +363,7 @@ Widget dashboardLineChart({
                       : AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 30,
+                            reservedSize: context.dashboardTheme.chartAxisReservedSizeLine,
                             getTitlesWidget: (value, meta) {
                               final i = value.toInt();
                               if (i < 0 || i >= points.length) {
@@ -389,13 +398,13 @@ Widget dashboardLineChart({
                     spots: spots,
                     isCurved: true,
                     color: lineColor,
-                    barWidth: 3,
+                    barWidth: context.dashboardTheme.chartPrimaryLineWidth,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, bar, index) =>
                           FlDotCirclePainter(
-                        radius: 4,
+                        radius: RadiusTokens.sm,
                         color: lineColor,
                         strokeWidth: 2,
                         strokeColor: t.card,
@@ -407,7 +416,7 @@ Widget dashboardLineChart({
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          lineColor.withValues(alpha: 0.22),
+                          lineColor.withValues(alpha: context.dashboardTheme.chartGridAlpha),
                           lineColor.withValues(alpha: 0.02),
                         ],
                       ),
@@ -463,7 +472,7 @@ Widget dashboardBarChart({
       .toList(growable: false);
   final maxY = values.fold<double>(0, (a, b) => a > b ? a : b);
   final chartMax = maxY < 1 ? 1.0 : maxY * 1.2;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 74);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length, perItem: SpacingTokens.xxxl * 2 - SpacingTokens.sm);
 
   return _dashboardScrollableChart(
     minWidth: minWidth,
@@ -474,7 +483,7 @@ Widget dashboardBarChart({
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (v) =>
-              FlLine(color: t.border.withValues(alpha: 0.22), strokeWidth: 1),
+              FlLine(color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha), strokeWidth: context.dashboardTheme.chartGridStrokeWidth),
         ),
         borderData: FlBorderData(show: false),
         barTouchData: BarTouchData(
@@ -487,7 +496,7 @@ Widget dashboardBarChart({
                 '${rodData.toY.toStringAsFixed(2)} MZN',
                 Theme.of(context).textTheme.erpCaption.copyWith(
                       color: t.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TypographyTokens.semibold,
                     ),
               );
             },
@@ -497,7 +506,7 @@ Widget dashboardBarChart({
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 28,
+              reservedSize: context.dashboardTheme.chartAxisReservedSizeBar,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= points.length) return const SizedBox.shrink();
@@ -523,9 +532,9 @@ Widget dashboardBarChart({
             barRods: [
               BarChartRodData(
                 toY: values[i],
-                width: 18,
+                width: context.dashboardTheme.chartBarWidth,
                 color: color ?? t.brandBlue,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(RadiusTokens.sm)),
               ),
             ],
           );
@@ -577,7 +586,7 @@ Widget dashboardTrendBarChart({
       ? maxY * 1.15
       : (minY < 0 ? (-minY * 0.08).clamp(1.0, double.infinity) : 1.0);
   final chartMin = allowNegative && minY < 0 ? minY * 1.15 : 0.0;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 52);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length);
 
   return _dashboardScrollableChart(
     minWidth: minWidth,
@@ -589,14 +598,14 @@ Widget dashboardTrendBarChart({
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (v) =>
-              FlLine(color: t.border.withValues(alpha: 0.22), strokeWidth: 1),
+              FlLine(color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha), strokeWidth: context.dashboardTheme.chartGridStrokeWidth),
         ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 28,
+              reservedSize: context.dashboardTheme.chartAxisReservedSizeBar,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= points.length) return const SizedBox.shrink();
@@ -638,8 +647,8 @@ Widget dashboardTrendBarChart({
                   ],
                 ),
                 borderRadius: BorderRadius.vertical(
-                  top: isNegative ? Radius.zero : const Radius.circular(6),
-                  bottom: isNegative ? const Radius.circular(6) : Radius.zero,
+                  top: isNegative ? Radius.zero : Radius.circular(RadiusTokens.sm),
+                  bottom: isNegative ? Radius.circular(RadiusTokens.sm) : Radius.zero,
                 ),
               ),
             ],
@@ -679,7 +688,7 @@ Widget dashboardDualTrendBarChart({
     ...despesas,
   ].fold<double>(0, (a, b) => a > b ? a : b);
   final chartMax = maxY < 1 ? 1.0 : maxY * 1.15;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 72);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length, perItem: SpacingTokens.xxxl * 2 - SpacingTokens.sm);
 
   BarChartRodData rod({
     required double value,
@@ -696,7 +705,7 @@ Widget dashboardDualTrendBarChart({
           baseColor,
         ],
       ),
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(RadiusTokens.sm)),
     );
   }
 
@@ -713,7 +722,7 @@ Widget dashboardDualTrendBarChart({
                 show: true,
                 drawVerticalLine: false,
                 getDrawingHorizontalLine: (v) => FlLine(
-                  color: t.border.withValues(alpha: 0.22),
+                  color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha),
                   strokeWidth: 1,
                 ),
               ),
@@ -722,7 +731,7 @@ Widget dashboardDualTrendBarChart({
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 28,
+                    reservedSize: context.dashboardTheme.chartAxisReservedSizeBar,
                     getTitlesWidget: (value, meta) {
                       final i = value.toInt();
                       if (i < 0 || i >= points.length) {
@@ -764,7 +773,7 @@ Widget dashboardDualTrendBarChart({
           ),
         ),
       ),
-      const SizedBox(height: AppSpacing.xs),
+      const SizedBox(height: SpacingTokens.xs),
       _dashboardChartLegend(
         items: [
           ('Receitas', incomeColor),
@@ -845,7 +854,7 @@ Widget dashboardMultiLineChart({
         dotData: FlDotData(
           show: true,
           getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-            radius: 4,
+            radius: RadiusTokens.sm,
             color: config.color,
             strokeWidth: 2,
             strokeColor: t.card,
@@ -857,7 +866,7 @@ Widget dashboardMultiLineChart({
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              config.color.withValues(alpha: 0.22),
+              config.color.withValues(alpha: context.dashboardTheme.chartGridAlpha),
               config.color.withValues(alpha: 0.02),
             ],
           ),
@@ -870,7 +879,7 @@ Widget dashboardMultiLineChart({
   final chartMax = maxY <= 0 ? 1.0 : maxY * 1.25;
   final chartMin = minY < 0 ? minY * 1.15 : 0.0;
   final labelStep = points.length > 10 ? 2 : 1;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 48);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length, perItem: DesignMetrics.minTouchTarget);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -880,7 +889,7 @@ Widget dashboardMultiLineChart({
           minWidth: minWidth,
           scrollToEnd: true,
           child: Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
+            padding: EdgeInsets.only(top: SpacingTokens.sm, bottom: SpacingTokens.xs, right: SpacingTokens.xs),
             child: LineChart(
               LineChartData(
                 minY: chartMin,
@@ -891,8 +900,8 @@ Widget dashboardMultiLineChart({
                   drawVerticalLine: false,
                   horizontalInterval: chartMax / 4,
                   getDrawingHorizontalLine: (v) => FlLine(
-                    color: t.border.withValues(alpha: 0.22),
-                    strokeWidth: 1,
+                    color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha),
+                    strokeWidth: context.dashboardTheme.chartGridStrokeWidth,
                   ),
                 ),
                 borderData: FlBorderData(show: false),
@@ -912,7 +921,7 @@ Widget dashboardMultiLineChart({
                           '$label\n${item.y.toStringAsFixed(2)} MZN',
                           Theme.of(context).textTheme.erpCaption.copyWith(
                                 color: t.textPrimary,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TypographyTokens.semibold,
                               ),
                         );
                       }).toList(growable: false);
@@ -923,7 +932,7 @@ Widget dashboardMultiLineChart({
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
+                      reservedSize: context.dashboardTheme.chartAxisReservedSizeLine,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
@@ -958,7 +967,7 @@ Widget dashboardMultiLineChart({
           ),
         ),
       ),
-      const SizedBox(height: AppSpacing.xs),
+      const SizedBox(height: SpacingTokens.xs),
       _dashboardChartLegend(
         items: [
           for (final item in series) (item.label, item.color),
@@ -1013,7 +1022,7 @@ Widget dashboardGroupedCashFlowChart({
 
   final chartMax = maxY > 0 ? maxY * 1.20 : 1.0;
   final chartMin = minY < 0 ? minY * 1.15 : 0.0;
-  final minWidth = _dashboardChartMinWidthForCount(points.length, perItem: 64);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length, perItem: SpacingTokens.xxxl + SpacingTokens.xl);
   const barWidth = 18.0;
   final labelStep = points.length > 10 ? 2 : 1;
 
@@ -1027,8 +1036,8 @@ Widget dashboardGroupedCashFlowChart({
       width: barWidth,
       color: color,
       borderRadius: BorderRadius.vertical(
-        top: value < 0 ? Radius.zero : const Radius.circular(6),
-        bottom: value < 0 ? const Radius.circular(6) : Radius.zero,
+        top: value < 0 ? Radius.zero : Radius.circular(RadiusTokens.sm),
+        bottom: value < 0 ? Radius.circular(RadiusTokens.sm) : Radius.zero,
       ),
     );
   }
@@ -1045,7 +1054,7 @@ Widget dashboardGroupedCashFlowChart({
           minWidth: minWidth,
           scrollToEnd: true,
           child: Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 4, right: 4),
+            padding: EdgeInsets.only(top: SpacingTokens.sm, bottom: SpacingTokens.xs, right: SpacingTokens.xs),
             child: Stack(
               children: [
                 BarChart(
@@ -1058,7 +1067,7 @@ Widget dashboardGroupedCashFlowChart({
                       drawVerticalLine: false,
                       horizontalInterval: chartMax / 4,
                       getDrawingHorizontalLine: (v) => FlLine(
-                        color: t.border.withValues(alpha: 0.22),
+                        color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha),
                         strokeWidth: 1,
                       ),
                     ),
@@ -1079,7 +1088,7 @@ Widget dashboardGroupedCashFlowChart({
                             'Saldo:\n${saldo.toStringAsFixed(2)} MZN',
                             Theme.of(context).textTheme.erpCaption.copyWith(
                                   color: t.textPrimary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TypographyTokens.semibold,
                                 ),
                             textAlign: TextAlign.left,
                           );
@@ -1090,7 +1099,7 @@ Widget dashboardGroupedCashFlowChart({
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 30,
+                          reservedSize: context.dashboardTheme.chartAxisReservedSizeLine,
                           getTitlesWidget: (value, meta) {
                             final i = value.toInt();
                             if (i < 0 ||
@@ -1151,13 +1160,13 @@ Widget dashboardGroupedCashFlowChart({
                           spots: saldoSpots,
                           isCurved: true,
                           color: saldoColor,
-                          barWidth: 3,
+                          barWidth: context.dashboardTheme.chartPrimaryLineWidth,
                           isStrokeCapRound: true,
                           dotData: FlDotData(
                             show: true,
                             getDotPainter: (spot, percent, bar, index) =>
                                 FlDotCirclePainter(
-                              radius: 4,
+                              radius: RadiusTokens.sm,
                               color: saldoColor,
                               strokeWidth: 2,
                               strokeColor: t.card,
@@ -1174,7 +1183,7 @@ Widget dashboardGroupedCashFlowChart({
           ),
         ),
       ),
-      const SizedBox(height: AppSpacing.xs),
+      const SizedBox(height: SpacingTokens.xs),
       _dashboardChartLegend(
         items: [
           ('Entradas', entradasColor),
@@ -1214,7 +1223,7 @@ Widget dashboardRankedBarList({
     builder: (context, constraints) {
       return ListView.separated(
         itemCount: points.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+        separatorBuilder: (_, _) => const SizedBox(height: SpacingTokens.sm),
         itemBuilder: (context, index) {
           final value = values[index];
           final label = DashboardDataUtils.text(points[index][labelKey]);
@@ -1233,22 +1242,22 @@ Widget dashboardRankedBarList({
                       style: Theme.of(context).textTheme.erpCaption,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
+                  const SizedBox(width: SpacingTokens.xs),
                   Text(
                     DashboardDataUtils.money(value),
                     style: Theme.of(context).textTheme.erpCaption.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TypographyTokens.semibold,
                         ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xxs),
+              const SizedBox(height: SpacingTokens.xs),
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(RadiusTokens.sm),
                 child: LinearProgressIndicator(
                   value: ratio,
-                  minHeight: 10,
-                  backgroundColor: t.bgSecondary,
+                  minHeight: context.dashboardTheme.progressBarHeight,
+                  backgroundColor: t.surface3,
                   color: barColor,
                 ),
               ),
@@ -1284,7 +1293,7 @@ Widget dashboardProductRankingList({
 
   return ListView.separated(
     itemCount: points.length,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    separatorBuilder: (_, _) => const SizedBox(height: SpacingTokens.md),
     itemBuilder: (context, index) {
       final row = points[index];
       final name = DashboardDataUtils.productName(row);
@@ -1299,22 +1308,22 @@ Widget dashboardProductRankingList({
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 24,
-                height: 24,
+                width: context.dashboardTheme.rankBadgeSize,
+                height: context.dashboardTheme.rankBadgeSize,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: t.bgSecondary,
-                  borderRadius: BorderRadius.circular(6),
+                  color: t.surface3,
+                  borderRadius: BorderRadius.circular(RadiusTokens.sm),
                 ),
                 child: Text(
                   '${index + 1}',
                   style: Theme.of(context).textTheme.erpOverline.copyWith(
                         color: t.textSecondary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TypographyTokens.semibold,
                       ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: SpacingTokens.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1324,11 +1333,11 @@ Widget dashboardProductRankingList({
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.erpCaption.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TypographyTokens.semibold,
                             color: t.textPrimary,
                           ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: SpacingTokens.xs),
                     Text(
                       'Qtd: ${qty == qty.roundToDouble() ? qty.toInt() : qty.toStringAsFixed(1)}  ·  Receita: ${revenue.toStringAsFixed(2)} MZN',
                       maxLines: 1,
@@ -1343,13 +1352,13 @@ Widget dashboardProductRankingList({
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: SpacingTokens.xs),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm),
             child: LinearProgressIndicator(
               value: ratio,
-              minHeight: 10,
-              backgroundColor: t.bgSecondary,
+              minHeight: context.dashboardTheme.progressBarHeight,
+              backgroundColor: t.surface3,
               color: t.brandBlue,
             ),
           ),
@@ -1378,7 +1387,7 @@ Widget dashboardCategoryRankingList({
 
   return ListView.separated(
     itemCount: sorted.length,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    separatorBuilder: (_, _) => const SizedBox(height: SpacingTokens.md),
     itemBuilder: (context, index) {
       final slice = sorted[index];
       final pct = (slice.value / total * 100);
@@ -1395,7 +1404,7 @@ Widget dashboardCategoryRankingList({
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.erpCaption.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TypographyTokens.semibold,
                       ),
                 ),
               ),
@@ -1403,12 +1412,12 @@ Widget dashboardCategoryRankingList({
                 '${pct.toStringAsFixed(0)}%',
                 style: Theme.of(context).textTheme.erpCaption.copyWith(
                       color: t.textSecondary,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TypographyTokens.semibold,
                     ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: SpacingTokens.xs),
           Text(
             '${slice.value.toStringAsFixed(2)} MZN',
             style: Theme.of(context)
@@ -1416,13 +1425,13 @@ Widget dashboardCategoryRankingList({
                 .erpOverline
                 .copyWith(color: t.textMuted),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: SpacingTokens.xs),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(RadiusTokens.sm),
             child: LinearProgressIndicator(
               value: ratio,
-              minHeight: 10,
-              backgroundColor: t.bgSecondary,
+              minHeight: context.dashboardTheme.progressBarHeight,
+              backgroundColor: t.surface3,
               color: slice.color,
             ),
           ),
@@ -1452,7 +1461,7 @@ Widget dashboardDualLineChart({
     despesas.add(FlSpot(i.toDouble(), d));
   }
   final chartMax = maxY < 1 ? 1.0 : maxY * 1.15;
-  final minWidth = _dashboardChartMinWidthForCount(points.length);
+  final minWidth = _dashboardChartMinWidthForCount(context, points.length);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1469,8 +1478,8 @@ Widget dashboardDualLineChart({
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (v) => FlLine(
-                    color: t.border.withValues(alpha: 0.22),
-                    strokeWidth: 1,
+                    color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha),
+                    strokeWidth: context.dashboardTheme.chartGridStrokeWidth,
                   ),
                 ),
                 borderData: FlBorderData(show: false),
@@ -1480,14 +1489,14 @@ Widget dashboardDualLineChart({
                     spots: receitas,
                     isCurved: true,
                     color: t.brandGreen,
-                    barWidth: 2.5,
+                    barWidth: context.dashboardTheme.chartPrimaryLineWidth,
                     dotData: const FlDotData(show: false),
                   ),
                   LineChartBarData(
                     spots: despesas,
                     isCurved: true,
                     color: t.brandBlue,
-                    barWidth: 2,
+                    barWidth: context.dashboardTheme.chartSecondaryLineWidth,
                     dotData: const FlDotData(show: false),
                   ),
                 ],
@@ -1496,7 +1505,7 @@ Widget dashboardDualLineChart({
           ),
         ),
       ),
-      const SizedBox(height: AppSpacing.xs),
+      const SizedBox(height: SpacingTokens.xs),
       _dashboardChartLegend(
         items: [
           ('Receitas', t.brandGreen),
@@ -1529,7 +1538,7 @@ Widget dashboardIndexedBarChart({
       ];
   final maxY = values.fold<double>(0, (a, b) => a > b ? a : b);
   final chartMax = maxY < 1 ? 1.0 : maxY * 1.2;
-  final minWidth = _dashboardChartMinWidthForCount(labels.length, perItem: 74);
+  final minWidth = _dashboardChartMinWidthForCount(context, labels.length, perItem: SpacingTokens.xxxl * 2 - SpacingTokens.sm);
 
   return _dashboardScrollableChart(
     minWidth: minWidth,
@@ -1540,14 +1549,14 @@ Widget dashboardIndexedBarChart({
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (v) =>
-              FlLine(color: t.border.withValues(alpha: 0.22), strokeWidth: 1),
+              FlLine(color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha), strokeWidth: context.dashboardTheme.chartGridStrokeWidth),
         ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 28,
+              reservedSize: context.dashboardTheme.chartAxisReservedSizeBar,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= labels.length) return const SizedBox.shrink();
@@ -1575,7 +1584,7 @@ Widget dashboardIndexedBarChart({
                 toY: values[i],
                 width: barWidth,
                 color: palette[i % palette.length],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(RadiusTokens.sm)),
               ),
             ],
           );
@@ -1660,7 +1669,7 @@ Widget dashboardPieChart({
             ),
           ),
           if (activeSlices.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: SpacingTokens.xs),
             _dashboardChartLegend(
               items: [
                 for (final slice in activeSlices)
@@ -1692,7 +1701,7 @@ Widget dashboardSimpleTable({
     children: [
       if (title != null) ...[
         Text(title, style: Theme.of(context).textTheme.erpSectionTitle),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: SpacingTokens.sm),
       ],
       if (rows.isEmpty)
         DashboardEmptyState(
@@ -1844,7 +1853,7 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(widget.title, style: Theme.of(context).textTheme.erpSectionTitle),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: SpacingTokens.sm),
           const DashboardLoadingState(kpiCount: 0),
         ],
       );
@@ -1855,9 +1864,9 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(widget.title, style: Theme.of(context).textTheme.erpSectionTitle),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: SpacingTokens.sm),
           Text('Não foi possível carregar a tabela: $_error'),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: SpacingTokens.sm),
           OutlinedButton(onPressed: _fetch, child: const Text('Tentar novamente')),
         ],
       );
@@ -1893,7 +1902,7 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
               ),
           ],
         ),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: SpacingTokens.xs),
         Text(
           [
             '${rows.length} itens nesta página',
@@ -1904,9 +1913,9 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
                 color: t.textSecondary,
               ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: SpacingTokens.sm),
         if (_loading && _result != null)
-          const LinearProgressIndicator(minHeight: 2),
+          LinearProgressIndicator(minHeight: BorderTokens.width * 2),
         dashboardSimpleTable(
           context: context,
           headers: widget.headers,
@@ -1919,7 +1928,7 @@ class _DashboardPaginatedTableState extends State<DashboardPaginatedTable> {
           onSortColumn: _toggleSort,
           emptySubtitle: widget.emptySubtitle,
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: SpacingTokens.sm),
         MovimentacoesPagination(
           page: result.page,
           pageSize: result.pageSize,

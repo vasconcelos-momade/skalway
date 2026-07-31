@@ -147,20 +147,16 @@ class EnterpriseTableBody extends StatelessWidget {
       zebraStripes: zebraStripes,
     );
 
-    // DataTable2: se [DataRow2.decoration] estiver definido, substitui o
-    // BoxDecoration interno — é o caminho fiável para zebra visível.
-    // Borda de topo: apenas quando zebra está desligada (Carbon / Fluent).
-    // Com zebra activa o contraste de cor já separa as linhas; borda seria redundante.
+    // DataTable2: com [decoration] o dividerThickness é ignorado —
+    // a borda fina tem de ir na própria decoration.
     final decoration = BoxDecoration(
       color: background,
-      border: zebraStripes
-          ? null
-          : Border(
-              top: BorderSide(
-                color: tableTheme.dividerColor,
-                width: borders.borderThin,
-              ),
-            ),
+      border: Border(
+        bottom: BorderSide(
+          color: tableTheme.dividerColor,
+          width: borders.borderThin,
+        ),
+      ),
     );
 
     if (row is DataRow2) {
@@ -203,9 +199,8 @@ class EnterpriseTableBody extends StatelessWidget {
       for (var i = 0; i < rows.length; i++) _decorateRow(context, rows[i], i),
     ];
 
-    // Com zebra activa o contraste já divide as linhas visualmente;
-    // dividerThickness próximo de 0 evita a grelha densa (Carbon / Fluent).
-    final dividerThickness = zebraStripes ? 0.0 : borders.borderThin;
+    // Linhas horizontais finas sempre visíveis (como DataTables).
+    final dividerThickness = borders.borderThin;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -220,6 +215,15 @@ class EnterpriseTableBody extends StatelessWidget {
         sortAscending: header.sortAscending,
         onSelectAll: header.onSelectAll,
         headingRowColor: WidgetStatePropertyAll(tableTheme.headerBackgroundColor),
+        headingRowDecoration: BoxDecoration(
+          color: tableTheme.headerBackgroundColor,
+          border: Border(
+            bottom: BorderSide(
+              color: tableTheme.dividerColor,
+              width: borders.borderThin,
+            ),
+          ),
+        ),
         dividerThickness: dividerThickness,
         dataRowHeight: dataRowMaxHeight ?? tableTheme.rowHeight,
         headingRowHeight: DesignMetrics.tableRowHeightMin,
