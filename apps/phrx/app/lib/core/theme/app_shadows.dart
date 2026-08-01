@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'shadow_tokens.dart';
 
-/// Sombras Trae — praticamente ausentes; só floating (dialog / dropdown).
+/// Sombras enterprise — card leve + floating (dialog / dropdown).
 abstract final class AppShadows {
   AppShadows._();
+
+  /// Sombra muito leve para cards.
+  static List<BoxShadow> card(BuildContext context) =>
+      ShadowTokens.card(context);
 
   static List<BoxShadow> dialog(BuildContext context) =>
       ShadowTokens.dialog(context);

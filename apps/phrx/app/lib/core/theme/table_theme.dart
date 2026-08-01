@@ -50,11 +50,11 @@ class TableTheme extends ThemeExtension<TableTheme> {
         color: tokens.textSecondary,
       ),
       rowHeight: table.rowHeightMax,
-      dividerColor: colors?.divider ?? table.divider,
-      hoverColor: colors?.neutralSubtle ?? table.hover,
-      selectedColor: colors?.primarySubtle ?? table.selected,
+      dividerColor: table.divider,
+      hoverColor: table.hover,
+      selectedColor: table.selected,
       zebraEvenColor: table.rowBackground,
-      zebraOddColor: colors?.neutralSubtle ?? table.zebraOdd,
+      zebraOddColor: table.zebraOdd,
       zebraEnabled: true,
     );
   }

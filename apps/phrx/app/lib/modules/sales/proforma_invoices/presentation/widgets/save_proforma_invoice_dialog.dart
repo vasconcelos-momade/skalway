@@ -236,25 +236,19 @@ class _SaveProformaInvoiceDialogState
               ),
           ],
           SizedBox(height: s.md),
-          TextField(
+          EnterpriseTextField(
             controller: _clienteController,
-            decoration: const InputDecoration(
-              labelText: 'Cliente *',
-            ),
+            labelText: 'Cliente *',
           ),
           SizedBox(height: s.md),
-          TextField(
+          EnterpriseTextField(
             controller: _nuitController,
-            decoration: const InputDecoration(
-              labelText: 'NUIT',
-            ),
+            labelText: 'NUIT',
           ),
           SizedBox(height: s.md),
-          TextField(
+          EnterpriseTextField(
             controller: _contactoController,
-            decoration: const InputDecoration(
-              labelText: 'Contacto',
-            ),
+            labelText: 'Contacto',
           ),
           SizedBox(height: s.md),
           EnterpriseDateField(

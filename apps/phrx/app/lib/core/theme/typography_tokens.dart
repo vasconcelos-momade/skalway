@@ -20,8 +20,10 @@ abstract final class TypographyTokens {
   static const double bodySmall = 13;
   static const double label = 14;
   static const double caption = 12;
-  static const double tableHeader = 14;
-  static const double tableCell = 14;
+  /// Label acima do campo (não floating) — 12–13px, peso 500.
+  static const double fieldLabel = 12.5;
+  static const double tableHeader = 13;
+  static const double tableCell = 13;
   static const double appBar = 18;
 
   // ── Line heights ─────────────────────────────────────────────────────

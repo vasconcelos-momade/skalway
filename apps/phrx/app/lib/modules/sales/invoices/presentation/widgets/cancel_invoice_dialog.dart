@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/invoice_summary.dart';
 
 Future<CancelInvoicePayload?> showCancelInvoiceDialog(
@@ -66,23 +67,19 @@ class _CancelInvoiceDialogState extends State<CancelInvoiceDialog> {
           ).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
         ),
         SizedBox(height: s.lg),
-        TextField(
+        EnterpriseTextField(
           controller: _reasonController,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Motivo',
-            hintText: 'Ex.: erro no caixa',
-          ),
+          labelText: 'Motivo',
+          hintText: 'Ex.: erro no caixa',
         ),
         SizedBox(height: s.md),
-        TextField(
+        EnterpriseTextField(
           controller: _notesController,
+          labelText: 'Observações',
+          hintText: 'Opcional',
           minLines: 3,
           maxLines: 5,
-          decoration: const InputDecoration(
-            labelText: 'Observações',
-            hintText: 'Opcional',
-          ),
         ),
       ],
     );

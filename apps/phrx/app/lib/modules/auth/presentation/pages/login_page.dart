@@ -12,6 +12,7 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
 import '../../../../shared/layouts/auth_layout.dart';
 import '../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/buttons/pharma_button_loader.dart';
 
@@ -45,8 +46,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!mounted) return;
 
     if (redirect == null) {
-      var msg = ref.read(authSessionProvider).errorMessage;
-      if (msg != null) {
+      final failure = ref.read(authSessionProvider).errorMessage;
+      if (failure != null) {
+        var msg = failure;
+        // Só acrescentar hint de host em erros reais de rede.
         if (msg.contains('Sem ligação ao servidor')) {
           msg = '$msg\n${ApiHostResolver.connectionHintForPlatform()}';
         }
@@ -107,7 +110,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               SizedBox(height: isMobile ? s.lg : AppSpacing.xxl),
               Text(
-                '© 2026 Pharma ERP — Operação crítica com auditoria e rastreio ANARME.',
+                '© 2026 Skalway PhRx. Todos os direitos reservados.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.erpOverline.copyWith(color: t.textMuted),
               ),
@@ -184,15 +187,13 @@ class _LoginFormPanel extends StatelessWidget {
           ],
         ),
         SizedBox(height: s.lg),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: emailCtrl,
+          labelText: 'E-mail',
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'E-mail',
-            prefixIcon: Icon(Icons.alternate_email_rounded),
-          ),
+          prefixIcon: const Icon(Icons.alternate_email_rounded),
           validator: (v) {
             if (v == null || v.trim().isEmpty) {
               return 'Indique o e-mail';
@@ -204,23 +205,21 @@ class _LoginFormPanel extends StatelessWidget {
           },
         ),
         SizedBox(height: s.lg),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: passCtrl,
+          labelText: 'Palavra-passe',
           obscureText: obscure,
           textInputAction: TextInputAction.done,
           autocorrect: false,
           enableSuggestions: false,
           onFieldSubmitted: (_) => onSubmit(),
-          decoration: InputDecoration(
-            labelText: 'Palavra-passe',
-            prefixIcon: const Icon(Icons.lock_outline_rounded),
-            suffixIcon: IconButton(
-              onPressed: onToggleObscure,
-              icon: Icon(
-                obscure
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-              ),
+          prefixIcon: const Icon(Icons.lock_outline_rounded),
+          suffixIcon: IconButton(
+            onPressed: onToggleObscure,
+            icon: Icon(
+              obscure
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
             ),
           ),
           validator: (v) {

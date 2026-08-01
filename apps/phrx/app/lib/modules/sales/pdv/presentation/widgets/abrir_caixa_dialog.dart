@@ -9,6 +9,7 @@ import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/caixa_disponivel.dart';
 import '../../domain/entities/caixa_sessao.dart';
 import '../providers/caixa_sessao_provider.dart';
@@ -177,19 +178,17 @@ class _AbrirCaixaDialogState extends ConsumerState<AbrirCaixaDialog> {
             },
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _valorController,
+            labelText: 'Valor de abertura',
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
             ),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Valor de abertura',
-              prefixIcon: Icon(Icons.payments_outlined),
-              suffixText: 'MT',
-            ),
+            prefixIcon: const Icon(Icons.payments_outlined),
+            suffixText: 'MT',
             validator: (value) {
               final text = value?.trim() ?? '';
               if (text.isEmpty) {
@@ -369,19 +368,17 @@ class _FecharCaixaDialogState extends ConsumerState<FecharCaixaDialog> {
             ),
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _valorContadoController,
+            labelText: 'Valor contado',
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
             ),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Valor contado',
-              prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-              suffixText: 'MT',
-            ),
+            prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+            suffixText: 'MT',
             validator: (value) {
               final parsed = parseCaixaMoneyInput(value ?? '');
               if (parsed == null || parsed < 0) {
@@ -391,13 +388,11 @@ class _FecharCaixaDialogState extends ConsumerState<FecharCaixaDialog> {
             },
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _observacoesController,
+            labelText: 'Observações do fecho',
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Observacoes do fecho',
-              prefixIcon: Icon(Icons.notes_rounded),
-            ),
+            prefixIcon: const Icon(Icons.notes_rounded),
           ),
         ],
       ),

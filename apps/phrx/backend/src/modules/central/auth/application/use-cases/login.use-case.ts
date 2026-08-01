@@ -7,7 +7,10 @@ import {
   isAccountLocked,
   resetAfterSuccess,
 } from '../../../../../infrastructure/security/login-security.service';
+import { ApiError } from '../../../../../shared/http/api-error';
 import { resolveLoginTenantContext } from '../login-tenant-context';
+
+const INVALID_CREDENTIALS_MESSAGE = 'Email ou palavra-passe incorretos.';
 
 interface UserTenantWithTenant {
   tenant: {
@@ -63,12 +66,27 @@ export class LoginUseCase {
 
     if (!user) {
       await this.recordAttempt(normalizedEmail, false, null, meta);
-      throw new Error('Usuário não encontrado');
+      throw new ApiError(
+        INVALID_CREDENTIALS_MESSAGE,
+        401,
+        'AUTH_INVALID_CREDENTIALS',
+      );
+    }
+
+    if (user.active === false) {
+      await this.recordAttempt(normalizedEmail, false, user.id, meta);
+      throw new ApiError(
+        'A sua conta está inativa.',
+        403,
+        'AUTH_ACCOUNT_INACTIVE',
+      );
     }
 
     if (isAccountLocked(user.lockedUntil)) {
-      throw new Error(
-        'Conta temporariamente bloqueada por tentativas inválidas. Tente mais tarde.',
+      throw new ApiError(
+        'A sua conta encontra-se bloqueada.',
+        403,
+        'AUTH_ACCOUNT_LOCKED',
       );
     }
 
@@ -83,7 +101,11 @@ export class LoginUseCase {
         where: { id: user.id },
         data: { failedLoginCount, lockedUntil },
       });
-      throw new Error('Senha inválida');
+      throw new ApiError(
+        INVALID_CREDENTIALS_MESSAGE,
+        401,
+        'AUTH_INVALID_CREDENTIALS',
+      );
     }
 
     const expiresAt = new Date(Date.now() + SESSION_TTL_MS);

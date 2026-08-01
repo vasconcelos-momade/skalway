@@ -18,7 +18,6 @@ import '../../../../stock/data/models/fornecedor_model.dart';
 import '../../../../stock/presentation/providers/movimentacao_provider.dart';
 
 import '../../../../../shared/navigation/adaptive_navigator.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 
 abstract final class EstoqueStockEntryHelper {
   EstoqueStockEntryHelper._();
@@ -29,14 +28,8 @@ abstract final class EstoqueStockEntryHelper {
     EstoqueItem item,
     List<({String id, String nome})> fornecedores,
   ) async {
-    final width = AdaptiveNavigator.widthOf(context);
-    final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-        ? 520.0
-        : 480.0;
-
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: panelWidth,
       routeSettings: const RouteSettings(name: '/estoque/entrada-compra'),
       builder: (detailContext) {
         if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -63,14 +56,8 @@ abstract final class EstoqueStockEntryHelper {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final width = AdaptiveNavigator.widthOf(context);
-    final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-        ? 520.0
-        : 480.0;
-
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: panelWidth,
       routeSettings: const RouteSettings(name: '/estoque/novo-lote'),
       builder: (detailContext) {
         if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -257,34 +244,28 @@ class _EntradaCompraFormContentState extends ConsumerState<_EntradaCompraFormCon
                   onChanged: (value) => setState(() => _fornecedorId = value),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _quantidadeController,
+                  labelText: 'Quantidade',
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Quantidade',
-                  ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _compraController,
+                  labelText: 'Valor compra',
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
-                  decoration: const InputDecoration(
-                    labelText: 'Valor compra',
-                  ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _vendaController,
+                  labelText: 'Valor venda',
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
-                  decoration: const InputDecoration(
-                    labelText: 'Valor venda',
-                  ),
                 ),
                 SizedBox(height: s.sm),
                 EnterpriseTextField(
@@ -515,40 +496,32 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
                   },
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _loteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número lote',
-                  ),
+                  labelText: 'Número lote',
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _quantidadeController,
+                  labelText: 'Quantidade inicial',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Quantidade inicial',
-                  ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _compraController,
+                  labelText: 'Preço compra',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Preço compra',
                   ),
                 ),
                 SizedBox(height: s.sm),
-                TextField(
+                EnterpriseTextField(
                   controller: _vendaController,
+                  labelText: 'Preço venda',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Preço venda',
                   ),
                 ),
                 SizedBox(height: s.sm),

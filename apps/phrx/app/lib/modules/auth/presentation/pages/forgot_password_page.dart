@@ -9,6 +9,7 @@ import '../../../../core/theme/extensions.dart';
 import '../../../../shared/layouts/auth_layout.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/buttons/pharma_button_loader.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -84,12 +85,12 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
               ),
               const SizedBox(height: AppSpacing.xxl),
-              TextFormField(
+              EnterpriseTextFormField(
                 controller: _email,
+                labelText: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.done,
                 autocorrect: false,
-                decoration: const InputDecoration(labelText: 'E-mail'),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Indique o e-mail';

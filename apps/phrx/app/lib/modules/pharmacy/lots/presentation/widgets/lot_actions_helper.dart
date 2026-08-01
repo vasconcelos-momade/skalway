@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/errors/api_failure.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/utils/lote_stock_utils.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../models/lote_quarentena_form_data.dart';
@@ -39,14 +38,8 @@ abstract final class LotActionsHelper {
     String loteId, {
     String? numeroLote,
   }) async {
-    final width = AdaptiveNavigator.widthOf(context);
-    final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-        ? 720.0
-        : 520.0;
-
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: panelWidth,
       routeSettings: RouteSettings(name: '/lotes/$loteId/historico'),
       builder: (detailContext) {
         if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -101,14 +94,9 @@ abstract final class LotActionsHelper {
         : LoteStockUtils.readDisponivel(lote);
     final title =
         isRevert ? 'Reverter quarentena' : 'Mover para quarentena';
-    final width = AdaptiveNavigator.widthOf(context);
-    final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-        ? 520.0
-        : 480.0;
 
     return AdaptiveNavigator.openPanel<LoteQuarentenaFormData>(
       context: context,
-      sideSheetWidth: panelWidth,
       routeSettings: RouteSettings(
         name: isRevert
             ? '/lotes/$loteId/liberar-quarentena'

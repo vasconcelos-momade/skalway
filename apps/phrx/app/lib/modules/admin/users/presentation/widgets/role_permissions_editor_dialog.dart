@@ -18,7 +18,6 @@ Future<bool?> showRolePermissionsEditorDialog(
     context: context,
     title: Text('Permissões — $role'),
     routeSettings: RouteSettings(name: '/perfis/$role/permissoes'),
-    sideSheetWidth: 720,
     formBuilder: (ctx, {required embedded}) =>
         RolePermissionsEditorDialog(role: role, embedded: embedded),
   );

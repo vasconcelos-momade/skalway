@@ -29,8 +29,8 @@ class SyncStatusStrip extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final (Color fg, Color bg, IconData icon, String title, String subtitle) = switch (state) {
       SyncVisualState.online => (
-          t.brandGreen,
-          t.brandGreen.withValues(alpha: 0.1),
+          t.posSuccess,
+          t.posSuccess.withValues(alpha: 0.1),
           Icons.cloud_done_outlined,
           'Sincronizado',
           wsConnected ? 'Realtime activo' : 'Polling',

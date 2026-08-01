@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/extensions.dart';
 import '../../../../platform/printing/thermal/printer_connection.dart';
 import '../../../../platform/printing/thermal/printer_discovery.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../shared/widgets/inputs/enterprise_select_field.dart';
-import '../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/printer.dart';
 
 class PrinterFormResult {
@@ -21,12 +24,9 @@ Future<PrinterFormResult?> showPrinterFormDialog(
   PrinterDetalhe? printer,
 }) {
   final title = Text(printer == null ? 'Nova impressora' : 'Editar impressora');
-  final width = AdaptiveNavigator.widthOf(context);
-  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
 
   return AdaptiveNavigator.openPanel<PrinterFormResult>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: printer == null ? '/impressoras/nova' : '/impressoras/${printer.id}',
     ),
@@ -151,6 +151,7 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.printer != null;
+    final s = context.spacing;
 
     final form = Form(
       key: _formKey,
@@ -181,10 +182,10 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
               }
             },
           ),
-          const SizedBox(height: 12),
-          TextFormField(
+          SizedBox(height: s.md),
+          EnterpriseTextFormField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Nome *'),
+            labelText: 'Nome *',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Nome é obrigatório';
@@ -193,13 +194,11 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
             },
           ),
           if (_connection == 'NETWORK') ...[
-            const SizedBox(height: 12),
-            TextFormField(
+            SizedBox(height: s.md),
+            EnterpriseTextFormField(
               controller: _ip,
-              decoration: const InputDecoration(
-                labelText: 'Endereço IP *',
-                hintText: 'ex: 192.168.1.100',
-              ),
+              labelText: 'Endereço IP *',
+              hintText: 'ex: 192.168.1.100',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'IP é obrigatório para impressoras de rede';
@@ -207,13 +206,11 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            SizedBox(height: s.md),
+            EnterpriseTextFormField(
               controller: _port,
-              decoration: const InputDecoration(
-                labelText: 'Porta *',
-                hintText: 'ex: 9100',
-              ),
+              labelText: 'Porta *',
+              hintText: 'ex: 9100',
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (value) {
@@ -225,7 +222,7 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
             ),
           ],
           if (_connection == 'BLUETOOTH') ...[
-            const SizedBox(height: 8),
+            SizedBox(height: s.sm),
             OutlinedButton.icon(
               onPressed: _discovering ? null : _discoverBluetooth,
               icon: _discovering
@@ -242,7 +239,7 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
               ),
             ),
             if (_bluetoothDevices.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: s.sm),
               ..._bluetoothDevices.map(
                 (device) => ListTile(
                   dense: true,
@@ -261,20 +258,19 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
               ),
             ],
           ],
-          const SizedBox(height: 12),
-          TextFormField(
+          SizedBox(height: s.md),
+          EnterpriseTextFormField(
             controller: _model,
-            decoration: const InputDecoration(labelText: 'Modelo'),
+            labelText: 'Modelo',
           ),
-          const SizedBox(height: 12),
-          TextFormField(
+          SizedBox(height: s.md),
+          EnterpriseTextFormField(
             controller: _manufacturer,
-            decoration: const InputDecoration(labelText: 'Fabricante'),
+            labelText: 'Fabricante',
           ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Activa'),
+          SizedBox(height: s.md),
+          EnterpriseFormSwitch(
+            label: 'Activa',
             value: _active,
             onChanged: (value) => setState(() => _active = value),
           ),
@@ -283,56 +279,35 @@ class _PrinterFormDialogState extends ConsumerState<_PrinterFormDialog> {
     );
 
     final actions = [
-      OutlinedButton(
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
         onPressed: () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
       ),
-      const SizedBox(width: 8),
-      FilledButton(
+      EnterpriseOverlayActions.primary(
+        label: isEditing ? 'Guardar' : 'Criar',
         onPressed: _submit,
-        child: Text(isEditing ? 'Guardar' : 'Criar'),
       ),
     ];
 
     if (widget.embedded) {
+      if (widget.showHeader) {
+        return EnterpriseFormSideSheet(
+          title: Text(isEditing ? 'Editar impressora' : 'Nova impressora'),
+          onClose: widget.onClose,
+          body: form,
+          actions: actions,
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.showHeader) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      isEditing ? 'Editar impressora' : 'Nova impressora',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  if (widget.onClose != null)
-                    IconButton(
-                      onPressed: widget.onClose,
-                      icon: const Icon(Icons.close),
-                    ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-          ],
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(s.lg),
               child: form,
             ),
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: actions,
-            ),
-          ),
+          EnterpriseOverlayFooter(actions: actions, expandOnNarrow: false),
         ],
       );
     }

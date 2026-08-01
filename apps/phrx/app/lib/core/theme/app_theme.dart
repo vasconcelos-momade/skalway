@@ -118,7 +118,10 @@ abstract final class AppTheme {
       scrollbarTheme: PharmaComponentTheme.scrollbar(tokens),
       cardTheme: PharmaComponentTheme.card(tokens, isDark: isDark),
       dialogTheme: PharmaComponentTheme.dialog(tokens, isDark: isDark),
-      bottomSheetTheme: PharmaComponentTheme.bottomSheet(tokens),
+      bottomSheetTheme: PharmaComponentTheme.bottomSheet(
+        tokens,
+        isDark: isDark,
+      ),
       popupMenuTheme: PharmaComponentTheme.popupMenu(
         tokens,
         textTheme: textTheme,
@@ -218,7 +221,7 @@ abstract final class AppTheme {
     );
   }
 
-  static const _enterpriseThemeRevision = 17;
+  static const _enterpriseThemeRevision = 19;
   static final Map<(DensityLevel, int), ThemeData> _lightCache = {};
   static final Map<(DensityLevel, int), ThemeData> _darkCache = {};
 

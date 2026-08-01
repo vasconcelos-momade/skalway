@@ -3,16 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
-import '../../../core/theme/extensions.dart';
-import 'enterprise_overlay_chrome.dart';
+import 'enterprise_form_side_sheet.dart';
 import 'enterprise_overlay_tokens.dart';
 
 /// Side sheet enterprise (tablet/desktop) com chrome e animação do Design System.
 abstract final class EnterpriseSideSheet {
   EnterpriseSideSheet._();
+
+  static double _canonicalWidth(BuildContext context) {
+    final w = MediaQuery.sizeOf(context).width;
+    return w >= DesignMetrics.overlayDesktopBreakpoint
+        ? DesignMetrics.sideSheetFormDesktop
+        : DesignMetrics.sideSheetFormTablet;
+  }
 
   static Future<T?> show<T>({
     required BuildContext context,
@@ -21,12 +26,8 @@ abstract final class EnterpriseSideSheet {
     double? width,
     bool barrierDismissible = true,
   }) {
-    final widths = context.widths;
-    final resolvedWidth = width ??
-        size.sideSheetWidth(widths).clamp(
-              DesignMetrics.sideSheetSizeSmall,
-              DesignMetrics.sideSheetSizeLarge,
-            );
+    // Largura canónica (= categorias) salvo override explícito.
+    final resolvedWidth = width ?? _canonicalWidth(context);
 
     final overlay = Overlay.of(context, rootOverlay: true);
     final completer = Completer<T?>();
@@ -34,7 +35,7 @@ abstract final class EnterpriseSideSheet {
 
     entry = OverlayEntry(
       builder: (overlayContext) => _EnterpriseSideSheetOverlay<T>(
-        width: resolvedWidth.toDouble(),
+        width: resolvedWidth,
         barrierDismissible: barrierDismissible,
         onClosed: (result) {
           entry.remove();
@@ -108,8 +109,6 @@ class EnterpriseSideSheetFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
-
     return Shortcuts(
       shortcuts: const {
         SingleActivator(LogicalKeyboardKey.escape): _DismissIntent(),
@@ -125,33 +124,16 @@ class EnterpriseSideSheetFrame extends StatelessWidget {
         },
         child: Focus(
           autofocus: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              EnterpriseOverlayHeader(
-                title: title,
-                subtitle: subtitle,
-                icon: icon,
-                showClose: showClose,
-                onClose: onClose ?? () => closeEnterpriseSideSheet(context),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: scrollable
-                    ? SingleChildScrollView(
-                        padding: EdgeInsets.all(s.lg),
-                        child: body,
-                      )
-                    : Padding(
-                        padding: EdgeInsets.all(s.lg),
-                        child: body,
-                      ),
-              ),
-              if (actions.isNotEmpty) ...[
-                const Divider(height: 1),
-                EnterpriseOverlayFooter(actions: actions),
-              ],
-            ],
+          child: EnterpriseFormSideSheet(
+            title: title,
+            subtitle: subtitle,
+            body: body,
+            actions: actions,
+            scrollable: scrollable,
+            showHeader: true,
+            onClose: showClose
+                ? (onClose ?? () => closeEnterpriseSideSheet(context))
+                : null,
           ),
         ),
       ),
@@ -199,7 +181,9 @@ class _EnterpriseSideSheetOverlayState<T>
     _slide = Tween<Offset>(
       begin: const Offset(1, 0),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: MotionTokens.emphasized));
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: MotionTokens.emphasized),
+    );
     _controller.forward();
   }
 
@@ -249,23 +233,11 @@ class _EnterpriseSideSheetOverlayState<T>
                       width: widget.width,
                       height: double.infinity,
                       child: Material(
-                        color: t.surface4,
+                        color: t.surface2,
                         elevation: 0,
                         shadowColor: Colors.transparent,
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: t.surface4,
-                            border: Border(
-                              left: BorderSide(
-                                color: t.borderSubtle,
-                                width: BorderTokens.width,
-                              ),
-                            ),
-                            boxShadow: AppShadows.panelEdge(
-                              context,
-                              fromLeft: false,
-                            ),
-                          ),
+                          decoration: enterpriseSideSheetDecoration(context),
                           child: Navigator(
                             onGenerateRoute: (_) => MaterialPageRoute<void>(
                               builder: (_) => _EnterpriseSideSheetScope(

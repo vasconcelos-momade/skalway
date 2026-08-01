@@ -1,5 +1,6 @@
 import { ApiError } from "./api-error";
 import { normalizeResponse } from "./api-response";
+import { globalErrorHandler } from "./error-handler";
 import type { RouteContext, RouteMiddleware } from "./router";
 
 type RateLimitEntry = {
@@ -135,16 +136,33 @@ export const requestLifecycleMiddleware: RouteMiddleware = async (context, next)
   const startedAt = Date.now();
   console.info(`[http] ${context.req.method} ${context.url.pathname} requestId=${requestId}`);
 
-  const response = await next();
-  const normalized = await normalizeResponse(response);
-  const finalized = withSharedHeaders(context.req, normalized, requestId);
+  try {
+    const response = await next();
+    const normalized = await normalizeResponse(response);
+    const finalized = withSharedHeaders(context.req, normalized, requestId);
 
-  console.info(
-    `[http] ${context.req.method} ${context.url.pathname} status=${finalized.status} durationMs=${Date.now() - startedAt} requestId=${requestId}`,
-  );
+    console.info(
+      `[http] ${context.req.method} ${context.url.pathname} status=${finalized.status} durationMs=${Date.now() - startedAt} requestId=${requestId}`,
+    );
 
-  return finalized;
+    return finalized;
+  } catch (error) {
+    // Garante CORS também em erros (ex.: 401 de login), para o browser não mascarar como falha de rede.
+    const errorResponse = globalErrorHandler(error, requestId);
+    const finalized = withSharedHeaders(context.req, errorResponse, requestId);
+
+    console.info(
+      `[http] ${context.req.method} ${context.url.pathname} status=${finalized.status} durationMs=${Date.now() - startedAt} requestId=${requestId} error=true`,
+    );
+
+    return finalized;
+  }
 };
+
+/** Aplica cabeçalhos partilhados (CORS/segurança) a respostas fora do ciclo de middlewares. */
+export function applySharedHeaders(req: Request, response: Response, requestId?: string): Response {
+  return withSharedHeaders(req, response, requestId ?? crypto.randomUUID());
+}
 
 export const auditMiddleware: RouteMiddleware = async (context, next) => {
   const response = await next();

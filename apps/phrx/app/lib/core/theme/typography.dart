@@ -292,9 +292,10 @@ extension EnterpriseTextTheme on TextTheme {
   TextStyle get erpButtonSecondary =>
       erpLabel.copyWith(fontWeight: TypographyTokens.medium);
   TextStyle get erpFieldLabel => erpBodySecondary.copyWith(
-        fontWeight: TypographyTokens.medium,
-        fontSize: TypographyTokens.bodySmall,
+        fontWeight: TypographyTokens.semibold,
+        fontSize: TypographyTokens.fieldLabel,
         height: TypographyTokens.captionHeight,
+        color: null, // cor via tokens.textPrimary no consumidor
       );
   TextStyle get erpSelectLabel => erpFieldLabel;
   TextStyle get erpSelectValue =>

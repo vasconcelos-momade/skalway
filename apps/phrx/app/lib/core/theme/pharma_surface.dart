@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../shared/widgets/inputs/enterprise_select_field.dart';
 import 'design_tokens.dart';
 import 'extensions.dart';
-import 'typography.dart';
 
 /// Duração zero para superfícies Material (evita atraso ao trocar tema).
 const Duration kPharmaInstantThemeDuration = Duration.zero;
@@ -28,6 +27,7 @@ class PharmaSurface extends StatelessWidget {
     this.onTap,
     this.hoverColor,
     this.splashColor,
+    this.elevation = PharmaSurfaceElevation.none,
   });
 
   final Widget child;
@@ -40,6 +40,9 @@ class PharmaSurface extends StatelessWidget {
   final Color? hoverColor;
   final Color? splashColor;
 
+  /// Elevação visual via sombra tokenizada (cards / overlays).
+  final PharmaSurfaceElevation elevation;
+
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
@@ -48,13 +51,20 @@ class PharmaSurface extends StatelessWidget {
         border ??
         Border.all(
           color: t.borderSubtle,
+          width: BorderTokens.width,
         );
+    final shadows = switch (elevation) {
+      PharmaSurfaceElevation.none => ShadowTokens.none,
+      PharmaSurfaceElevation.card => ShadowTokens.card(context),
+      PharmaSurfaceElevation.floating => ShadowTokens.floating(context),
+    };
 
     Widget content = DecoratedBox(
       decoration: BoxDecoration(
         color: color ?? t.surface2,
         borderRadius: radius,
         border: resolvedBorder,
+        boxShadow: shadows,
       ),
       child: padding != null ? Padding(padding: padding!, child: child) : child,
     );
@@ -83,6 +93,9 @@ class PharmaSurface extends StatelessWidget {
   }
 }
 
+/// Níveis de elevação para [PharmaSurface].
+enum PharmaSurfaceElevation { none, card, floating }
+
 /// Chip de filtro com cores/bordas estáticas (sem animação do [Material] ao mudar tema).
 class PharmaInstantFilterChip extends StatelessWidget {
   const PharmaInstantFilterChip({
@@ -99,21 +112,21 @@ class PharmaInstantFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
+    final colors = context.colors;
     final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PharmaSurface(
-      color: selected
-          ? scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12)
-          : t.surface3,
+      color: selected ? colors.selected : t.surface3,
       padding: EdgeInsets.symmetric(
         horizontal: t.density.sm,
         vertical: t.density.xs,
       ),
       onTap: () => onSelected(!selected),
       child: DefaultTextStyle(
-        style: textTheme.erpBodyStrong.copyWith(color: t.textPrimary),
+        style: textTheme.erpBodyMedium.copyWith(
+          color: t.textPrimary,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        ),
         child: label,
       ),
     );

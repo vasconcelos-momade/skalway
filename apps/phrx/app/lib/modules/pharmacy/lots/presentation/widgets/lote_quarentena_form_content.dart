@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/lote_quarentena_form_data.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 
 /// Formulário de quarentena / liberação — desacoplado do container de apresentação.
 class LoteQuarentenaFormContent extends StatefulWidget {
@@ -77,16 +78,12 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
                 : 'Lote ${lote['numeroLote']} • ${lote['produtoNomeComercial'] ?? lote['produtoNome'] ?? 'Produto'}',
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _qtyController,
-            decoration: InputDecoration(
-              labelText: widget.isRevert
-                  ? 'Quantidade a libertar'
-                  : 'Quantidade',
-              helperText: widget.isRevert
-                  ? 'Máximo em quarentena: $maxQty'
-                  : 'Máximo disponível: $maxQty',
-            ),
+            labelText: widget.isRevert ? 'Quantidade a libertar' : 'Quantidade',
+            helperText: widget.isRevert
+                ? 'Máximo em quarentena: $maxQty'
+                : 'Máximo disponível: $maxQty',
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.next,
             validator: (value) {
@@ -103,11 +100,9 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
             },
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _motivoController,
-            decoration: InputDecoration(
-              labelText: widget.isRevert ? 'Motivo da liberação' : 'Motivo',
-            ),
+            labelText: widget.isRevert ? 'Motivo da liberação' : 'Motivo',
             maxLines: 3,
             textInputAction: TextInputAction.next,
             validator: (value) {
@@ -118,11 +113,10 @@ class _LoteQuarentenaFormContentState extends State<LoteQuarentenaFormContent> {
             },
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _docController,
-            decoration: const InputDecoration(
-              labelText: 'Documento de referência (opcional)',
-            ),
+            labelText: 'Documento de referência',
+            hintText: 'Opcional',
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _submit(),
           ),

@@ -163,8 +163,8 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
         : destructive
             ? t.posDanger
             : selected
-                ? t.brandBlue
-                : t.textPrimary;
+                ? t.textPrimary
+                : t.textSecondary;
 
     return FocusableActionDetector(
       enabled: enabled,
@@ -218,6 +218,7 @@ class _EnterpriseDropdownTileState<T> extends State<_EnterpriseDropdownTile<T>> 
                     widget.item.label,
                     style: widget.textTheme.erpBodySecondary.copyWith(
                       color: foreground,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 ),

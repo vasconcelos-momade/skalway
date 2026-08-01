@@ -53,7 +53,7 @@ class _SearchableDropdownFieldState<T>
 
     final decoration = EnterpriseFieldDecoration.of(
       context,
-      labelText: widget.label,
+      hintText: 'Toque para escolher',
       enabled: enabled,
       suffixIcon: Icon(
         Icons.arrow_drop_down_rounded,
@@ -62,7 +62,7 @@ class _SearchableDropdownFieldState<T>
       ),
     );
 
-    return MouseRegion(
+    final field = MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: enabled ? (_) => setState(() => _hovering = true) : null,
       onExit: enabled ? (_) => setState(() => _hovering = false) : null,
@@ -161,5 +161,7 @@ class _SearchableDropdownFieldState<T>
         ),
       ),
     );
+
+    return EnterpriseFieldGroup(labelText: widget.label, child: field);
   }
 }

@@ -4,20 +4,30 @@ import '../../../core/theme/design_metrics.dart';
 import '../dialogs/enterprise_overlay_tokens.dart';
 import '../dialogs/enterprise_side_sheet.dart';
 
-/// Largura do painel lateral conforme o Design System.
+/// Largura do painel lateral — alinhada ao side sheet de categorias.
 abstract final class AdaptiveSideSheetMetrics {
   AdaptiveSideSheetMetrics._();
 
   static const double mobileBreakpoint = DesignMetrics.overlayMobileBreakpoint;
   static const double desktopBreakpoint = DesignMetrics.overlayDesktopBreakpoint;
-  static const double tabletWidth = DesignMetrics.sideSheetSizeMedium;
-  static const double desktopWidth = DesignMetrics.sideSheetSizeLarge;
+
+  /// Tablet / < desktop — mesmo valor que categorias (480).
+  static const double tabletWidth = DesignMetrics.sideSheetFormTablet;
+
+  /// Desktop — mesmo valor que categorias (520).
+  static const double desktopWidth = DesignMetrics.sideSheetFormDesktop;
+
   static const double backdropOpacity = DesignMetrics.overlayScrimOpacity;
 
+  /// Largura canónica para todos os side sheets de formulário.
   static double panelWidthForScreen(double screenWidth) {
     if (screenWidth >= desktopBreakpoint) return desktopWidth;
     return tabletWidth;
   }
+
+  /// Resolve a partir do [BuildContext].
+  static double panelWidthOf(BuildContext context) =>
+      panelWidthForScreen(MediaQuery.sizeOf(context).width);
 }
 
 /// Side Sheet adaptativo — delega para [EnterpriseSideSheet].
@@ -33,10 +43,7 @@ class AdaptiveSideSheet {
     return EnterpriseSideSheet.show<T>(
       context: context,
       builder: builder,
-      width: width ??
-          AdaptiveSideSheetMetrics.panelWidthForScreen(
-            MediaQuery.sizeOf(context).width,
-          ),
+      width: width ?? AdaptiveSideSheetMetrics.panelWidthOf(context),
       size: EnterpriseOverlaySize.medium,
       barrierDismissible: barrierDismissible,
     );

@@ -90,8 +90,30 @@ export class ListInventoryEligibleProductsUseCase {
       ];
     }
 
-    const [totalCount, produtos] = await Promise.all([
+    const [totalCount, lotesTotal, produtos] = await Promise.all([
       prisma.produto.count({ where: produtoWhere }),
+      prisma.lote.count({
+        where: {
+          ...loteWhere,
+          produto: {
+            ativo: true,
+            deletedAt: null,
+            ...(categoriaId ? { categoriaId } : {}),
+            ...(query
+              ? {
+                  OR: [
+                    { nomeComercial: { contains: query } },
+                    { nomeGenerico: { contains: query } },
+                    { barcode: { contains: query } },
+                    { dosagem: { contains: query } },
+                    { forma: { contains: query } },
+                    ...(/^\d+$/.test(query) ? [{ id: BigInt(query) }] : []),
+                  ],
+                }
+              : {}),
+          },
+        },
+      }),
       prisma.produto.findMany({
         where: produtoWhere,
         select: {
@@ -175,6 +197,7 @@ export class ListInventoryEligibleProductsUseCase {
       hasMore: page * pageSize < totalCount,
       summary: {
         produtos: totalCount,
+        lotesTotal,
         stockTotal: items.reduce(
           (sum: number, item: { stockAtual: number }) => sum + item.stockAtual,
           0,

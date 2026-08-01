@@ -101,10 +101,11 @@ abstract final class PharmaComponentTheme {
     ).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return palette?.primarySubtle ?? scheme.primary.withValues(alpha: 0.12);
+          return palette?.neutralSubtle ??
+              scheme.onSurface.withValues(alpha: 0.08);
         }
         if (states.contains(WidgetState.hovered)) {
-          return palette?.neutralSubtle ?? scheme.primary.withValues(alpha: 0.06);
+          return palette?.hover ?? scheme.onSurface.withValues(alpha: 0.04);
         }
         return Colors.transparent;
       }),
@@ -118,18 +119,20 @@ abstract final class PharmaComponentTheme {
         if (states.contains(WidgetState.disabled)) {
           return BorderSide(color: tokens.borderSubtle);
         }
-        if (states.contains(WidgetState.focused) ||
-            states.contains(WidgetState.hovered)) {
+        if (states.contains(WidgetState.focused)) {
           return BorderSide(color: scheme.primary);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return BorderSide(color: tokens.textSecondary.withValues(alpha: 0.45));
         }
         return BorderSide(color: tokens.border);
       }),
       overlayColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return scheme.primary.withValues(alpha: 0.10);
+          return scheme.onSurface.withValues(alpha: 0.08);
         }
         if (states.contains(WidgetState.hovered)) {
-          return scheme.primary.withValues(alpha: 0.06);
+          return scheme.onSurface.withValues(alpha: 0.04);
         }
         return null;
       }),
@@ -290,12 +293,13 @@ abstract final class PharmaComponentTheme {
         borderRadius: BorderRadius.circular(tokens.radiusMd),
         borderSide: BorderSide(color: tokens.posDanger, width: BorderTokens.width),
       ),
-      labelStyle: theme.erpSelectLabel.copyWith(
-        color: tokens.textSecondary,
-        fontWeight: FontWeight.w500,
+      labelStyle: theme.erpFieldLabel.copyWith(
+        color: tokens.textPrimary,
       ),
-      floatingLabelStyle: theme.erpFieldLabel.copyWith(color: tokens.textSecondary),
+      floatingLabelStyle: theme.erpFieldLabel.copyWith(color: tokens.textPrimary),
       hintStyle: theme.erpBody.copyWith(color: tokens.textDisabled),
+      helperStyle: theme.erpCaption.copyWith(color: tokens.textSecondary),
+      errorStyle: theme.erpCaption.copyWith(color: tokens.posDanger),
     );
   }
 
@@ -308,11 +312,12 @@ abstract final class PharmaComponentTheme {
   }) {
     final label = (textTheme ?? ThemeData().textTheme).erpLabel.copyWith(
       color: tokens.textPrimary,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w500,
     );
     return ChipThemeData(
       backgroundColor: colors?.neutralSubtle ?? tokens.card,
-      selectedColor: colors?.primarySubtle ?? scheme.primary.withValues(alpha: isDark ? 0.18 : 0.12),
+      // Selecção neutra — cor semântica só em chips de estado.
+      selectedColor: colors?.selected ?? tokens.surface3,
       disabledColor: scheme.onSurface.withValues(alpha: 0.08),
       labelStyle: label,
       secondaryLabelStyle: label,
@@ -376,18 +381,27 @@ abstract final class PharmaComponentTheme {
     return CardThemeData(
       color: tokens.surface2,
       elevation: 0,
+      shadowColor: tokens.textPrimary.withValues(alpha: isDark ? 0.12 : 0.03),
       surfaceTintColor: Colors.transparent,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radiusMd),
-        side: BorderSide(color: tokens.borderSubtle),
+        side: BorderSide(color: tokens.borderSubtle, width: BorderTokens.width),
       ),
+    );
+  }
+
+  static Color overlaySurface(PharmaTokens tokens, {required bool isDark}) {
+    if (!isDark) return tokens.surface4;
+    return Color.alphaBlend(
+      Colors.white.withValues(alpha: 0.01),
+      tokens.bgPrimary,
     );
   }
 
   static DialogThemeData dialog(PharmaTokens tokens, {required bool isDark}) {
     return DialogThemeData(
-      backgroundColor: tokens.surface4,
+      backgroundColor: overlaySurface(tokens, isDark: isDark),
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -397,9 +411,12 @@ abstract final class PharmaComponentTheme {
     );
   }
 
-  static BottomSheetThemeData bottomSheet(PharmaTokens tokens) {
+  static BottomSheetThemeData bottomSheet(
+    PharmaTokens tokens, {
+    required bool isDark,
+  }) {
     return BottomSheetThemeData(
-      backgroundColor: tokens.surface4,
+      backgroundColor: overlaySurface(tokens, isDark: isDark),
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -568,6 +585,12 @@ abstract final class PharmaComponentTheme {
       columnSpacing: tokens.density.lg,
       dataRowMinHeight: DesignMetrics.tableRowHeightMin,
       dataRowMaxHeight: DesignMetrics.tableRowHeightMax,
+      dataRowColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return colors?.selected ?? tokens.surface3;
+        }
+        return null;
+      }),
     );
   }
 
@@ -590,14 +613,15 @@ abstract final class PharmaComponentTheme {
     final theme = textTheme ?? ThemeData().textTheme;
     return NavigationRailThemeData(
       backgroundColor: tokens.bgSecondary,
-      selectedIconTheme: IconThemeData(color: scheme.primary),
+      selectedIconTheme: IconThemeData(color: tokens.textPrimary),
       unselectedIconTheme: IconThemeData(color: tokens.textSecondary),
       selectedLabelTextStyle: theme.erpMenuItemActive.copyWith(
-        color: scheme.primary,
+        color: tokens.textPrimary,
       ),
       unselectedLabelTextStyle: theme.erpMenuItem.copyWith(
         color: tokens.textSecondary,
       ),
+      indicatorColor: tokens.surface3,
     );
   }
 
@@ -656,15 +680,19 @@ abstract final class PharmaComponentTheme {
     required TextTheme textTheme,
   }) {
     return TabBarThemeData(
-      labelColor: scheme.primary,
+      labelColor: tokens.textPrimary,
       unselectedLabelColor: tokens.textSecondary,
-      labelStyle: textTheme.erpTabLabel,
+      labelStyle: textTheme.erpTabLabel.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
       unselectedLabelStyle: textTheme.erpTabLabel.copyWith(
         fontWeight: FontWeight.w500,
         color: tokens.textSecondary,
       ),
+      // Indicador fino na cor primária — único uso de accent nas tabs.
       indicatorColor: scheme.primary,
-      dividerColor: tokens.border,
+      indicatorSize: TabBarIndicatorSize.label,
+      dividerColor: tokens.borderSubtle,
       labelPadding: EdgeInsets.symmetric(horizontal: tokens.density.md),
     );
   }

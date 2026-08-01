@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
+import '../../../core/theme/component_theme.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
@@ -38,6 +39,11 @@ class EnterpriseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = PharmaComponentTheme.overlaySurface(
+      t,
+      isDark: isDark,
+    );
     final widths = context.widths;
     final screen = MediaQuery.sizeOf(context);
     final isNarrow = screen.width < Breakpoints.tablet;
@@ -72,7 +78,7 @@ class EnterpriseDialog extends StatelessWidget {
     }
 
     return Dialog(
-      backgroundColor: t.surface4,
+      backgroundColor: surfaceColor,
       elevation: 0,
       clipBehavior: Clip.antiAlias,
       insetPadding: EdgeInsets.symmetric(
@@ -91,10 +97,10 @@ class EnterpriseDialog extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.dialog(t)),
-            boxShadow: AppShadows.dialog(context),
+            boxShadow: isDark ? const [] : AppShadows.dialog(context),
           ),
           child: Material(
-            color: t.surface4,
+            color: surfaceColor,
             child: Shortcuts(
               shortcuts: const {
                 SingleActivator(LogicalKeyboardKey.escape): _DismissIntent(),

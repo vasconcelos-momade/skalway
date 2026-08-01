@@ -50,6 +50,7 @@ class InventarioRepositoryImpl implements InventarioRepository {
       pageSize: response.pageSize,
       hasMore: response.hasMore,
       totalCount: response.totalCount,
+      summary: response.summary,
     );
   }
 

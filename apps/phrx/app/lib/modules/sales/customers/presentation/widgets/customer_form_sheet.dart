@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../domain/entities/customer.dart';
@@ -174,11 +175,9 @@ class _CustomerFormState extends State<CustomerForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _nomeController,
-            decoration: const InputDecoration(
-              labelText: 'Nome *',
-            ),
+            labelText: 'Nome *',
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Nome obrigatório' : null,
           ),
@@ -197,52 +196,40 @@ class _CustomerFormState extends State<CustomerForm> {
           Row(
             children: [
               Expanded(
-                child: TextFormField(
+                child: EnterpriseTextFormField(
                   controller: _telefoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Telefone',
-                  ),
+                  labelText: 'Telefone',
                 ),
               ),
               SizedBox(width: s.sm),
               Expanded(
-                child: TextFormField(
+                child: EnterpriseTextFormField(
                   controller: _nuitController,
-                  decoration: const InputDecoration(
-                    labelText: 'NUIT',
-                  ),
+                  labelText: 'NUIT',
                 ),
               ),
             ],
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-            ),
+            labelText: 'Email',
             keyboardType: TextInputType.emailAddress,
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _documentoController,
-            decoration: const InputDecoration(
-              labelText: 'Documento',
-            ),
+            labelText: 'Documento',
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _enderecoController,
-            decoration: const InputDecoration(
-              labelText: 'Endereço',
-            ),
+            labelText: 'Endereço',
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _limiteController,
-            decoration: const InputDecoration(
-              labelText: 'Limite de crédito (MT)',
-            ),
+            labelText: 'Limite de crédito (MT)',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           SizedBox(height: s.sm),

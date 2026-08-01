@@ -27,9 +27,16 @@ class RetryInterceptor extends Interceptor {
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     final extra = err.requestOptions.extra;
     final alreadyRetried = extra['retry_cloud'] == true;
+
+    // Respostas HTTP (incl. 401/403/500) nunca são falhas de conectividade.
+    if (err.response != null) {
+      return handler.next(err);
+    }
+
     final isConnection = err.type == DioExceptionType.connectionError ||
         err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.receiveTimeout;
+        err.type == DioExceptionType.receiveTimeout ||
+        err.type == DioExceptionType.sendTimeout;
 
     if (!isConnection || alreadyRetried) {
       return handler.next(err);
@@ -47,6 +54,14 @@ class RetryInterceptor extends Interceptor {
         );
         _onOnline(ConnectionMode.cloud);
         return handler.resolve(response);
+      } on DioException catch (retryError) {
+        // Fallback chegou à API: não marcar offline (ex.: 401 de credenciais).
+        if (retryError.response != null) {
+          _onOnline(ConnectionMode.cloud);
+          return handler.next(retryError);
+        }
+        _onOffline();
+        return handler.next(retryError);
       } catch (_) {
         _onOffline();
       }

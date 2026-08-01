@@ -1,15 +1,17 @@
 # Design System — Pharma ERP
 
-O Design System Enterprise do Pharma ERP segue a filosofia visual do Trae AI:
-extremamente consistente, minimalista, técnico, moderno, compacto e com alta legibilidade.
+O Design System Enterprise do Pharma ERP prioriza clareza, hierarquia visual e
+usabilidade. Aparência profissional inspirada em SAP Fiori, IBM Carbon,
+Microsoft Fluent 2 e Atlassian Design System.
 
 ## Princípios
 
 1. **Design Tokens only** — componentes consomem apenas tokens; zero valores hardcoded.
-2. **Profundidade por superfície** — hierarquia Surface 0–4 via luminosidade subtil (2–4%); sombras mínimas.
-3. **Bordas 1px** — baixo contraste; sem caixas pesadas.
-4. **Identidade preservada** — cor primária, branding e arquitectura de negócio intactas.
-5. **Retrocompatibilidade** — `PharmaTokens` como ponte legacy-to-modern.
+2. **Menos cores, mais contraste** — primária (verde) só em acções primárias, sucesso e elementos realmente importantes.
+3. **Tipografia como hierarquia** — peso, tamanho e espaçamento antes de cor.
+4. **Menos bordas, mais espaçamento** — bordas 1px de baixo contraste; profundidade via Surface 0–4.
+5. **Consistência acima de personalização** — mesmos tokens em todos os componentes.
+6. **Retrocompatibilidade** — `PharmaTokens` como ponte legacy-to-modern.
 
 ## Tokens canónicos
 
@@ -21,9 +23,9 @@ extremamente consistente, minimalista, técnico, moderno, compacto e com alta le
 | `typography_tokens.dart` | Escala tipográfica + pesos 400/500/600 |
 | `spacing_tokens.dart` | 4 · 8 · 12 · 16 · 24 · 32 · 40 |
 | `radius_tokens.dart` | 4 · 8 · 10 · 9999 |
-| `border_tokens.dart` | 1px, default / subtle |
+| `border_tokens.dart` | 1px · indicator 3px |
 | `motion_tokens.dart` | Fast 150 · Normal 200 · Slow 250 |
-| `shadow_tokens.dart` | Sombras mínimas (só floating) |
+| `shadow_tokens.dart` | Card leve · floating (dialogs/menus) |
 | `icon_tokens.dart` | sm 18 · md 24 · lg 32 |
 | `table_tokens.dart` | Header / zebra / densidade |
 
@@ -37,11 +39,19 @@ extremamente consistente, minimalista, técnico, moderno, compacto e com alta le
 | 3 | Inputs, search, toolbar, headers |
 | 4 | Dialogs, dropdowns, menus, drawers |
 
-## Componentes
+## Padrões de componentes
 
-Todos os componentes Enterprise devem usar exclusivamente Design Tokens via
-`context.pharmaTokens`, `context.colors`, `context.surfaces`, `context.spacing`,
-`context.radius`, `MotionTokens`, `ShadowTokens`, etc.
+| Componente | Regra |
+|------------|-------|
+| **Inputs** | Label acima (cinza, 12–13px, w500); borda neutra; primária só no foco |
+| **Botões** | Filled = acção principal; outline/ghost = secundárias |
+| **Tabelas** | Zebra suave; divisórias discretas; tipografia secundaria no header |
+| **Sidebar** | Fundo suave + barra 3px; sem bloco verde sólido |
+| **Cards** | Fundo neutro, borda 1px, sombra muito leve |
+| **KPIs** | Ícone neutro; cor só em tendência/estado |
+| **Chips/Status** | Cor só para sucesso / aviso / erro / info |
+| **Dialogs** | Surface 4 + borda subtil + sombra floating |
+| **Side sheets (formulários)** | Largura = categorias (480 tablet / 520 desktop); Surface 2; footer fixo Outline+Filled |
 
 ## Acesso rápido
 
@@ -51,3 +61,6 @@ final s = context.spacing;      // DensityTokens
 final surfaces = context.surfaces;
 final colors = context.colors;
 ```
+
+Antes de hardcodar um valor, verificar se existe token equivalente.
+Caso não exista, criar um token reutilizável.

@@ -129,12 +129,26 @@ class InventarioRemoteDataSourceImpl implements InventarioRemoteDataSource {
           .map(InventarioProdutoAptoModel.fromJson)
           .toList();
 
+      final summaryRaw = payload['summary'];
+      int? lotesTotal;
+      if (summaryRaw is Map<String, dynamic>) {
+        final raw = summaryRaw['lotesTotal'];
+        if (raw is int) {
+          lotesTotal = raw;
+        } else if (raw is num) {
+          lotesTotal = raw.toInt();
+        }
+      }
+
       return PaginationResponse<InventarioProdutoAptoModel>(
         items: items,
         page: payload['page'] as int? ?? page,
         pageSize: payload['pageSize'] as int? ?? pageSize,
         hasMore: payload['hasMore'] as bool? ?? false,
         totalCount: payload['totalCount'] as int?,
+        summary: PaginationSummary(
+          total: lotesTotal ?? 0,
+        ),
       );
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);

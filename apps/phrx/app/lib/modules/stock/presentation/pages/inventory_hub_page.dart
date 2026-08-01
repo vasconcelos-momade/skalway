@@ -49,6 +49,8 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
   }
 
   Future<void> _startInventory() async {
+    if (ref.read(inventarioProvider).hasOpenInventory) return;
+
     final result = await showNovoInventarioDialog(context);
     if (!mounted || result == null) return;
 
@@ -79,24 +81,6 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
     await showInventariadosSheet(context);
   }
 
-  Future<void> _concluirInventario() async {
-    final state = ref.read(inventarioProvider);
-    if (!state.canReconcile) return;
-
-    final confirmed = await PharmaFeedback.confirm(
-      context: context,
-      title: 'Concluir Inventário',
-      message:
-          'Serão gerados movimentos AJUSTE para cada divergência e o inventário será marcado como concluído. Continuar?',
-      confirmText: 'Concluir',
-      cancelText: 'Cancelar',
-    );
-
-    if (!mounted || confirmed != true) return;
-    await ref.read(inventarioProvider.notifier).reconcileActiveInventory();
-    await ref.read(inventoryCatalogProvider.notifier).refreshCurrentPage();
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
@@ -125,26 +109,39 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
     });
 
     final active = inventoryState.activeInventory;
+    final totalLotes = catalogState.resolvedLotesTotal;
+    final inventariados = inventoryState.lotesInventariadosCount;
+    final naoInventariados =
+        inventoryState.lotesNaoInventariadosCount(totalLotes);
+    final divergencias = inventoryState.divergenciasCount;
+    final inventoryOpen = inventoryState.hasOpenInventory;
+
     final kpis = [
       EnterpriseStatCard(
-        title: 'Produtos',
-        value: '${catalogState.resolvedTotalCount ?? catalogState.items.length}',
-        icon: Icons.medication_outlined,
-      ),
-      EnterpriseStatCard(
-        title: 'Stock Total',
-        value: formatInventoryQuantity(catalogState.stockTotalPage),
+        title: 'Total de lotes',
+        value: '$totalLotes',
         icon: Icons.inventory_2_outlined,
+        accent: StatCardAccent.neutral,
       ),
       EnterpriseStatCard(
-        title: 'Produtos Inventariados',
-        value: '${inventoryState.produtosInventariadosCount}',
+        title: 'Lotes inventariados',
+        value: '$inventariados',
         icon: Icons.fact_check_outlined,
+        accent: StatCardAccent.positive,
       ),
       EnterpriseStatCard(
-        title: 'Divergências',
-        value: '${inventoryState.divergenciasCount}',
+        title: 'Lotes não inventariados',
+        value: '$naoInventariados',
+        icon: Icons.pending_actions_outlined,
+        accent: StatCardAccent.info,
+      ),
+      EnterpriseStatCard(
+        title: 'Lotes com divergência',
+        value: '$divergencias',
         icon: Icons.warning_amber_outlined,
+        accent: divergencias > 0
+            ? StatCardAccent.warning
+            : StatCardAccent.neutral,
       ),
     ];
 
@@ -157,14 +154,21 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
           child: Scaffold(
             backgroundColor: t.bgPrimary,
             floatingActionButton: isMobile
-                ? FloatingActionButton.extended(
-                    onPressed:
-                        inventoryState.isCreating ? null : _startInventory,
-                    icon: inventoryState.isCreating
-                        ? const PharmaButtonLoader()
-                        : const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Iniciar Inventário'),
-                  )
+                ? (inventoryOpen
+                    ? FloatingActionButton.extended(
+                        onPressed: _openInventariados,
+                        icon: const Icon(Icons.list_alt_outlined),
+                        label: const Text('Itens Inventariados'),
+                      )
+                    : FloatingActionButton.extended(
+                        onPressed: inventoryState.isCreating
+                            ? null
+                            : _startInventory,
+                        icon: inventoryState.isCreating
+                            ? const PharmaButtonLoader()
+                            : const Icon(Icons.play_arrow_rounded),
+                        label: const Text('Iniciar Inventário'),
+                      ))
                 : null,
             body: EnterpriseModuleHub(
               title: 'Inventário',
@@ -178,31 +182,22 @@ class _InventoryHubPageState extends ConsumerState<InventoryHubPage> {
               actions: isMobile
                   ? null
                   : [
-                      FilledButton.icon(
-                        onPressed: inventoryState.isCreating
-                            ? null
-                            : _startInventory,
-                        icon: inventoryState.isCreating
-                            ? const PharmaButtonLoader()
-                            : const Icon(Icons.play_arrow_rounded),
-                        label: const Text('Iniciar Inventário'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: inventoryState.hasOpenInventory
-                            ? _openInventariados
-                            : null,
-                        icon: const Icon(Icons.list_alt_outlined),
-                        label: const Text('Itens Inventariados'),
-                      ),
-                      FilledButton.tonalIcon(
-                        onPressed: inventoryState.canReconcile
-                            ? _concluirInventario
-                            : null,
-                        icon: inventoryState.isReconciling
-                            ? const PharmaButtonLoader()
-                            : const Icon(Icons.check_circle_outline),
-                        label: const Text('Concluir Inventário'),
-                      ),
+                      if (!inventoryOpen)
+                        FilledButton.icon(
+                          onPressed: inventoryState.isCreating
+                              ? null
+                              : _startInventory,
+                          icon: inventoryState.isCreating
+                              ? const PharmaButtonLoader()
+                              : const Icon(Icons.play_arrow_rounded),
+                          label: const Text('Iniciar Inventário'),
+                        )
+                      else
+                        FilledButton.icon(
+                          onPressed: _openInventariados,
+                          icon: const Icon(Icons.list_alt_outlined),
+                          label: const Text('Itens Inventariados'),
+                        ),
                     ],
               child: InventoryProductsTab(
                 searchController: _searchController,

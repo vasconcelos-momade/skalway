@@ -10,7 +10,7 @@ import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../data/repositories/cashflow_repository_impl.dart';
 import '../../domain/entities/cashflow_operation.dart';
 
@@ -19,13 +19,9 @@ Future<CashflowOperationResponse?> showCashflowOperationDialog(
   required CashflowOperationKind kind,
 }) {
   final title = Text('Fluxo de Caixa - ${kind.label}');
-  final width = AdaptiveNavigator.widthOf(context);
-  final panelWidth =
-      width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
 
   return AdaptiveNavigator.openPanel<CashflowOperationResponse>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(name: '/finance/operation/${kind.name}'),
     builder: (detailContext) {
       if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -263,13 +259,11 @@ class _CashflowOperationDialogState
               ),
             ),
             SizedBox(height: s.md),
-            TextFormField(
+            EnterpriseTextFormField(
               controller: _valorController,
               enabled: !_submitting,
-              decoration: const InputDecoration(
-                labelText: 'Valor',
-                suffixText: 'MZN',
-              ),
+              labelText: 'Valor',
+              suffixText: 'MZN',
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -304,12 +298,10 @@ class _CashflowOperationDialogState
                   value == null || value.isEmpty ? 'Selecione a origem' : null,
             ),
             SizedBox(height: s.md),
-            TextFormField(
+            EnterpriseTextFormField(
               controller: _descricaoController,
               enabled: !_submitting,
-              decoration: const InputDecoration(
-                labelText: 'Descrição',
-              ),
+              labelText: 'Descrição',
               maxLines: 3,
             ),
           ],

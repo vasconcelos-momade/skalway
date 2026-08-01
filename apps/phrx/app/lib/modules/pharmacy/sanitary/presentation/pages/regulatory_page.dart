@@ -215,6 +215,7 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
             EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
             EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
             EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+            EnterpriseSelectOption(value: 'INCINERADO', label: 'Incinerado'),
             EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
             EnterpriseSelectOption(value: 'CRITICO', label: 'Crítico'),
           ],
@@ -284,6 +285,7 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
                     EnterpriseSelectOption(value: 'EXPIRADO', label: 'Expirado'),
                     EnterpriseSelectOption(value: 'RECALL', label: 'Recall'),
                     EnterpriseSelectOption(value: 'QUARENTENA', label: 'Quarentena'),
+                    EnterpriseSelectOption(value: 'INCINERADO', label: 'Incinerado'),
                     EnterpriseSelectOption(value: 'BLOQUEADO', label: 'Bloqueado'),
                     EnterpriseSelectOption(value: 'CRITICO', label: 'Crítico'),
                   ],
@@ -384,7 +386,7 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
               ),
               EnterpriseListCardMeta(
                 label:
-                    '${item['latestAlert']?['tipo']?.toString() ?? '—'} · Stock: ${LoteStockUtils.formatDisponivel(item)}',
+                    '${_alertLabel(item['latestAlert']?['tipo']?.toString())} · Stock: ${LoteStockUtils.formatDisponivel(item)}',
               ),
             ],
             onTap: () => _openHistory(item['id'].toString()),
@@ -456,7 +458,9 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
                         ),
                         DataCell(
                           TableSecondaryCell(
-                            item['latestAlert']?['tipo']?.toString() ?? '—',
+                            _alertLabel(
+                              item['latestAlert']?['tipo']?.toString(),
+                            ),
                           ),
                         ),
                         DataCell(
@@ -509,14 +513,25 @@ class _SanitaryBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
-    final value = label ?? '—';
-    final color = switch (value) {
+    final raw = label ?? '—';
+    final color = switch (raw) {
       'EXPIRADO' => t.posDanger,
       'RECALL' => t.recall,
       'QUARENTENA' => t.quarantine,
+      'INCINERADO' => t.textMuted,
       'BLOQUEADO' => t.posWarning,
       'CRITICO' => t.posDanger,
       _ => t.brandGreen,
+    };
+    final display = switch (raw) {
+      'EXPIRADO' => 'Expirado',
+      'RECALL' => 'Recall',
+      'QUARENTENA' => 'Quarentena',
+      'INCINERADO' => 'Incinerado',
+      'BLOQUEADO' => 'Bloqueado',
+      'CRITICO' => 'Crítico',
+      'VALIDO' => 'Válido',
+      _ => raw,
     };
     final s = context.spacing;
     return Container(
@@ -526,9 +541,22 @@ class _SanitaryBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(RadiusScale.full),
       ),
       child: Text(
-        value,
+        display,
         style: Theme.of(context).textTheme.erpTableStatus.copyWith(color: color),
       ),
     );
   }
+}
+
+String _alertLabel(String? tipo) {
+  if (tipo == null || tipo.isEmpty) return '—';
+  return switch (tipo) {
+    'LOTE_EXPIRADO' => 'Lote expirado',
+    'LOTE_A_EXPIRAR' => 'Lote a expirar',
+    'ESTOQUE_BAIXO' => 'Stock baixo',
+    'PRODUTO_ESGOTADO' => 'Esgotado',
+    'PRECO_SUBIU' => 'Preço subiu',
+    'SEM_FORNECEDOR' => 'Sem fornecedor',
+    _ => tipo,
+  };
 }

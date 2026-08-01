@@ -10,7 +10,7 @@ import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../data/datasources/estoque_remote_datasource.dart';
 import '../../domain/entities/estoque_item.dart';
 import '../providers/estoque_provider.dart';
@@ -99,14 +99,8 @@ Future<void> _openLoteActionPanel({
     VoidCallback? onClose,
   ) builder,
 }) async {
-  final width = AdaptiveNavigator.widthOf(context);
-  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-      ? 520.0
-      : 480.0;
-
   await AdaptiveNavigator.openPanel<void>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(name: routeName),
     builder: (detailContext) {
       if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -312,11 +306,9 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
       form: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
+          EnterpriseTextField(
             controller: _numeroController,
-            decoration: const InputDecoration(
-              labelText: 'Número do lote',
-            ),
+            labelText: 'Número do lote',
           ),
           SizedBox(height: s.sm),
           EnterpriseDateField(
@@ -433,33 +425,28 @@ class _AlterarPrecoFormContentState extends ConsumerState<_AlterarPrecoFormConte
       form: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
+          EnterpriseTextField(
             controller: _compraController,
+            labelText: 'Preço de compra',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Preço de compra',
-            ),
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseTextField(
             controller: _vendaController,
+            labelText: 'Preço de venda',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Preço de venda',
-            ),
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseTextField(
             controller: _motivoController,
-            decoration: const InputDecoration(
-              labelText: 'Motivo da alteração (opcional)',
-            ),
+            labelText: 'Motivo da alteração',
+            hintText: 'Opcional',
             maxLines: 2,
           ),
         ],
@@ -566,20 +553,16 @@ class _AjustarStockFormContentState extends ConsumerState<_AjustarStockFormConte
             style: Theme.of(context).textTheme.erpBodySecondary,
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseTextField(
             controller: _quantidadeController,
+            labelText: 'Quantidade (+ entrada / − saída)',
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true, signed: true),
-            decoration: const InputDecoration(
-              labelText: 'Quantidade (+ entrada / − saída)',
-            ),
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseTextField(
             controller: _motivoController,
-            decoration: const InputDecoration(
-              labelText: 'Motivo',
-            ),
+            labelText: 'Motivo',
             maxLines: 2,
           ),
         ],
@@ -747,29 +730,24 @@ class _MovimentacaoSanitariaFormContentState
             ),
           if (requiresQty && _acoesPermitidas.isNotEmpty) ...[
             SizedBox(height: s.sm),
-            TextField(
+            EnterpriseTextField(
               controller: _quantidadeController,
+              labelText: 'Quantidade',
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Quantidade',
-              ),
             ),
           ],
           if (_acoesPermitidas.isNotEmpty) ...[
             SizedBox(height: s.sm),
-            TextField(
+            EnterpriseTextField(
               controller: _motivoController,
-              decoration: const InputDecoration(
-                labelText: 'Motivo',
-              ),
+              labelText: 'Motivo',
               maxLines: 2,
             ),
             SizedBox(height: s.sm),
-            TextField(
+            EnterpriseTextField(
               controller: _documentoController,
-              decoration: const InputDecoration(
-                labelText: 'Documento de referência (opcional)',
-              ),
+              labelText: 'Documento de referência',
+              hintText: 'Opcional',
             ),
           ],
         ],

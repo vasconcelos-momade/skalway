@@ -5,6 +5,7 @@ import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/pharma_surface.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../pdv/presentation/widgets/pdv_catalog_utils.dart';
 import '../../domain/entities/proforma_invoice_cart_line.dart';
 
@@ -162,13 +163,10 @@ class _ProformaInvoiceCartItemCardState
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: EnterpriseTextField(
                   controller: _qtyController,
                   enabled: line.allowPriceEdit,
-                  decoration: const InputDecoration(
-                    labelText: 'Qtd.',
-                    isDense: true,
-                  ),
+                  labelText: 'Qtd.',
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
@@ -197,13 +195,10 @@ class _ProformaInvoiceCartItemCardState
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: EnterpriseTextField(
                   controller: _priceController,
                   enabled: line.allowPriceEdit,
-                  decoration: const InputDecoration(
-                    labelText: 'Preço unit.',
-                    isDense: true,
-                  ),
+                  labelText: 'Preço unit.',
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onSubmitted: (value) {
@@ -216,13 +211,10 @@ class _ProformaInvoiceCartItemCardState
               ),
               SizedBox(width: s.sm),
               Expanded(
-                child: TextField(
+                child: EnterpriseTextField(
                   controller: _discountController,
                   enabled: line.allowPriceEdit,
-                  decoration: const InputDecoration(
-                    labelText: 'Desc. %',
-                    isDense: true,
-                  ),
+                  labelText: 'Desc. %',
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onSubmitted: (value) {
@@ -251,13 +243,10 @@ class _ProformaInvoiceCartItemCardState
             ],
           ),
           SizedBox(height: s.sm),
-          TextField(
+          EnterpriseTextField(
             controller: _obsController,
             enabled: line.allowPriceEdit,
-            decoration: const InputDecoration(
-              labelText: 'Descrição',
-              isDense: true,
-            ),
+            labelText: 'Descrição',
             maxLines: 2,
             onSubmitted: (value) => _commit(observacao: value.trim()),
           ),

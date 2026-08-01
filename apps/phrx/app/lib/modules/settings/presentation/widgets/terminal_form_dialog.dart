@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/extensions.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
-import '../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/terminal.dart';
 
 class TerminalFormResult {
@@ -16,12 +19,9 @@ Future<TerminalFormResult?> showTerminalFormDialog(
   TerminalDetalhe? terminal,
 }) {
   final title = Text(terminal == null ? 'Novo terminal' : 'Editar terminal');
-  final width = AdaptiveNavigator.widthOf(context);
-  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
 
   return AdaptiveNavigator.openPanel<TerminalFormResult>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: terminal == null ? '/terminais/novo' : '/terminais/${terminal.id}',
     ),
@@ -105,15 +105,17 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.terminal != null;
+    final s = context.spacing;
+
     final form = Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _codigo,
-            decoration: const InputDecoration(labelText: 'Código *'),
+            labelText: 'Código *',
             textCapitalization: TextCapitalization.characters,
             enabled: !isEditing,
             validator: (value) {
@@ -123,10 +125,10 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
               return null;
             },
           ),
-          const SizedBox(height: 12),
-          TextFormField(
+          SizedBox(height: s.md),
+          EnterpriseTextFormField(
             controller: _nome,
-            decoration: const InputDecoration(labelText: 'Nome *'),
+            labelText: 'Nome *',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Nome é obrigatório';
@@ -134,15 +136,14 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
               return null;
             },
           ),
-          const SizedBox(height: 12),
-          TextFormField(
+          SizedBox(height: s.md),
+          EnterpriseTextFormField(
             controller: _localizacao,
-            decoration: const InputDecoration(labelText: 'Localização'),
+            labelText: 'Localização',
           ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Activo'),
+          SizedBox(height: s.md),
+          EnterpriseFormSwitch(
+            label: 'Activo',
             value: _ativo,
             onChanged: (value) => setState(() => _ativo = value),
           ),
@@ -151,56 +152,35 @@ class _TerminalFormDialogState extends State<_TerminalFormDialog> {
     );
 
     final actions = [
-      OutlinedButton(
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
         onPressed: () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
       ),
-      const SizedBox(width: 8),
-      FilledButton(
+      EnterpriseOverlayActions.primary(
+        label: isEditing ? 'Guardar' : 'Criar',
         onPressed: _submit,
-        child: Text(isEditing ? 'Guardar' : 'Criar'),
       ),
     ];
 
     if (widget.embedded) {
+      if (widget.showHeader) {
+        return EnterpriseFormSideSheet(
+          title: Text(isEditing ? 'Editar terminal' : 'Novo terminal'),
+          onClose: widget.onClose,
+          body: form,
+          actions: actions,
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.showHeader) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      isEditing ? 'Editar terminal' : 'Novo terminal',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  if (widget.onClose != null)
-                    IconButton(
-                      onPressed: widget.onClose,
-                      icon: const Icon(Icons.close),
-                    ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-          ],
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(s.lg),
               child: form,
             ),
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: actions,
-            ),
-          ),
+          EnterpriseOverlayFooter(actions: actions, expandOnNarrow: false),
         ],
       );
     }

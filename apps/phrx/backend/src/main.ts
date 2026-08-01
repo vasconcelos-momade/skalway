@@ -3,8 +3,17 @@ import { buildV1Router } from "./routes/v1";
 import { validateReportRegistry } from "./modules/tenant/reports/application/validation/report-registry.validator";
 import { ApiError, NotFoundApiError } from "./shared/http/api-error";
 import { globalErrorHandler } from "./shared/http/error-handler";
-import { createPreflightResponse, requestLifecycleMiddleware } from "./shared/http/middlewares";
+import {
+  applySharedHeaders,
+  createPreflightResponse,
+  requestLifecycleMiddleware,
+} from "./shared/http/middlewares";
 import { Router } from "./shared/http/router";
+
+function handleError(req: Request, error: unknown): Response {
+  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
+  return applySharedHeaders(req, globalErrorHandler(error, requestId), requestId);
+}
 
 validateReportRegistry();
 
@@ -34,7 +43,7 @@ const server = Bun.serve({
       try {
         return createPreflightResponse(req);
       } catch (error) {
-        return globalErrorHandler(error);
+        return handleError(req, error);
       }
     }
 
@@ -50,7 +59,8 @@ const server = Bun.serve({
       }
 
       if (url.pathname.startsWith("/api/v2")) {
-        return globalErrorHandler(
+        return handleError(
+          req,
           new ApiError(
             "Versão da API reservada para evolução futura. Utilize /api/v1 por enquanto.",
             501,
@@ -67,9 +77,9 @@ const server = Bun.serve({
         });
       }
 
-      return globalErrorHandler(new NotFoundApiError("Rota não encontrada"));
+      return handleError(req, new NotFoundApiError("Rota não encontrada"));
     } catch (error) {
-      return globalErrorHandler(error);
+      return handleError(req, error);
     }
   },
 });

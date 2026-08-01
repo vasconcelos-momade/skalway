@@ -116,7 +116,11 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
       hover: tokens.surface2,
       pressed: tokens.surface3,
       focused: scheme.primary.withValues(alpha: isDark ? 0.28 : 0.18),
-      selected: primarySubtle,
+      // Selecção neutra — primária reservada a CTAs e indicador de nav.
+      selected: Color.alphaBlend(
+        tokens.textPrimary.withValues(alpha: isDark ? 0.08 : 0.05),
+        tokens.surface2,
+      ),
       disabled: tokens.textDisabled.withValues(alpha: 0.38),
       inverseSurface: scheme.inverseSurface,
       inversePrimary: scheme.inversePrimary,
@@ -144,7 +148,8 @@ class PharmaColorTokens extends ThemeExtension<PharmaColorTokens> {
       neutralSubtle: isDark ? tokens.surface3 : tokens.surface1,
       fieldHover: isDark ? tokens.surface4 : tokens.surface1,
       fieldDisabled: isDark ? tokens.surface2 : tokens.surface1,
-      sidebarActiveBackground: primarySubtle,
+      // Fundo suave neutro; a cor primária fica na barra de 3px.
+      sidebarActiveBackground: isDark ? tokens.surface3 : tokens.surface1,
       sidebarActiveIndicator: scheme.primary,
     );
   }

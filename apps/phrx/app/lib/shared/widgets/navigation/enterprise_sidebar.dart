@@ -190,13 +190,19 @@ class EnterpriseNavLogout extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: SpacingTokens.lg / 2,
-                        backgroundColor: colors.primarySubtle,
+                      Container(
+                        width: t.avatarMd,
+                        height: t.avatarMd,
+                        decoration: BoxDecoration(
+                          color: t.brandGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
                         child: Text(
                           _userInitials(user?.name),
-                          style: theme.textTheme.erpOverline.copyWith(
-                            color: colors.sidebarActiveIndicator,
+                          style: theme.textTheme.erpCaption.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -357,7 +363,6 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
             padding: EdgeInsets.fromLTRB(s.md, 0, s.md, s.md),
             child: _NavSearchField(controller: _searchController),
           ),
-        Divider(height: 1, color: t.border.withValues(alpha: 0.3)),
         SizedBox(height: s.sm),
         Expanded(
           child: Scrollbar(
@@ -511,7 +516,7 @@ class _NavGroup extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                    width: 3,
+                    width: BorderTokens.indicator,
                     decoration: BoxDecoration(
                       color: groupActive
                           ? colors.sidebarActiveIndicator
@@ -575,19 +580,9 @@ class _NavGroup extends StatelessWidget {
                     left: SpacingTokens.xs + s.sm + (DesignMetrics.iconSm / 2),
                     top: s.sm,
                   ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(
-                          color: t.borderSubtle,
-                          width: 1.0,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: children,
                   ),
                 )
               : const SizedBox.shrink(),
@@ -639,7 +634,7 @@ class _NavLeafTile extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 3,
+                  width: BorderTokens.indicator,
                   height: SpacingTokens.lg,
                   decoration: BoxDecoration(
                     color: active
@@ -655,10 +650,10 @@ class _NavLeafTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.erpMenuItem.copyWith(
-                            color: active ? t.textPrimary : t.textMuted,
+                            color: active ? t.textPrimary : t.textSecondary,
                             fontWeight: active
                                 ? FontWeight.w600
-                                : FontWeight.w400,
+                                : FontWeight.w500,
                           ),
                     ),
                 ),

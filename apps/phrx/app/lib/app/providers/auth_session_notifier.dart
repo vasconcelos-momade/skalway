@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../modules/auth/domain/entities/auth_session.dart';
 import '../../core/errors/api_failure.dart';
+import '../../core/errors/exceptions.dart';
 import '../../modules/auth/data/repositories/auth_repository_impl.dart';
 
 /// Estado global de autenticação e contexto tenant/branch.
@@ -93,6 +94,18 @@ class AuthSessionNotifier extends Notifier<AuthSessionState> {
       state = AuthSessionState(session: session);
       return result.redirectTo;
     } on ApiFailure catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
+      return null;
+    } on AuthenticationException catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
+      return null;
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
+      return null;
+    } on ServerException catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
+      return null;
+    } on ValidationException catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
       return null;
     } catch (e) {

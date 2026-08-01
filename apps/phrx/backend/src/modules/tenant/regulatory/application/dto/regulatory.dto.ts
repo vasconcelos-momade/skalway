@@ -89,7 +89,15 @@ export const sanitarioDashboardQuerySchema = z.object({
 export const listSanitarioQuerySchema = z.object({
   search: z.string().trim().max(200).optional(),
   estado: z
-    .enum(["VALIDO", "EXPIRADO", "RECALL", "QUARENTENA", "BLOQUEADO", "CRITICO"])
+    .enum([
+      "VALIDO",
+      "EXPIRADO",
+      "RECALL",
+      "QUARENTENA",
+      "BLOQUEADO",
+      "CRITICO",
+      "INCINERADO",
+    ])
     .optional(),
   alertaTipo: z
     .enum([

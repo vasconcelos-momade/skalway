@@ -61,13 +61,23 @@ class InventarioState {
   List<InventarioItem> get inventariadosItems =>
       activeInventory?.itens ?? const <InventarioItem>[];
 
+  /// Lotes já inventariados na sessão activa.
+  int get lotesInventariadosCount =>
+      activeInventory?.totalItens ?? inventariadosItems.length;
+
   int get produtosInventariadosCount {
     final ids = inventariadosItems.map((e) => e.produtoId).toSet();
     return ids.length;
   }
 
   int get divergenciasCount =>
+      activeInventory?.itensComDivergencia ??
       inventariadosItems.where((item) => item.hasDivergencia).length;
+
+  int lotesNaoInventariadosCount(int totalLotes) {
+    final remaining = totalLotes - lotesInventariadosCount;
+    return remaining < 0 ? 0 : remaining;
+  }
 
   InventarioState copyWith({
     bool? isLoadingLists,

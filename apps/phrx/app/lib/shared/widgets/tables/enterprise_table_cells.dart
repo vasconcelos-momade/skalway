@@ -180,7 +180,7 @@ class TableStatusCell extends StatelessWidget {
     final t = context.pharmaTokens;
     final indicatorColor = color ??
         switch (active) {
-          true => t.brandGreen,
+          true => t.posSuccess,
           false => t.textMuted,
           null => t.textSecondary,
         };

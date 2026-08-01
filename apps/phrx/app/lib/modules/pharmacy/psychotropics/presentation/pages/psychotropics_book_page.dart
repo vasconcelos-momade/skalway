@@ -111,7 +111,6 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
   Future<void> _openDetail(String id) async {
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: 860,
       builder: (panelContext) => SizedBox(
         width: 860,
         height: 640,

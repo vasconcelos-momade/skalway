@@ -18,6 +18,7 @@ class InventoryCatalogState {
     this.pageSize = 20,
     this.hasMore = false,
     this.totalCount,
+    this.lotesTotal,
     this.stockTotalPage = 0,
     this.isLoading = false,
     this.isInitialized = false,
@@ -32,6 +33,8 @@ class InventoryCatalogState {
   final int pageSize;
   final bool hasMore;
   final int? totalCount;
+  /// Total de lotes aptos (filtros actuais) — vem do summary da API.
+  final int? lotesTotal;
   final double stockTotalPage;
   final bool isLoading;
   final bool isInitialized;
@@ -53,6 +56,12 @@ class InventoryCatalogState {
     return items.isEmpty ? 0 : null;
   }
 
+  /// Fallback: soma lotesCount da página actual se a API não enviar lotesTotal.
+  int get resolvedLotesTotal {
+    if (lotesTotal != null) return lotesTotal!;
+    return items.fold<int>(0, (sum, item) => sum + item.lotesCount);
+  }
+
   InventoryCatalogState copyWith({
     List<InventarioProdutoApto>? items,
     String? query,
@@ -63,12 +72,14 @@ class InventoryCatalogState {
     int? pageSize,
     bool? hasMore,
     int? totalCount,
+    int? lotesTotal,
     double? stockTotalPage,
     bool? isLoading,
     bool? isInitialized,
     String? errorMessage,
     bool clearError = false,
     bool clearTotalCount = false,
+    bool clearLotesTotal = false,
   }) {
     return InventoryCatalogState(
       items: items ?? this.items,
@@ -80,6 +91,7 @@ class InventoryCatalogState {
       pageSize: pageSize ?? this.pageSize,
       hasMore: hasMore ?? this.hasMore,
       totalCount: clearTotalCount ? null : (totalCount ?? this.totalCount),
+      lotesTotal: clearLotesTotal ? null : (lotesTotal ?? this.lotesTotal),
       stockTotalPage: stockTotalPage ?? this.stockTotalPage,
       isLoading: isLoading ?? this.isLoading,
       isInitialized: isInitialized ?? this.isInitialized,
@@ -200,6 +212,7 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
           pageSize: cached.pageSize,
           hasMore: cached.hasMore,
           totalCount: cached.totalCount,
+          lotesTotal: cached.summary?.total,
           stockTotalPage: cached.items.fold<double>(
             0,
             (sum, item) => sum + item.stockAtual,
@@ -235,6 +248,7 @@ class InventoryCatalogController extends Notifier<InventoryCatalogState> {
         pageSize: response.pageSize,
         hasMore: response.hasMore,
         totalCount: response.totalCount,
+        lotesTotal: response.summary?.total,
         stockTotalPage: response.items.fold<double>(
           0,
           (sum, item) => sum + item.stockAtual,

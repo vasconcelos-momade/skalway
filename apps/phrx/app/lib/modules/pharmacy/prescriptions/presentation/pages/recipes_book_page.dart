@@ -13,6 +13,7 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
@@ -204,7 +205,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
   Future<void> _openReceitaDetail(String id) async {
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: 920,
       builder: (panelContext) => SizedBox(
         width: 920,
         height: 680,
@@ -290,7 +290,6 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
   Future<void> _openLivroDetail(String id) async {
     await AdaptiveNavigator.openPanel<void>(
       context: context,
-      sideSheetWidth: 860,
       builder: (panelContext) => SizedBox(
         width: 860,
         height: 640,
@@ -385,35 +384,36 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            EnterpriseTextField(
               controller: clienteId,
-              decoration: const InputDecoration(labelText: 'Cliente ID'),
+              labelText: 'Cliente ID',
             ),
             const SizedBox(height: 12),
-            TextField(
+            EnterpriseTextField(
               controller: numero,
-              decoration: const InputDecoration(labelText: 'Número da receita'),
+              labelText: 'Número da receita',
             ),
             const SizedBox(height: 12),
-            TextField(
+            EnterpriseTextField(
               controller: medico,
-              decoration: const InputDecoration(labelText: 'Médico'),
+              labelText: 'Médico',
             ),
             const SizedBox(height: 12),
-            TextField(
+            EnterpriseTextField(
               controller: unidade,
-              decoration: const InputDecoration(labelText: 'Unidade sanitária'),
+              labelText: 'Unidade sanitária',
             ),
             const SizedBox(height: 12),
-            TextField(
+            EnterpriseTextField(
               controller: data,
-              decoration: const InputDecoration(labelText: 'Data (YYYY-MM-DD)'),
+              labelText: 'Data',
+              hintText: 'YYYY-MM-DD',
             ),
             const SizedBox(height: 12),
-            TextField(
+            EnterpriseTextField(
               controller: observacoes,
+              labelText: 'Observações',
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Observações'),
             ),
             const SizedBox(height: 16),
             Row(

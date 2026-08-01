@@ -129,6 +129,7 @@ class EnterpriseStatCard extends StatelessWidget {
 
     return PharmaSurface(
       color: t.surface2,
+      elevation: PharmaSurfaceElevation.card,
       padding: pad,
       onTap: onTap,
       hoverColor: onTap != null ? t.cardHover : null,

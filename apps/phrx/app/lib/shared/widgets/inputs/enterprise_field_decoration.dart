@@ -7,13 +7,11 @@ import '../../../core/theme/extensions.dart';
 ///
 /// Fonte de verdade: [ThemeData.inputDecorationTheme]
 /// ([PharmaComponentTheme.input]).
-/// - Altura da caixa = [PharmaTokens.controlHeight] (`isDense: true` +
-///   padding vertical calculado a partir da tipografia)
-/// - Label flutuante ([FloatingLabelBehavior.auto]): dentro quando vazio,
-///   sobe para a borda ao focar ou preencher.
+/// - Altura da caixa = [PharmaTokens.controlHeight]
+/// - Labels **acima** do campo via [EnterpriseFieldGroup] (não floating)
+/// - Borda neutra; cor primária apenas no estado de foco
 ///
-/// Se só [hintText] for passado e [floatingLabel] for true, promove-o a
-/// [labelText].
+/// [floatingLabel] default `false` — preferir [EnterpriseFieldGroup].
 abstract final class EnterpriseFieldDecoration {
   EnterpriseFieldDecoration._();
 
@@ -28,7 +26,7 @@ abstract final class EnterpriseFieldDecoration {
     Widget? suffixIcon,
     bool enabled = true,
     bool multiline = false,
-    bool floatingLabel = true,
+    bool floatingLabel = false,
   }) {
     final t = context.pharmaTokens;
     final inputTheme = Theme.of(context).inputDecorationTheme;
@@ -40,8 +38,9 @@ abstract final class EnterpriseFieldDecoration {
       effectiveLabel = labelText ?? hintText;
       effectiveHint = labelText != null ? hintText : null;
     } else {
-      effectiveLabel = labelText;
-      effectiveHint = hintText ?? labelText;
+      // Label acima via FieldGroup — não injectar label no InputDecoration.
+      effectiveLabel = null;
+      effectiveHint = hintText;
     }
 
     final decoration = InputDecoration(
@@ -53,13 +52,9 @@ abstract final class EnterpriseFieldDecoration {
       enabled: enabled,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      floatingLabelBehavior: floatingLabel
-          ? FloatingLabelBehavior.auto
-          : FloatingLabelBehavior.never,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
     ).applyDefaults(inputTheme).copyWith(
-          floatingLabelBehavior: floatingLabel
-              ? FloatingLabelBehavior.auto
-              : FloatingLabelBehavior.never,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
         );
 
     if (!multiline) return decoration;
@@ -73,6 +68,7 @@ abstract final class EnterpriseFieldDecoration {
   }
 }
 
+/// Label acima do campo (12–13px, peso 600) — hierarquia tipo GitHub / enterprise.
 class EnterpriseFieldGroup extends StatelessWidget {
   const EnterpriseFieldGroup({
     super.key,
@@ -100,7 +96,7 @@ class EnterpriseFieldGroup extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.erpFieldLabel.copyWith(
-                  color: t.textSecondary,
+                  color: t.textPrimary,
                 ),
           ),
         ),

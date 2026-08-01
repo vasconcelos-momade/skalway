@@ -9,6 +9,9 @@ abstract final class BorderTokens {
   /// Espessura canónica (1px).
   static const double width = 1;
 
+  /// Indicador lateral de item activo (sidebar / nav).
+  static const double indicator = 3;
+
   static Color defaultFor(Brightness brightness) =>
       brightness == Brightness.dark
           ? AppColorsDark.border

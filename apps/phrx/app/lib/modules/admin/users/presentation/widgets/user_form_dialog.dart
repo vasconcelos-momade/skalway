@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/user_entities.dart';
 
 class UserFormResult {
@@ -36,13 +39,9 @@ Future<UserFormResult?> showUserFormDialog(
   TenantUserDetail? user,
 }) {
   final titleText = user != null ? 'Editar utilizador' : 'Novo utilizador';
-  final width = AdaptiveNavigator.widthOf(context);
-  final panelWidth =
-      width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
 
   return AdaptiveNavigator.openPanel<UserFormResult>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
       name: user == null ? '/utilizadores/novo' : '/utilizadores/${user.id}/editar',
     ),
@@ -143,20 +142,16 @@ class _UserFormDialogState extends State<UserFormDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nome *',
-            ),
+            labelText: 'Nome *',
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Nome obrigatório' : null,
           ),
           SizedBox(height: s.md),
-          TextFormField(
+          EnterpriseTextFormField(
             controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email *',
-            ),
+            labelText: 'Email *',
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email obrigatório';
@@ -178,9 +173,8 @@ class _UserFormDialogState extends State<UserFormDialog> {
             onChanged: (v) => setState(() => _role = v ?? 'GERENTE'),
           ),
           SizedBox(height: s.sm),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Utilizador activo'),
+          EnterpriseFormSwitch(
+            label: 'Utilizador activo',
             value: _active,
             onChanged: (v) => setState(() => _active = v),
           ),
@@ -190,57 +184,41 @@ class _UserFormDialogState extends State<UserFormDialog> {
   }
 
   List<Widget> _buildActions() => [
-        TextButton(
+        EnterpriseOverlayActions.secondary(
+          label: 'Cancelar',
           onPressed: () => AdaptiveNavigator.cancel(context),
-          child: const Text('Cancelar'),
         ),
-        FilledButton(
+        EnterpriseOverlayActions.primary(
+          label: widget.isEditing ? 'Guardar' : 'Criar',
           onPressed: _submit,
-          child: Text(widget.isEditing ? 'Guardar' : 'Criar'),
         ),
       ];
 
   @override
   Widget build(BuildContext context) {
     if (widget.embedded) {
-      final isMobile = AdaptiveNavigator.isMobile(context);
+      if (widget.showHeader) {
+        return EnterpriseFormSideSheet(
+          title: Text(
+            widget.isEditing ? 'Editar utilizador' : 'Novo utilizador',
+          ),
+          onClose: widget.onClose,
+          body: _buildFormBody(context),
+          actions: _buildActions(),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.showHeader) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.isEditing ? 'Editar utilizador' : 'Novo utilizador',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  if (widget.onClose != null)
-                    IconButton(
-                      onPressed: widget.onClose,
-                      icon: const Icon(Icons.close),
-                    ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-          ],
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+              padding: EdgeInsets.all(context.spacing.lg),
               child: _buildFormBody(context),
             ),
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: _buildActions(),
-            ),
+          EnterpriseOverlayFooter(
+            actions: _buildActions(),
+            expandOnNarrow: false,
           ),
         ],
       );

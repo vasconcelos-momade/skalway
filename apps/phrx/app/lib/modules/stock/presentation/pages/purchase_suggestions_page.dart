@@ -8,6 +8,7 @@ import '../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../shared/widgets/inputs/async_type_ahead_field.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
@@ -334,7 +335,6 @@ class _PurchaseSuggestionsPageState
     await AdaptiveNavigator.openForm<void>(
       context: context,
       title: Text(item == null ? 'Adicionar produto' : 'Editar sugestão'),
-      sideSheetWidth: 460,
       contentBuilder: (formContext) => _AddProductDialogBody(
         parentRef: ref,
         item: item,
@@ -473,15 +473,16 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
           },
         ),
         const SizedBox(height: 16),
-        TextField(
+        EnterpriseTextField(
           controller: _qtyController,
-          decoration: const InputDecoration(labelText: 'Quantidade sugerida'),
+          labelText: 'Quantidade sugerida',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
-        TextField(
+        EnterpriseTextField(
           controller: _obsController,
-          decoration: const InputDecoration(labelText: 'Observação (opcional)'),
+          labelText: 'Observação',
+          hintText: 'Opcional',
           maxLines: 2,
         ),
         const SizedBox(height: 24),

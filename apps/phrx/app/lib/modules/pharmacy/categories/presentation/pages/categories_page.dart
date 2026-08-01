@@ -15,11 +15,13 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/enterprise_overlay_tokens.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
 import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
@@ -351,15 +353,9 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
           ? '/categorias/nova'
           : '/categorias/${category.id}/editar',
     );
-    
-    final width = AdaptiveNavigator.widthOf(context);
-    final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint
-        ? 520.0
-        : 480.0;
 
     final result = await AdaptiveNavigator.openPanel<Map<String, dynamic>>(
       context: context,
-      sideSheetWidth: panelWidth,
       routeSettings: routeSettings,
       builder: (detailContext) {
         if (AdaptiveNavigator.isMobile(detailContext)) {
@@ -496,27 +492,27 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
               value == null || value.trim().isEmpty ? 'Categoria obrigatória' : null,
         ),
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _descricao,
-          decoration: const InputDecoration(labelText: 'Descrição'),
+          labelText: 'Descrição',
           maxLines: 2,
         ),
         SizedBox(height: s.md),
-        SwitchListTile(
-          title: const Text('Activa'),
+        EnterpriseFormSwitch(
+          label: 'Activa',
           value: _ativo,
           onChanged: (v) => setState(() => _ativo = v),
-          contentPadding: EdgeInsets.zero,
         ),
       ],
     );
 
     final actions = [
-      OutlinedButton(
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
         onPressed: () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
       ),
-      FilledButton(
+      EnterpriseOverlayActions.primary(
+        label: widget.category == null ? 'Criar' : 'Guardar',
         onPressed: () {
           if (!_formKey.currentState!.validate()) return;
           AdaptiveNavigator.complete(context, {
@@ -527,57 +523,22 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
             'ativo': _ativo,
           });
         },
-        child: Text(widget.category == null ? 'Criar' : 'Guardar'),
       ),
     ];
-
-    final actionsSection = PharmaResponsiveDialogActions(
-      breakpoint: pharmaDialogBreakpointForWidth(MediaQuery.sizeOf(context).width),
-      children: actions,
-    );
 
     final form = Form(
       key: _formKey,
       child: widget.pinnedFooter
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (widget.showHeader) ...[
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(s.md, s.md, s.sm, s.sm),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.category == null ? 'Nova categoria' : 'Editar categoria',
-                            style: Theme.of(context).textTheme.erpCardTitle,
-                          ),
-                        ),
-                        if (widget.onClose != null)
-                          IconButton(
-                            onPressed: widget.onClose,
-                            icon: const Icon(Icons.close),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                ],
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(s.md),
-                    child: formFields,
-                  ),
-                ),
-                const Divider(height: 1),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: EdgeInsets.all(s.md),
-                    child: actionsSection,
-                  ),
-                ),
-              ],
+          ? EnterpriseFormSideSheet(
+              title: Text(
+                widget.category == null
+                    ? 'Nova categoria'
+                    : 'Editar categoria',
+              ),
+              showHeader: widget.showHeader,
+              onClose: widget.onClose,
+              body: formFields,
+              actions: actions,
             )
           : formFields,
     );
@@ -592,7 +553,10 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
         children: [
           form,
           SizedBox(height: s.md),
-          actionsSection,
+          EnterpriseOverlayFooter(
+            actions: actions,
+            expandOnNarrow: false,
+          ),
         ],
       );
     }

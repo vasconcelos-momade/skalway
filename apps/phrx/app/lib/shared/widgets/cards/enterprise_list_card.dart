@@ -196,7 +196,7 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
-/// Chip de estado para listagens operacionais mobile.
+/// Chip de estado — cor apenas para comunicar status (sucesso/aviso/erro/info).
 class EnterpriseStatusChip extends StatelessWidget {
   const EnterpriseStatusChip({
     super.key,
@@ -213,17 +213,26 @@ class EnterpriseStatusChip extends StatelessWidget {
     final colors = context.colors;
     final s = context.spacing;
     final resolved = color ?? t.textMuted;
+    final bg = color == null
+        ? colors.neutralSubtle
+        : Color.alphaBlend(
+            resolved.withValues(alpha: 0.12),
+            t.surface2,
+          );
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: s.sm, vertical: s.xxs),
       decoration: BoxDecoration(
-        color: color == null ? colors.neutralSubtle : resolved.withValues(alpha: 0.12),
-        border: Border.all(color: t.borderSubtle),
+        color: bg,
+        border: Border.all(color: t.borderSubtle, width: BorderTokens.width),
         borderRadius: BorderRadius.circular(RadiusScale.full),
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.erpLabel.copyWith(color: resolved),
+        style: Theme.of(context).textTheme.erpCaption.copyWith(
+              color: resolved,
+              fontWeight: FontWeight.w500,
+            ),
       ),
     );
   }

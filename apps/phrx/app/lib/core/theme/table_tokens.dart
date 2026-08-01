@@ -50,7 +50,7 @@ class TableTokens {
   }) {
     final base = tokens.surface2;
     final odd = Color.alphaBlend(
-      tokens.textPrimary.withValues(alpha: isDark ? 0.025 : 0.02),
+      tokens.textPrimary.withValues(alpha: isDark ? 0.03 : 0.025),
       base,
     );
 
@@ -58,9 +58,14 @@ class TableTokens {
       headerBackground: tokens.surface3,
       rowBackground: base,
       zebraOdd: odd,
-      divider: tokens.border,
+      // Bordas discretas — menos peso visual nas linhas.
+      divider: tokens.borderSubtle,
       hover: tokens.cardHover,
-      selected: tokens.brandGreen.withValues(alpha: 0.12),
+      // Selecção neutra (não bloco verde).
+      selected: Color.alphaBlend(
+        tokens.textPrimary.withValues(alpha: isDark ? 0.08 : 0.05),
+        base,
+      ),
       rowHeightMin: _rowMin,
       rowHeightMax: _rowMax,
       cellPaddingH: SpacingTokens.md,
@@ -70,7 +75,7 @@ class TableTokens {
   }
 
   TextStyle headerStyle(TextTheme theme, PharmaTokens tokens) =>
-      theme.erpTableHeader.copyWith(color: tokens.textPrimary);
+      theme.erpTableHeader.copyWith(color: tokens.textSecondary);
 
   TextStyle cellStyle(TextTheme theme, PharmaTokens tokens) =>
       theme.erpTableSecondary.copyWith(color: tokens.textPrimary);

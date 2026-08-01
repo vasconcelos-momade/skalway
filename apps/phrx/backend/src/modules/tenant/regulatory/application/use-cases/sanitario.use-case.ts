@@ -2,6 +2,11 @@ import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.fa
 import { NotFoundApiError } from "../../../../../shared/http/api-error";
 import { resolveRegulacaoPolicyForProduto } from "../../../products/domain/produto-presenter";
 import {
+  getLoteQuantidadeFromMovements,
+  getLoteStockMapFromMovements,
+  loteQuantidadeDisponivelFromTotal,
+} from "../../../stock/domain/lote-stock.service";
+import {
   normalizePage,
   parseDateRange,
   toNumber,
@@ -15,7 +20,7 @@ type SanitarioDashboardParams = {
 
 type ListSanitarioParams = {
   search?: string;
-  estado?: "VALIDO" | "EXPIRADO" | "RECALL" | "QUARENTENA" | "BLOQUEADO" | "CRITICO";
+  estado?: "VALIDO" | "EXPIRADO" | "RECALL" | "QUARENTENA" | "BLOQUEADO" | "CRITICO" | "INCINERADO";
   alertaTipo?:
     | "ESTOQUE_BAIXO"
     | "PRODUTO_ESGOTADO"
@@ -42,6 +47,8 @@ type ListSanitarioReportsParams = {
   pageSize?: number;
 };
 
+type LoteStockSnapshot = { total: number; disponivel: number };
+
 function buildSanitarioSearchWhere(params: SanitarioDashboardParams) {
   const { from, to } = parseDateRange(params.from, params.to);
   const search = params.search?.trim();
@@ -67,11 +74,94 @@ function buildSanitarioSearchWhere(params: SanitarioDashboardParams) {
   };
 }
 
-function readLoteStock(row: any) {
-  return {
-    quantidadeTotal: toNumber(row.stockBalance?.quantidadeTotal ?? row.quantidadeAtual),
-    quantidadeDisponivel: toNumber(row.stockBalance?.quantidadeDisponivel ?? row.quantidadeAtual),
-  };
+/** Alerta derivado do stock real / validade (fonte de verdade operacional). */
+function deriveStockAlert(row: any, quantidadeDisponivel: number) {
+  const estoqueMinimo = Number(row.produto?.estoqueMinimo ?? 0);
+  const now = new Date();
+  const validade =
+    row.dataValidade instanceof Date
+      ? row.dataValidade
+      : new Date(row.dataValidade);
+
+  // Prioridade: expirado → esgotado → stock baixo → a expirar
+  if (row.estadoSanitario === "EXPIRADO" || validade < now) {
+    return {
+      id: null,
+      tipo: "LOTE_EXPIRADO" as const,
+      mensagem: "Lote expirado",
+      resolvido: false,
+      createdAt: now.toISOString(),
+      derived: true,
+    };
+  }
+
+  if (quantidadeDisponivel <= 0) {
+    return {
+      id: null,
+      tipo: "PRODUTO_ESGOTADO" as const,
+      mensagem: "Lote sem stock disponível",
+      resolvido: false,
+      createdAt: now.toISOString(),
+      derived: true,
+    };
+  }
+
+  if (estoqueMinimo > 0 && quantidadeDisponivel <= estoqueMinimo) {
+    return {
+      id: null,
+      tipo: "ESTOQUE_BAIXO" as const,
+      mensagem: `Stock abaixo do mínimo (${estoqueMinimo})`,
+      resolvido: false,
+      createdAt: now.toISOString(),
+      derived: true,
+    };
+  }
+
+  const next30Days = new Date(now);
+  next30Days.setDate(next30Days.getDate() + 30);
+  if (validade >= now && validade <= next30Days) {
+    return {
+      id: null,
+      tipo: "LOTE_A_EXPIRAR" as const,
+      mensagem: "Lote a expirar nos próximos 30 dias",
+      resolvido: false,
+      createdAt: now.toISOString(),
+      derived: true,
+    };
+  }
+
+  return null;
+}
+
+function resolveSanitarioStatus(
+  row: any,
+  stock: LoteStockSnapshot,
+): string {
+  const quantidadeTotal = stock.total;
+  const quantidadeDisponivel = stock.disponivel;
+  const quarentena = Math.max(0, Number(row.quantidadeQuarentena ?? 0) || 0);
+  const incinerada = Math.max(0, Number(row.quantidadeIncinerada ?? 0) || 0);
+  const estoqueMinimo = Number(row.produto?.estoqueMinimo ?? 0);
+
+  // Ordem de prioridade operacional.
+  if (
+    incinerada > 0 &&
+    quantidadeDisponivel <= 0 &&
+    quarentena <= 0 &&
+    quantidadeTotal <= 0
+  ) {
+    return "INCINERADO";
+  }
+  if (row.estadoSanitario === "RECALL") return "RECALL";
+  if (row.estadoSanitario === "EXPIRADO") return "EXPIRADO";
+  if (quarentena > 0) return "QUARENTENA";
+  if (row.disponibilidade === "BLOQUEADO") return "BLOQUEADO";
+  if (estoqueMinimo > 0 && quantidadeDisponivel <= estoqueMinimo) {
+    return "CRITICO";
+  }
+  return row.estadoSanitario === "VALIDO" || !row.estadoSanitario
+    ? "VALIDO"
+    : row.estadoSanitario;
 }
 
 function mapRegulacaoSummary(produto: any) {
@@ -89,23 +179,28 @@ function mapRegulacaoSummary(produto: any) {
   };
 }
 
-function mapSanitarioRow(row: any, latestAlert: any) {
-  const { quantidadeTotal, quantidadeDisponivel } = readLoteStock(row);
-  const criticalStock =
-    quantidadeDisponivel <= Number(row.produto?.estoqueMinimo ?? 0);
-  const hasQuarantine = Number(row.quantidadeQuarentena ?? 0) > 0;
-  const status =
-    row.estadoSanitario === "EXPIRADO"
-      ? "EXPIRADO"
-      : row.estadoSanitario === "RECALL"
-        ? "RECALL"
-        : hasQuarantine
-          ? "QUARENTENA"
-          : row.disponibilidade === "BLOQUEADO"
-            ? "BLOQUEADO"
-            : criticalStock
-              ? "CRITICO"
-              : row.estadoSanitario;
+function mapSanitarioRow(
+  row: any,
+  latestAlert: any,
+  stock: LoteStockSnapshot,
+) {
+  const quantidadeTotal = stock.total;
+  const quantidadeDisponivel = stock.disponivel;
+  const status = resolveSanitarioStatus(row, stock);
+
+  // Alertas operacionais derivados do stock/validade; persistidos só como fallback.
+  const derivedAlert = deriveStockAlert(row, quantidadeDisponivel);
+  const resolvedAlert =
+    derivedAlert ??
+    (latestAlert != null
+      ? {
+          id: latestAlert.id.toString(),
+          tipo: latestAlert.tipo,
+          mensagem: latestAlert.mensagem,
+          resolvido: latestAlert.resolvido,
+          createdAt: latestAlert.createdAt.toISOString(),
+        }
+      : null);
 
   return {
     id: row.id.toString(),
@@ -128,15 +223,7 @@ function mapSanitarioRow(row: any, latestAlert: any) {
           regulacao: mapRegulacaoSummary(row.produto),
         }
       : null,
-    latestAlert: latestAlert
-      ? {
-          id: latestAlert.id.toString(),
-          tipo: latestAlert.tipo,
-          mensagem: latestAlert.mensagem,
-          resolvido: latestAlert.resolvido,
-          createdAt: latestAlert.createdAt.toISOString(),
-        }
-      : null,
+    latestAlert: resolvedAlert,
   };
 }
 
@@ -183,12 +270,8 @@ export class SanitarioDashboardUseCase {
             },
           },
           select: {
-            stockBalance: {
-              select: {
-                quantidadeTotal: true,
-                quantidadeDisponivel: true,
-              },
-            },
+            id: true,
+            quantidadeQuarentena: true,
             produto: {
               select: {
                 estoqueMinimo: true,
@@ -233,17 +316,16 @@ export class SanitarioDashboardUseCase {
                 },
               },
             },
-            stockBalance: {
-              select: {
-                quantidadeTotal: true,
-                quantidadeDisponivel: true,
-              },
-            },
           },
           orderBy: [{ dataValidade: "asc" }, { id: "desc" }],
           take: 5,
         }),
       ]);
+
+    const stockMap = await getLoteStockMapFromMovements(prisma, [
+      ...stockCriticoRows,
+      ...latest,
+    ]);
 
     const latestAlerts = latest.length
       ? await prisma.alertaEstoque.findMany({
@@ -262,15 +344,14 @@ export class SanitarioDashboardUseCase {
       }
     }
 
-    const stockCritico = stockCriticoRows.filter(
-      (item: any) => {
-        const { quantidadeDisponivel } = readLoteStock(item);
-        return (
-          Number(item.produto?.estoqueMinimo ?? 0) > 0 &&
-          quantidadeDisponivel <= Number(item.produto?.estoqueMinimo ?? 0)
-        );
-      },
-    ).length;
+    const stockCritico = stockCriticoRows.filter((item: any) => {
+      const stock = stockMap.get(item.id.toString()) ?? {
+        total: 0,
+        disponivel: 0,
+      };
+      const minimo = Number(item.produto?.estoqueMinimo ?? 0);
+      return minimo > 0 && stock.disponivel <= minimo;
+    }).length;
 
     return {
       kpis: {
@@ -283,7 +364,11 @@ export class SanitarioDashboardUseCase {
         alertasSanitarios,
       },
       latest: latest.map((row: any) =>
-        mapSanitarioRow(row, alertMap.get(row.produtoId.toString())),
+        mapSanitarioRow(
+          row,
+          alertMap.get(row.produtoId.toString()),
+          stockMap.get(row.id.toString()) ?? { total: 0, disponivel: 0 },
+        ),
       ),
     };
   }
@@ -299,42 +384,37 @@ export class ListSanitarioUseCase {
     const where: Record<string, unknown> = {
       ...searchWhere,
       ...(params.produtoId ? { produtoId: BigInt(params.produtoId) } : {}),
-      ...(params.alertaTipo
-        ? {
-            produto: {
-              alertasEstoque: {
-                some: {
-                  tipo: params.alertaTipo,
-                },
-              },
-            },
-          }
-        : {}),
     };
 
     if (params.estado === "QUARENTENA") {
       where.quantidadeQuarentena = { gt: 0 };
     } else if (params.estado === "BLOQUEADO") {
       where.disponibilidade = "BLOQUEADO";
-    } else if (params.estado === "CRITICO") {
-      // handled after fetch because depends on produto.estoqueMinimo
+    } else if (params.estado === "CRITICO" || params.estado === "INCINERADO") {
+      // filtrado em memória com stock real / quantidadeIncinerada
     } else if (params.estado) {
       where.estadoSanitario = params.estado;
     }
 
+    // Ordenação por quantidade usa stock real em memória.
+    const sortByStock =
+      params.sortBy === "quantidadeAtual" ||
+      params.sortBy === "quantidadeTotal" ||
+      params.sortBy === "quantidadeDisponivel";
+    const requiresInMemoryPagination =
+      params.estado === "CRITICO" ||
+      params.estado === "INCINERADO" ||
+      sortByStock ||
+      Boolean(params.alertaTipo);
+
     const orderBy =
       params.sortBy === "produtoNomeComercial"
         ? [{ produto: { nomeComercial: sortDir } }, { id: "desc" }]
-        : params.sortBy === "quantidadeAtual" ||
-            params.sortBy === "quantidadeTotal"
-          ? [{ stockBalance: { quantidadeTotal: sortDir } }, { id: "desc" }]
-          : params.sortBy === "quantidadeDisponivel"
-            ? [{ stockBalance: { quantidadeDisponivel: sortDir } }, { id: "desc" }]
-            : params.sortBy === "estadoSanitario"
-              ? [{ estadoSanitario: sortDir }, { id: "desc" }]
-              : [{ dataValidade: sortDir }, { id: "desc" }];
-
-    const requiresInMemoryPagination = params.estado === "CRITICO";
+        : params.sortBy === "estadoSanitario"
+          ? [{ estadoSanitario: sortDir }, { id: "desc" }]
+          : sortByStock
+            ? [{ id: "desc" }]
+            : [{ dataValidade: sortDir }, { id: "desc" }];
 
     const rows = await prisma.lote.findMany({
       where,
@@ -353,12 +433,6 @@ export class ListSanitarioUseCase {
             },
           },
         },
-        stockBalance: {
-          select: {
-            quantidadeTotal: true,
-            quantidadeDisponivel: true,
-          },
-        },
       },
       orderBy,
       ...(requiresInMemoryPagination
@@ -368,6 +442,8 @@ export class ListSanitarioUseCase {
             take: pageSize + 1,
           }),
     });
+
+    const stockMap = await getLoteStockMapFromMovements(prisma, rows);
 
     const produtoIds = [...new Set(rows.map((item: any) => item.produtoId))];
     const latestAlerts = produtoIds.length
@@ -388,12 +464,34 @@ export class ListSanitarioUseCase {
       }
     }
 
-    const mapped = rows
-      .map((row: any) => mapSanitarioRow(row, alertMap.get(row.produtoId.toString())))
-      .filter((item: any) => {
-        if (params.estado && item.status !== params.estado) return false;
-        return true;
+    let mapped = rows.map((row: any) =>
+      mapSanitarioRow(
+        row,
+        alertMap.get(row.produtoId.toString()),
+        stockMap.get(row.id.toString()) ?? { total: 0, disponivel: 0 },
+      ),
+    );
+
+    if (params.estado) {
+      mapped = mapped.filter((item: any) => item.status === params.estado);
+    }
+
+    if (params.alertaTipo) {
+      mapped = mapped.filter(
+        (item: any) => item.latestAlert?.tipo === params.alertaTipo,
+      );
+    }
+
+    if (sortByStock) {
+      const key =
+        params.sortBy === "quantidadeDisponivel"
+          ? "quantidadeDisponivel"
+          : "quantidadeTotal";
+      mapped.sort((a: any, b: any) => {
+        const diff = Number(a[key] ?? 0) - Number(b[key] ?? 0);
+        return sortDir === "asc" ? diff : -diff;
       });
+    }
 
     const totalCount = requiresInMemoryPagination
       ? mapped.length
@@ -408,8 +506,8 @@ export class ListSanitarioUseCase {
       page,
       pageSize,
       hasMore: requiresInMemoryPagination
-          ? page * pageSize < mapped.length
-          : rows.length > pageSize,
+        ? page * pageSize < mapped.length
+        : rows.length > pageSize,
       totalCount,
     };
   }
@@ -430,12 +528,6 @@ export class GetLoteSanitarioHistoryUseCase {
             },
           },
         },
-        stockBalance: {
-          select: {
-            quantidadeTotal: true,
-            quantidadeDisponivel: true,
-          },
-        },
       },
     });
 
@@ -443,41 +535,46 @@ export class GetLoteSanitarioHistoryUseCase {
       throw new NotFoundApiError("Lote não encontrado");
     }
 
-    const [movimentos, incineracoes, businessEvents] = await Promise.all([
-      prisma.loteMovimentoSanitario.findMany({
-        where: { loteId: id },
-        include: {
-          responsavel: {
-            select: { id: true, name: true, role: true },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.incineracaoItem.findMany({
-        where: { loteId: id },
-        include: {
-          incineracao: {
-            include: {
-              responsavel: { select: { id: true, name: true, role: true } },
-              aprovadoPor: { select: { id: true, name: true, role: true } },
+    const [movimentos, incineracoes, businessEvents, quantidadeTotal] =
+      await Promise.all([
+        prisma.loteMovimentoSanitario.findMany({
+          where: { loteId: id },
+          include: {
+            responsavel: {
+              select: { id: true, name: true, role: true },
             },
           },
-        },
-        orderBy: { incineracao: { dataIncineracao: "desc" } },
-      }),
-      prisma.businessEvent.findMany({
-        where: {
-          OR: [
-            { entity: "Lote", entityId: id },
-            { entity: "Incineracao", entityId: { in: [] } },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      }),
-    ]);
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.incineracaoItem.findMany({
+          where: { loteId: id },
+          include: {
+            incineracao: {
+              include: {
+                responsavel: { select: { id: true, name: true, role: true } },
+                aprovadoPor: { select: { id: true, name: true, role: true } },
+              },
+            },
+          },
+          orderBy: { incineracao: { dataIncineracao: "desc" } },
+        }),
+        prisma.businessEvent.findMany({
+          where: {
+            OR: [
+              { entity: "Lote", entityId: id },
+              { entity: "Incineracao", entityId: { in: [] } },
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        }),
+        getLoteQuantidadeFromMovements(prisma, id),
+      ]);
 
-    const { quantidadeTotal, quantidadeDisponivel } = readLoteStock(lote);
+    const quantidadeDisponivel = loteQuantidadeDisponivelFromTotal(
+      quantidadeTotal,
+      lote.quantidadeQuarentena,
+    );
 
     return {
       lote: {

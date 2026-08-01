@@ -117,7 +117,7 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
               data: Theme.of(context).copyWith(
                 navigationBarTheme: NavigationBarThemeData(
                   height: AppDimensions.topBarCompact,
-                  indicatorColor: t.brandGreen.withValues(alpha: 0.2),
+                  indicatorColor: context.colors.sidebarActiveBackground,
                 ),
               ),
               child: NavigationBar(
@@ -151,7 +151,7 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                       Icons.dashboard_outlined,
                       color: t.textSecondary,
                     ),
-                    selectedIcon: Icon(Icons.dashboard, color: t.brandGreen),
+                    selectedIcon: Icon(Icons.dashboard, color: t.textPrimary),
                     label: '',
                   ),
                   NavigationDestination(
@@ -162,7 +162,7 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                     ),
                     selectedIcon: Icon(
                       Icons.point_of_sale,
-                      color: t.brandGreen,
+                      color: t.textPrimary,
                     ),
                     label: '',
                   ),
@@ -172,19 +172,19 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                       Icons.medication_outlined,
                       color: t.textSecondary,
                     ),
-                    selectedIcon: Icon(Icons.medication, color: t.brandGreen),
+                    selectedIcon: Icon(Icons.medication, color: t.textPrimary),
                     label: '',
                   ),
                   NavigationDestination(
                     tooltip: 'Finanças',
                     icon: Icon(Icons.payments_outlined, color: t.textSecondary),
-                    selectedIcon: Icon(Icons.payments, color: t.brandGreen),
+                    selectedIcon: Icon(Icons.payments, color: t.textPrimary),
                     label: '',
                   ),
                   NavigationDestination(
                     tooltip: 'Menu',
                     icon: SidebarMenuIcon(color: t.textSecondary),
-                    selectedIcon: SidebarMenuIcon(color: t.brandGreen),
+                    selectedIcon: SidebarMenuIcon(color: t.textPrimary),
                     label: '',
                   ),
                 ],
@@ -291,7 +291,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.erpOverline.copyWith(
-                            color: t.brandGreen,
+                            color: t.textSecondary,
                           ),
                         ),
                         Text(
@@ -463,7 +463,7 @@ class _PageRefreshAction extends ConsumerWidget {
               height: t.iconMd,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: t.brandGreen,
+                color: t.textSecondary,
               ),
             )
           : Icon(

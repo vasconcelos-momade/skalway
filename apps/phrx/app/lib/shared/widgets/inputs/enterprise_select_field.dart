@@ -94,9 +94,7 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
           consumeOutsideTap: true,
           style: MenuStyle(
             alignment: AlignmentDirectional.bottomStart,
-            backgroundColor: WidgetStatePropertyAll(
-              scheme.surfaceContainerHighest,
-            ),
+            backgroundColor: WidgetStatePropertyAll(t.surface4),
             maximumSize: WidgetStatePropertyAll(
               Size(double.infinity, menuMaxHeight),
             ),
@@ -175,7 +173,10 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                     : null,
                 child: Text(
                   widget.emptyLabel!,
-                  style: textTheme.erpBody.copyWith(color: t.textPrimary),
+                  style: textTheme.erpBody.copyWith(
+                    color: !_hasValue ? t.textPrimary : t.textSecondary,
+                    fontWeight: !_hasValue ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               ),
             ...widget.options.map(
@@ -194,7 +195,14 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                     : null,
                 child: Text(
                   option.label,
-                  style: textTheme.erpBody.copyWith(color: t.textPrimary),
+                  style: textTheme.erpBody.copyWith(
+                    color: _hasValue && option.value == widget.value
+                        ? t.textPrimary
+                        : t.textSecondary,
+                    fontWeight: _hasValue && option.value == widget.value
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                  ),
                 ),
               ),
             ),

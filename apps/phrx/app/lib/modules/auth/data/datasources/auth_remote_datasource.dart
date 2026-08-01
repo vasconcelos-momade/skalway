@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_constants.dart';
@@ -41,13 +42,30 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (data['success'] == false) {
         final err = data['error'];
         final msg = err is Map ? err['message'] : err;
+        final code = err is Map ? err['code'] : null;
+        if (kDebugMode) {
+          debugPrint(
+            '[Auth] login success=false status=${response.statusCode} '
+            'code=$code message=$msg',
+          );
+        }
         throw ApiFailure(
           msg is String && msg.isNotEmpty ? msg : 'Falha na autenticação.',
           statusCode: response.statusCode,
+          code: code is String ? code : null,
+          kind: ApiFailureKind.authentication,
         );
       }
       return LoginResponseModel.fromJson(ApiEnvelope.unwrapMap(data));
+    } on ApiFailure {
+      rethrow;
     } on DioException catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Auth] login DioException type=${e.type} '
+          'status=${e.response?.statusCode} → ApiFailure.fromDio',
+        );
+      }
       throw ApiFailure.fromDio(e);
     }
   }
@@ -67,10 +85,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final err = data['error'];
         final msg = err is Map ? err['message'] : err;
         throw ApiFailure(
-          msg is String && msg.isNotEmpty ? msg : 'Falha ao solicitar recuperação.',
+          msg is String && msg.isNotEmpty
+              ? msg
+              : 'Falha ao solicitar recuperação.',
           statusCode: response.statusCode,
         );
       }
+    } on ApiFailure {
+      rethrow;
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }

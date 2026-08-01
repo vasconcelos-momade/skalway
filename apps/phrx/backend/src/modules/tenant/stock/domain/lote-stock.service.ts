@@ -49,6 +49,7 @@ export type LoteStockTx = {
       select?: Record<string, boolean>;
     }) => Promise<
       Array<{
+        loteId?: bigint | null;
         tipo: string;
         quantidade: unknown;
         estoqueAnterior?: unknown;
@@ -136,6 +137,69 @@ export async function getLoteQuantidadeFromMovements(
     0,
     movements.reduce<number>((sum, m) => sum + signedMovementDelta(m), 0),
   );
+}
+
+/**
+ * Stock (total + disponível) para vários lotes a partir de EstoqueMovimento.
+ * Fonte de verdade — preferir a cache LoteStockBalance desactualizada.
+ */
+export async function getLoteStockMapFromMovements(
+  tx: LoteStockTx,
+  lotes: Array<{ id: bigint; quantidadeQuarentena?: unknown }>,
+): Promise<Map<string, { total: number; disponivel: number }>> {
+  const result = new Map<string, { total: number; disponivel: number }>();
+  if (lotes.length === 0 || !tx.estoqueMovimento?.findMany) {
+    return result;
+  }
+
+  for (const lote of lotes) {
+    result.set(lote.id.toString(), {
+      total: 0,
+      disponivel: loteQuantidadeDisponivelFromTotal(0, lote.quantidadeQuarentena),
+    });
+  }
+
+  const loteIds = lotes.map((lote) => lote.id);
+  const movements = await tx.estoqueMovimento.findMany({
+    where: {
+      loteId: { in: loteIds },
+      deletedAt: null,
+    },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: {
+      loteId: true,
+      tipo: true,
+      quantidade: true,
+      estoqueAnterior: true,
+      estoqueFinal: true,
+    },
+  });
+
+  const totals = new Map<string, number>();
+  for (const id of loteIds) {
+    totals.set(id.toString(), 0);
+  }
+
+  for (const movement of movements) {
+    if (movement.loteId == null) continue;
+    const key = movement.loteId.toString();
+    totals.set(key, (totals.get(key) ?? 0) + signedMovementDelta(movement));
+  }
+
+  const quarentenaById = new Map(
+    lotes.map((lote) => [lote.id.toString(), lote.quantidadeQuarentena]),
+  );
+
+  for (const [key, rawTotal] of totals) {
+    const total = Math.max(0, rawTotal);
+    const disponivel = loteQuantidadeDisponivelFromTotal(
+      total,
+      quarentenaById.get(key),
+    );
+    result.set(key, { total, disponivel });
+  }
+
+  return result;
 }
 
 export function loteQuantidadeDisponivelFromTotal(

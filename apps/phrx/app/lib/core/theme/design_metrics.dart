@@ -104,9 +104,17 @@ abstract final class DesignMetrics {
   static const double dropdownMenuWidth = 220;
   static const double dropdownMenuMinWidth = 200;
 
-  static const double sideSheetSizeSmall = 400;
-  static const double sideSheetSizeMedium = 560;
-  static const double sideSheetSizeLarge = 640;
+  /// Largura canónica de side sheets de formulário (= categorias).
+  static const double sideSheetFormTablet = 480;
+  static const double sideSheetFormDesktop = 520;
+
+  /// Aliases — todos os form sheets usam a largura de categorias.
+  static const double sideSheetSizeSmall = sideSheetFormTablet;
+  static const double sideSheetSizeMedium = sideSheetFormDesktop;
+  static const double sideSheetSizeLarge = sideSheetFormDesktop;
+
+  /// Largura mínima de acções em overlays (96–112).
+  static const double overlayActionMinWidth = 104;
 
   /// Opacidade do scrim (modal barrier) do Design System.
   static const double overlayScrimOpacity = 0.38;

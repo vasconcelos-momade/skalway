@@ -68,13 +68,16 @@ class EnterpriseKpiCard extends StatelessWidget {
       );
     }
 
+    final colors = context.colors;
+    // Cor semântica só para comunicar estado (sucesso / erro); ícone do KPI neutro.
     final (Color trendColor, Color bgTrendColor, IconData trendIcon) = switch (trend) {
-      EnterpriseKpiTrend.positive => (t.brandGreen, t.brandGreen.withValues(alpha: 0.1), Icons.trending_up),
-      EnterpriseKpiTrend.negative => (t.posDanger, t.posDanger.withValues(alpha: 0.1), Icons.trending_down),
-      EnterpriseKpiTrend.neutral => (t.textSecondary, t.textMuted.withValues(alpha: 0.12), Icons.trending_flat),
+      EnterpriseKpiTrend.positive => (t.posSuccess, colors.successSubtle, Icons.trending_up),
+      EnterpriseKpiTrend.negative => (t.posDanger, colors.errorSubtle, Icons.trending_down),
+      EnterpriseKpiTrend.neutral => (t.textSecondary, colors.neutralSubtle, Icons.trending_flat),
     };
 
     return PharmaSurface(
+      elevation: PharmaSurfaceElevation.card,
       padding: EdgeInsets.all(s.md),
       onTap: onTap,
       child: Column(
@@ -96,10 +99,10 @@ class EnterpriseKpiCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(s.xs),
                 decoration: BoxDecoration(
-                  color: bgTrendColor,
+                  color: colors.neutralSubtle,
                   borderRadius: BorderRadius.circular(t.radiusMd),
                 ),
-                child: Icon(icon, size: t.iconSm, color: trendColor),
+                child: Icon(icon, size: t.iconSm, color: t.textSecondary),
               ),
             ],
           ),

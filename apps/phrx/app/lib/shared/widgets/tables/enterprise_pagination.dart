@@ -113,7 +113,7 @@ class EnterprisePagination extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: PharmaSurface(
               color: t.inputBg,
-              borderRadius: BorderRadius.circular(t.radiusMd),
+              borderRadius: BorderRadius.circular(999),
               border: Border.all(color: t.border),
               padding: EdgeInsets.symmetric(horizontal: s.xs, vertical: s.xxs),
               child: Row(

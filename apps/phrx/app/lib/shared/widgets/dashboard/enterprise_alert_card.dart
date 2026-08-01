@@ -31,7 +31,7 @@ class EnterpriseAlertCard extends StatelessWidget {
       EnterpriseAlertSeverity.info => (t.brandBlue, Icons.info_outline),
       EnterpriseAlertSeverity.warning => (t.posWarning, Icons.warning_amber_rounded),
       EnterpriseAlertSeverity.error => (t.posDanger, Icons.error_outline),
-      EnterpriseAlertSeverity.success => (t.brandGreen, Icons.check_circle_outline),
+      EnterpriseAlertSeverity.success => (t.posSuccess, Icons.check_circle_outline),
     };
 
     return PharmaSurface(

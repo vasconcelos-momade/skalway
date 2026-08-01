@@ -18,7 +18,6 @@ Future<RegisterTenantFormResult?> showRegisterTenantFormDialog(
     context: context,
     title: const Text('Novo cliente'),
     routeSettings: const RouteSettings(name: '/platform/tenants/novo'),
-    sideSheetWidth: 560,
     formBuilder: (ctx, {required embedded}) =>
         RegisterTenantFormDialog(embedded: embedded),
   );

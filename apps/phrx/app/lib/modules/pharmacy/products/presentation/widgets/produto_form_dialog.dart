@@ -5,8 +5,11 @@ import '../../../../../core/theme/design_metrics.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/pharma_surface.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 
 import '../../../categories/presentation/providers/category_provider.dart';
 import '../../domain/entities/product.dart';
@@ -66,11 +69,15 @@ class ProdutoFormDialog extends ConsumerStatefulWidget {
     this.product,
     this.embedded = false,
     this.pinnedFooter = false,
+    this.showHeader = false,
+    this.onClose,
   });
 
   final Product? product;
   final bool embedded;
   final bool pinnedFooter;
+  final bool showHeader;
+  final VoidCallback? onClose;
 
   bool get isEditing => product != null;
 
@@ -276,7 +283,6 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
   @override
   Widget build(BuildContext context) {
     final s = context.spacing;
-    final isMobileViewport = AdaptiveNavigator.isMobile(context);
     final authReady = ref.watch(
       authSessionProvider.select(
         (session) => !session.isBootstrapping && session.hasTenantContext,
@@ -296,11 +302,9 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _sectionTitle(context, 'Informações gerais'),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _nomeController,
-          decoration: const InputDecoration(
-            labelText: 'Nome *',
-          ),
+          labelText: 'Nome *',
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
               return 'Nome é obrigatório';
@@ -349,47 +353,35 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
           ),
         ],
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _substanciaController,
-          decoration: const InputDecoration(
-            labelText: 'Substância activa',
-          ),
+          labelText: 'Substância activa',
         ),
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _dosagemController,
-          decoration: const InputDecoration(
-            labelText: 'Dosagem',
-          ),
+          labelText: 'Dosagem',
         ),
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _formaController,
-          decoration: const InputDecoration(
-            labelText: 'Forma farmacêutica',
-          ),
+          labelText: 'Forma farmacêutica',
         ),
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _apresentacaoController,
-          decoration: const InputDecoration(
-            labelText: 'Apresentação',
-          ),
+          labelText: 'Apresentação',
         ),
         SizedBox(height: s.md),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _barcodeController,
-          decoration: const InputDecoration(
-            labelText: 'Código de barras',
-          ),
+          labelText: 'Código de barras',
         ),
         SizedBox(height: s.lg),
         _sectionTitle(context, 'Comercial'),
-        TextFormField(
+        EnterpriseTextFormField(
           controller: _estoqueMinimoController,
-          decoration: const InputDecoration(
-            labelText: 'Estoque mínimo *',
-          ),
+          labelText: 'Estoque mínimo *',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (value) {
             final text = value?.trim().replaceAll(',', '.') ?? '';
@@ -447,59 +439,38 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
         ],
         SizedBox(height: s.lg),
         _sectionTitle(context, 'Estado'),
-        SwitchListTile.adaptive(
+        EnterpriseFormSwitch(
+          label: 'Produto activo',
+          subtitle:
+              'Produtos inactivos deixam de aparecer no catálogo operacional.',
           value: _activo,
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Produto activo'),
-          subtitle: const Text(
-            'Produtos inactivos deixam de aparecer no catálogo operacional.',
-          ),
-          onChanged: (value) {
-            setState(() => _activo = value);
-          },
+          onChanged: (value) => setState(() => _activo = value),
         ),
       ],
     );
 
     final actions = [
-      OutlinedButton(
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
         onPressed: () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
       ),
-      FilledButton(
+      EnterpriseOverlayActions.primary(
+        label: widget.isEditing ? 'Guardar' : 'Criar',
         onPressed: _submit,
-        child: Text(widget.isEditing ? 'Guardar' : 'Criar'),
       ),
     ];
-    final actionsSection = PharmaResponsiveDialogActions(
-      breakpoint: pharmaDialogBreakpointForWidth(MediaQuery.sizeOf(context).width),
-      children: actions,
-    );
-    final pinnedBodyPadding = EdgeInsets.all(
-      widget.embedded && !isMobileViewport ? 0 : s.lg,
-    );
 
     final formBody = Form(
       key: _formKey,
       child: widget.pinnedFooter
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: pinnedBodyPadding,
-                    child: formFields,
-                  ),
-                ),
-                const Divider(height: 1),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: pinnedBodyPadding,
-                    child: actionsSection,
-                  ),
-                ),
-              ],
+          ? EnterpriseFormSideSheet(
+              title: Text(
+                widget.isEditing ? 'Editar produto' : 'Novo produto',
+              ),
+              showHeader: widget.showHeader,
+              onClose: widget.onClose,
+              body: formFields,
+              actions: actions,
             )
           : ConstrainedBox(
               constraints: BoxConstraints(
@@ -524,7 +495,10 @@ class _ProdutoFormDialogState extends ConsumerState<ProdutoFormDialog> {
         children: [
           formBody,
           SizedBox(height: s.md),
-          actionsSection,
+          EnterpriseOverlayFooter(
+            actions: actions,
+            expandOnNarrow: false,
+          ),
         ],
       );
     }
@@ -545,7 +519,6 @@ Future<ProdutoFormDialogResult?> showProdutoFormDialog(
   final title = Text(titleText);
   return AdaptiveNavigator.open<ProdutoFormDialogResult>(
     context: context,
-    sideSheetWidth: AdaptiveNavigator.isDesktop(context) ? 640 : 520,
     routeSettings: RouteSettings(
       name: product == null ? '/produtos/novo' : '/produtos/${product.id}/editar',
     ),
@@ -558,64 +531,20 @@ Future<ProdutoFormDialogResult?> showProdutoFormDialog(
               product: product,
               embedded: true,
               pinnedFooter: true,
+              showHeader: false,
+              onClose: () => AdaptiveNavigator.cancel(formContext),
             ),
           ),
         );
       }
 
-      return _ProdutoFormSideSheet(
-        title: titleText,
-        child: ProdutoFormDialog(
-          product: product,
-          embedded: true,
-          pinnedFooter: true,
-        ),
+      return ProdutoFormDialog(
+        product: product,
+        embedded: true,
+        pinnedFooter: true,
+        showHeader: true,
+        onClose: () => AdaptiveNavigator.cancel(formContext),
       );
     },
   );
-}
-
-class _ProdutoFormSideSheet extends StatelessWidget {
-  const _ProdutoFormSideSheet({
-    required this.title,
-    required this.child,
-  });
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.spacing;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(s.lg, s.lg, s.sm, s.sm),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.erpCardTitle,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Fechar',
-                onPressed: () => AdaptiveNavigator.close(context),
-                icon: const Icon(Icons.close),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.all(s.lg),
-            child: child,
-          ),
-        ),
-      ],
-    );
-  }
 }

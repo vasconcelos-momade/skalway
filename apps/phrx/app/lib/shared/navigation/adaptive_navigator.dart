@@ -197,7 +197,7 @@ abstract final class AdaptiveNavigator {
       return EnterpriseSideSheet.show<T>(
         context: context,
         builder: builder,
-        width: sideSheetWidth,
+        width: sideSheetWidth ?? AdaptiveSideSheetMetrics.panelWidthOf(context),
         size: size,
         barrierDismissible: barrierDismissible,
       );

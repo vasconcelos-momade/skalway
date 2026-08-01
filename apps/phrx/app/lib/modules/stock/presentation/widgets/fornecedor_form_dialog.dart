@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
-import '../../../../../shared/widgets/layout/adaptive_side_sheet.dart';
+import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/fornecedor.dart';
 
 class FornecedorFormResult {
@@ -16,26 +19,26 @@ Future<FornecedorFormResult?> showFornecedorFormDialog(
   FornecedorDetalhe? fornecedor,
 }) {
   final title = Text(fornecedor == null ? 'Novo fornecedor' : 'Editar fornecedor');
-  final width = AdaptiveNavigator.widthOf(context);
-  // Default to 480 or 520 as in categories
-  final panelWidth = width >= AdaptiveSideSheetMetrics.desktopBreakpoint ? 520.0 : 480.0;
 
   return AdaptiveNavigator.openPanel<FornecedorFormResult>(
     context: context,
-    sideSheetWidth: panelWidth,
     routeSettings: RouteSettings(
-      name: fornecedor == null ? '/fornecedores/novo' : '/fornecedores/${fornecedor.id}',
+      name: fornecedor == null
+          ? '/fornecedores/novo'
+          : '/fornecedores/${fornecedor.id}',
     ),
     builder: (detailContext) {
       if (AdaptiveNavigator.isMobile(detailContext)) {
         return Scaffold(
           appBar: AppBar(title: title),
           body: SafeArea(
-            child: _FornecedorFormDialog(fornecedor: fornecedor, embedded: true),
+            child: _FornecedorFormDialog(
+              fornecedor: fornecedor,
+              embedded: true,
+            ),
           ),
         );
       }
-      // On SideSheet (desktop/tablet), we need the pinned header and footer like in Categories
       return _FornecedorFormDialog(
         fornecedor: fornecedor,
         embedded: true,
@@ -114,115 +117,73 @@ class _FornecedorFormDialogState extends State<_FornecedorFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final form = Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            controller: _nome,
-            decoration: const InputDecoration(
-              labelText: 'Nome',
-            ),
-            validator: (value) =>
-                value == null || value.trim().length < 2 ? 'Nome obrigatório' : null,
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _nuit,
-            decoration: const InputDecoration(
-              labelText: 'NUIT',
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _email,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _telefone,
-            decoration: const InputDecoration(
-              labelText: 'Telefone',
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _cidade,
-            decoration: const InputDecoration(
-              labelText: 'Cidade',
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _contato,
-            decoration: const InputDecoration(
-              labelText: 'Contacto',
-            ),
-          ),
-        ],
-      ),
+    final s = context.spacing;
+
+    final fields = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        EnterpriseTextFormField(
+          controller: _nome,
+          labelText: 'Nome',
+          validator: (value) =>
+              value == null || value.trim().length < 2 ? 'Nome obrigatório' : null,
+        ),
+        SizedBox(height: s.md),
+        EnterpriseTextFormField(controller: _nuit, labelText: 'NUIT'),
+        SizedBox(height: s.md),
+        EnterpriseTextFormField(controller: _email, labelText: 'Email'),
+        SizedBox(height: s.md),
+        EnterpriseTextFormField(controller: _telefone, labelText: 'Telefone'),
+        SizedBox(height: s.md),
+        EnterpriseTextFormField(controller: _cidade, labelText: 'Cidade'),
+        SizedBox(height: s.md),
+        EnterpriseTextFormField(controller: _contato, labelText: 'Contacto'),
+      ],
     );
 
     final actions = [
-      OutlinedButton(
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
         onPressed: () => AdaptiveNavigator.cancel(context),
-        child: const Text('Cancelar'),
       ),
-      const SizedBox(width: 8),
-      FilledButton(
+      EnterpriseOverlayActions.primary(
+        label: widget.fornecedor == null ? 'Criar' : 'Guardar',
         onPressed: _submit,
-        child: Text(widget.fornecedor == null ? 'Criar' : 'Guardar'),
       ),
     ];
 
+    final form = Form(key: _formKey, child: fields);
+
     if (widget.embedded) {
+      if (widget.showHeader) {
+        return EnterpriseFormSideSheet(
+          title: Text(
+            widget.fornecedor == null ? 'Novo fornecedor' : 'Editar fornecedor',
+          ),
+          onClose: widget.onClose,
+          body: form,
+          actions: actions,
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.showHeader) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.fornecedor == null ? 'Novo fornecedor' : 'Editar fornecedor',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  if (widget.onClose != null)
-                    IconButton(
-                      onPressed: widget.onClose,
-                      icon: const Icon(Icons.close),
-                    ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-          ],
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(s.lg),
               child: form,
             ),
           ),
-          if (widget.showHeader) const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: actions,
-            ),
-          ),
+          EnterpriseOverlayFooter(actions: actions, expandOnNarrow: false),
         ],
       );
     }
 
     return PharmaResponsiveDialog(
-      title: Text(widget.fornecedor == null ? 'Novo fornecedor' : 'Editar fornecedor'),
+      title: Text(
+        widget.fornecedor == null ? 'Novo fornecedor' : 'Editar fornecedor',
+      ),
       content: form,
       actions: actions,
     );

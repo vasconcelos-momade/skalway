@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 
@@ -69,7 +70,7 @@ class EnterpriseOverlayHeader extends StatelessWidget {
   }
 }
 
-/// Rodapé padronizado com ações alinhadas ao Design System.
+/// Rodapé padronizado — botões à direita, min-width tokenizada, gap 12px.
 class EnterpriseOverlayFooter extends StatelessWidget {
   const EnterpriseOverlayFooter({
     super.key,
@@ -89,43 +90,65 @@ class EnterpriseOverlayFooter extends StatelessWidget {
     final t = context.pharmaTokens;
     final s = context.spacing;
     final narrow = MediaQuery.sizeOf(context).width < Breakpoints.tablet;
+    final minActionWidth = DesignMetrics.overlayActionMinWidth;
+    // 12px entre botões ([SpacingTokens.md]).
+    final gap = s.md;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        s.lg,
-        dense ? s.sm : s.md,
-        s.lg,
-        dense ? s.md : s.lg,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: t.surface2,
+        border: Border(
+          top: BorderSide(
+            color: t.borderSubtle,
+            width: BorderTokens.width,
+          ),
+        ),
       ),
-      child: narrow && expandOnNarrow
-          ? IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var i = 0; i < actions.length; i++) ...[
-                    if (i > 0) SizedBox(width: s.sm),
-                    Expanded(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(minHeight: t.minTouchTarget),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            s.lg,
+            dense ? s.md : s.lg,
+            s.lg,
+            dense ? s.md : s.lg,
+          ),
+          child: narrow && expandOnNarrow
+              ? IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < actions.length; i++) ...[
+                        if (i > 0) SizedBox(width: gap),
+                        Expanded(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: t.minTouchTarget,
+                            ),
+                            child: actions[i],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < actions.length; i++) ...[
+                      if (i > 0) SizedBox(width: gap),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: t.minTouchTarget,
+                          minWidth: minActionWidth,
+                        ),
                         child: actions[i],
                       ),
-                    ),
+                    ],
                   ],
-                ],
-              ),
-            )
-          : Wrap(
-              spacing: s.sm,
-              runSpacing: s.sm,
-              alignment: WrapAlignment.end,
-              children: [
-                for (final action in actions)
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: t.minTouchTarget),
-                    child: action,
-                  ),
-              ],
-            ),
+                ),
+        ),
+      ),
     );
   }
 }

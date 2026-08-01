@@ -93,7 +93,7 @@ abstract final class PharmaAlertDialog {
       message: message,
       confirmText: confirmText,
       visual: _AlertVisual.success,
-      accentColor: context.pharmaTokens.brandGreen,
+      accentColor: context.pharmaTokens.posSuccess,
     );
   }
 
