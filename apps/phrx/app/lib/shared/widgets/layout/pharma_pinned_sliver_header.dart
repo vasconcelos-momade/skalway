@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 ///
 /// O conteúdo acima deste sliver rola normalmente; quando o cabeçalho chega ao topo,
 /// permanece visível enquanto a lista continua a rolar.
+///
+/// A altura adapta-se ao filho (ex.: barra de progresso ao atualizar) sem overflow.
 class PharmaPinnedSliverHeader extends StatefulWidget {
   const PharmaPinnedSliverHeader({
     super.key,
@@ -33,12 +35,10 @@ class _PharmaPinnedSliverHeaderState extends State<PharmaPinnedSliverHeader> {
   @override
   void didUpdateWidget(covariant PharmaPinnedSliverHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.child != widget.child) {
-      WidgetsBinding.instance.addPostFrameCallback(_measureChild);
-    }
+    WidgetsBinding.instance.addPostFrameCallback(_measureChild);
   }
 
-  void _measureChild(_) {
+  void _measureChild([_]) {
     if (!mounted) return;
 
     final renderObject = _childKey.currentContext?.findRenderObject();
@@ -54,6 +54,9 @@ class _PharmaPinnedSliverHeaderState extends State<PharmaPinnedSliverHeader> {
 
   @override
   Widget build(BuildContext context) {
+    // Remede após cada frame — o filho pode crescer (ex.: LinearProgressIndicator).
+    WidgetsBinding.instance.addPostFrameCallback(_measureChild);
+
     return SliverPersistentHeader(
       pinned: true,
       delegate: _PharmaPinnedSliverHeaderDelegate(
@@ -88,12 +91,16 @@ class _PharmaPinnedSliverHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    // OverflowBox permite ao filho layoutar à altura natural enquanto o extent
+    // ainda não foi atualizado (ex.: ao mostrar loading na toolbar).
     return SizedBox(
       height: extent,
       width: double.infinity,
       child: ClipRect(
-        child: Align(
+        child: OverflowBox(
           alignment: Alignment.topCenter,
+          minHeight: 0,
+          maxHeight: double.infinity,
           child: child,
         ),
       ),

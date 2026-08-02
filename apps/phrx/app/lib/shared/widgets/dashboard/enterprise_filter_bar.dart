@@ -227,7 +227,7 @@ class _EnterpriseFilterBarState extends ConsumerState<EnterpriseFilterBar> {
             reverse: true, // Começa do final (direita)
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 for (var i = 0; i < filterChildren.length; i++) ...[
                   if (i > 0) SizedBox(width: spacing),

@@ -86,7 +86,12 @@ export class FinanceDashboardUseCase {
         undefined,
         params.scope?.filterUserId,
       ),
-      metricsService.getMonthlyDreFlow(periodEnd, 6),
+      metricsService.getMonthlyDreFlow(
+        periodEnd,
+        6,
+        undefined,
+        params.scope?.filterUserId,
+      ),
       prisma.contaReceber.aggregate({
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
         _sum: { saldo: true },
@@ -102,7 +107,12 @@ export class FinanceDashboardUseCase {
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
       }),
       prisma.pagamento.findMany({
-        where: { deletedAt: null, ...scopeFilter },
+        where: {
+          deletedAt: null,
+          ...(params.scope?.filterUserId
+            ? { fatura: { userId: BigInt(params.scope.filterUserId) } }
+            : {}),
+        },
         orderBy: { createdAt: "desc" },
         take: 10,
         select: {
@@ -318,12 +328,17 @@ export class FinanceDashboardUseCase {
     const search = params.search?.trim();
     const sortDir = params.sortDir === "asc" ? "asc" : "desc";
     const now = new Date();
+    const scopeFilter = params.scope ? userScopeWhere(params.scope) : {};
+    const pagamentoScope = params.scope?.filterUserId
+      ? { fatura: { userId: BigInt(params.scope.filterUserId) } }
+      : {};
 
     switch (params.table) {
       case "ultimosPagamentos": {
         const where: any = {
           deletedAt: null,
           createdAt: { gte: resolved.from, lte: resolved.to },
+          ...pagamentoScope,
         };
         if (params.metodoPagamento) where.metodo = params.metodoPagamento;
         if (params.estado) where.status = params.estado;
@@ -370,6 +385,7 @@ export class FinanceDashboardUseCase {
           deletedAt: null,
           type: { in: ["SALE", "DEBT_PAYMENT"] },
           createdAt: { gte: resolved.from, lte: resolved.to },
+          ...scopeFilter,
         };
         if (search) {
           where.OR = [
@@ -412,6 +428,7 @@ export class FinanceDashboardUseCase {
           deletedAt: null,
           type: { in: ["EXPENSE", "PURCHASE", "REFUND"] },
           createdAt: { gte: resolved.from, lte: resolved.to },
+          ...scopeFilter,
         };
         if (search) {
           where.OR = [

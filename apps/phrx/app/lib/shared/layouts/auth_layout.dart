@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/providers/app_theme_mode_provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
 import '../responsive/pharma_screen_layout.dart';
+import '../widgets/menus/enterprise_dropdown_menu.dart';
 import '../widgets/sync/offline_mode_banner.dart';
 
 /// Layout autenticação: fundo do design system e indicadores offline.
@@ -63,9 +66,11 @@ class AuthLayout extends StatelessWidget {
                               ),
                               SizedBox(width: s.md),
                               Text(
-                                'Pharma ERP',
+                                'PhRx',
                                 style: Theme.of(context).textTheme.erpAppName,
                               ),
+                              const Spacer(),
+                              const _ThemeModeMenuButton(),
                             ],
                           ),
                         ),
@@ -100,3 +105,79 @@ class AuthLayout extends StatelessWidget {
     );
   }
 }
+
+class _ThemeModeMenuButton extends ConsumerWidget {
+  const _ThemeModeMenuButton();
+
+  IconData _icon(ThemeMode themeMode) => switch (themeMode) {
+        ThemeMode.light => Icons.light_mode_outlined,
+        ThemeMode.dark => Icons.dark_mode_outlined,
+        ThemeMode.system => Icons.brightness_auto_outlined,
+      };
+
+  String _tooltip(ThemeMode themeMode) => switch (themeMode) {
+        ThemeMode.light => 'Tema claro',
+        ThemeMode.dark => 'Tema escuro',
+        ThemeMode.system => 'Tema do sistema',
+      };
+
+  Future<void> _openMenu(BuildContext context, WidgetRef ref, ThemeMode themeMode) async {
+    final box = context.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+
+    final offset = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(offset.dx, offset.dy, box.size.width, box.size.height),
+      Offset.zero & overlay.size,
+    );
+
+    final selected = await showEnterpriseDropdownMenu<ThemeMode>(
+      context: context,
+      position: position,
+      items: [
+        EnterpriseDropdownItem(
+          value: ThemeMode.light,
+          label: 'Tema claro',
+          icon: Icons.light_mode_outlined,
+          selected: themeMode == ThemeMode.light,
+        ),
+        EnterpriseDropdownItem(
+          value: ThemeMode.dark,
+          label: 'Tema escuro',
+          icon: Icons.dark_mode_outlined,
+          selected: themeMode == ThemeMode.dark,
+        ),
+        EnterpriseDropdownItem(
+          value: ThemeMode.system,
+          label: 'Tema do sistema',
+          icon: Icons.brightness_auto_outlined,
+          selected: themeMode == ThemeMode.system,
+        ),
+      ],
+    );
+
+    if (selected != null) {
+      ref.read(appThemeModeProvider.notifier).setMode(selected);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.pharmaTokens;
+    final themeMode = ref.watch(appThemeModeProvider);
+
+    return IconButton(
+      constraints: BoxConstraints(
+        minWidth: t.minTouchTarget,
+        minHeight: t.minTouchTarget,
+      ),
+      padding: EdgeInsets.zero,
+      tooltip: _tooltip(themeMode),
+      onPressed: () => _openMenu(context, ref, themeMode),
+      icon: Icon(_icon(themeMode), color: t.textSecondary, size: t.iconMd),
+    );
+  }
+}
+

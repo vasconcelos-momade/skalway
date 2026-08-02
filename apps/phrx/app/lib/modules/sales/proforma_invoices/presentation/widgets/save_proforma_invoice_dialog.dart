@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
@@ -53,10 +55,50 @@ class SaveProformaInvoiceDialogInitialData {
   final String? observacoes;
 }
 
+Future<SaveProformaInvoiceDialogResult?> showSaveProformaInvoiceDialog(
+  BuildContext context, {
+  SaveProformaInvoiceDialogInitialData? initialData,
+}) {
+  const title = Text('Criar fatura proforma');
+
+  return AdaptiveNavigator.openPanel<SaveProformaInvoiceDialogResult>(
+    context: context,
+    routeSettings: const RouteSettings(name: '/proforma-invoices/nova'),
+    builder: (detailContext) {
+      if (AdaptiveNavigator.isMobile(detailContext)) {
+        return Scaffold(
+          appBar: AppBar(title: title),
+          body: SafeArea(
+            child: SaveProformaInvoiceDialog(
+              initialData: initialData,
+              embedded: true,
+            ),
+          ),
+        );
+      }
+      return SaveProformaInvoiceDialog(
+        initialData: initialData,
+        embedded: true,
+        showHeader: true,
+        onClose: () => AdaptiveNavigator.cancel(detailContext),
+      );
+    },
+  );
+}
+
 class SaveProformaInvoiceDialog extends ConsumerStatefulWidget {
-  const SaveProformaInvoiceDialog({super.key, this.initialData});
+  const SaveProformaInvoiceDialog({
+    super.key,
+    this.initialData,
+    this.embedded = false,
+    this.showHeader = false,
+    this.onClose,
+  });
 
   final SaveProformaInvoiceDialogInitialData? initialData;
+  final bool embedded;
+  final bool showHeader;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<SaveProformaInvoiceDialog> createState() =>
@@ -89,7 +131,8 @@ class _SaveProformaInvoiceDialogState
         (initial?.descontoGeral ?? 0).toStringAsFixed(2);
     _observacoesController.text = initial?.observacoes ?? '';
     _clienteId = initial?.clienteId;
-    _manualClient = initial?.clienteId == null && (initial?.cliente.trim().isNotEmpty ?? false);
+    _manualClient =
+        initial?.clienteId == null && (initial?.cliente.trim().isNotEmpty ?? false);
     Future.microtask(_loadCustomers);
   }
 
@@ -182,126 +225,141 @@ class _SaveProformaInvoiceDialogState
   Widget build(BuildContext context) {
     final s = context.spacing;
 
-    return PharmaResponsiveDialog(
-      title: const Text('Criar fatura proforma'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_loadingCustomers)
-            const LinearProgressIndicator()
-          else if (_error != null)
-            Text(
-              'Não foi possível carregar clientes.',
-              style: Theme.of(context).textTheme.erpBody.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-            )
-          else ...[
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Preencher cliente manualmente'),
-              value: _manualClient,
-              onChanged: (value) {
-                setState(() {
-                  _manualClient = value;
-                  if (value) {
-                    _clienteId = null;
-                  } else {
-                    final selected = _customers.cast<CustomerSummary?>().firstWhere(
-                          (c) => c?.id == _clienteId,
-                          orElse: () =>
-                              _customers.isNotEmpty ? _customers.first : null,
-                        );
-                    _applyCustomer(selected);
-                  }
-                });
-              },
-            ),
-            if (!_manualClient)
-              EnterpriseSelectFormField<String>(
-                label: 'Cliente do cadastro *',
-                initialValue: _clienteId,
-                options: [
-                  for (final customer in _customers)
-                    EnterpriseSelectOption<String>(
-                      value: customer.id,
-                      label: customer.nome,
-                    ),
-                ],
-                onChanged: (value) {
-                  final customer = _findCustomerById(value);
-                  setState(() => _applyCustomer(customer));
-                },
-              ),
-          ],
-          SizedBox(height: s.md),
-          EnterpriseTextField(
-            controller: _clienteController,
-            labelText: 'Cliente *',
-          ),
-          SizedBox(height: s.md),
-          EnterpriseTextField(
-            controller: _nuitController,
-            labelText: 'NUIT',
-          ),
-          SizedBox(height: s.md),
-          EnterpriseTextField(
-            controller: _contactoController,
-            labelText: 'Contacto',
-          ),
-          SizedBox(height: s.md),
-          EnterpriseDateField(
-            labelText: 'Validade',
-            value: _validade,
-            firstDate: DateTime.now(),
-            lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-            onChanged: (picked) {
-              if (picked != null) {
-                setState(() => _validade = picked);
-              }
+    final fields = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_loadingCustomers)
+          const LinearProgressIndicator()
+        else if (_error != null)
+          Text(
+            'Não foi possível carregar clientes.',
+            style: Theme.of(context).textTheme.erpBody.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+          )
+        else ...[
+          EnterpriseFormSwitch(
+            label: 'Preencher cliente manualmente',
+            value: _manualClient,
+            onChanged: (value) {
+              setState(() {
+                _manualClient = value;
+                if (value) {
+                  _clienteId = null;
+                } else {
+                  final selected = _customers.cast<CustomerSummary?>().firstWhere(
+                        (c) => c?.id == _clienteId,
+                        orElse: () =>
+                            _customers.isNotEmpty ? _customers.first : null,
+                      );
+                  _applyCustomer(selected);
+                }
+              });
             },
           ),
-          SizedBox(height: s.md),
-          EnterpriseTextField(
-            controller: _descontoGeralController,
-            labelText: 'Desconto Geral (MT)',
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-            ],
-          ),
-          SizedBox(height: s.md),
-          EnterpriseTextField(
-            controller: _observacoesController,
-            labelText: 'Observações',
-            maxLines: 3,
-          ),
+          if (!_manualClient) ...[
+            SizedBox(height: s.md),
+            EnterpriseSelectFormField<String>(
+              label: 'Cliente do cadastro *',
+              initialValue: _clienteId,
+              options: [
+                for (final customer in _customers)
+                  EnterpriseSelectOption<String>(
+                    value: customer.id,
+                    label: customer.nome,
+                  ),
+              ],
+              onChanged: (value) {
+                final customer = _findCustomerById(value);
+                setState(() => _applyCustomer(customer));
+              },
+            ),
+          ],
         ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => AdaptiveNavigator.cancel(context),
-          child: const Text('Cancelar'),
+        SizedBox(height: s.md),
+        EnterpriseTextField(
+          controller: _clienteController,
+          labelText: 'Cliente *',
         ),
-        FilledButton.icon(
-          onPressed: _loadingCustomers ? null : _submit,
-          icon: const Icon(Icons.save_outlined),
-          label: const Text('Criar'),
+        SizedBox(height: s.md),
+        EnterpriseTextField(
+          controller: _nuitController,
+          labelText: 'NUIT',
+        ),
+        SizedBox(height: s.md),
+        EnterpriseTextField(
+          controller: _contactoController,
+          labelText: 'Contacto',
+        ),
+        SizedBox(height: s.md),
+        EnterpriseDateField(
+          labelText: 'Validade',
+          value: _validade,
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+          onChanged: (picked) {
+            if (picked != null) {
+              setState(() => _validade = picked);
+            }
+          },
+        ),
+        SizedBox(height: s.md),
+        EnterpriseTextField(
+          controller: _descontoGeralController,
+          labelText: 'Desconto Geral (MT)',
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          ],
+        ),
+        SizedBox(height: s.md),
+        EnterpriseTextField(
+          controller: _observacoesController,
+          labelText: 'Observações',
+          maxLines: 3,
         ),
       ],
     );
-  }
-}
 
-Future<SaveProformaInvoiceDialogResult?> showSaveProformaInvoiceDialog(
-  BuildContext context,
-{
-  SaveProformaInvoiceDialogInitialData? initialData,
-}) {
-  return AdaptiveNavigator.open<SaveProformaInvoiceDialogResult>(
-    context: context,
-    builder: (_) => SaveProformaInvoiceDialog(initialData: initialData),
-  );
+    final actions = [
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
+        onPressed: () => AdaptiveNavigator.cancel(context),
+      ),
+      EnterpriseOverlayActions.primary(
+        label: 'Criar',
+        onPressed: _loadingCustomers ? null : _submit,
+      ),
+    ];
+
+    if (widget.embedded) {
+      if (widget.showHeader) {
+        return EnterpriseFormSideSheet(
+          title: const Text('Criar fatura proforma'),
+          onClose: widget.onClose,
+          body: fields,
+          actions: actions,
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(s.lg),
+              child: fields,
+            ),
+          ),
+          EnterpriseOverlayFooter(actions: actions, expandOnNarrow: false),
+        ],
+      );
+    }
+
+    return PharmaResponsiveDialog(
+      title: const Text('Criar fatura proforma'),
+      content: fields,
+      actions: actions,
+    );
+  }
 }

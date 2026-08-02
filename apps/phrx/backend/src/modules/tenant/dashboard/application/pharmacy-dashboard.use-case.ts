@@ -23,12 +23,15 @@ import { CategoriaRepository } from "../../products/infrastructure/repositories/
 import { ValidadesDashboardUseCase } from "../../stock/application/use-cases/lotes/validades.use-case";
 import { FefoDashboardUseCase } from "../../stock/application/use-cases/lotes/fefo.use-case";
 import { LotesDashboardUseCase } from "../../stock/application/use-cases/lotes/search-lotes.use-case";
+import type { DataScope } from "../../shared/data-scope";
+import { userScopeWhere } from "../../shared/data-scope";
 
 type PeriodParams = {
   days?: number;
   period?: string;
   from?: string;
   to?: string;
+  scope?: DataScope;
 };
 
 type PharmacyTableParams = PeriodParams & {
@@ -59,6 +62,10 @@ export class PharmacyDashboardUseCase {
     const fromDays = resolved.from;
     const todayStart = startOfDay(now);
     const todayEnd = endOfDay(now);
+    const scopeFilter = params.scope ? userScopeWhere(params.scope) : {};
+    const faturaScope = params.scope?.filterUserId
+      ? { userId: BigInt(params.scope.filterUserId) }
+      : {};
 
     const [
       produtos,
@@ -88,7 +95,7 @@ export class PharmacyDashboardUseCase {
       }),
       prisma.alertaEstoque.count({ where: { resolvido: false } }),
       prisma.dispensacao.findMany({
-        where: { deletedAt: null },
+        where: { deletedAt: null, ...scopeFilter },
         orderBy: { createdAt: "desc" },
         take: 10,
         select: {
@@ -135,6 +142,7 @@ export class PharmacyDashboardUseCase {
           produtoId: { not: null },
           fatura: {
             ...FATURA_VENDA_WHERE,
+            ...faturaScope,
             createdAt: { gte: resolved.from, lte: resolved.to },
           },
         },
@@ -145,6 +153,7 @@ export class PharmacyDashboardUseCase {
       prisma.fatura.findMany({
         where: {
           ...FATURA_VENDA_WHERE,
+          ...faturaScope,
           createdAt: { gte: resolved.from, lte: resolved.to },
         },
         select: { createdAt: true, total: true },
@@ -152,6 +161,7 @@ export class PharmacyDashboardUseCase {
       prisma.fatura.aggregate({
         where: {
           ...FATURA_VENDA_WHERE,
+          ...faturaScope,
           createdAt: { gte: todayStart, lte: todayEnd },
         },
         _sum: { total: true },
@@ -160,6 +170,13 @@ export class PharmacyDashboardUseCase {
       prisma.receita.count({
         where: {
           createdAt: { gte: todayStart, lte: todayEnd },
+          ...(params.scope?.filterUserId
+            ? {
+                dispensacoes: {
+                  some: { userId: BigInt(params.scope.filterUserId) },
+                },
+              }
+            : {}),
         },
       }),
     ]);
@@ -389,6 +406,7 @@ export class PharmacyDashboardUseCase {
       case "ultimasDispensacoes": {
         const where: any = {
           createdAt: { gte: resolved.from, lte: resolved.to },
+          ...(params.scope ? userScopeWhere(params.scope) : {}),
         };
         if (params.produtoId) where.produtoId = BigInt(params.produtoId);
         if (params.estado) where.tipoDispensacao = params.estado;

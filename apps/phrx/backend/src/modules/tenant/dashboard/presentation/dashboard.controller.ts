@@ -35,7 +35,10 @@ export class DashboardController {
   async finance(req: Request, actorUserId: string) {
     try {
       const query = parseSearchParams(new URL(req.url), dashboardPeriodQuerySchema);
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.financeUseCase.execute({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {
@@ -49,7 +52,10 @@ export class DashboardController {
         new URL(req.url),
         financeDashboardTableQuerySchema,
       );
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.financeUseCase.listTable({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {
@@ -60,7 +66,10 @@ export class DashboardController {
   async pharmacy(req: Request, actorUserId: string) {
     try {
       const query = parseSearchParams(new URL(req.url), dashboardPeriodQuerySchema);
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.pharmacyUseCase.execute({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {
@@ -74,7 +83,10 @@ export class DashboardController {
         new URL(req.url),
         pharmacyDashboardTableQuerySchema,
       );
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.pharmacyUseCase.listTable({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {
@@ -121,7 +133,10 @@ export class DashboardController {
   async cashier(req: Request, actorUserId: string) {
     try {
       const query = parseSearchParams(new URL(req.url), dashboardPeriodQuerySchema);
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.cashierUseCase.execute({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {
@@ -135,7 +150,10 @@ export class DashboardController {
         new URL(req.url),
         cashierDashboardTableQuerySchema,
       );
-      const scope = await resolveDataScopeForUser({ actorUserId });
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.cashierUseCase.listTable({ ...query, scope });
       return Response.json(this.serialize(result));
     } catch (error: any) {

@@ -9,6 +9,10 @@ import type {
   UpdateProformaInvoiceDTO,
   UpdateProformaInvoiceItemDTO,
 } from "../dto/proforma-invoice.dto";
+import {
+  assertRecordVisibleToScope,
+  type DataScope,
+} from "../../../shared/data-scope";
 
 export class ProformaInvoiceService {
   private repo = new ProformaInvoiceRepository();
@@ -31,12 +35,30 @@ export class ProformaInvoiceService {
     return this.repo.create(data, BigInt(userId));
   }
 
-  search(filters: Parameters<ProformaInvoiceRepository["search"]>[0]) {
-    return this.repo.search(filters);
+  search(
+    filters: Parameters<ProformaInvoiceRepository["search"]>[0],
+    scope?: DataScope,
+  ) {
+    // Operacionais: scope força o próprio userId; gestão pode filtrar via query.
+    const scopedUserId = scope?.filterUserId
+      ? BigInt(scope.filterUserId)
+      : filters.userId;
+    return this.repo.search({
+      ...filters,
+      userId: scopedUserId,
+    });
   }
 
-  get(id: string) {
-    return this.repo.getById(BigInt(id));
+  async get(id: string, scope?: DataScope) {
+    const row = await this.repo.getById(BigInt(id));
+    if (scope) {
+      assertRecordVisibleToScope(
+        scope,
+        row.userId,
+        "Não tem permissão para visualizar faturas proforma de outros utilizadores",
+      );
+    }
+    return row;
   }
 
   update(id: string, data: UpdateProformaInvoiceDTO, userId: string) {

@@ -28,7 +28,8 @@ function registerResourceRoutes(router: Router, basePath: string): void {
     tenantAuthMiddleware(),
     tenantBranchContextMiddleware(),
     requirePermission("PROFORMA_INVOICES", "VIEW"),
-    async (context) => controller.search(context.req),
+    async (context) =>
+      controller.search(context.req, getTenantAuth(context).userId),
   );
 
   router.post(
@@ -48,7 +49,7 @@ function registerResourceRoutes(router: Router, basePath: string): void {
     requirePermission("PROFORMA_INVOICES", "VIEW"),
     async (context) => {
       const { proformaInvoiceId } = parseRouteParams(context.params, proformaInvoiceIdParamSchema);
-      return controller.get(proformaInvoiceId);
+      return controller.get(proformaInvoiceId, getTenantAuth(context).userId);
     },
   );
 

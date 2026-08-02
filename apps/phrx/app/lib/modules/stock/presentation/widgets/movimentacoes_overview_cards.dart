@@ -13,7 +13,7 @@ class MovimentacoesOverviewCards extends StatelessWidget {
   final MovimentacaoOverview overview;
   final bool hasFilters;
 
-  static List<Widget> buildCards({
+  static List<EnterpriseStatCard> buildCards({
     required MovimentacaoOverview overview,
     required bool hasFilters,
   }) {

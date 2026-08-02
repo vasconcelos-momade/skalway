@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/errors/api_failure.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
-import '../../../../../core/theme/pharma_surface.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_search_bar.dart';
@@ -17,6 +16,7 @@ import '../../../../pharmacy/products/presentation/widgets/produto_categoria_fil
 import '../../../../reports/presentation/controllers/report_controller.dart';
 import '../../../pdv/domain/entities/pdv_service.dart';
 import '../../../pdv/presentation/providers/pdv_service_provider.dart';
+import '../../../pdv/presentation/widgets/pdv_catalog_utils.dart';
 import '../../../pdv/presentation/widgets/pdv_product_list.dart';
 import '../../../pdv/presentation/widgets/pdv_product_table.dart';
 import '../../../pdv/presentation/widgets/pdv_service_list.dart';
@@ -36,12 +36,12 @@ class SalesProformaInvoicesPage extends ConsumerStatefulWidget {
       _SalesProformaInvoicesPageState();
 }
 
-class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoicesPage>
+class _SalesProformaInvoicesPageState
+    extends ConsumerState<SalesProformaInvoicesPage>
     with TickerProviderStateMixin {
   final _search = TextEditingController();
   final _searchFocusNode = FocusNode();
   late final TabController _catalogTabController;
-  late final TabController _mobileTabController;
   int _catalogTabIndex = 0;
   List<Product> _accumulatedProducts = [];
 
@@ -49,14 +49,12 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
   void initState() {
     super.initState();
     _catalogTabController = TabController(length: 3, vsync: this);
-    _mobileTabController = TabController(length: 2, vsync: this);
     _search.text = ref.read(productListProvider).query;
   }
 
   @override
   void dispose() {
     _catalogTabController.dispose();
-    _mobileTabController.dispose();
     _search.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -78,8 +76,8 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
     final query = index == 0
         ? ref.read(productListProvider).query
         : index == 1
-            ? ref.read(pdvServiceListProvider).query
-            : '';
+        ? ref.read(pdvServiceListProvider).query
+        : '';
     _search.value = TextEditingValue(
       text: query,
       selection: TextSelection.collapsed(offset: query.length),
@@ -106,7 +104,8 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
 
   SaveProformaInvoiceDialogInitialData? _buildInitialHeaderData() {
     final cartState = ref.read(proformaInvoiceCartProvider);
-    final validade = cartState.validade ?? DateTime.now().add(const Duration(days: 30));
+    final validade =
+        cartState.validade ?? DateTime.now().add(const Duration(days: 30));
     final cliente = cartState.cliente;
     if (cliente == null || cliente.isEmpty) {
       return null;
@@ -133,10 +132,9 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
       return;
     }
     try {
-      await ref.read(proformaInvoiceCartProvider.notifier).createProformaInvoice(
-            header: result,
-            initialLines: [line],
-          );
+      await ref
+          .read(proformaInvoiceCartProvider.notifier)
+          .createProformaInvoice(header: result, initialLines: [line]);
       if (!mounted) {
         return;
       }
@@ -214,44 +212,6 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
     }
   }
 
-  Future<void> _novaFaturaProforma() async {
-    // Nova fatura proforma: abre o diálogo e, ao confirmar, cria/persistente no backend
-    // imediatamente (sem editar cabeçalho no footer).
-    ref.read(proformaInvoiceCartProvider.notifier).resetComposer();
-
-    final result = await showSaveProformaInvoiceDialog(
-      context,
-      initialData: null,
-    );
-    if (!mounted || result == null) {
-      return;
-    }
-
-    try {
-      await ref
-          .read(proformaInvoiceCartProvider.notifier)
-          .createProformaInvoice(header: result);
-
-      if (!mounted) {
-        return;
-      }
-
-      final updated = ref.read(proformaInvoiceCartProvider);
-      PharmaFeedback.success(
-        context,
-        'Fatura Proforma ${updated.proformaInvoiceNumero} criada com sucesso.',
-      );
-    } on ApiFailure catch (e) {
-      if (mounted) {
-        PharmaFeedback.error(context, e.message);
-      }
-    } catch (e) {
-      if (mounted) {
-        PharmaFeedback.error(context, e.toString());
-      }
-    }
-  }
-
   Future<void> _cancelProformaInvoice() async {
     final cart = ref.read(proformaInvoiceCartProvider);
     if (!cart.hasProformaInvoice) {
@@ -280,7 +240,9 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
       return;
     }
     try {
-      await ref.read(proformaInvoiceCartProvider.notifier).cancelProformaInvoice();
+      await ref
+          .read(proformaInvoiceCartProvider.notifier)
+          .cancelProformaInvoice();
       if (!mounted) {
         return;
       }
@@ -308,7 +270,9 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
             .read(proformaInvoiceCartProvider.notifier)
             .approveProformaInvoice();
       }
-      await ref.read(reportControllerProvider.notifier).downloadPdf(
+      await ref
+          .read(reportControllerProvider.notifier)
+          .downloadPdf(
             path: '/tenant/proforma-invoices/$proformaInvoiceId/pdf',
           );
       if (!mounted) {
@@ -351,12 +315,14 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
         return Card(
           color: t.card,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(t.radiusMd),
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(t.radiusMd),
             onTap: () => unawaited(
-              ref.read(proformaInvoiceCartProvider.notifier).openProformaInvoice(item.id),
+              ref
+                  .read(proformaInvoiceCartProvider.notifier)
+                  .openProformaInvoice(item.id),
             ),
             child: Padding(
               padding: EdgeInsets.all(s.md),
@@ -389,7 +355,8 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
                           ref
                               .read(reportControllerProvider.notifier)
                               .downloadPdf(
-                                path: '/tenant/proforma-invoices/${item.id}/pdf',
+                                path:
+                                    '/tenant/proforma-invoices/${item.id}/pdf',
                               ),
                         ),
                       ),
@@ -451,14 +418,20 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
   }) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final showCatalogPagination = !isMobile;
 
-    if (!_isHistoryTab && activeIsLoading && !activeIsInitialized && !activeHasItems) {
+    if (!_isHistoryTab &&
+        activeIsLoading &&
+        !activeIsInitialized &&
+        !activeHasItems) {
       return const ModuleLoadingState(itemCount: 4);
     }
 
     if (!_isHistoryTab && activeErrorMessage != null && !activeHasItems) {
       return ModuleErrorState(
-        title: _isProductsTab ? 'Falha ao carregar produtos' : 'Falha ao carregar serviços',
+        title: _isProductsTab
+            ? 'Falha ao carregar produtos'
+            : 'Falha ao carregar serviços',
         message: activeErrorMessage,
         onRetry: _isProductsTab
             ? productController.refreshCurrentPage
@@ -467,18 +440,31 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
       );
     }
 
-    final catalogFooter = _isProductsTab && !isMobile
+    final catalogFooter = !_isHistoryTab && showCatalogPagination
         ? EnterprisePagination(
-            page: productState.page,
-            pageSize: productState.pageSize,
-            totalCount: productState.totalCount,
-            hasMore:
-                productState.totalCount == null ? productState.hasMore : null,
-            itemsOnPage: productState.items.length,
-            isBusy: productState.isLoading,
-            itemLabel: 'produtos',
-            onPageChanged: productController.goToPage,
-            onPageSizeChanged: productController.setPageSize,
+            page: _isProductsTab ? productState.page : serviceState.page,
+            pageSize: _isProductsTab
+                ? productState.pageSize
+                : serviceState.pageSize,
+            totalCount: _isProductsTab
+                ? productState.totalCount
+                : serviceState.totalCount,
+            hasMore: _isProductsTab
+                ? productState.hasMore
+                : serviceState.hasMore,
+            itemsOnPage: _isProductsTab
+                ? productState.items.length
+                : serviceState.items.length,
+            isBusy: _isProductsTab
+                ? productState.isLoading
+                : serviceState.isLoading,
+            itemLabel: _isProductsTab ? 'produtos' : 'serviços',
+            onPageChanged: _isProductsTab
+                ? productController.goToPage
+                : serviceController.goToPage,
+            onPageSizeChanged: _isProductsTab
+                ? productController.setPageSize
+                : serviceController.setPageSize,
           )
         : null;
 
@@ -493,11 +479,35 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
         if (activeErrorMessage != null && activeHasItems)
           Padding(
             padding: EdgeInsets.only(bottom: s.sm),
-            child: Text(
-              activeErrorMessage,
-              style: Theme.of(context).textTheme.erpBodySecondary.copyWith(
-                    color: t.posDanger,
-                  ),
+            child: Material(
+              color: t.posDanger.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(t.radiusMd),
+              child: Padding(
+                padding: EdgeInsets.all(s.sm),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: t.posDanger,
+                      size: t.iconSm,
+                    ),
+                    SizedBox(width: s.sm),
+                    Expanded(
+                      child: Text(
+                        activeErrorMessage,
+                        style: Theme.of(context).textTheme.erpBodySecondary
+                            .copyWith(color: t.textPrimary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _isProductsTab
+                          ? productController.refreshCurrentPage
+                          : serviceController.refreshCurrentQuery,
+                      child: const Text('Repetir'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         Material(
@@ -510,79 +520,90 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
             indicatorColor: t.brandBlue,
             dividerColor: Colors.transparent,
             tabs: const [
-              Tab(text: 'Produtos'),
+              Tab(text: 'Lista de Produtos'),
               Tab(text: 'Serviços'),
               Tab(text: 'Histórico'),
             ],
           ),
         ),
-        SizedBox(height: s.md),
-        if (!_isHistoryTab && isMobile) ...[
-          EnterpriseModuleSearchBar(
-            controller: _search,
-            focusNode: _searchFocusNode,
-            autofocus: true,
-            hintText: _isProductsTab
-                ? 'Pesquisar produto...'
-                : 'Pesquisar serviço...',
-            enabled: !activeIsLoading,
-            onSubmitted: (_) => _onSearchSubmitted(
-              products: productState.items,
-              services: serviceState.items,
-              accumulatedProducts: displayProducts,
-            ),
-            onChanged: _onSearchChanged,
-          ),
-          if (_isProductsTab) ...[
-            SizedBox(height: s.sm),
-            ProdutoCategoriaFilterDropdown(
-              value: productState.categoriaId,
-              width: double.infinity,
-              enabled: !productState.isLoading,
-              onChanged: _onCategoryChanged,
-            ),
-          ],
-        ] else if (!_isHistoryTab)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_isProductsTab) ...[
-                SizedBox(
-                  width: 260,
-                  child: ProdutoCategoriaFilterDropdown(
-                    value: productState.categoriaId,
-                    width: 260,
-                    enabled: !productState.isLoading,
-                    onChanged: _onCategoryChanged,
-                  ),
+        SizedBox(height: isMobile ? s.sm : s.md),
+        if (!_isHistoryTab)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth =
+                  constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width;
+              final categoryWidth = (availableWidth * 0.28).clamp(180.0, 280.0);
+
+              final searchBar = EnterpriseModuleSearchBar(
+                controller: _search,
+                focusNode: _searchFocusNode,
+                autofocus: true,
+                fullWidth: true,
+                hintText: _isProductsTab
+                    ? (isMobile
+                          ? 'Pesquisar ou escanear...'
+                          : 'Pesquisar por código, nome ou EAN')
+                    : (isMobile
+                          ? 'Pesquisar serviço...'
+                          : 'Pesquisar por nome do serviço'),
+                enabled: !activeIsLoading,
+                onSubmitted: (_) => _onSearchSubmitted(
+                  products: productState.items,
+                  services: serviceState.items,
+                  accumulatedProducts: displayProducts,
                 ),
-                SizedBox(width: s.sm),
-              ],
-              Expanded(
-                child: EnterpriseModuleSearchBar(
-                  controller: _search,
-                  focusNode: _searchFocusNode,
-                  maxWidth: 720,
-                  hintText: _isProductsTab
-                      ? 'Pesquisar por código, nome ou EAN'
-                      : 'Pesquisar serviço...',
-                  enabled: !activeIsLoading,
-                  onSubmitted: (_) => _onSearchSubmitted(
-                    products: productState.items,
-                    services: serviceState.items,
-                  ),
-                  onChanged: _onSearchChanged,
+                onChanged: _onSearchChanged,
+              );
+
+              final categoryFilter = ProdutoCategoriaFilterDropdown(
+                value: productState.categoriaId,
+                width: isMobile ? double.infinity : categoryWidth,
+                enabled: !productState.isLoading,
+                compact: true,
+                emptyLabel: 'Todas',
+                onChanged: _onCategoryChanged,
+              );
+
+              if (isMobile) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: t.controlHeight, child: searchBar),
+                    if (_isProductsTab) ...[
+                      SizedBox(height: s.sm),
+                      SizedBox(height: t.controlHeight, child: categoryFilter),
+                    ],
+                  ],
+                );
+              }
+
+              return SizedBox(
+                height: t.controlHeight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: searchBar),
+                    if (_isProductsTab) ...[
+                      SizedBox(width: s.sm),
+                      SizedBox(
+                        width: categoryWidth,
+                        height: t.controlHeight,
+                        child: categoryFilter,
+                      ),
+                    ],
+                  ],
                 ),
-              ),
-              if (_isProductsTab) ...[
-                SizedBox(width: s.sm),
-              ],
-            ],
+              );
+            },
           ),
         if (_isHistoryTab)
           EnterpriseModuleSearchBar(
             controller: _search,
             focusNode: _searchFocusNode,
+            fullWidth: true,
             hintText: 'Pesquisar histórico de faturas proforma...',
             onSubmitted: (_) => _onSearchSubmitted(
               products: productState.items,
@@ -590,45 +611,45 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
             ),
             onChanged: _onSearchChanged,
           ),
-        SizedBox(height: s.md),
+        SizedBox(height: isMobile ? s.sm : s.md),
         Expanded(
           child: _isProductsTab
               ? isMobile
-                  ? PdvProductList(
-                      items: displayProducts,
-                      query: productState.query,
-                      hasMore: productState.hasMore,
-                      isLoading: productState.isLoading,
-                      canAdd: true,
-                      addingProductId: null,
-                      onAdd: (product) => unawaited(_addProduct(product)),
-                      onLoadMore: () =>
-                          productController.goToPage(productState.page + 1),
-                      bottomPadding: bottomPadding,
-                    )
-                  : PdvProductTable(
-                      items: productState.items,
-                      query: productState.query,
-                      canAdd: true,
-                      addingProductId: null,
-                      onAdd: (product) => unawaited(_addProduct(product)),
-                    )
+                    ? PdvProductList(
+                        items: displayProducts,
+                        query: productState.query,
+                        hasMore: productState.hasMore,
+                        isLoading: productState.isLoading,
+                        canAdd: true,
+                        addingProductId: null,
+                        onAdd: (product) => unawaited(_addProduct(product)),
+                        onLoadMore: () =>
+                            productController.goToPage(productState.page + 1),
+                        bottomPadding: bottomPadding,
+                      )
+                    : PdvProductTable(
+                        items: productState.items,
+                        query: productState.query,
+                        canAdd: true,
+                        addingProductId: null,
+                        onAdd: (product) => unawaited(_addProduct(product)),
+                      )
               : _isServicesTab
-                  ? isMobile
-                      ? PdvServiceList(
-                          items: serviceState.items,
-                          query: serviceState.query,
-                          canAdd: true,
-                          onAdd: (service) => unawaited(_addService(service)),
-                          bottomPadding: bottomPadding,
-                        )
-                      : PdvServiceTable(
-                          items: serviceState.items,
-                          query: serviceState.query,
-                          canAdd: true,
-                          onAdd: (service) => unawaited(_addService(service)),
-                        )
-                  : _buildHistoryPane(),
+              ? isMobile
+                    ? PdvServiceList(
+                        items: serviceState.items,
+                        query: serviceState.query,
+                        canAdd: true,
+                        onAdd: (service) => unawaited(_addService(service)),
+                        bottomPadding: bottomPadding,
+                      )
+                    : PdvServiceTable(
+                        items: serviceState.items,
+                        query: serviceState.query,
+                        canAdd: true,
+                        onAdd: (service) => unawaited(_addService(service)),
+                      )
+              : _buildHistoryPane(),
         ),
         if (!isMobile && catalogFooter != null) ...[
           SizedBox(height: s.sm),
@@ -643,100 +664,117 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
     final controller = ref.read(proformaInvoiceCartProvider.notifier);
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final pad = compact ? EdgeInsets.zero : t.density.cardPadding;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(s.md, s.md, s.md, s.sm),
-          child: Row(
-            children: [
-              Expanded(
+    final canCancel =
+        cartState.hasProformaInvoice &&
+        !cartState.isBusy &&
+        cartState.proformaInvoiceEstado == 'PENDENTE';
+    final canFinalize =
+        cartState.hasProformaInvoice &&
+        !cartState.isBusy &&
+        !cartState.isEmpty &&
+        (cartState.proformaInvoiceEstado == 'PENDENTE' ||
+            cartState.proformaInvoiceEstado == 'APROVADA');
+
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: pad,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (cartState.hasProformaInvoice)
+              Padding(
+                padding: EdgeInsets.only(bottom: s.sm),
                 child: Text(
-                  'Itens da fatura proforma',
-                  style: Theme.of(context).textTheme.erpCardTitle.copyWith(
-                        color: t.textPrimary,
-                      ),
+                  'Proforma ${cartState.proformaInvoiceNumero} (${cartState.proformaInvoiceEstado})',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.erpLabel.copyWith(color: t.textSecondary),
                 ),
               ),
-              if (!cartState.isEmpty)
-                TextButton.icon(
-                  onPressed: cartState.isBusy ? null : () => unawaited(controller.clear()),
-                  icon: const Icon(Icons.clear_all_rounded),
-                  label: const Text('Limpar'),
-                ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: cartState.isEmpty
-              ? const ModuleEmptyState(
-                  title: 'Fatura proforma vazia',
-                  subtitle:
-                      'Selecione uma fatura proforma no histórico ou adicione produtos/serviços.',
-                )
-              : ListView.separated(
-                  padding: EdgeInsets.symmetric(horizontal: s.md),
-                  itemCount: cartState.lines.length,
-                  separatorBuilder: (_, _) => SizedBox(height: s.sm),
-                  itemBuilder: (context, index) {
-                    final line = cartState.lines[index];
-    return ProformaInvoiceCartItemCard(
-                      key: ValueKey(line.proformaInvoiceItemId ?? line.id),
-                      line: line,
-                      onChanged: (updated) =>
-                          unawaited(controller.updateLine(updated)),
-                      onIncrement: () => unawaited(controller.incrementLine(line)),
-                      onDecrement: () => unawaited(controller.decrementLine(line)),
-                      onRemove: () => unawaited(controller.removeLine(line)),
-                    );
-                  },
-                ),
-        ),
-        ProformaInvoiceCartSummary(
-          itemCount: cartState.itemCount,
-          subtotal: cartState.subtotal,
-          descontoTotal: cartState.descontoTotal,
-          ivaTotal: cartState.ivaTotal,
-          total: cartState.total,
-          action: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+            Expanded(
+              child: cartState.isEmpty
+                  ? const ModuleEmptyState(
+                      title: 'Fatura Proforma vazia',
+                      subtitle:
+                          'Selecione uma fatura no histórico ou adicione produtos/serviços.',
+                    )
+                  : ListView.separated(
+                      itemCount: cartState.lines.length,
+                      separatorBuilder: (_, _) => SizedBox(height: s.sm),
+                      itemBuilder: (context, index) {
+                        final line = cartState.lines[index];
+                        return ProformaInvoiceCartItemCard(
+                          key: ValueKey(line.proformaInvoiceItemId ?? line.id),
+                          line: line,
+                          onChanged: (updated) =>
+                              unawaited(controller.updateLine(updated)),
+                          onIncrement: () =>
+                              unawaited(controller.incrementLine(line)),
+                          onDecrement: () =>
+                              unawaited(controller.decrementLine(line)),
+                          onRemove: () =>
+                              unawaited(controller.removeLine(line)),
+                        );
+                      },
+                    ),
+            ),
+            ProformaInvoiceCartSummary(
+              itemCount: cartState.itemCount,
+              subtotal: cartState.subtotal,
+              descontoTotal: cartState.descontoTotal,
+              ivaTotal: cartState.ivaTotal,
+              total: cartState.total,
+              action: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: !cartState.hasProformaInvoice || cartState.isBusy
-                          ? null
-                          : cartState.proformaInvoiceEstado != 'PENDENTE'
-                              ? null
-                              : () => unawaited(_cancelProformaInvoice()),
-                      icon: const Icon(Icons.close_rounded),
-                      label: const Text('Cancelar'),
+                    child: OutlinedButton(
+                      onPressed: canCancel
+                          ? () => unawaited(_cancelProformaInvoice())
+                          : null,
+                      child: const Text('Cancelar'),
                     ),
                   ),
                   SizedBox(width: s.sm),
                   Expanded(
-                    child: FilledButton.icon(
-                      onPressed: !cartState.hasProformaInvoice ||
-                              cartState.isBusy ||
-                              cartState.isEmpty
-                          ? null
-                          : (cartState.proformaInvoiceEstado != 'PENDENTE' &&
-                                  cartState.proformaInvoiceEstado != 'APROVADA')
-                              ? null
-                              : () => unawaited(_finalizeProformaInvoice()),
-                      icon: const Icon(Icons.picture_as_pdf_outlined),
-                      label: const Text('Finalizar Proforma'),
+                    child: FilledButton(
+                      onPressed: canFinalize
+                          ? () => unawaited(_finalizeProformaInvoice())
+                          : null,
+                      child: Text(
+                        compact ? 'Finalizar' : 'Finalizar Proforma',
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMobileCart() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => Scaffold(
+          backgroundColor: context.pharmaTokens.bgPrimary,
+          appBar: AppBar(
+            leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+            title: const Text('Fatura Proforma'),
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.all(context.spacing.md),
+              child: _buildCartPane(compact: true),
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -773,16 +811,20 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
     });
 
     final displayProducts = isMobile
-        ? (_accumulatedProducts.isEmpty ? productState.items : _accumulatedProducts)
+        ? (_accumulatedProducts.isEmpty
+              ? productState.items
+              : _accumulatedProducts)
         : productState.items;
 
-    final activeIsLoading =
-        _isProductsTab ? productState.isLoading : serviceState.isLoading;
+    final activeIsLoading = _isProductsTab
+        ? productState.isLoading
+        : serviceState.isLoading;
     final activeIsInitialized = _isProductsTab
         ? productState.isInitialized
         : serviceState.isInitialized;
-    final activeHasItems =
-        _isProductsTab ? productState.items.isNotEmpty : serviceState.items.isNotEmpty;
+    final activeHasItems = _isProductsTab
+        ? productState.items.isNotEmpty
+        : serviceState.items.isNotEmpty;
     final activeErrorMessage = _isProductsTab
         ? productState.errorMessage
         : serviceState.errorMessage;
@@ -799,7 +841,7 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
       activeIsInitialized: activeIsInitialized,
       activeHasItems: activeHasItems,
       activeErrorMessage: activeErrorMessage,
-      bottomPadding: 0,
+      bottomPadding: isMobile ? (t.controlHeight + s.xl) : 0,
     );
 
     final cartPane = _buildCartPane(compact: isMobile || isTablet);
@@ -812,93 +854,45 @@ class _SalesProformaInvoicesPageState extends ConsumerState<SalesProformaInvoice
       }
     }
 
-    if (isMobile) {
-      return PageRefreshBinder(
-        onRefresh: refreshCatalog,
-        child: ColoredBox(
-        color: t.bgPrimary,
-        child: Column(
-          children: [
-            Material(
-              color: Colors.transparent,
-              child: TabBar(
-                controller: _mobileTabController,
-                labelColor: t.textPrimary,
-                unselectedLabelColor: t.textMuted,
-                indicatorColor: t.brandBlue,
-                tabs: [
-                  const Tab(text: 'Catálogo'),
-                  Tab(text: 'Proforma (${cartState.itemCount})'),
-                ],
+    final Widget content;
+    if (isDesktop) {
+      content = Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 5, child: catalogPane),
+          SizedBox(width: s.md),
+          VerticalDivider(width: 1, thickness: 1, color: t.border),
+          SizedBox(width: s.md),
+          SizedBox(width: 560, child: cartPane),
+        ],
+      );
+    } else {
+      content = Stack(
+        children: [
+          catalogPane,
+          Positioned(
+            right: s.xs,
+            bottom: s.md,
+            child: SafeArea(
+              minimum: EdgeInsets.only(bottom: s.xs),
+              child: FloatingActionButton.extended(
+                onPressed: _showMobileCart,
+                icon: Icon(Icons.receipt_long_rounded, size: t.iconSm),
+                label: Text(
+                  '${cartState.itemCount} Itens • ${pdvFormatMoney(cartState.total)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                extendedPadding: EdgeInsets.symmetric(horizontal: s.md),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                backgroundColor: t.brandGreen,
               ),
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _mobileTabController,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(s.md),
-                    child: catalogPane,
-                  ),
-                  cartPane,
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        ],
       );
     }
 
-    return PageRefreshBinder(
-      onRefresh: refreshCatalog,
-      child: ColoredBox(
-      color: t.bgPrimary,
-      child: Padding(
-        padding: EdgeInsets.all(s.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    cartState.hasProformaInvoice
-                        ? 'Proforma ${cartState.proformaInvoiceNumero} (${cartState.proformaInvoiceEstado})'
-                        : 'Nova Fatura Proforma',
-                    style: Theme.of(context).textTheme.erpPageTitle.copyWith(
-                          color: t.textPrimary,
-                        ),
-                  ),
-                  FilledButton.icon(
-                    onPressed: cartState.isBusy || cartState.isSavingHeader
-                        ? null
-                        : () => unawaited(_novaFaturaProforma()),
-                    icon: const Icon(Icons.add_outlined),
-                    label: const Text('Nova Fatura Proforma'),
-                  ),
-                ],
-              ),
-              SizedBox(height: s.md),
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(flex: 7, child: catalogPane),
-                    SizedBox(width: s.lg),
-                    Expanded(
-                      flex: 5,
-                      child: PharmaSurface(
-                        child: cartPane,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-      ),
-    ),
-    );
+    return PageRefreshBinder(onRefresh: refreshCatalog, child: content);
   }
 }

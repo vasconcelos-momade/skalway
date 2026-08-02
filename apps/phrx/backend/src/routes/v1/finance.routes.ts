@@ -34,7 +34,8 @@ export function registerFinanceRoutes(router: Router, prefix: string): void {
   router.get(
     `${prefix}/tenant/finance/cashflow/movimentos`,
     ...readAuth,
-    async (context) => financeController.listMovements(context.req),
+    async (context) =>
+      financeController.listMovements(context.req, getTenantAuth(context).userId),
   );
 
   router.post(

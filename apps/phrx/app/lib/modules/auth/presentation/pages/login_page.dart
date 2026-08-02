@@ -96,6 +96,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: isMobile ? s.xl : AppSpacing.xxxl),
+              Text(
+                'Log in',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.erpDisplayLarge.copyWith(
+                      color: t.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              SizedBox(height: s.lg),
               _LoginFormPanel(
                 isMobile: isMobile,
                 connection: connection,
@@ -113,6 +122,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 '© 2026 Skalway PhRx. Todos os direitos reservados.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.erpOverline.copyWith(color: t.textMuted),
+              ),
+              SizedBox(height: s.md),
+              Divider(color: t.borderSubtle, height: 1),
+              SizedBox(height: s.md),
+              Text(
+                'Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade PhRx',
+                textAlign: TextAlign.justify,
+                style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
               ),
             ],
           ),
@@ -153,12 +170,8 @@ class _LoginFormPanel extends StatelessWidget {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Iniciar sessão',
-          style: Theme.of(context).textTheme.erpCardTitle.copyWith(color: t.textMuted),
-        ),
-        SizedBox(height: s.sm),
         Wrap(
+          alignment: WrapAlignment.center,
           spacing: s.sm,
           runSpacing: s.sm,
           children: [

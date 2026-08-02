@@ -31,19 +31,19 @@ String produtoTipoDispensacaoLabel(String tipo) {
 String produtoDispensacaoDerivedSummary(String tipo) {
   switch (tipo) {
     case 'VENDA_LIVRE':
-      return 'Sem receita nem livros regulatórios.';
+      return 'Sem receita nem mapas regulatórios.';
     case 'RECEITA_NORMAL':
-      return 'Receita obrigatória • registo no Livro de Receitas.';
+      return 'Receita obrigatória • registo no Mapa de Receitas.';
     case 'RECEITA_ESPECIAL':
-      return 'Receita obrigatória • dupla validação • Livro de Receitas e Psicotrópicos.';
+      return 'Receita obrigatória • dupla validação • Mapa de Receitas e Psicotrópicos.';
     case 'RECEITA_SIMPLES':
     case 'RECEITA_CONTROLADA':
     case 'RECEITA_OBRIGATORIA':
     case 'RECEITA_RETIDA':
-      return 'Receita obrigatória • registo no Livro de Receitas.';
+      return 'Receita obrigatória • registo no Mapa de Receitas.';
     case 'PSICOTROPICO':
     case 'NARCOTICO':
-      return 'Receita obrigatória • dupla validação • Livro de Receitas e Psicotrópicos.';
+      return 'Receita obrigatória • dupla validação • Mapa de Receitas e Psicotrópicos.';
     default:
       return '';
   }

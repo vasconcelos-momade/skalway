@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/report_paths.dart';
 import '../../../../core/contracts/pagination_response.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
+import '../../../../core/theme/extensions.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
+import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../dashboard/domain/dashboard_query.dart';
@@ -33,6 +35,7 @@ class CashflowPage extends ConsumerStatefulWidget {
 class _CashflowPageState extends ConsumerState<CashflowPage> {
   var _query = const DashboardQuery();
   var _tableReloadToken = 0;
+  late final TextEditingController _searchController;
 
   List<Map<String, dynamic>> _items = [];
   List<Map<String, dynamic>> _accumulatedItems = [];
@@ -47,9 +50,16 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController(text: _query.search);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchTable();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchTable() async {
@@ -105,6 +115,12 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
   }
 
   void _onQueryChanged(DashboardQuery query) {
+    if (_searchController.text != query.search) {
+      _searchController.value = TextEditingValue(
+        text: query.search,
+        selection: TextSelection.collapsed(offset: query.search.length),
+      );
+    }
     setState(() {
       _query = query;
       _page = 1;
@@ -208,9 +224,15 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
             ),
           ];
 
+    final reportActions = financeReportActions(
+      ref: ref,
+      enabled: !reportState.isSubmitting && !_isLoading,
+      path: ReportPaths.financeCashflow,
+      queryParameters: _query.toParams(),
+    );
+
     return ResponsiveBuilder(
       builder: (context, constraints) {
-        final isDesktop = constraints.isDesktopOrWider;
         final isMobile = !constraints.isTabletOrWider;
 
         return PageRefreshBinder(
@@ -256,42 +278,64 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
           child: EnterpriseAdaptiveListBody(
             isMobile: isMobile,
             isLoading: !_isInitialized && _isLoading,
-            errorText: _errorMessage != null && _items.isEmpty ? _errorMessage : null,
-            desktopToolbar: isMobile ? null : _buildDesktopToolbar(reportState),
-            desktopContent: !_isInitialized && _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null && _items.isEmpty
-                    ? Center(child: Text('Erro: $_errorMessage'))
-                    : (isDesktop ? _items.isEmpty : _accumulatedItems.isEmpty)
-                        ? const Center(child: Text('Sem resultados para os filtros selecionados.'))
-                        : CashflowTable(
-                            items: _items,
-                            formatDateTime: _formatDateTime,
-                            formatMoney: _formatMoney,
-                          ),
-            desktopPagination: _isInitialized && _totalCount != null
-                ? MovimentacoesPagination(
-                    page: _page,
-                    pageSize: _pageSize,
-                    totalCount: _totalCount,
-                    hasMore: _hasMore,
-                    isBusy: _isLoading,
-                    onPageChanged: (nextPage) {
-                      setState(() => _page = nextPage);
-                      _fetchTable();
-                    },
-                    onPageSizeChanged: (value) {
-                      setState(() {
-                        _page = 1;
-                        _pageSize = value;
-                      });
-                      _fetchTable();
-                    },
-                  )
-                : null,
+            errorText: null,
+            desktopToolbar: null,
+            desktopContent: CashflowTable(
+              items: _items,
+              formatDateTime: _formatDateTime,
+              formatMoney: _formatMoney,
+              searchController: _searchController,
+              onSearchChanged: (value) => _onQueryChanged(
+                _query.copyWith(search: value.trim()),
+              ),
+              isLoading: _isLoading,
+              query: _query,
+              onQueryChanged: _onQueryChanged,
+              toolbarActions: reportActions,
+              errorMessage: _errorMessage != null && _items.isEmpty
+                  ? _errorMessage
+                  : null,
+              onRetry: _fetchTable,
+              pagination: _isInitialized && _totalCount != null
+                  ? MovimentacoesPagination(
+                      page: _page,
+                      pageSize: _pageSize,
+                      totalCount: _totalCount,
+                      hasMore: _hasMore,
+                      isBusy: _isLoading,
+                      onPageChanged: (nextPage) {
+                        setState(() => _page = nextPage);
+                        _fetchTable();
+                      },
+                      onPageSizeChanged: (value) {
+                        setState(() {
+                          _page = 1;
+                          _pageSize = value;
+                        });
+                        _fetchTable();
+                      },
+                    )
+                  : null,
+            ),
+            desktopPagination: null,
             mobileList: EnterpriseMobileScrollList(
               kpis: kpiCards,
-              stickyHeader: _buildMobileToolbar(reportState),
+              stickyHeader: EnterpriseMobileToolbar(
+                searchController: _searchController,
+                searchHint: 'Pesquisar descrição...',
+                enabled: !_isLoading,
+                isLoading: _isLoading,
+                hasFilters: _query.hasActiveFilters,
+                onSearchSubmitted: (value) => _onQueryChanged(
+                  _query.copyWith(search: value.trim()),
+                ),
+                onOpenFilters: () => _openMobileFilters(context),
+                onClearFilters: _query.hasActiveFilters
+                    ? () async => _onQueryChanged(const DashboardQuery())
+                    : null,
+                onRefresh: _refreshPage,
+                reportAction: reportActions.isNotEmpty ? reportActions.first : null,
+              ),
               itemCount: _accumulatedItems.length,
               itemBuilder: (context, index) {
                 return CashflowMobileCard(
@@ -317,54 +361,46 @@ class _CashflowPageState extends ConsumerState<CashflowPage> {
     );
   }
 
-  Widget _buildDesktopToolbar(ReportActionState reportState) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: EnterpriseFilterBar(
-            query: _query,
-            onChanged: _onQueryChanged,
+  Future<void> _openMobileFilters(BuildContext context) {
+    final s = context.spacing;
+    final scheme = Theme.of(context).colorScheme;
+    return showEnterpriseFiltersSheet(
+      context: context,
+      child: Material(
+        color: scheme.surface,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(context.radius.lg),
+        ),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            s.md,
+            s.md,
+            s.md,
+            s.md + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Filtros',
+                style: Theme.of(context).textTheme.erpSectionTitle,
+              ),
+              SizedBox(height: s.md),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: EnterpriseFilterBar(
+                  query: _query,
+                  onChanged: (query) {
+                    _onQueryChanged(query);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.end,
-          children: [
-            ...financeReportActions(
-              ref: ref,
-              enabled: !reportState.isSubmitting && !_isLoading,
-              path: ReportPaths.financeCashflow,
-              queryParameters: _query.toParams(),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileToolbar(ReportActionState reportState) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: EnterpriseFilterBar(
-            query: _query,
-            onChanged: _onQueryChanged,
-          ),
-        ),
-        const SizedBox(height: 8),
-        financeReportActions(
-          ref: ref,
-          enabled: !reportState.isSubmitting && !_isLoading,
-          path: ReportPaths.financeCashflow,
-          queryParameters: _query.toParams(),
-        ).first,
-      ],
+      ),
     );
   }
 }

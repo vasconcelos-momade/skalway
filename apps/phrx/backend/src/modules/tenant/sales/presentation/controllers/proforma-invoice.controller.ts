@@ -21,6 +21,7 @@ import {
   updateProformaInvoiceSchema,
 } from "../../application/dto/proforma-invoice.dto";
 import { ProformaInvoiceService } from "../../application/services/proforma-invoice.service";
+import { resolveDataScopeForUser } from "../../../shared/data-scope";
 
 export class ProformaInvoiceController {
   private service = new ProformaInvoiceService();
@@ -43,24 +44,31 @@ export class ProformaInvoiceController {
     }
   }
 
-  async search(req: Request) {
+  async search(req: Request, actorUserId: string) {
     try {
       const url = new URL(req.url);
       const params = parseSearchParams(url, searchProformaInvoicesQuerySchema);
-      const result = await this.service.search({
-        query: params.q ?? params.search,
-        estado: params.estado,
-        clienteId: params.clienteId ? BigInt(params.clienteId) : undefined,
-        userId: params.userId ? BigInt(params.userId) : undefined,
-        validadeFrom: params.validadeFrom,
-        validadeTo: params.validadeTo,
-        createdFrom: params.createdFrom,
-        createdTo: params.createdTo,
-        sortBy: params.sortBy,
-        sortOrder: params.sortOrder,
-        page: params.page,
-        pageSize: params.pageSize,
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: params.userId,
       });
+      const result = await this.service.search(
+        {
+          query: params.q ?? params.search,
+          estado: params.estado,
+          clienteId: params.clienteId ? BigInt(params.clienteId) : undefined,
+          userId: params.userId ? BigInt(params.userId) : undefined,
+          validadeFrom: params.validadeFrom,
+          validadeTo: params.validadeTo,
+          createdFrom: params.createdFrom,
+          createdTo: params.createdTo,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+          page: params.page,
+          pageSize: params.pageSize,
+        },
+        scope,
+      );
 
       return success(this.serialize(result.items), 200, {
         page: result.page,
@@ -73,9 +81,10 @@ export class ProformaInvoiceController {
     }
   }
 
-  async get(proformaInvoiceId: string) {
+  async get(proformaInvoiceId: string, actorUserId: string) {
     try {
-      const result = await this.service.get(proformaInvoiceId);
+      const scope = await resolveDataScopeForUser({ actorUserId });
+      const result = await this.service.get(proformaInvoiceId, scope);
       return success(this.serialize(result));
     } catch (error: any) {
       return controllerErrorResponse(error, 404);

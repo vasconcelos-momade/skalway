@@ -198,7 +198,7 @@ export function hasRegulatoryInput(data: Record<string, unknown>): boolean {
   return "tipoDispensacao" in data && data.tipoDispensacao !== undefined;
 }
 
-/** Indica se a dispensação deve gerar registo no Livro de Receitas. */
+/** Indica se a dispensação deve gerar registo no Mapa de Receitas. */
 export function requiresLivroReceita(tipoDispensacao: TipoDispensacao): boolean {
   return tipoDispensacao === "RECEITA_NORMAL" || tipoDispensacao === "RECEITA_ESPECIAL";
 }

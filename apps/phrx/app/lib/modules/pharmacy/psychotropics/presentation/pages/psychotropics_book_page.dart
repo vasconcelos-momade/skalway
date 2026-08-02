@@ -235,7 +235,7 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
         return PageRefreshBinder(
       onRefresh: () async { await _load(); },
       child: EnterpriseModuleHub(
-          title: 'Livro de Psicotrópicos',
+          title: 'Mapa de Psicotrópicos',
           subtitle:
               'Livro oficial de entradas e saídas com saldos, conformidade e auditoria regulatória.',
           mobileKpisHorizontalScroll: true,

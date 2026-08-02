@@ -40,6 +40,7 @@ import '../../modules/settings/presentation/pages/settings_hub_page.dart';
 import '../../modules/settings/presentation/pages/terminals_page.dart';
 import '../../shared/layouts/app_main_shell.dart';
 import '../../shared/layouts/pos_shell_layout.dart';
+import '../../shared/layouts/proforma_layout.dart';
 import '../app_observer.dart';
 import '../providers/auth_session_notifier.dart';
 import '../providers/session_access_notifier.dart';
@@ -481,11 +482,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SalesInvoicesPage(),
           ),
           GoRoute(
-            path: AppRoutePaths.salesProformaInvoices,
-            name: 'sales-proforma-invoices',
-            builder: (context, state) => const SalesProformaInvoicesPage(),
-          ),
-          GoRoute(
             path: AppRoutePaths.salesHistory,
             name: 'sales-history',
             builder: (context, state) => const SalesHistoryPage(),
@@ -532,6 +528,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutePaths.pos,
         name: 'pos',
         builder: (context, state) => const PosShellLayout(child: PdvPage()),
+      ),
+      GoRoute(
+        path: AppRoutePaths.salesProformaInvoices,
+        name: 'sales-proforma-invoices',
+        builder: (context, state) => const ProformaLayout(
+          child: SalesProformaInvoicesPage(),
+        ),
       ),
     ],
   );

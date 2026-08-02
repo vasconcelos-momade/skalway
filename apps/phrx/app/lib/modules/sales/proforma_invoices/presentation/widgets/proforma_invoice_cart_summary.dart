@@ -26,36 +26,18 @@ class ProformaInvoiceCartSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
-    final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: EdgeInsets.all(s.md),
-      decoration: BoxDecoration(
-        color: t.card,
-        border: Border(top: BorderSide(color: t.border.withValues(alpha: 0.45))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.only(top: s.md),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _row(
-            context,
-            label: 'Itens',
-            value: '$itemCount',
-          ),
-          SizedBox(height: s.xs),
           _row(context, label: 'Subtotal', value: pdvFormatMoney(subtotal)),
           SizedBox(height: s.xs),
           _row(
             context,
-            label: 'Descontos',
+            label: 'Desconto',
             value: '- ${pdvFormatMoney(descontoTotal)}',
             valueColor: t.posDanger,
           ),
@@ -66,18 +48,21 @@ class ProformaInvoiceCartSummary extends StatelessWidget {
             padding: EdgeInsets.all(s.sm),
             decoration: BoxDecoration(
               color: t.brandGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(t.radiusMd),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total',
-                  style: textTheme.erpCardTitle.copyWith(color: t.textPrimary),
+                  'TOTAL',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.erpLabel.copyWith(color: t.brandGreen),
                 ),
                 Text(
                   pdvFormatMoney(total),
-                  style: textTheme.erpCardTitle.copyWith(color: t.brandGreen),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.erpAppBarTitle.copyWith(color: t.brandGreen),
                 ),
               ],
             ),

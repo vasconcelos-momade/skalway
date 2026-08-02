@@ -82,7 +82,7 @@ class PosLayout extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Pharma ERP — PDV',
+                            'PhRx — PDV',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.erpAppName,

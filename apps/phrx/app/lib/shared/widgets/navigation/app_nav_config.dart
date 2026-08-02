@@ -214,13 +214,13 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
     title: AppNavSections.regulatory,
     items: <AppNavItem>[
       AppNavItem(
-        label: 'Livro de Receitas',
+        label: 'Mapa de Receitas',
         path: AppRoutePaths.recipesBook,
         icon: Icons.menu_book_outlined,
         permissionModule: 'RELATORIOS',
       ),
       AppNavItem(
-        label: 'Psicotrópicos',
+        label: 'Mapa de Psicotrópicos',
         path: AppRoutePaths.psychotropics,
         icon: Icons.medication_outlined,
         permissionModule: 'RELATORIOS',

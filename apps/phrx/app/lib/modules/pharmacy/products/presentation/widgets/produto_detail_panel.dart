@@ -385,14 +385,14 @@ class _RegulationTab extends StatelessWidget {
           ],
         ),
         RegulationCard(
-          title: 'Livros regulatórios',
+          title: 'Mapas regulatórios',
           items: [
             RegulationItem(
-              label: 'Livro de Receitas',
+              label: 'Mapa de Receitas',
               enabled: product.requiresPrescription,
             ),
             RegulationItem(
-              label: 'Livro de Psicotrópicos',
+              label: 'Mapa de Psicotrópicos',
               enabled: product.requiresPsychotropicBook,
             ),
           ],

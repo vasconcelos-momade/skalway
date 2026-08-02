@@ -127,9 +127,9 @@ export class RegulatoryLivroReceitasReportProvider implements ReportDataProvider
     const kpis = dashboard.kpis ?? {};
 
     return buildRegulatoryReportDefinition({
-      fileBaseName: "livro-receitas",
-      reportName: "Livro de Receitas",
-      title: "Livro de Receitas",
+      fileBaseName: "mapa-receitas",
+      reportName: "Mapa de Receitas",
+      title: "Mapa de Receitas",
       filters: {
         Pesquisa: filters.search ?? "-",
         Cliente: filters.clienteId ?? "-",
@@ -146,7 +146,7 @@ export class RegulatoryLivroReceitasReportProvider implements ReportDataProvider
       },
       tables: [
         {
-          title: "Livro de receitas",
+          title: "Mapa de receitas",
           columns: [
             "Receita",
             "Cliente",
@@ -199,9 +199,9 @@ export class RegulatoryLivroPsicotropicosReportProvider implements ReportDataPro
     const kpis = dashboard.kpis ?? {};
 
     return buildRegulatoryReportDefinition({
-      fileBaseName: "livro-psicotropicos",
-      reportName: "Livro de Psicotropicos",
-      title: "Livro de Psicotropicos",
+      fileBaseName: "mapa-psicotropicos",
+      reportName: "Mapa de Psicotropicos",
+      title: "Mapa de Psicotropicos",
       filters: {
         Pesquisa: filters.search ?? "-",
         Produto: filters.produtoId ?? "-",
@@ -216,7 +216,7 @@ export class RegulatoryLivroPsicotropicosReportProvider implements ReportDataPro
       },
       tables: [
         {
-          title: "Livro B - Psicotropicos",
+          title: "Mapa B - Psicotropicos",
           columns: [
             "Documento",
             "Produto",

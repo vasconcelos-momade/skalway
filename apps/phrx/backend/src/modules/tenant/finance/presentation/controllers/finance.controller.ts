@@ -11,6 +11,7 @@ import {
   parseSearchParams,
 } from "../../../../../shared/http/request-validation";
 import { controllerErrorResponse } from "../../../../../shared/http/controller-error";
+import { resolveDataScopeForUser } from "../../../shared/data-scope";
 
 export class FinanceController {
   private getCashflowContextUseCase = new GetCashflowContextUseCase();
@@ -26,14 +27,19 @@ export class FinanceController {
     }
   }
 
-  async listMovements(req: Request) {
+  async listMovements(req: Request, actorUserId: string) {
     try {
       const url = new URL(req.url);
       const query = parseSearchParams(url, cashflowMovementsQuerySchema);
       const sortBy = query.sortBy === "data" ? "createdAt" : query.sortBy;
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
       const result = await this.listCashflowMovementsUseCase.execute({
         ...query,
         sortBy,
+        scope,
       });
       return Response.json(this.serialize(result));
     } catch (error: unknown) {

@@ -351,13 +351,16 @@ export class FinancialMetricsService {
     chartTo: Date,
     months: number,
     tx?: TxLike,
+    userId?: string | null,
   ): Promise<DreFlowPoint[]> {
     const prisma = tx ?? this.prisma;
+    const scoped = userId ? { userId: BigInt(userId) } : {};
     const chartFrom = new Date(chartTo.getFullYear(), chartTo.getMonth() - (months - 1), 1);
     const [faturas, despesasRows] = await Promise.all([
       prisma.fatura.findMany({
         where: {
           ...FATURA_VENDA_WHERE,
+          ...scoped,
           createdAt: { gte: chartFrom, lte: chartTo },
         },
         select: { createdAt: true, total: true },
@@ -366,6 +369,7 @@ export class FinancialMetricsService {
         where: {
           deletedAt: null,
           type: "EXPENSE",
+          ...scoped,
           createdAt: { gte: chartFrom, lte: chartTo },
         },
         select: { createdAt: true, amount: true },

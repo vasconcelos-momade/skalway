@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/design_tokens.dart';
+import '../../../../shared/refresh/page_refresh.dart';
+import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../providers/movimentacao_provider.dart';
 import '../widgets/movimentacoes_body.dart';
+import '../widgets/movimentacoes_overview_cards.dart';
+import '../widgets/movimentacoes_toolbar.dart';
 
 class MovimentacoesHubPage extends ConsumerStatefulWidget {
   const MovimentacoesHubPage({super.key});
@@ -32,7 +37,9 @@ class _MovimentacoesHubPageState extends ConsumerState<MovimentacoesHubPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.pharmaTokens;
     final listState = ref.watch(movimentacaoListProvider);
+    final notifier = ref.read(movimentacaoListProvider.notifier);
 
     ref.listen<MovimentacaoListState>(movimentacaoListProvider, (
       previous,
@@ -46,20 +53,38 @@ class _MovimentacoesHubPageState extends ConsumerState<MovimentacoesHubPage> {
       }
     });
 
-    return EnterpriseModuleHub(
-      title: 'Movimentos de stock',
-      subtitle: 'Entradas, saídas, ajustes e trilho de auditoria.',
-      actions: [],
-      child: Column(
-        children: [
-          Expanded(
-            child: MovimentacoesBody(
-              searchController: _searchController,
-              listState: listState,
+    final kpiCards = MovimentacoesOverviewCards.buildCards(
+      overview: listState.overview,
+      hasFilters: listState.query.hasFilters,
+    );
+
+    return ResponsiveBuilder(
+      builder: (context, constraints) {
+        final isMobile = !constraints.isTabletOrWider;
+
+        return PageRefreshBinder(
+          onRefresh: notifier.refresh,
+          child: Scaffold(
+            backgroundColor: t.bgPrimary,
+            body: EnterpriseModuleHub(
+              title: 'Movimentos de stock',
+              subtitle: 'Entradas, saídas, ajustes e trilho de auditoria.',
+              mobileKpisHorizontalScroll: true,
+              kpis: isMobile ? null : kpiCards,
+              filters: isMobile
+                  ? null
+                  : MovimentacoesToolbar(
+                      searchController: _searchController,
+                      state: listState,
+                    ),
+              child: MovimentacoesBody(
+                searchController: _searchController,
+                listState: listState,
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

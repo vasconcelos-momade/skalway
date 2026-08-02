@@ -1,5 +1,6 @@
 import { ValidationApiError } from "../../../../../shared/http/api-error";
 import { ProformaInvoiceService } from "../../../sales/application/services/proforma-invoice.service";
+import { resolveDataScopeForUser } from "../../../shared/data-scope";
 import { formatCurrency, toText } from "../helpers/report-export.helper";
 import { collectAllPages } from "../helpers/report-pagination.helper";
 import { REPORT_KEYS } from "../constants/report-keys";
@@ -21,6 +22,7 @@ function parseProformaInvoiceListFilters(url: URL) {
       ? estadoRaw
       : undefined;
   const clienteId = query.get("clienteId")?.trim() || undefined;
+  const userId = query.get("userId")?.trim() || undefined;
   const validadeFrom = query.get("validadeFrom")?.trim() || undefined;
   const validadeTo = query.get("validadeTo")?.trim() || undefined;
   const createdFrom = query.get("createdFrom")?.trim() || undefined;
@@ -30,6 +32,7 @@ function parseProformaInvoiceListFilters(url: URL) {
     query: search,
     estado,
     clienteId: clienteId ? BigInt(clienteId) : undefined,
+    userId: userId && /^\d+$/.test(userId) ? BigInt(userId) : undefined,
     validadeFrom,
     validadeTo,
     createdFrom,
@@ -105,8 +108,9 @@ export class ProformaInvoiceReportProvider implements ReportDataProvider {
       throw new ValidationApiError("proformaInvoiceId inválido");
     }
 
+    const scope = await resolveDataScopeForUser({ actorUserId: context.userId });
     const proformaInvoice = this.proformaInvoiceService.enrichProformaInvoice(
-      await this.proformaInvoiceService.get(proformaInvoiceId),
+      await this.proformaInvoiceService.get(proformaInvoiceId, scope),
     );
     return buildProformaInvoiceDetailDefinition(proformaInvoice);
   }
@@ -119,12 +123,19 @@ export class ProformaInvoiceListReportProvider implements ReportDataProvider {
 
   async build(context: ReportProviderContext): Promise<ModuleReportDefinition> {
     const filters = parseProformaInvoiceListFilters(context.url);
+    const scope = await resolveDataScopeForUser({
+      actorUserId: context.userId,
+      requestedUserId: filters.userId?.toString(),
+    });
     const items = await collectAllPages((page) =>
-      this.proformaInvoiceService.search({
-        ...filters,
-        page,
-        pageSize: 100,
-      }),
+      this.proformaInvoiceService.search(
+        {
+          ...filters,
+          page,
+          pageSize: 100,
+        },
+        scope,
+      ),
     );
 
     const totalAmount = items.reduce(

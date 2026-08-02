@@ -568,7 +568,7 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             await _reloadCurrentTab();
           },
           child: EnterpriseModuleHub(
-          title: showingLivro ? 'Livro de Receitas' : 'Receitas',
+          title: showingLivro ? 'Mapa de Receitas' : 'Receitas',
           subtitle: showingLivro
               ? 'Movimentos oficiais de livro de receitas com rastreio, auditoria e exportação.'
               : 'Receitas reais do backend com dispensa rastreável, conformidade e histórico clínico.',
@@ -605,7 +605,7 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
                 },
                 tabs: const [
                   Tab(text: 'Receitas'),
-                  Tab(text: 'Livro de receitas'),
+                  Tab(text: 'Mapa de receitas'),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),

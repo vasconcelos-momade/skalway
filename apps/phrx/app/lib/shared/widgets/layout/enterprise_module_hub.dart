@@ -197,11 +197,13 @@ class EnterpriseModuleHub extends StatelessWidget {
 
     final actionItems = actions;
 
+    // Align actions with filter controls (not labels): labeled fields are taller
+    // than bare buttons, so crossAxisAlignment.end keeps Exportar on the input row.
     if (size == PharmaScreenSize.mobile) {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             filters,
             SizedBox(width: s.sm),
@@ -212,7 +214,7 @@ class EnterpriseModuleHub extends StatelessWidget {
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(child: filters),
         SizedBox(width: s.sm),
@@ -220,6 +222,7 @@ class EnterpriseModuleHub extends StatelessWidget {
           spacing: s.sm,
           runSpacing: s.sm,
           alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.end,
           children: actionItems,
         ),
       ],

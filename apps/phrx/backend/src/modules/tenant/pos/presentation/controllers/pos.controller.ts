@@ -32,6 +32,12 @@ import { controllerErrorResponse } from "../../../../../shared/http/controller-e
 import { ReportsController } from "../../../reports";
 import { REPORT_KEYS } from "../../../reports/application/constants/report-keys";
 import { resolveTenantEmpresaProfile } from "../../application/services/tenant-empresa-profile.service";
+import {
+  assertRecordVisibleToScope,
+  resolveDataScopeForUser,
+  type DataScope,
+} from "../../../shared/data-scope";
+import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 
 const validarDispensacaoSchema = z.object({
   produtoId: z.string().trim().min(1),
@@ -249,6 +255,8 @@ export class POSController {
   async anularFatura(req: Request, userId: string, faturaId: string) {
     try {
       const body = await parseJsonBody(req, anularFaturaSchema);
+      const scope = await resolveDataScopeForUser({ actorUserId: userId });
+      await this.assertFaturaVisible(faturaId, scope);
       const result = await this.anularFaturaUseCase.execute({
         faturaId,
         userId,
@@ -425,11 +433,15 @@ export class POSController {
     }
   }
 
-  async listFaturas(req: Request) {
+  async listFaturas(req: Request, actorUserId: string) {
     try {
       const url = new URL(req.url);
       const query = parseSearchParams(url, listFaturasQuerySchema);
-      const result = await this.listFaturasUseCase.execute(query);
+      const scope = await resolveDataScopeForUser({
+        actorUserId,
+        requestedUserId: query.userId,
+      });
+      const result = await this.listFaturasUseCase.execute({ ...query, scope });
       return success(this.serialize(result.items), 200, {
         page: result.page,
         pageSize: result.pageSize,
@@ -441,14 +453,16 @@ export class POSController {
     }
   }
 
-  async getFaturaDetalhe(faturaId: string) {
-    const result = await this.getFaturaDetalheUseCase.execute(faturaId);
+  async getFaturaDetalhe(faturaId: string, actorUserId: string) {
+    const scope = await resolveDataScopeForUser({ actorUserId });
+    const result = await this.getFaturaDetalheUseCase.execute(faturaId, scope);
     return success(this.serialize(result));
   }
 
   async downloadFaturaPdf(faturaId: string, userId: string, req: Request) {
     try {
-      const fatura = await this.getFaturaDetalheUseCase.execute(faturaId);
+      const scope = await resolveDataScopeForUser({ actorUserId: userId });
+      const fatura = await this.getFaturaDetalheUseCase.execute(faturaId, scope);
       const empresa = (fatura as any).empresa ?? await this.resolveEmpresaHeader();
 
       // FR → PDF preview com largura de papel térmico 80mm
@@ -493,7 +507,8 @@ export class POSController {
 
   async getFaturaPrintArtifact(faturaId: string, userId: string, req: Request) {
     try {
-      const fatura = await this.getFaturaDetalheUseCase.execute(faturaId);
+      const scope = await resolveDataScopeForUser({ actorUserId: userId });
+      const fatura = await this.getFaturaDetalheUseCase.execute(faturaId, scope);
       const empresa = (fatura as any).empresa ?? await this.resolveEmpresaHeader();
 
       // FT → A4 PDF (abrir/imprimir no sistema)
@@ -533,6 +548,22 @@ export class POSController {
     } catch (error: any) {
       return controllerErrorResponse(error);
     }
+  }
+
+  private async assertFaturaVisible(faturaId: string, scope: DataScope) {
+    const prisma = getPrisma() as any;
+    const fatura = await prisma.fatura.findFirst({
+      where: { id: BigInt(faturaId), deletedAt: null },
+      select: { userId: true },
+    });
+    if (!fatura) {
+      throw new Error("Fatura não encontrada");
+    }
+    assertRecordVisibleToScope(
+      scope,
+      fatura.userId,
+      "Não tem permissão para anular faturas de outros utilizadores",
+    );
   }
 
   /** Dados da farmácia (central Tenant) para cabeçalho do recibo 80mm. */

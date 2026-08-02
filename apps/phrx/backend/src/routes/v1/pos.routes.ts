@@ -49,12 +49,13 @@ function withTenantPos(
 }
 
 export function registerPosRoutes(router: Router, prefix: string): void {
-  withTenantPos(router, "get", `${prefix}/tenant/pos/faturas`, [["POS", "VIEW"]], async (_userId, context) =>
-    posController.listFaturas(context.req),
+  withTenantPos(router, "get", `${prefix}/tenant/pos/faturas`, [["POS", "VIEW"]], async (userId, context) =>
+    posController.listFaturas(context.req, userId),
   );
-  withTenantPos(router, "get", `${prefix}/tenant/pos/faturas/:saleId`, [["POS", "VIEW"]], async (_userId, context) =>
+  withTenantPos(router, "get", `${prefix}/tenant/pos/faturas/:saleId`, [["POS", "VIEW"]], async (userId, context) =>
     posController.getFaturaDetalhe(
       parseRouteParams(context.params, saleIdParamSchema).saleId,
+      userId,
     ),
   );
   withTenantPos(router, "get", `${prefix}/tenant/pos/faturas/:saleId/pdf`, [["POS", "EXPORT"]], async (userId, context) =>

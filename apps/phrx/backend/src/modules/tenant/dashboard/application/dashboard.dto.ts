@@ -12,6 +12,7 @@ const dashboardFilterFields = {
   produtoId: z.string().trim().max(64).optional(),
   clienteId: z.string().trim().max(64).optional(),
   fornecedorId: z.string().trim().max(64).optional(),
+  userId: z.string().regex(/^\d+$/).optional(),
   estado: z.string().trim().max(64).optional(),
   metodoPagamento: z.string().trim().max(64).optional(),
   tipoMovimentacao: z.string().trim().max(64).optional(),
