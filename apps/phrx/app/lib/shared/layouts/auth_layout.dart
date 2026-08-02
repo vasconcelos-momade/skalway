@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
+import '../responsive/pharma_screen_layout.dart';
 import '../widgets/sync/offline_mode_banner.dart';
 
 /// Layout autenticação: fundo do design system e indicadores offline.
@@ -25,6 +26,7 @@ class AuthLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final pagePadding = PharmaScreenLayout.pagePadding(context);
     return Scaffold(
       backgroundColor: t.bgPrimary,
       body: Stack(
@@ -40,7 +42,7 @@ class AuthLayout extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
                   child: Padding(
-                    padding: t.density.pageInsets.copyWith(bottom: 0),
+                    padding: pagePadding.copyWith(bottom: 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -82,7 +84,7 @@ class AuthLayout extends StatelessWidget {
           ),
           Center(
             child: SingleChildScrollView(
-              padding: scrollPadding ?? SpacingTokens.pagePadding,
+              padding: scrollPadding ?? pagePadding,
               child: child,
             ),
           ),

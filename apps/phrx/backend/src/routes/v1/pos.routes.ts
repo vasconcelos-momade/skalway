@@ -72,10 +72,10 @@ export function registerPosRoutes(router: Router, prefix: string): void {
     ),
   );
 
-  withTenantPos(router, "get", `${prefix}/tenant/pos/products/search`, [["PRODUTOS", "VIEW"]], async (_userId, context) =>
+  withTenantPos(router, "get", `${prefix}/tenant/pos/products/search`, [["POS", "VIEW"]], async (_userId, context) =>
     posController.searchProdutos(context.req),
   );
-  withTenantPos(router, "get", `${prefix}/tenant/pos/produtos/search`, [["PRODUTOS", "VIEW"]], async (_userId, context) =>
+  withTenantPos(router, "get", `${prefix}/tenant/pos/produtos/search`, [["POS", "VIEW"]], async (_userId, context) =>
     posController.searchProdutos(context.req),
   );
 

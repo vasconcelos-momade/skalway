@@ -28,6 +28,10 @@ class DashboardRemoteDataSource {
     return _getMap(ApiConstants.tenantDashboardStock, query.toParams());
   }
 
+  Future<Map<String, dynamic>> cashierDashboard(DashboardQuery query) async {
+    return _getMap(ApiConstants.tenantDashboardCaixa, query.toParams());
+  }
+
   Future<Map<String, dynamic>> executiveDashboardTable({
     required String table,
     required DashboardQuery query,
@@ -71,6 +75,18 @@ class DashboardRemoteDataSource {
     required int pageSize,
   }) async {
     return _getMap(ApiConstants.tenantDashboardStockTables, {
+      'table': table,
+      ...query.toParams(includePagination: true, page: page, pageSize: pageSize),
+    });
+  }
+
+  Future<Map<String, dynamic>> cashierDashboardTable({
+    required String table,
+    required DashboardQuery query,
+    required int page,
+    required int pageSize,
+  }) async {
+    return _getMap(ApiConstants.tenantDashboardCaixaTables, {
       'table': table,
       ...query.toParams(includePagination: true, page: page, pageSize: pageSize),
     });

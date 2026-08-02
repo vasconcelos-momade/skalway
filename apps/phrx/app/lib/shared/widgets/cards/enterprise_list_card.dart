@@ -4,21 +4,22 @@ import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 
-/// Divisor horizontal padrão para listas operacionais mobile (1dp, margem 12–16).
+/// Divisor horizontal padrão para listas operacionais mobile (1dp).
+///
+/// Sem indent: o shell já aplica a margem horizontal (s.md em mobile),
+/// pelo que a linha alinha com o conteúdo.
 class EnterpriseListDivider extends StatelessWidget {
   const EnterpriseListDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dividerTheme = DividerTheme.of(context);
-    final s = context.spacing;
 
     return Divider(
       height: 1,
       thickness: 1,
-      indent: s.md,
-      endIndent: s.md,
-      color: dividerTheme.color,
+      color: dividerTheme.color ??
+          Theme.of(context).colorScheme.outlineVariant,
     );
   }
 }
@@ -64,8 +65,9 @@ class EnterpriseListCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        // Sem padding horizontal — o shell já aplica s.md em mobile.
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: s.md, vertical: s.sm),
+          padding: EdgeInsets.symmetric(vertical: s.sm),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -137,8 +139,15 @@ class EnterpriseListCard extends StatelessWidget {
                                       ),
                                     )
                                   else if (actions != null)
-                                    actions!
-                                  else ?trailing,
+                                    // Evita width:infinity dentro do Row (quebra cards mobile).
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 160,
+                                      ),
+                                      child: actions!,
+                                    )
+                                  else
+                                    ?trailing,
                                 ],
                               ),
                             if (trailingMeta != null) ...[

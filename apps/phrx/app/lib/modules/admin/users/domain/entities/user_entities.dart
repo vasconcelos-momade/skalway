@@ -238,6 +238,7 @@ class UserFormPayload {
     required this.name,
     required this.email,
     required this.role,
+    this.password,
     this.active = true,
     this.version,
   });
@@ -245,6 +246,7 @@ class UserFormPayload {
   final String name;
   final String email;
   final String role;
+  final String? password;
   final bool active;
   final int? version;
 
@@ -252,6 +254,7 @@ class UserFormPayload {
         'name': name,
         'email': email,
         'role': role,
+        if (password != null && password!.isNotEmpty) 'password': password,
         if (active != true) 'active': active,
         if (version != null) 'version': version,
       };

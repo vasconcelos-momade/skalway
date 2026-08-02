@@ -5,6 +5,10 @@ import {
 } from "../../../dashboard/application/dashboard-pagination.util";
 import { round2, toNumber } from "../../../dashboard/application/dashboard-date.util";
 import { resolveDashboardPeriod } from "../../../dashboard/application/dashboard-period.util";
+import {
+  type DataScope,
+  userScopeWhere,
+} from "../../../shared/data-scope";
 
 export type ListCashflowMovementsParams = {
   days?: number;
@@ -16,6 +20,7 @@ export type ListCashflowMovementsParams = {
   pageSize?: number;
   sortDir?: "asc" | "desc";
   sortBy?: string;
+  scope?: DataScope;
 };
 
 /** Lista movimentos operacionais da tabela `caixa_movimentos`. */
@@ -37,6 +42,7 @@ export class ListCashflowMovementsUseCase {
     const where: Record<string, unknown> = {
       deletedAt: null,
       createdAt: { gte: resolved.from, lte: resolved.to },
+      ...(params.scope ? userScopeWhere(params.scope) : {}),
     };
 
     if (search) {

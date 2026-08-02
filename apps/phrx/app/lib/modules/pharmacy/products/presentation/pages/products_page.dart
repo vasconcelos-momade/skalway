@@ -73,18 +73,25 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
           prev?.ativoFilter != next.ativoFilter ||
           prev?.sortBy != next.sortBy ||
           prev?.sortOrder != next.sortOrder) {
-        if (next.page == 1) {
-          _accumulatedItems = List.of(next.items);
-        } else {
-          final newItems = next.items
-              .where((e) => !_accumulatedItems.any((a) => a.id == e.id))
-              .toList();
-          _accumulatedItems.addAll(newItems);
-        }
+        setState(() {
+          if (next.page == 1) {
+            _accumulatedItems = List.of(next.items);
+          } else {
+            final newItems = next.items
+                .where((e) => !_accumulatedItems.any((a) => a.id == e.id))
+                .toList();
+            _accumulatedItems = [..._accumulatedItems, ...newItems];
+          }
+        });
       } else if (prev?.items != next.items && next.page == 1) {
-        _accumulatedItems = List.of(next.items);
+        setState(() => _accumulatedItems = List.of(next.items));
       }
     });
+
+    // Fallback: no 1.º load o listen corre após o build — usar state.items.
+    final mobileItems = _accumulatedItems.isNotEmpty
+        ? _accumulatedItems
+        : state.items;
 
     final reportQuery = <String, dynamic>{
       if (state.query.isNotEmpty) 'q': state.query,
@@ -203,10 +210,10 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                         )
                       : !state.isInitialized && state.isLoading
                           ? ProdutoLoading(isDesktop: isDesktop)
-                          : _accumulatedItems.isEmpty
+                          : mobileItems.isEmpty
                               ? const ProdutoEmptyState()
                               : ProdutoList(
-                                  items: _accumulatedItems,
+                                  items: mobileItems,
                                   hasMore: state.hasMore,
                                   isLoading: state.isLoading,
                                   onLoadMore: () =>

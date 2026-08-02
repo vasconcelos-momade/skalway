@@ -1,5 +1,9 @@
 import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 import { resolveTenantEmpresaProfile } from "../services/tenant-empresa-profile.service";
+import {
+  type DataScope,
+  userScopeWhere,
+} from "../../../shared/data-scope";
 
 type ListFaturasParams = {
   page?: number;
@@ -11,6 +15,8 @@ type ListFaturasParams = {
   dateTo?: string;
   terminalId?: string;
   userId?: string;
+  /** Escopo de dados resolvido no controller (OWN vs ALL). */
+  scope?: DataScope;
 };
 
 function toStartOfDay(value: string): Date | undefined {
@@ -32,7 +38,9 @@ export class ListFaturasUseCase {
     const status = params.status?.trim().toUpperCase();
     const clienteId = params.clienteId?.trim();
     const terminalId = params.terminalId?.trim();
-    const userId = params.userId?.trim();
+    // Operacionais: scope força o próprio userId; gestão pode filtrar via query.
+    const scopedUserId =
+      params.scope?.filterUserId?.trim() || params.userId?.trim() || undefined;
     const createdAtGte = params.dateFrom ? toStartOfDay(params.dateFrom) : undefined;
     const createdAtLte = params.dateTo ? toEndOfDay(params.dateTo) : undefined;
 
@@ -41,7 +49,8 @@ export class ListFaturasUseCase {
       ...(status ? { estado: status as any } : {}),
       ...(clienteId ? { clienteId: BigInt(clienteId) } : {}),
       ...(terminalId ? { terminalId: BigInt(terminalId) } : {}),
-      ...(userId ? { userId: BigInt(userId) } : {}),
+      ...(scopedUserId ? { userId: BigInt(scopedUserId) } : {}),
+      ...(params.scope && !scopedUserId ? userScopeWhere(params.scope) : {}),
       ...(createdAtGte || createdAtLte
         ? {
             createdAt: {

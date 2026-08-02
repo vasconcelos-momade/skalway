@@ -135,6 +135,30 @@ export async function resolveLoginTenantContext(input: {
     tenantId,
     branchId,
     permissions,
-    redirectTo: "/app/dashboard",
+    redirectTo: redirectToForPermissions(permissions),
   };
+}
+
+function redirectToForPermissions(permissions: LoginPermissionEntry[]): string {
+  const allow = (module: string) =>
+    permissions.some(
+      (p) => p.allowed && p.module === module && p.action === "VIEW",
+    );
+
+  // Ordem alinhada com kAppNavSections (primeiro item permitido).
+  if (allow("RELATORIOS")) return "/app/dashboard";
+  if (allow("DASHBOARD_FARMACIA")) return "/app/dashboard/pharmacy";
+  if (allow("DASHBOARD_CAIXA")) return "/app/dashboard/cashier";
+  if (allow("POS")) return "/app/pos";
+  if (allow("PROFORMA_INVOICES")) return "/app/sales/proforma-invoices";
+  if (allow("CLIENTES")) return "/app/sales/customers";
+  if (allow("PRODUTOS")) return "/app/products";
+  if (allow("LOTES")) return "/app/pharmacy/stock";
+  if (allow("INVENTARIO")) return "/app/stock/inventory";
+  if (allow("COMPRAS")) return "/app/stock/purchase-suggestions";
+  if (allow("FORNECEDORES")) return "/app/stock/suppliers";
+  if (allow("CAIXA")) return "/app/finance/cashflow";
+  if (allow("UTILIZADORES")) return "/app/users";
+  if (allow("CONFIGURACOES")) return "/app/settings/terminals";
+  return "/app/dashboard";
 }

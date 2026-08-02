@@ -8,6 +8,11 @@ import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
 import 'pdv_product_card.dart';
 
+/// Lista mobile do catálogo PDV: cards + scroll infinito.
+///
+/// Paginação **server-side** via [productListProvider.goToPage] —
+/// cada página vem da API (`/tenant/pos/produtos/search`); o caller
+/// acumula páginas para lazy loading sem carregar o catálogo completo.
 class PdvProductList extends StatefulWidget {
   const PdvProductList({
     super.key,
@@ -65,6 +70,10 @@ class _PdvProductListState extends State<PdvProductList> {
     final s = context.spacing;
     final textTheme = Theme.of(context).textTheme;
 
+    if (widget.items.isEmpty && widget.isLoading) {
+      return const ModuleLoadingState(itemCount: 4);
+    }
+
     if (widget.items.isEmpty && !widget.isLoading) {
       return ModuleEmptyState(
         title: widget.query.isEmpty
@@ -82,7 +91,10 @@ class _PdvProductListState extends State<PdvProductList> {
         if (index >= widget.items.length - 1) {
           return const SizedBox.shrink();
         }
-        return const EnterpriseListDivider();
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: s.md),
+          child: const EnterpriseListDivider(),
+        );
       },
       itemBuilder: (context, index) {
         if (index == widget.items.length) {

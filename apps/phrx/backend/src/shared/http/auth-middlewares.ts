@@ -220,49 +220,80 @@ export function requirePermission(
   module: TenantSystemModule,
   action: TenantPermissionAction,
 ): RouteMiddleware {
+  return requireAnyPermission([[module, action]]);
+}
+
+/** Concede acesso se o utilizador tiver pelo menos um dos pares module:action. */
+export function requireAnyPermission(
+  options: Array<readonly [TenantSystemModule, TenantPermissionAction]>,
+): RouteMiddleware {
   return async (context, next) => {
+    if (options.length === 0) {
+      throw new ForbiddenApiError("Acesso negado: nenhuma permissão configurada");
+    }
+
     const auth = requireTenantAuthFromState(context);
     const service = new PermissionService();
-    const decision = await service.resolvePermission(auth.userId, module, action);
 
-    context.state.requiredTenantPermission = {
-      ...decision,
-      module,
-      action,
-    } satisfies TenantRoutePermissionContext;
+    let allowedDecision: Awaited<ReturnType<PermissionService["resolvePermission"]>> | null =
+      null;
+    let allowedModule = options[0]![0];
+    let allowedAction = options[0]![1];
+    let lastDenied: Awaited<ReturnType<PermissionService["resolvePermission"]>> | null = null;
 
-    if (!decision.allowed) {
+    for (const [module, action] of options) {
+      const decision = await service.resolvePermission(auth.userId, module, action);
+      if (decision.allowed) {
+        allowedDecision = decision;
+        allowedModule = module;
+        allowedAction = action;
+        break;
+      }
+      lastDenied = decision;
+    }
+
+    if (!allowedDecision) {
+      const denied = lastDenied!;
       await writePermissionAuditLog({
         userId: auth.userId,
-        module,
-        action,
+        module: allowedModule,
+        action: allowedAction,
         allowed: false,
-        source: decision.source,
-        role: decision.role,
+        source: denied.source,
+        role: denied.role,
         requestId: context.requestId,
         method: context.req.method,
         path: context.url.pathname,
         status: 403,
       });
 
-      throw new ForbiddenApiError(`Acesso negado para ${module}:${action}`, {
-        module,
-        action,
-        source: decision.source,
-        role: decision.role,
-      });
+      throw new ForbiddenApiError(
+        `Acesso negado para ${options.map(([m, a]) => `${m}:${a}`).join(" | ")}`,
+        {
+          module: allowedModule,
+          action: allowedAction,
+          source: denied.source,
+          role: denied.role,
+        },
+      );
     }
+
+    context.state.requiredTenantPermission = {
+      ...allowedDecision,
+      module: allowedModule,
+      action: allowedAction,
+    } satisfies TenantRoutePermissionContext;
 
     const response = await next();
 
-    if (service.isCriticalAction(action) && response.status < 400) {
+    if (service.isCriticalAction(allowedAction) && response.status < 400) {
       await writePermissionAuditLog({
         userId: auth.userId,
-        module,
-        action,
+        module: allowedModule,
+        action: allowedAction,
         allowed: true,
-        source: decision.source,
-        role: decision.role,
+        source: allowedDecision.source,
+        role: allowedDecision.role,
         requestId: context.requestId,
         method: context.req.method,
         path: context.url.pathname,

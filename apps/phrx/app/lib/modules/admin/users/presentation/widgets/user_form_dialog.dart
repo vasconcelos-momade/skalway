@@ -15,6 +15,7 @@ class UserFormResult {
     required this.name,
     required this.email,
     required this.role,
+    this.password,
     this.active = true,
     this.version,
   });
@@ -22,6 +23,7 @@ class UserFormResult {
   final String name;
   final String email;
   final String role;
+  final String? password;
   final bool active;
   final int? version;
 
@@ -29,6 +31,7 @@ class UserFormResult {
         name: name,
         email: email,
         role: role,
+        password: password,
         active: active,
         version: version,
       );
@@ -91,8 +94,12 @@ class _UserFormDialogState extends State<UserFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final TextEditingController _confirmPasswordController;
   late String _role;
   late bool _active;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   static const _roles = [
     ('ADMIN', 'Administrador'),
@@ -108,6 +115,8 @@ class _UserFormDialogState extends State<UserFormDialog> {
     final u = widget.user;
     _nameController = TextEditingController(text: u?.name ?? '');
     _emailController = TextEditingController(text: u?.email ?? '');
+    _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
     _role = u?.role ?? 'GERENTE';
     _active = u?.active ?? true;
   }
@@ -116,6 +125,8 @@ class _UserFormDialogState extends State<UserFormDialog> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -127,6 +138,7 @@ class _UserFormDialogState extends State<UserFormDialog> {
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         role: _role,
+        password: widget.isEditing ? null : _passwordController.text,
         active: _active,
         version: widget.user?.version,
       ),
@@ -159,6 +171,52 @@ class _UserFormDialogState extends State<UserFormDialog> {
               return null;
             },
           ),
+          if (!widget.isEditing) ...[
+            SizedBox(height: s.md),
+            EnterpriseTextFormField(
+              controller: _passwordController,
+              labelText: 'Senha *',
+              obscureText: _obscurePassword,
+              suffixIcon: IconButton(
+                tooltip: _obscurePassword ? 'Mostrar' : 'Ocultar',
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Senha obrigatória';
+                if (v.length < 6) return 'Mínimo 6 caracteres';
+                return null;
+              },
+            ),
+            SizedBox(height: s.md),
+            EnterpriseTextFormField(
+              controller: _confirmPasswordController,
+              labelText: 'Confirmar senha *',
+              obscureText: _obscureConfirm,
+              suffixIcon: IconButton(
+                tooltip: _obscureConfirm ? 'Mostrar' : 'Ocultar',
+                onPressed: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+                icon: Icon(
+                  _obscureConfirm
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Confirme a senha';
+                if (v != _passwordController.text) {
+                  return 'As senhas não coincidem';
+                }
+                return null;
+              },
+            ),
+          ],
           SizedBox(height: s.md),
           EnterpriseSelectFormField<String>(
             label: 'Perfil',

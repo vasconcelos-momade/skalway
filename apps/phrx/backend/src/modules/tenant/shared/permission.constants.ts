@@ -21,9 +21,11 @@ export const TENANT_SYSTEM_MODULES = [
   "RELATORIOS",
   "UTILIZADORES",
   "CONFIGURACOES",
+  "DASHBOARD_FARMACIA",
+  "DASHBOARD_CAIXA",
+  "CAIXA",
   // Legado, mantido para compatibilidade de dados.
   "FATURAS",
-  "CAIXA",
   "ESTOQUE",
   "PSICOTROPICOS",
   "AUDITORIA",
@@ -67,6 +69,9 @@ const ALL_STANDARD_MODULES = [
   "RELATORIOS",
   "UTILIZADORES",
   "CONFIGURACOES",
+  "DASHBOARD_FARMACIA",
+  "DASHBOARD_CAIXA",
+  "CAIXA",
 ] as const satisfies readonly TenantSystemModule[];
 
 const ALL_STANDARD_ACTIONS = [
@@ -82,6 +87,10 @@ const ALL_STANDARD_ACTIONS = [
   "ADJUST_STOCK",
   "CLOSE_SHIFT",
 ] as const satisfies readonly TenantPermissionAction[];
+
+const FULL_ACCESS_GRANTS: readonly PermissionGrant[] = ALL_STANDARD_MODULES.map(
+  (module) => ({ module, actions: ALL_STANDARD_ACTIONS }),
+);
 
 export const CRITICAL_PERMISSION_ACTIONS = new Set<TenantPermissionAction>([
   "APPROVE",
@@ -107,8 +116,10 @@ export const MODULE_PERMISSION_ALIASES: Record<TenantSystemModule, readonly Tena
   RELATORIOS: ["RELATORIOS", "AUDITORIA", "PSICOTROPICOS"],
   UTILIZADORES: ["UTILIZADORES"],
   CONFIGURACOES: ["CONFIGURACOES"],
-  FATURAS: ["FATURAS", "POS"],
+  DASHBOARD_FARMACIA: ["DASHBOARD_FARMACIA"],
+  DASHBOARD_CAIXA: ["DASHBOARD_CAIXA"],
   CAIXA: ["CAIXA", "POS"],
+  FATURAS: ["FATURAS", "POS"],
   ESTOQUE: ["ESTOQUE", "REQUISICOES", "COMPRAS", "LOTES", "INVENTARIO", "FORNECEDORES"],
   PSICOTROPICOS: ["PSICOTROPICOS", "RELATORIOS"],
   AUDITORIA: ["AUDITORIA", "RELATORIOS"],
@@ -130,68 +141,29 @@ export const ACTION_PERMISSION_ALIASES: Record<TenantPermissionAction, readonly 
 };
 
 export const DEFAULT_ROLE_PERMISSION_MATRIX: Record<TenantPermissionRole, readonly PermissionGrant[]> = {
-  ADMIN: [
-    { module: "REQUISICOES", actions: ALL_STANDARD_ACTIONS },
-    { module: "COMPRAS", actions: ALL_STANDARD_ACTIONS },
+  // Acesso total ao sistema.
+  ADMIN: FULL_ACCESS_GRANTS,
+  GERENTE: FULL_ACCESS_GRANTS,
+  DIRETOR_TECNICO: FULL_ACCESS_GRANTS,
+  // Dashboard Farmácia + Terminal + Farmácia.
+  FARMACEUTICO: [
+    { module: "DASHBOARD_FARMACIA", actions: ["VIEW"] },
+    { module: "POS", actions: ALL_STANDARD_ACTIONS },
+    { module: "PROFORMA_INVOICES", actions: ALL_STANDARD_ACTIONS },
+    { module: "CLIENTES", actions: ALL_STANDARD_ACTIONS },
     { module: "PRODUTOS", actions: ALL_STANDARD_ACTIONS },
     { module: "LOTES", actions: ALL_STANDARD_ACTIONS },
     { module: "INVENTARIO", actions: ALL_STANDARD_ACTIONS },
+    { module: "COMPRAS", actions: ALL_STANDARD_ACTIONS },
     { module: "FORNECEDORES", actions: ALL_STANDARD_ACTIONS },
-    { module: "CLIENTES", actions: ALL_STANDARD_ACTIONS },
-    { module: "PROFORMA_INVOICES", actions: ALL_STANDARD_ACTIONS },
-    { module: "POS", actions: ALL_STANDARD_ACTIONS },
-    { module: "RELATORIOS", actions: ALL_STANDARD_ACTIONS },
-    { module: "UTILIZADORES", actions: ALL_STANDARD_ACTIONS },
-    { module: "CONFIGURACOES", actions: ALL_STANDARD_ACTIONS },
   ],
-  GERENTE: [
-    { module: "REQUISICOES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "APPROVE", "REJECT", "CANCEL", "EXPORT"] },
-    { module: "COMPRAS", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "APPROVE", "REJECT", "CANCEL", "EXPORT"] },
-    { module: "PRODUTOS", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "EXPORT"] },
-    { module: "LOTES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "CREATE_LOTE", "EXPORT"] },
-    { module: "INVENTARIO", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "CANCEL", "ADJUST_STOCK", "EXPORT"] },
-    { module: "FORNECEDORES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "EXPORT"] },
-    { module: "CLIENTES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "EXPORT"] },
-    { module: "PROFORMA_INVOICES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "APPROVE", "REJECT", "EXPORT"] },
-    { module: "POS", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "APPROVE", "CANCEL", "EXPORT", "CLOSE_SHIFT"] },
-    { module: "RELATORIOS", actions: ["VIEW", "EXPORT"] },
-    { module: "UTILIZADORES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE"] },
-    { module: "CONFIGURACOES", actions: ["VIEW", "CREATE", "UPDATE", "DELETE", "EXPORT"] },
-  ],
-  FARMACEUTICO: [
-    { module: "REQUISICOES", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "REJECT", "CANCEL"] },
-    { module: "COMPRAS", actions: ["VIEW", "CREATE", "UPDATE"] },
-    { module: "PRODUTOS", actions: ["VIEW"] },
-    { module: "LOTES", actions: ["VIEW", "CREATE_LOTE"] },
-    { module: "INVENTARIO", actions: ["VIEW", "ADJUST_STOCK"] },
-    { module: "FORNECEDORES", actions: ["VIEW"] },
-    { module: "CLIENTES", actions: ["VIEW", "CREATE", "UPDATE"] },
-    { module: "PROFORMA_INVOICES", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "REJECT"] },
-    { module: "POS", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "CLOSE_SHIFT"] },
-    { module: "RELATORIOS", actions: ["VIEW", "EXPORT"] },
-    { module: "UTILIZADORES", actions: ["VIEW"] },
-    { module: "CONFIGURACOES", actions: ["VIEW"] },
-  ],
-  DIRETOR_TECNICO: [
-    { module: "REQUISICOES", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "REJECT", "CANCEL", "EXPORT"] },
-    { module: "COMPRAS", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "EXPORT"] },
-    { module: "PRODUTOS", actions: ["VIEW", "CREATE", "UPDATE", "EXPORT"] },
-    { module: "LOTES", actions: ["VIEW", "CREATE_LOTE", "EXPORT"] },
-    { module: "INVENTARIO", actions: ["VIEW", "APPROVE", "ADJUST_STOCK", "EXPORT"] },
-    { module: "FORNECEDORES", actions: ["VIEW"] },
-    { module: "CLIENTES", actions: ["VIEW", "CREATE", "UPDATE"] },
-    { module: "PROFORMA_INVOICES", actions: ["VIEW", "CREATE", "UPDATE", "APPROVE", "REJECT", "EXPORT"] },
-    { module: "POS", actions: ["VIEW", "CREATE", "APPROVE", "CANCEL", "EXPORT", "CLOSE_SHIFT"] },
-    { module: "RELATORIOS", actions: ["VIEW", "EXPORT"] },
-    { module: "UTILIZADORES", actions: ["VIEW"] },
-    { module: "CONFIGURACOES", actions: ["VIEW", "UPDATE"] },
-  ],
+  // Dashboard do Caixa + Terminal + Financeiro (módulo CAIXA).
   CAIXA: [
-    { module: "PRODUTOS", actions: ["VIEW"] },
-    { module: "CLIENTES", actions: ["VIEW", "CREATE", "UPDATE"] },
-    { module: "PROFORMA_INVOICES", actions: ["VIEW", "CREATE", "UPDATE"] },
+    { module: "DASHBOARD_CAIXA", actions: ["VIEW"] },
     { module: "POS", actions: ["VIEW", "CREATE", "UPDATE", "CLOSE_SHIFT"] },
-    { module: "RELATORIOS", actions: ["VIEW"] },
+    { module: "PROFORMA_INVOICES", actions: ["VIEW", "CREATE", "UPDATE"] },
+    { module: "CLIENTES", actions: ["VIEW", "CREATE", "UPDATE"] },
+    { module: "CAIXA", actions: ["VIEW", "CREATE", "UPDATE", "CLOSE_SHIFT"] },
   ],
 };
 

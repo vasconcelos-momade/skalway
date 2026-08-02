@@ -14,6 +14,7 @@ import '../../modules/central/presentation/pages/platform_list_page.dart';
 import '../../modules/central/presentation/pages/platform_tenant_detail_page.dart';
 import '../../modules/central/presentation/pages/platform_tenants_page.dart';
 import '../../modules/central/presentation/shell/platform_main_shell.dart';
+import '../../modules/dashboard/presentation/pages/cashier_dashboard_page.dart';
 import '../../modules/dashboard/presentation/pages/executive_dashboard_page.dart';
 import '../../modules/dashboard/presentation/pages/finance_dashboard_page.dart';
 import '../../modules/dashboard/presentation/pages/pharmacy_dashboard_page.dart';
@@ -42,6 +43,7 @@ import '../../shared/layouts/pos_shell_layout.dart';
 import '../app_observer.dart';
 import '../providers/auth_session_notifier.dart';
 import '../providers/session_access_notifier.dart';
+import '../../shared/widgets/navigation/app_nav_config.dart';
 import 'router_refresh.dart';
 import 'routes.dart';
 
@@ -93,7 +95,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
         if (!auth.isSuperAdmin) {
           return auth.hasTenantContext
-              ? AppRoutePaths.dashboard
+              ? homePathForAccess(access)
               : AppRoutePaths.authTenantSelection;
         }
         if (auth.hasTenantContext) {
@@ -131,7 +133,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           loc == AppRoutePaths.authForgotPassword ||
           _isTenantSelectionRoute(loc)) {
         if (auth.isSuperAdmin) return AppRoutePaths.platformDashboard;
-        if (auth.hasTenantContext) return AppRoutePaths.dashboard;
+        if (auth.hasTenantContext) return homePathForAccess(access);
         if (_isTenantSelectionRoute(loc)) return null;
         return AppRoutePaths.authTenantSelection;
       }
@@ -141,7 +143,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (_isAdministrationRoute(loc) && !access.canAccessAdministration) {
-        return AppRoutePaths.dashboard;
+        return homePathForAccess(access);
+      }
+
+      if (_isTenantAppRoute(loc) &&
+          !isNavPathAllowedForAccess(loc, access)) {
+        final home = homePathForAccess(access);
+        if (home != loc) return home;
       }
 
       return null;
@@ -307,6 +315,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutePaths.dashboardFinance,
             name: 'dashboard-finance',
             builder: (context, state) => const FinanceDashboardPage(),
+          ),
+          GoRoute(
+            path: AppRoutePaths.dashboardCashier,
+            name: 'dashboard-cashier',
+            builder: (context, state) => const CashierDashboardPage(),
           ),
           GoRoute(
             path: AppRoutePaths.dashboardStock,

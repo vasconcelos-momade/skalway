@@ -7,6 +7,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
 import '../../modules/sales/pdv/presentation/providers/caixa_sessao_provider.dart';
 import '../../modules/sales/pdv/presentation/widgets/abrir_caixa_dialog.dart';
+import '../responsive/pharma_screen_layout.dart';
 import '../widgets/buttons/pharma_button_loader.dart';
 import '../widgets/sync/sync_status_strip.dart';
 
@@ -33,6 +34,10 @@ class PosLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final isMobile = PharmaScreenLayout.isMobile(context);
+    final horizontalInset = isMobile
+        ? PharmaScreenLayout.mobileHorizontalInset(context)
+        : t.density.gutter;
     final caixaState = ref.watch(caixaSessaoProvider);
     final sessaoAtual = caixaState.sessaoAtual;
     final caixaAberto = sessaoAtual != null;
@@ -50,7 +55,7 @@ class PosLayout extends ConsumerWidget {
         children: [
           Container(
             height: t.posHeader,
-            padding: EdgeInsets.symmetric(horizontal: s.xl),
+            padding: EdgeInsets.symmetric(horizontal: horizontalInset),
             decoration: BoxDecoration(
               color: t.bgSecondary,
               border: Border(bottom: BorderSide(color: t.border)),
@@ -183,7 +188,7 @@ class PosLayout extends ConsumerWidget {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: t.density.gutter),
+              padding: EdgeInsets.symmetric(horizontal: horizontalInset),
               child: child,
             ),
           ),

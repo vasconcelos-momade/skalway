@@ -79,7 +79,7 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
         if (widget.errorText != null)
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.only(left: s.md, right: s.md, bottom: s.sm),
+              padding: EdgeInsets.only(bottom: s.sm),
               child: Text(
                 widget.errorText!,
                 style: Theme.of(context).textTheme.erpBody.copyWith(color: t.posDanger),
@@ -93,7 +93,6 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
               padding: EdgeInsets.only(bottom: s.md),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: s.md),
                 child: Row(
                   children: [
                     for (var i = 0; i < widget.kpis!.length; i++) ...[
@@ -179,7 +178,7 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
         if (widget.totalCount != null)
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(s.md, 0, s.md, s.md),
+              padding: EdgeInsets.only(bottom: s.md),
               child: Text(
                 widget.totalCountLabel ?? 'Total: ${widget.totalCount} registo(s)',
                 textAlign: TextAlign.center,

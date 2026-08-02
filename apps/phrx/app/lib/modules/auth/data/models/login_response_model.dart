@@ -3,6 +3,7 @@ import '../../domain/entities/branch_access.dart';
 import '../../domain/entities/tenant_access.dart';
 import '../../../admin/users/domain/entities/user_entities.dart';
 import '../../../../app/router/routes.dart';
+import '../../../../shared/widgets/navigation/app_nav_config.dart';
 import '../../domain/entities/central_role.dart';
 
 class LoginResponseModel {
@@ -31,8 +32,6 @@ class LoginResponseModel {
     final role = json['role'] as String? ?? CentralRole.normalize(user.role);
     final tenantId = json['tenantId'] as String?;
     final branchId = json['branchId'] as String?;
-    final redirectTo = json['redirectTo'] as String? ??
-        _inferRedirect(role: role, tenantId: tenantId, tenants: tenantsList);
 
     UserEffectivePermissions? permissions;
     final permsRaw = json['permissions'];
@@ -47,17 +46,33 @@ class LoginResponseModel {
       );
     }
 
+    final claimedRedirect = json['redirectTo'] as String?;
+    final redirectTo = _resolveRedirect(
+      claimed: claimedRedirect,
+      role: role,
+      tenantId: tenantId,
+      tenants: tenantsList,
+      permissions: permissions,
+    );
+
     // Compatibilidade com resposta antiga (`auth` aninhado).
     final authRaw = json['auth'];
     if (authRaw is Map<String, dynamic>) {
+      final nestedRole = authRaw['normalizedRole'] as String? ?? role;
       return LoginResponseModel(
         accessToken: (json['accessToken'] ?? json['token']) as String,
         user: user,
         tenants: tenantsList,
-        role: authRaw['normalizedRole'] as String? ?? role,
+        role: nestedRole,
         tenantId: tenantId,
         branchId: branchId,
-        redirectTo: authRaw['redirectTo'] as String? ?? redirectTo,
+        redirectTo: _resolveRedirect(
+          claimed: authRaw['redirectTo'] as String? ?? claimedRedirect,
+          role: nestedRole,
+          tenantId: tenantId,
+          tenants: tenantsList,
+          permissions: permissions,
+        ),
         permissions: permissions,
         refreshToken: json['refreshToken'] as String?,
       );
@@ -74,6 +89,31 @@ class LoginResponseModel {
       permissions: permissions,
       refreshToken: json['refreshToken'] as String?,
     );
+  }
+
+  static String _resolveRedirect({
+    required String? claimed,
+    required String role,
+    required String? tenantId,
+    required List<TenantAccess> tenants,
+    UserEffectivePermissions? permissions,
+  }) {
+    if (CentralRole.isSuperAdmin(role)) {
+      return AppRoutePaths.platformDashboard;
+    }
+
+    final hasTenant = tenantId != null && tenantId.isNotEmpty;
+    if (!hasTenant) {
+      final single = tenants.length == 1 && tenants.first.branches.length == 1;
+      if (!single) return AppRoutePaths.authTenantSelection;
+    }
+
+    if (permissions != null) {
+      return homePathForPermissions(permissions);
+    }
+
+    return claimed ??
+        _inferRedirect(role: role, tenantId: tenantId, tenants: tenants);
   }
 
   static String _inferRedirect({

@@ -257,3 +257,19 @@ DashboardTableFetcher stockTableFetcher(DashboardRemoteDataSource source) {
     );
   };
 }
+
+DashboardTableFetcher cashierTableFetcher(DashboardRemoteDataSource source) {
+  return ({
+    required table,
+    required query,
+    required page,
+    required pageSize,
+  }) {
+    return source.cashierDashboardTable(
+      table: table,
+      query: query,
+      page: page,
+      pageSize: pageSize,
+    );
+  };
+}

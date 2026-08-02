@@ -2,9 +2,13 @@ import { NotFoundApiError } from "../../../../../shared/http/api-error";
 import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 import { mapAllocationsToApiLotes } from "../../../sales/domain/fatura-item-lote.service";
 import { resolveTenantEmpresaProfile } from "../services/tenant-empresa-profile.service";
+import {
+  assertRecordVisibleToScope,
+  type DataScope,
+} from "../../../shared/data-scope";
 
 export class GetFaturaDetalheUseCase {
-  async execute(faturaId: string) {
+  async execute(faturaId: string, scope?: DataScope) {
     const prisma = getPrisma() as any;
     const id = BigInt(faturaId);
 
@@ -19,6 +23,7 @@ export class GetFaturaDetalheUseCase {
         serie: true,
         tipo: true,
         estado: true,
+        userId: true,
         createdAt: true,
         updatedAt: true,
         cancelledAt: true,
@@ -133,6 +138,14 @@ export class GetFaturaDetalheUseCase {
 
     if (!fatura) {
       throw new NotFoundApiError("Fatura não encontrada");
+    }
+
+    if (scope) {
+      assertRecordVisibleToScope(
+        scope,
+        fatura.userId,
+        "Não tem permissão para visualizar faturas de outros utilizadores",
+      );
     }
 
     const empresa = await resolveTenantEmpresaProfile();

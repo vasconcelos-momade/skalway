@@ -27,6 +27,11 @@ final stockDashboardProvider =
   return ref.watch(dashboardRemoteDataSourceProvider).stockDashboard(query);
 });
 
+final cashierDashboardProvider =
+    FutureProvider.autoDispose.family<Map<String, dynamic>, DashboardQuery>((ref, query) async {
+  return ref.watch(dashboardRemoteDataSourceProvider).cashierDashboard(query);
+});
+
 /// Invalida KPIs executivos e financeiros (ex.: após movimentos de fluxo de caixa).
 void invalidateExecutiveAndFinanceDashboards(Ref ref) {
   ref.invalidate(executiveDashboardProvider);

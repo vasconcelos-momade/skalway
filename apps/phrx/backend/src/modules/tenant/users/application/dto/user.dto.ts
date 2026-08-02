@@ -10,6 +10,7 @@ const roleSchema = z.enum(TENANT_PERMISSION_ROLES);
 export const createUserSchema = z.object({
   name: z.string().trim().min(1),
   email: z.string().trim().email(),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   role: roleSchema,
   active: z.coerce.boolean().optional(),
   centralUserId: z.string().regex(/^\d+$/).optional(),

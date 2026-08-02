@@ -18,6 +18,7 @@ class PdvProductTable extends StatelessWidget {
     required this.canAdd,
     required this.addingProductId,
     required this.onAdd,
+    this.isLoading = false,
   });
 
   final List<Product> items;
@@ -25,6 +26,7 @@ class PdvProductTable extends StatelessWidget {
   final bool canAdd;
   final String? addingProductId;
   final void Function(Product product) onAdd;
+  final bool isLoading;
 
   static const _columns = [
     'PRODUTO',
@@ -37,6 +39,10 @@ class PdvProductTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading && items.isEmpty) {
+      return const ModuleLoadingState(itemCount: 6);
+    }
+
     if (items.isEmpty) {
       return ModuleEmptyState(
         title: query.isEmpty
@@ -53,6 +59,7 @@ class PdvProductTable extends StatelessWidget {
     return EnterpriseDataTable(
       adaptive: false,
       showCheckboxColumn: false,
+      isLoading: isLoading,
       dataRowMinHeight: 72,
       dataRowMaxHeight: 92,
       columnSpacing: s.xxl,

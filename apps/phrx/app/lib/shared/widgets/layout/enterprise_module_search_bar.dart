@@ -14,6 +14,7 @@ class EnterpriseModuleSearchBar extends StatefulWidget {
     this.maxWidth,
     this.focusNode,
     this.autofocus = false,
+    this.fullWidth = false,
   });
 
   final TextEditingController controller;
@@ -24,6 +25,9 @@ class EnterpriseModuleSearchBar extends StatefulWidget {
   final double? maxWidth;
   final FocusNode? focusNode;
   final bool autofocus;
+
+  /// Ocupa toda a largura disponível (ex.: toolbar do PDV).
+  final bool fullWidth;
 
   @override
   State<EnterpriseModuleSearchBar> createState() => _EnterpriseModuleSearchBarState();
@@ -67,6 +71,7 @@ class _EnterpriseModuleSearchBarState extends State<EnterpriseModuleSearchBar> {
         controller: widget.controller,
         focusNode: widget.focusNode,
         onChanged: onChanged,
+        fullWidth: widget.fullWidth,
       ),
     );
   }

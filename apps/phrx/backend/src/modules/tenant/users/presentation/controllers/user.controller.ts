@@ -36,10 +36,10 @@ export class UserController {
     );
   }
 
-  async create(req: Request, actorId: string) {
+  async create(req: Request, actorId: string, tenantId: string) {
     try {
       const body = await parseJsonBody(req, createUserSchema);
-      const result = await this.service.create(body, actorId);
+      const result = await this.service.create(body, actorId, tenantId);
       return success(this.serialize(result), 201);
     } catch (error: any) {
       return controllerErrorResponse(error);

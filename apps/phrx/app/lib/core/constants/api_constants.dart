@@ -77,6 +77,8 @@ abstract final class ApiConstants {
       '/tenant/dashboard/farmacia/tables';
   static const tenantDashboardStock = '/tenant/dashboard/stock';
   static const tenantDashboardStockTables = '/tenant/dashboard/stock/tables';
+  static const tenantDashboardCaixa = '/tenant/dashboard/caixa';
+  static const tenantDashboardCaixaTables = '/tenant/dashboard/caixa/tables';
 
   static const tenantInventarios = '/tenant/inventarios';
   static const tenantInventariosProdutosAptos =

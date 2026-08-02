@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/auth_session_notifier.dart';
 import '../../../../app/providers/connection_notifier.dart';
+import '../../../../app/providers/session_access_notifier.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/network/connectivity/connection_mode.dart';
 import '../../../../core/network/connectivity/connection_status.dart';
@@ -12,6 +13,7 @@ import '../../../../core/theme/extensions.dart';
 import '../../domain/entities/branch_access.dart';
 import '../../domain/entities/tenant_access.dart';
 import '../../../../shared/layouts/auth_layout.dart';
+import '../../../../shared/widgets/navigation/app_nav_config.dart';
 
 class TenantSelectPage extends ConsumerStatefulWidget {
   const TenantSelectPage({super.key});
@@ -70,8 +72,9 @@ class _TenantSelectPageState extends ConsumerState<TenantSelectPage> {
           tenantId: _tenantId!,
           branchId: _branchId!,
         );
+    await ref.read(sessionAccessProvider.notifier).refresh();
     if (!mounted) return;
-    context.go(AppRoutePaths.dashboard);
+    context.go(homePathForAccess(ref.read(sessionAccessProvider)));
   }
 
   @override

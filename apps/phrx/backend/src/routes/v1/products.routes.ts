@@ -9,6 +9,7 @@ import {
   tenantBranchContextMiddleware,
   getTenantAuth,
   requirePermission,
+  requireAnyPermission,
 } from "../../shared/http/auth-middlewares";
 import { categoriaIdParamSchema } from "../../modules/tenant/products/application/dto/categoria.dto";
 import { auditMiddleware } from "../../shared/http/middlewares";
@@ -103,7 +104,11 @@ function registerCategoryActiveResource(router: Router, path: string): void {
     path,
     tenantAuthMiddleware(),
     tenantBranchContextMiddleware(),
-    requirePermission("PRODUTOS", "VIEW"),
+    // POS precisa filtrar catálogo sem acesso ao módulo Farmácia/PRODUTOS.
+    requireAnyPermission([
+      ["PRODUTOS", "VIEW"],
+      ["POS", "VIEW"],
+    ]),
     async () => categoriaController.listActive(),
   );
 }

@@ -8,6 +8,7 @@ import '../../../../../core/theme/design_metrics.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
@@ -381,6 +382,28 @@ class _FinalizarVendaDialogState
     ];
   }
 
+  Widget _buildMobileFooter(BuildContext context, List<Widget> actions) {
+    final t = context.pharmaTokens;
+    final s = context.spacing;
+    // Mesma margem horizontal da página (s.md).
+    final horizontal = PharmaScreenLayout.mobileHorizontalInset(context);
+
+    return Material(
+      color: t.bgPrimary,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(horizontal, s.sm, horizontal, s.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: actions,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFormContent(
     BuildContext context,
     PdvCheckoutState checkoutState,
@@ -513,28 +536,16 @@ class _FinalizarVendaDialogState
 
     if (widget.embedded) {
       if (AdaptiveNavigator.isMobile(context)) {
+        final horizontal = PharmaScreenLayout.mobileHorizontalInset(context);
         return Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(horizontal, s.lg, horizontal, s.md),
                 child: content,
               ),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(0, s.sm, 0, 0),
-              decoration: BoxDecoration(
-                color: t.bgPrimary,
-                border: Border(
-                  top: BorderSide(
-                    color: t.border.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-              child: PharmaResponsiveDialogActions(
-                breakpoint: PharmaDialogBreakpoint.mobile,
-                children: actions,
-              ),
-            ),
+            _buildMobileFooter(context, actions),
           ],
         );
       }
@@ -551,6 +562,7 @@ class _FinalizarVendaDialogState
     }
 
     if (widget.presentation == FinalizarVendaPresentation.screen) {
+      final horizontal = PharmaScreenLayout.mobileHorizontalInset(context);
       return PopScope(
         canPop: !checkoutState.isSubmitting,
         child: Scaffold(
@@ -568,25 +580,16 @@ class _FinalizarVendaDialogState
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.all(s.lg),
+                    padding: EdgeInsets.fromLTRB(
+                      horizontal,
+                      s.lg,
+                      horizontal,
+                      s.md,
+                    ),
                     child: content,
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(s.lg, s.sm, s.lg, s.lg),
-                  decoration: BoxDecoration(
-                    color: t.bgPrimary,
-                    border: Border(
-                      top: BorderSide(
-                        color: t.border.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                  child: PharmaResponsiveDialogActions(
-                    breakpoint: PharmaDialogBreakpoint.mobile,
-                    children: actions,
-                  ),
-                ),
+                _buildMobileFooter(context, actions),
               ],
             ),
           ),

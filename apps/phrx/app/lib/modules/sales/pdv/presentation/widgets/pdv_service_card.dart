@@ -39,6 +39,7 @@ class PdvServiceCard extends StatelessWidget {
       onTap: canAdd ? onAdd : null,
       actions: SizedBox(
         height: compactAction ? t.compactControlHeight : t.controlHeight,
+        width: compactAction ? t.compactControlHeight + 8 : null,
         child: FilledButton(
           style: PharmaComponentTheme.filled(
             t,

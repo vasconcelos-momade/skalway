@@ -1301,9 +1301,11 @@ enum SystemModule {
   UTILIZADORES
   CONFIGURACOES
   PROFORMA_INVOICES
+  DASHBOARD_FARMACIA
+  DASHBOARD_CAIXA
+  CAIXA
   // Legado: mantido para compatibilidade de dados existentes.
   FATURAS
-  CAIXA
   ESTOQUE
   PSICOTROPICOS
   AUDITORIA

@@ -2,6 +2,10 @@ import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.fa
 import { ComplianceAuditService } from "../../../../../shared/services/compliance-audit.service";
 import type { CreateUserDTO, UpdateUserDTO } from "../../application/dto/user.dto";
 
+type CreateTenantUserInput = Omit<CreateUserDTO, "password"> & {
+  centralUserId: string;
+};
+
 type UserSearchFilters = {
   query?: string;
   role?: string;
@@ -36,12 +40,45 @@ export class UserRepository {
     return getPrisma() as any;
   }
 
-  async create(data: CreateUserDTO, actorId: bigint) {
+  async create(data: CreateTenantUserInput, actorId: bigint) {
     const email = data.email.trim().toLowerCase();
     const existing = await this.prisma.user.findFirst({
       where: { email, deletedAt: null },
     });
-    if (existing) throw new Error("Email já registado");
+
+    // Utilizadores antigos (só tenant, sem login) — ligar ao centralUserId.
+    if (existing && !existing.centralUserId) {
+      const repaired = await this.prisma.$transaction(async (tx: any) => {
+        const user = await tx.user.update({
+          where: { id: existing.id },
+          data: {
+            name: data.name,
+            email,
+            role: data.role,
+            active: data.active ?? true,
+            centralUserId: BigInt(data.centralUserId),
+            version: { increment: 1 },
+          },
+        });
+
+        await this.audit.createImmutableLog(
+          {
+            userId: actorId,
+            action: "UPDATE",
+            entity: "User",
+            entityId: user.id,
+            before: serializeUser(existing),
+            after: serializeUser(user),
+          },
+          tx,
+        );
+
+        return user;
+      });
+      return serializeUser(repaired);
+    }
+
+    if (existing) throw new Error("Email já registado nesta farmácia");
 
     const created = await this.prisma.$transaction(async (tx: any) => {
       const user = await tx.user.create({
@@ -50,7 +87,7 @@ export class UserRepository {
           email,
           role: data.role,
           active: data.active ?? true,
-          centralUserId: data.centralUserId ? BigInt(data.centralUserId) : null,
+          centralUserId: BigInt(data.centralUserId),
         },
       });
 

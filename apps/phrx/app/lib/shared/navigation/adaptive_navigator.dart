@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/extensions.dart';
+import '../responsive/pharma_screen_layout.dart';
 import '../widgets/dialogs/enterprise_dialog.dart';
 import '../widgets/dialogs/enterprise_overlay_tokens.dart';
 import '../widgets/dialogs/enterprise_side_sheet.dart';
@@ -162,20 +163,33 @@ abstract final class AdaptiveNavigator {
       contentBuilder: (formContext) {
         final form = formBuilder(formContext, embedded: true);
         if (isMobile(formContext)) {
-          final body = mobileWrapInScrollView
-              ? SingleChildScrollView(
-                  padding: EdgeInsets.all(context.spacing.lg),
-                  child: form,
-                )
-              : Padding(
-                  padding: EdgeInsets.all(context.spacing.lg),
-                  child: form,
-                );
+          // Margem horizontal s.md — alinhada ao shell / PosLayout / listas mobile.
+          final s = formContext.spacing;
+          final horizontal =
+              PharmaScreenLayout.mobileHorizontalInset(formContext);
+          if (mobileWrapInScrollView) {
+            return Scaffold(
+              appBar: AppBar(
+                title: title is Text ? title : const Text('Formulário'),
+              ),
+              body: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  horizontal,
+                  s.lg,
+                  horizontal,
+                  s.lg,
+                ),
+                child: form,
+              ),
+            );
+          }
+          // Sem wrap de scroll: o formulário gere margens do conteúdo e do footer
+          // (ex.: Finalizar Venda — botões alinhados ao conteúdo).
           return Scaffold(
             appBar: AppBar(
               title: title is Text ? title : const Text('Formulário'),
             ),
-            body: body,
+            body: form,
           );
         }
         return form;

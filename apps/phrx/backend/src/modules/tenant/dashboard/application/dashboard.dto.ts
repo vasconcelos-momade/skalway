@@ -66,3 +66,8 @@ export const pharmacyDashboardTableQuerySchema = z.object({
   ]),
   ...dashboardTableQueryFields,
 });
+
+export const cashierDashboardTableQuerySchema = z.object({
+  table: z.enum(["ultimasVendas", "movimentosCaixa"]),
+  ...dashboardTableQueryFields,
+});

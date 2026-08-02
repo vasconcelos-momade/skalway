@@ -22,6 +22,7 @@ class EnterpriseSearchField extends StatefulWidget {
     required this.onChanged,
     this.onSubmitted,
     this.focusNode,
+    this.fullWidth = false,
   });
 
   final String hintText;
@@ -29,6 +30,9 @@ class EnterpriseSearchField extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
+
+  /// Se true, ocupa 100% da largura disponível (toolbars PDV / filtros full-bleed).
+  final bool fullWidth;
 
   @override
   State<EnterpriseSearchField> createState() => _EnterpriseSearchFieldState();
@@ -67,7 +71,7 @@ class _EnterpriseSearchFieldState extends State<EnterpriseSearchField> {
   }
 
   double? _maxWidthFor(BuildContext context) {
-    if (PharmaScreenLayout.isMobile(context)) return null;
+    if (widget.fullWidth || PharmaScreenLayout.isMobile(context)) return null;
     if (PharmaScreenLayout.isDesktop(context)) {
       return DesignMetrics.searchFieldMaxWidthDesktop;
     }

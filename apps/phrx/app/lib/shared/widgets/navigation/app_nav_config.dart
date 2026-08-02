@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/providers/session_access_notifier.dart';
 import '../../../app/router/routes.dart';
+import '../../../modules/admin/users/domain/entities/user_entities.dart';
 
 /// Títulos oficiais das secções — única fonte para sidebar, drawer e tags de página.
 abstract final class AppNavSections {
@@ -100,13 +101,19 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         label: 'Farmácia',
         path: AppRoutePaths.dashboardPharmacy,
         icon: Icons.local_pharmacy_outlined,
-        permissionModule: 'RELATORIOS',
+        permissionModule: 'DASHBOARD_FARMACIA',
       ),
       AppNavItem(
         label: 'Financeiro',
         path: AppRoutePaths.dashboardFinance,
         icon: Icons.account_balance_outlined,
         permissionModule: 'RELATORIOS',
+      ),
+      AppNavItem(
+        label: 'Caixa',
+        path: AppRoutePaths.dashboardCashier,
+        icon: Icons.point_of_sale_outlined,
+        permissionModule: 'DASHBOARD_CAIXA',
       ),
     ],
   ),
@@ -193,13 +200,13 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         label: 'Fluxo de Caixa',
         path: AppRoutePaths.financeCashflow,
         icon: Icons.stacked_line_chart,
-        permissionModule: 'RELATORIOS',
+        permissionModule: 'CAIXA',
       ),
       AppNavItem(
         label: 'Receita/Faturamento',
         path: AppRoutePaths.financeRevenue,
         icon: Icons.trending_up,
-        permissionModule: 'RELATORIOS',
+        permissionModule: 'CAIXA',
       ),
     ],
   ),
@@ -308,6 +315,54 @@ List<AppNavSection> visibleNavSectionsForAccess(SessionAccessState access) {
 
 List<AppNavItem> visibleNavItemsForAccess(SessionAccessState access) {
   return buildFlatNavItems(visibleNavSectionsForAccess(access));
+}
+
+/// Primeiro item de menu permitido — usado como home pós-login.
+String homePathForAccess(SessionAccessState access) {
+  if (access.viewState == SessionAccessViewState.loaded) {
+    for (final group in kAppNavSections) {
+      for (final item in group.items) {
+        final module = item.permissionModule;
+        if (module == null || access.can(module, item.permissionAction)) {
+          return item.path;
+        }
+      }
+    }
+  }
+  return AppRoutePaths.dashboard;
+}
+
+String homePathForPermissions(UserEffectivePermissions? permissions) {
+  if (permissions == null) return AppRoutePaths.dashboard;
+  return homePathForAccess(
+    SessionAccessState(
+      permissions: permissions,
+      viewState: SessionAccessViewState.loaded,
+    ),
+  );
+}
+
+AppNavItem? navItemForPath(String path) {
+  AppNavItem? best;
+  var bestLen = -1;
+  for (final group in kAppNavSections) {
+    for (final item in group.items) {
+      final match = path == item.path || path.startsWith('${item.path}/');
+      if (match && item.path.length > bestLen) {
+        best = item;
+        bestLen = item.path.length;
+      }
+    }
+  }
+  return best;
+}
+
+/// `true` se a rota ainda não deve ser bloqueada, ou se o user tem permissão.
+bool isNavPathAllowedForAccess(String path, SessionAccessState access) {
+  if (access.viewState != SessionAccessViewState.loaded) return true;
+  final item = navItemForPath(path);
+  if (item == null || item.permissionModule == null) return true;
+  return access.can(item.permissionModule!, item.permissionAction);
 }
 
 String? navSectionTitleForPath(String path) {

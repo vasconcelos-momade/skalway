@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
-import '../../../core/theme/typography.dart';
 import 'enterprise_field_decoration.dart';
 
 /// Select enterprise alinhado ao design system / search do PDV:
@@ -65,9 +64,10 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
     if (!_hasValue) {
       return widget.emptyLabel ?? '';
     }
-    return widget.options
-        .firstWhere((option) => option.value == widget.value)
-        .label;
+    for (final option in widget.options) {
+      if (option.value == widget.value) return option.label;
+    }
+    return widget.emptyLabel ?? '';
   }
 
   /// Com texto visível (incl. "Todas"), o label deve flutuar na borda —
@@ -139,17 +139,20 @@ class _EnterpriseSelectFieldState<T> extends State<EnterpriseSelectField<T>> {
                           controller.open();
                         }
                       },
-                child: InputDecorator(
-                  isFocused: open,
-                  isHovering: showHover,
-                  isEmpty: _isEmpty,
-                  decoration: decoration,
-                  child: Text(
-                    _displayLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.erpSelectValue.copyWith(
-                      color: enabled ? t.textPrimary : t.textMuted,
+                child: SizedBox(
+                  height: t.controlHeight,
+                  child: InputDecorator(
+                    isFocused: open,
+                    isHovering: showHover,
+                    isEmpty: _isEmpty,
+                    decoration: decoration,
+                    child: Text(
+                      _displayLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.erpSelectValue.copyWith(
+                        color: enabled ? t.textPrimary : t.textMuted,
+                      ),
                     ),
                   ),
                 ),

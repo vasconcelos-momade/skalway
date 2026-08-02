@@ -8,7 +8,13 @@ const FATURA_VENDA_WHERE = {
 export type FinancialMetricsRange = {
   from: Date;
   to: Date;
+  /** Quando definido, restringe métricas à actividade deste utilizador (data scope OWN). */
+  userId?: string | null;
 };
+
+function userIdFilter(range: FinancialMetricsRange): { userId?: bigint } {
+  return range.userId ? { userId: BigInt(range.userId) } : {};
+}
 
 type TxLike = any;
 
@@ -73,6 +79,7 @@ export class FinancialMetricsService {
     const result = await prisma.fatura.aggregate({
       where: {
         ...FATURA_VENDA_WHERE,
+        ...userIdFilter(range),
         createdAt: { gte: range.from, lte: range.to },
       },
       _sum: { total: true },
@@ -85,6 +92,7 @@ export class FinancialMetricsService {
     return prisma.fatura.count({
       where: {
         ...FATURA_VENDA_WHERE,
+        ...userIdFilter(range),
         createdAt: { gte: range.from, lte: range.to },
       },
     });
@@ -96,6 +104,7 @@ export class FinancialMetricsService {
       where: {
         fatura: {
           ...FATURA_VENDA_WHERE,
+          ...userIdFilter(range),
           createdAt: { gte: range.from, lte: range.to },
         },
       },
@@ -189,9 +198,11 @@ export class FinancialMetricsService {
 
   async calculateCashFlow(range: FinancialMetricsRange, tx?: TxLike): Promise<CashFlowMetrics> {
     const prisma = tx ?? this.prisma;
+    const scopedUser = userIdFilter(range);
     const caixaMovimentoPeriod = {
       deletedAt: null,
       createdAt: { gte: range.from, lte: range.to },
+      ...scopedUser,
     };
 
     const [
@@ -243,13 +254,42 @@ export class FinancialMetricsService {
     const suprimentos = round2(toNumber(suprimentosAgg._sum.valor));
     const sangrias = round2(toNumber(sangriasAgg._sum.valor));
     const estornos = round2(toNumber(estornosAgg._sum.valor));
-    const saldoFinal = round2(toNumber(saldoCaixaAgg._sum.saldoTotal));
     const estornosSigned = round2(
       (estornosRows as Array<{ saldoAnterior: unknown; saldoFinal: unknown }>).reduce(
         (acc, row) => acc + (toNumber(row.saldoFinal) - toNumber(row.saldoAnterior)),
         0,
       ),
     );
+
+    let saldoFinal = round2(toNumber(saldoCaixaAgg._sum.saldoTotal));
+    if (range.userId) {
+      const [openSessao, scopedSaldoRow] = await Promise.all([
+        prisma.caixaSessao.findFirst({
+          where: {
+            userId: BigInt(range.userId),
+            status: "ABERTA",
+            deletedAt: null,
+          },
+          select: { caixa: { select: { saldoAtual: true } } },
+          orderBy: { openedAt: "desc" },
+        }),
+        prisma.caixaMovimento.findFirst({
+          where: { deletedAt: null, userId: BigInt(range.userId) },
+          orderBy: { createdAt: "desc" },
+          select: { saldoFinal: true },
+        }),
+      ]);
+
+      const sessaoSaldo = openSessao?.caixa?.saldoAtual;
+      if (sessaoSaldo != null) {
+        saldoFinal = round2(toNumber(sessaoSaldo));
+      } else if (scopedSaldoRow?.saldoFinal != null) {
+        saldoFinal = round2(toNumber(scopedSaldoRow.saldoFinal));
+      } else {
+        saldoFinal = round2(vendas + suprimentos - despesas - sangrias + estornosSigned);
+      }
+    }
+
     const saldoInicial = round2(
       saldoFinal - vendas - suprimentos + despesas + sangrias - estornosSigned,
     );
@@ -280,12 +320,15 @@ export class FinancialMetricsService {
     chartTo: Date,
     days: number,
     tx?: TxLike,
+    userId?: string | null,
   ): Promise<DreFlowPoint[]> {
     const prisma = tx ?? this.prisma;
+    const scoped = userId ? { userId: BigInt(userId) } : {};
     const [faturas, despesasRows] = await Promise.all([
       prisma.fatura.findMany({
         where: {
           ...FATURA_VENDA_WHERE,
+          ...scoped,
           createdAt: { gte: chartFrom, lte: chartTo },
         },
         select: { createdAt: true, total: true },
@@ -294,6 +337,7 @@ export class FinancialMetricsService {
         where: {
           deletedAt: null,
           type: "EXPENSE",
+          ...scoped,
           createdAt: { gte: chartFrom, lte: chartTo },
         },
         select: { createdAt: true, amount: true },

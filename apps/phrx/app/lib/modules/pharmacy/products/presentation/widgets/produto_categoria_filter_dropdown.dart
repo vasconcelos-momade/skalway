@@ -15,6 +15,7 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
     this.enabled = true,
     this.label = 'Categoria',
     this.emptyLabel = 'Todas',
+    this.compact = false,
   });
 
   final String? value;
@@ -24,6 +25,9 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
   final String label;
   final String emptyLabel;
 
+  /// Sem label externo — mesma altura do search (`controlHeight`).
+  final bool compact;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authReady = ref.watch(
@@ -32,10 +36,11 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
       ),
     );
     final categoriesAsync = ref.watch(activeCategoriesProvider);
+    final resolvedLabel = compact ? '' : label;
 
     if (!authReady || categoriesAsync.isLoading) {
       return EnterpriseSelectField<String>(
-        label: label,
+        label: resolvedLabel,
         width: width,
         emptyLabel: emptyLabel,
         value: value,
@@ -47,7 +52,7 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
 
     return categoriesAsync.when(
       loading: () => EnterpriseSelectField<String>(
-        label: label,
+        label: resolvedLabel,
         width: width,
         emptyLabel: emptyLabel,
         value: value,
@@ -56,7 +61,7 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
         enabled: false,
       ),
       error: (_, _) => EnterpriseSelectField<String>(
-        label: label,
+        label: resolvedLabel,
         width: width,
         emptyLabel: emptyLabel,
         value: value,
@@ -69,7 +74,7 @@ class ProdutoCategoriaFilterDropdown extends ConsumerWidget {
             ? value
             : null;
         return EnterpriseSelectField<String>(
-          label: label,
+          label: resolvedLabel,
           width: width,
           emptyLabel: emptyLabel,
           value: resolved,

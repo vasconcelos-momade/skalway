@@ -49,9 +49,9 @@ class EnterpriseModuleHub extends StatelessWidget {
         (subtitle != null && subtitle!.isNotEmpty) ||
         (tag != null && tag!.isNotEmpty);
 
-    final headerPadding = size == PharmaScreenSize.mobile
-        ? EdgeInsets.symmetric(horizontal: s.md)
-        : EdgeInsets.zero;
+    // Sem padding horizontal extra: o shell ([PharmaScreenLayout.pagePadding])
+    // já aplica s.md em mobile.
+    const headerPadding = EdgeInsets.zero;
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -66,7 +66,8 @@ class PdvProductCard extends StatelessWidget {
     final s = context.spacing;
     final Widget actionButton = SizedBox(
       height: compactAction ? t.compactControlHeight : t.controlHeight,
-      width: double.infinity,
+      // Largura intrínseca — `infinity` parte o Row do EnterpriseListCard.
+      width: compactAction ? t.compactControlHeight + s.sm : null,
       child: FilledButton(
         style: PharmaComponentTheme.filled(
           t,

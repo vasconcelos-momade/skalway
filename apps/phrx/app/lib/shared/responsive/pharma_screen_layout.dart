@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/spacing_tokens.dart';
 import 'breakpoints.dart';
 
 /// Segmentação de ecrã para UX enterprise (mobile / tablet / desktop).
@@ -70,8 +71,23 @@ abstract final class PharmaScreenLayout {
     };
   }
 
-  static EdgeInsets pagePadding(BuildContext context) =>
-      context.pharmaTokens.density.pageInsets;
+  /// Margens do conteúdo de página.
+  ///
+  /// Em mobile, a margem horizontal é sempre [SpacingTokens.md] (12) —
+  /// padrão enterprise unificado para todas as páginas do shell.
+  static EdgeInsets pagePadding(BuildContext context) {
+    final base = context.pharmaTokens.density.pageInsets;
+    if (!isMobile(context)) return base;
+    return EdgeInsets.fromLTRB(
+      SpacingTokens.md,
+      base.top,
+      SpacingTokens.md,
+      base.bottom,
+    );
+  }
+
+  /// Margem horizontal canónica do conteúdo em mobile.
+  static double mobileHorizontalInset(BuildContext context) => SpacingTokens.md;
 }
 
 extension PharmaScreenSizeContext on BuildContext {

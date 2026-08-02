@@ -1,13 +1,107 @@
+import bcrypt from "bcryptjs";
+import { prismaCentralUnscoped } from "../../../../../infrastructure/prisma/prisma-central.service";
 import { UserRepository } from "../../infrastructure/repositories/user.repository";
 import { RolePermissionRepository } from "../../infrastructure/repositories/role-permission.repository";
 import type { CreateUserDTO, UpdateUserDTO } from "../dto/user.dto";
+
+/**
+ * Cria credenciais de login na central + vínculo user_tenants,
+ * e devolve o centralUserId para o perfil tenant.
+ */
+async function provisionCentralLoginAccess(params: {
+  name: string;
+  email: string;
+  password: string;
+  role: CreateUserDTO["role"];
+  active: boolean;
+  tenantId: string;
+}): Promise<string> {
+  const prisma = prismaCentralUnscoped as any;
+  const email = params.email.trim().toLowerCase();
+  const hashedPassword = await bcrypt.hash(params.password, 10);
+  const tenantId = BigInt(params.tenantId);
+
+  let centralUser = await prisma.user.findFirst({
+    where: { email },
+  });
+
+  if (centralUser) {
+    centralUser = await prisma.user.update({
+      where: { id: centralUser.id },
+      data: {
+        name: params.name,
+        password: hashedPassword,
+        active: params.active,
+        deletedAt: null,
+      },
+    });
+  } else {
+    centralUser = await prisma.user.create({
+      data: {
+        name: params.name,
+        email,
+        password: hashedPassword,
+        role: "usuario",
+        active: params.active,
+      },
+    });
+  }
+
+  const existingLink = await prisma.userTenant.findFirst({
+    where: {
+      userId: centralUser.id,
+      tenantId,
+    },
+  });
+
+  if (existingLink) {
+    await prisma.userTenant.update({
+      where: { id: existingLink.id },
+      data: {
+        role: params.role,
+        active: params.active,
+        deletedAt: null,
+      },
+    });
+  } else {
+    await prisma.userTenant.create({
+      data: {
+        userId: centralUser.id,
+        tenantId,
+        role: params.role,
+        active: params.active,
+      },
+    });
+  }
+
+  return centralUser.id.toString();
+}
 
 export class UserService {
   private repo = new UserRepository();
   private permissions = new RolePermissionRepository();
 
-  create(data: CreateUserDTO, actorId: string) {
-    return this.repo.create(data, BigInt(actorId));
+  async create(data: CreateUserDTO, actorId: string, tenantId: string) {
+    const active = data.active ?? true;
+    const centralUserId = await provisionCentralLoginAccess({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      role: data.role,
+      active,
+      tenantId,
+    });
+
+    return this.repo.create(
+      {
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        active,
+        centralUserId,
+      },
+      BigInt(actorId),
+    );
   }
 
   update(id: string, data: UpdateUserDTO, actorId: string) {

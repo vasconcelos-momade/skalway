@@ -32,10 +32,10 @@ export class RolePermissionRepository {
   private roleDescription(role: string): string {
     const descriptions: Record<string, string> = {
       ADMIN: "Acesso total ao sistema",
-      GERENTE: "Gestão operacional e relatórios",
-      FARMACEUTICO: "Dispensação e receitas",
-      DIRETOR_TECNICO: "Supervisão técnica e aprovações",
-      CAIXA: "Operações de caixa e POS",
+      GERENTE: "Acesso total ao sistema",
+      FARMACEUTICO: "Dashboard farmácia, terminal e farmácia",
+      DIRETOR_TECNICO: "Acesso total ao sistema",
+      CAIXA: "Dashboard do caixa, terminal e financeiro",
     };
     return descriptions[role] ?? role;
   }

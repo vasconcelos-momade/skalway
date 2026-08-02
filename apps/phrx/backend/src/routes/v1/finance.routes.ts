@@ -14,7 +14,7 @@ export function registerFinanceRoutes(router: Router, prefix: string): void {
   const readAuth = [
     tenantAuthMiddleware(),
     tenantBranchContextMiddleware(),
-    requirePermission("RELATORIOS", "VIEW"),
+    requirePermission("CAIXA", "VIEW"),
   ] as const;
 
   const writeAuth = [

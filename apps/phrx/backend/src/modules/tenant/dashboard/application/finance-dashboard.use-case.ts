@@ -17,12 +17,15 @@ import { FinancialMetricsService } from "../../finance/application/services/fina
 import { ListContasPagarUseCase } from "./list-contas-pagar.use-case";
 import { ListContasReceberUseCase } from "./list-contas-receber.use-case";
 import { ListFinancialMovementsUseCase } from "./list-financial-movements.use-case";
+import type { DataScope } from "../../shared/data-scope";
+import { userScopeWhere } from "../../shared/data-scope";
 
 type PeriodParams = {
   days?: number;
   period?: string;
   from?: string;
   to?: string;
+  scope?: DataScope;
 };
 type FinanceTableParams = PeriodParams & {
   table:
@@ -52,7 +55,12 @@ export class FinanceDashboardUseCase {
     const now = new Date();
     const chartFrom = resolved.from;
     const periodEnd = resolved.to;
-    const metricsRange = { from: chartFrom, to: periodEnd };
+    const metricsRange = {
+      from: chartFrom,
+      to: periodEnd,
+      userId: params.scope?.filterUserId ?? null,
+    };
+    const scopeFilter = params.scope ? userScopeWhere(params.scope) : {};
     const [
       dreMetrics,
       cashFlowMetrics,
@@ -71,7 +79,13 @@ export class FinanceDashboardUseCase {
     ] = await Promise.all([
       metricsService.calculateDreMetrics(metricsRange),
       metricsService.calculateCashFlow(metricsRange),
-      metricsService.getDailyDreFlow(chartFrom, periodEnd, days),
+      metricsService.getDailyDreFlow(
+        chartFrom,
+        periodEnd,
+        days,
+        undefined,
+        params.scope?.filterUserId,
+      ),
       metricsService.getMonthlyDreFlow(periodEnd, 6),
       prisma.contaReceber.aggregate({
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
@@ -88,7 +102,7 @@ export class FinanceDashboardUseCase {
         where: { status: { in: ["ABERTA", "PARCIAL"] } },
       }),
       prisma.pagamento.findMany({
-        where: { deletedAt: null },
+        where: { deletedAt: null, ...scopeFilter },
         orderBy: { createdAt: "desc" },
         take: 10,
         select: {
@@ -104,6 +118,7 @@ export class FinanceDashboardUseCase {
         where: {
           deletedAt: null,
           type: { in: ["SALE", "DEBT_PAYMENT"] },
+          ...scopeFilter,
         },
         orderBy: { createdAt: "desc" },
         take: 10,
@@ -119,6 +134,7 @@ export class FinanceDashboardUseCase {
         where: {
           deletedAt: null,
           type: { in: ["EXPENSE", "PURCHASE", "REFUND"] },
+          ...scopeFilter,
         },
         orderBy: { createdAt: "desc" },
         take: 10,
@@ -149,6 +165,7 @@ export class FinanceDashboardUseCase {
         by: ["tipoPagamento"],
         where: {
           ...FATURA_VENDA_WHERE,
+          ...scopeFilter,
           createdAt: { gte: chartFrom, lte: periodEnd },
         },
         _sum: { total: true },
@@ -160,6 +177,7 @@ export class FinanceDashboardUseCase {
         where: {
           deletedAt: null,
           tipo: "DESPESA_OPERACIONAL",
+          ...scopeFilter,
           createdAt: { gte: chartFrom, lte: periodEnd },
         },
         _sum: { valor: true },

@@ -55,7 +55,8 @@ class EnterpriseMobileToolbar extends StatelessWidget {
     return ColoredBox(
       color: t.bgPrimary,
       child: Container(
-        padding: EdgeInsets.fromLTRB(s.md, s.sm, s.md, s.sm),
+        // Sem padding horizontal — o shell já aplica s.md em mobile.
+        padding: EdgeInsets.symmetric(vertical: s.sm),
         decoration: BoxDecoration(
           color: t.bgPrimary,
           border: Border(bottom: BorderSide(color: t.border.withValues(alpha: 0.35))),

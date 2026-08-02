@@ -7,12 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
+import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/dialogs/enterprise_dialog.dart';
 import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_search_bar.dart';
 import '../../../../../shared/widgets/tables/enterprise_pagination.dart';
-import '../../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../pharmacy/products/presentation/widgets/produto_categoria_filter_dropdown.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
 import '../../../../pharmacy/products/presentation/providers/product_provider.dart';
@@ -500,21 +500,25 @@ class _PdvPageState extends ConsumerState<PdvPage>
       if (prev?.page != next.page ||
           prev?.query != next.query ||
           prev?.categoriaId != next.categoriaId) {
-        if (next.page == 1) {
-          _accumulatedProducts = List.of(next.items);
-        } else {
-          final newItems = next.items
-              .where((e) => !_accumulatedProducts.any((a) => a.id == e.id))
-              .toList();
-          _accumulatedProducts.addAll(newItems);
-        }
+        setState(() {
+          if (next.page == 1) {
+            _accumulatedProducts = List.of(next.items);
+          } else {
+            final newItems = next.items
+                .where((e) => !_accumulatedProducts.any((a) => a.id == e.id))
+                .toList();
+            _accumulatedProducts = [..._accumulatedProducts, ...newItems];
+          }
+        });
       } else if (prev?.items != next.items && next.page == 1) {
-        _accumulatedProducts = List.of(next.items);
+        setState(() => _accumulatedProducts = List.of(next.items));
       }
     });
 
     final displayProducts = isMobile
-        ? (_accumulatedProducts.isEmpty ? productState.items : _accumulatedProducts)
+        ? (_accumulatedProducts.isNotEmpty
+            ? _accumulatedProducts
+            : productState.items)
         : productState.items;
     final canAddCatalog =
         caixaAberto && !cartState.isMutating && !cartState.isLoading;
@@ -614,30 +618,25 @@ class _PdvPageState extends ConsumerState<PdvPage>
         SizedBox(height: isMobile ? s.sm : s.md),
         LayoutBuilder(
           builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            final availableWidth = constraints.maxWidth.isFinite &&
+                    constraints.maxWidth > 0
                 ? constraints.maxWidth
                 : MediaQuery.sizeOf(context).width;
-            
-            final columns = PharmaScreenLayout.adaptiveCrossAxisCount(
-              availableWidth,
-              280,
-              maxColumns: availableWidth >= 1440 ? 5 : 4,
-            );
-            final fieldWidth = ((availableWidth - (columns - 1) * s.sm) / columns).clamp(220.0, 360.0);
-
-            Widget filterField(Widget child) => SizedBox(
-                  width: isMobile ? double.infinity : fieldWidth,
-                  height: t.controlHeight,
-                  child: child,
-                );
+            final categoryWidth =
+                (availableWidth * 0.28).clamp(180.0, 280.0);
 
             final searchBar = EnterpriseModuleSearchBar(
               controller: _search,
               focusNode: _searchFocusNode,
               autofocus: true,
+              fullWidth: true,
               hintText: _isProductsTab
-                  ? (isMobile ? 'Pesquisar ou escanear...' : 'Pesquisar por código, nome ou EAN')
-                  : (isMobile ? 'Pesquisar serviço...' : 'Pesquisar por nome do serviço'),
+                  ? (isMobile
+                      ? 'Pesquisar ou escanear...'
+                      : 'Pesquisar por código, nome ou EAN')
+                  : (isMobile
+                      ? 'Pesquisar serviço...'
+                      : 'Pesquisar por nome do serviço'),
               enabled: true,
               onSubmitted: (_) => _onSearchSubmitted(
                 products: productState.items,
@@ -647,52 +646,44 @@ class _PdvPageState extends ConsumerState<PdvPage>
               onChanged: _onSearchChanged,
             );
 
+            final categoryFilter = ProdutoCategoriaFilterDropdown(
+              value: productState.categoriaId,
+              width: isMobile ? double.infinity : categoryWidth,
+              enabled: true,
+              compact: true,
+              emptyLabel: 'Todas',
+              onChanged: _onCategoryChanged,
+            );
+
             if (isMobile) {
               return Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  filterField(searchBar),
+                  SizedBox(height: t.controlHeight, child: searchBar),
                   if (_isProductsTab) ...[
                     SizedBox(height: s.sm),
-                    filterField(
-                      ProdutoCategoriaFilterDropdown(
-                        value: productState.categoriaId,
-                        width: double.infinity,
-                        enabled: true,
-                        onChanged: _onCategoryChanged,
-                      ),
-                    ),
+                    SizedBox(height: t.controlHeight, child: categoryFilter),
                   ],
                 ],
               );
             }
 
-            return Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                height: t.controlHeight,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      filterField(searchBar),
-                      if (_isProductsTab) ...[
-                        SizedBox(width: s.sm),
-                        filterField(
-                          ProdutoCategoriaFilterDropdown(
-                            value: productState.categoriaId,
-                            width: null,
-                            enabled: true,
-                            onChanged: _onCategoryChanged,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+            return SizedBox(
+              height: t.controlHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: searchBar),
+                  if (_isProductsTab) ...[
+                    SizedBox(width: s.sm),
+                    SizedBox(
+                      width: categoryWidth,
+                      height: t.controlHeight,
+                      child: categoryFilter,
+                    ),
+                  ],
+                ],
               ),
             );
           },
@@ -716,6 +707,7 @@ class _PdvPageState extends ConsumerState<PdvPage>
                   : PdvProductTable(
                       items: productState.items,
                       query: productState.query,
+                      isLoading: productState.isLoading,
                       canAdd: canAddCatalog,
                       addingProductId: cartState.busyLineId,
                       onAdd: (product) => unawaited(_addProduct(product)),
@@ -977,7 +969,8 @@ class _CartPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.spacing;
-    final pad = compact ? EdgeInsets.all(s.md) : t.density.cardPadding;
+    // Em mobile o ecrã já aplica s.md; sem padding extra para alinhar com a lista de produtos.
+    final pad = compact ? EdgeInsets.zero : t.density.cardPadding;
     return Material(
       color: Colors.transparent,
       child: Padding(
@@ -993,7 +986,10 @@ class _CartPane extends StatelessWidget {
                     )
                   : ListView.separated(
                       itemCount: cart.length,
-                      separatorBuilder: (_, _) => Divider(color: t.border.withValues(alpha: 0.3)),
+                      separatorBuilder: (_, _) => Padding(
+                        padding: EdgeInsets.symmetric(vertical: s.md),
+                        child: const EnterpriseListDivider(),
+                      ),
                       itemBuilder: (context, i) {
                         final line = cart[i];
                         final lineBusy = isLineBusy(line.id);
@@ -1092,8 +1088,11 @@ class _CartPane extends StatelessWidget {
                       },
                     ),
             ),
-            const Divider(),
-            
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: s.md),
+              child: const EnterpriseListDivider(),
+            ),
+
             // Totals Section
             Column(
               children: [

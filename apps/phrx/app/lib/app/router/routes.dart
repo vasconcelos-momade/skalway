@@ -14,6 +14,7 @@ abstract final class AppRoutePaths {
   static const String dashboardPharmacy = '/app/dashboard/pharmacy';
   static const String dashboardFinance = '/app/dashboard/finance';
   static const String dashboardStock = '/app/dashboard/stock';
+  static const String dashboardCashier = '/app/dashboard/cashier';
 
   static const String pharmacyStock = '/app/pharmacy/stock';
   static const String regulatoryHub = '/app/regulatory';
@@ -115,6 +116,7 @@ abstract final class AppRouteTitles {
       AppRoutePaths.dashboardPharmacy => 'Farmácia',
       AppRoutePaths.dashboardFinance => 'Financeiro',
       AppRoutePaths.dashboardStock => 'Stock',
+      AppRoutePaths.dashboardCashier => 'Caixa',
       AppRoutePaths.pos => 'POS / Caixa',
       AppRoutePaths.products => 'Produtos',
       AppRoutePaths.pharmacyCategories => 'Categorias',

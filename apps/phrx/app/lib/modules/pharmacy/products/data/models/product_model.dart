@@ -88,7 +88,7 @@ class ProductModel {
       dataValidade: _readDataValidade(json),
       proximaValidade: _readProximaValidade(json),
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
+          ? DateTime.tryParse(json['createdAt'].toString())
           : null,
       taxRule: _parseTaxRule(json['taxRule'], parent: json),
     );

@@ -39,7 +39,10 @@ export function registerUsersRoutes(router: Router, prefix: string): void {
       tenantBranchContextMiddleware(),
       requirePermission("UTILIZADORES", "CREATE"),
       auditMiddleware,
-      async (context) => controller.create(context.req, getTenantAuth(context).userId),
+      async (context) => {
+        const auth = getTenantAuth(context);
+        return controller.create(context.req, auth.userId, auth.tenantId);
+      },
     );
 
     router.get(

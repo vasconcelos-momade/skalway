@@ -117,7 +117,9 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
               data: Theme.of(context).copyWith(
                 navigationBarTheme: NavigationBarThemeData(
                   height: AppDimensions.topBarCompact,
-                  indicatorColor: context.colors.sidebarActiveBackground,
+                  indicatorColor: context.colors.primary.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.light ? 0.25 : 0.15,
+                  ),
                 ),
               ),
               child: NavigationBar(
