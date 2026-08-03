@@ -1,5 +1,5 @@
 import { GenerateMonthlyBillingService } from "../../modules/central/billing/application/services/generate-monthly-billing.service";
-import { RegisterTenantUseCase } from "../../modules/central/tenants/application/use-cases/register-tenant.use-case";
+import { CreateTenantUseCase } from "../../modules/central/tenants/application/use-cases/create-tenant.use-case";
 import {
   JobQueueService,
   type MonthlyBillingJobPayload,
@@ -35,7 +35,7 @@ function sleep(ms: number) {
 }
 
 async function handleTenantRegisterJob(job: QueueJob<"tenant.register">) {
-  const useCase = new RegisterTenantUseCase();
+  const useCase = new CreateTenantUseCase();
   const payload = job.payload as TenantRegisterJobPayload;
   const result = await useCase.execute(payload);
   console.log("[worker] tenant.register concluido:", {

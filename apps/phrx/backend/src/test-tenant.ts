@@ -1,5 +1,5 @@
 import { prismaCentral } from "./infrastructure/prisma/prisma-central.service";
-import { RegisterTenantUseCase } from "./modules/central/tenants/application/use-cases/register-tenant.use-case";
+import { CreateTenantUseCase } from "./modules/central/tenants/application/use-cases/create-tenant.use-case";
 import bcrypt from "bcryptjs";
 
 async function test() {
@@ -24,10 +24,10 @@ async function test() {
     }
 
     // 2. Instanciar o Use Case
-    const registerTenant = new RegisterTenantUseCase();
+    const createTenant = new CreateTenantUseCase();
 
-    // 3. Tentar registrar um novo tenant
-    const result = await registerTenant.execute({
+    // 3. Tentar criar um novo tenant
+    const result = await createTenant.execute({
       nomeEmpresa: "Farmácia Central de Maputo",
       nomeTenant: "farmacia_maputo",
       adminName: "Gerente Farmácia",

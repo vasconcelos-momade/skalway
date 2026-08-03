@@ -90,12 +90,14 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
   @override
   bool build() => false;
 
-  Future<void> registerTenant(RegisterTenantPayload payload) async {
+  Future<RegisterTenantResult> registerTenant(RegisterTenantPayload payload) async {
     state = true;
     try {
-      await ref.read(platformAdminDataSourceProvider).registerTenant(payload);
+      final result =
+          await ref.read(platformAdminDataSourceProvider).registerTenant(payload);
       ref.invalidate(platformTenantsProvider);
       ref.invalidate(platformDashboardProvider);
+      return result;
     } finally {
       state = false;
     }

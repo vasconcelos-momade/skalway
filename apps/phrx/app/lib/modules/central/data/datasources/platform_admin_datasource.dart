@@ -133,25 +133,34 @@ class PlatformAdminDataSource {
   }
 
   Future<RegisterTenantResult> registerTenant(RegisterTenantPayload payload) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      ApiConstants.centralTenants,
-      data: payload.toJson(),
-    );
-    final data = response.data;
-    if (data == null) {
-      throw const ApiFailure('Resposta inválida.');
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.centralTenants,
+        data: payload.toJson(),
+        options: Options(
+          // Provisionamento: BD + migrations + seed estrutural pode demorar vários minutos.
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      final body = ApiEnvelope.unwrapMap(data);
+      final branch = body['branch'];
+      return RegisterTenantResult(
+        id: '${body['id']}',
+        companyName: body['companyName'] as String? ?? payload.nomeEmpresa,
+        tenantName: body['name'] as String? ?? payload.nomeTenant,
+        branchCode: branch is Map ? branch['code'] as String? : null,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
     }
-    if (data['success'] == false) {
-      throw ApiFailure(_errorMessage(data));
-    }
-    final body = ApiEnvelope.unwrapMap(data);
-    final branch = body['branch'];
-    return RegisterTenantResult(
-      id: '${body['id']}',
-      companyName: body['companyName'] as String? ?? payload.nomeEmpresa,
-      tenantName: body['name'] as String? ?? payload.nomeTenant,
-      branchCode: branch is Map ? branch['code'] as String? : null,
-    );
   }
 
   Future<void> confirmPayment({
@@ -233,6 +242,9 @@ class PlatformAdminDataSource {
       final msg = err['message'];
       if (msg is String && msg.isNotEmpty) return msg;
     }
+    if (err is String && err.isNotEmpty) return err;
+    final message = data['message'];
+    if (message is String && message.isNotEmpty) return message;
     return 'Erro na API central.';
   }
 

@@ -224,7 +224,7 @@ export class CreateBranchUseCase {
 
       await MySqlManagementService.createDatabase(dbName);
       MySqlManagementService.runMigrations(dbName);
-      MySqlManagementService.runRolePermissionsSeed(dbName);
+      MySqlManagementService.runStructuralSeed(dbName);
 
       const result = await prisma.$transaction(async (tx: any) => {
         const createdBranch = await tx.branch.create({

@@ -44,15 +44,13 @@ docker compose -f "$COMPOSE_FILE" up -d --build --force-recreate phrx-backend ph
 echo "==> Aguardando backend ..."
 sleep 8
 
-echo "==> Seed central (planos + superadmin) ..."
-docker exec phrx_backend bun prisma/seed.ts
+echo "==> Bootstrap Central (migrations + seeders + SUPER_ADMIN) ..."
+docker exec phrx_backend bun run bootstrap:central
 
 echo ""
 echo "==> Pronto. Teste criação de tenant:"
-echo "    bash scripts/test-tenant-creation.sh SKIP_SEEDS=1"
+echo "    bash scripts/create-tenant-and-seed.sh"
+echo "    # ou pela UI após login SUPER_ADMIN (admin@skalway.com / admin123)"
 echo ""
-echo "    ou manualmente (TS=\$(date +%s)):"
-echo "TS=\$(date +%s)"
-echo "curl -s -i -X POST \"http://localhost:4001/api/v1/central/tenants\" \\"
-echo "  -H \"Content-Type: application/json\" \\"
-echo "  -d \"{\\\"nomeEmpresa\\\":\\\"Farmacia \\\$TS\\\",\\\"nomeTenant\\\":\\\"farmacia_\\\$TS\\\",\\\"adminName\\\":\\\"Admin\\\",\\\"adminEmail\\\":\\\"admin.\\\$TS@demo.com\\\",\\\"adminPassword\\\":\\\"123456\\\",\\\"ownerUser\\\":{\\\"name\\\":\\\"Dono\\\",\\\"email\\\":\\\"dono.\\\$TS@demo.com\\\",\\\"password\\\":\\\"123456\\\",\\\"role\\\":\\\"admin\\\"}}\""
+echo "    Dados de demo (opcional, após criar tenant):"
+echo "    docker exec phrx_backend bun run seed:demo tenant_<slug>"

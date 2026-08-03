@@ -23,11 +23,17 @@ class EnterpriseSidebar extends StatelessWidget {
     required this.location,
     required this.sections,
     required this.onLogout,
+    this.brandTitle,
+    this.brandSubtitle,
+    this.searchHint,
   });
 
   final String location;
   final List<AppNavSection> sections;
   final VoidCallback onLogout;
+  final String? brandTitle;
+  final String? brandSubtitle;
+  final String? searchHint;
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +57,15 @@ class EnterpriseSidebar extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const EnterpriseNavBrand(),
+              EnterpriseNavBrand(
+                title: brandTitle,
+                subtitle: brandSubtitle,
+              ),
               Expanded(
                 child: EnterpriseNavMenu(
                   location: location,
                   sections: sections,
+                  searchHint: searchHint,
                   onSelect: (path) => context.go(path),
                 ),
               ),
@@ -68,16 +78,24 @@ class EnterpriseSidebar extends StatelessWidget {
   }
 }
 
-/// Marca minimalista (logo + nome).
+/// Marca minimalista (logo + nome + subtítulo opcional).
 class EnterpriseNavBrand extends StatelessWidget {
-  const EnterpriseNavBrand({super.key, this.trailing});
+  const EnterpriseNavBrand({
+    super.key,
+    this.trailing,
+    this.title,
+    this.subtitle,
+  });
 
   final Widget? trailing;
+  final String? title;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final brand = title ?? 'PhRx';
 
     return Padding(
       padding: EdgeInsets.fromLTRB(s.md, s.md, s.md, s.md),
@@ -94,15 +112,30 @@ class EnterpriseNavBrand extends StatelessWidget {
           ),
           SizedBox(width: s.sm),
           Expanded(
-            child: Text(
-              'PhRx',
-              style: Theme.of(context).textTheme.erpAppName.copyWith(
-                    color: t.textPrimary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  brand,
+                  style: Theme.of(context).textTheme.erpAppName.copyWith(
+                        color: t.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitle != null && subtitle!.trim().isNotEmpty)
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.erpCaption.copyWith(
+                          color: t.textSecondary,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              ],
             ),
           ),
           ?trailing,
@@ -133,7 +166,6 @@ class EnterpriseNavLogout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.pharmaTokens;
-    final colors = context.colors;
     final s = context.spacing;
     final theme = Theme.of(context);
     final user = ref.watch(authSessionProvider.select((auth) => auth.session?.user));
@@ -159,6 +191,37 @@ class EnterpriseNavLogout extends ConsumerWidget {
             ),
             menuChildren: [
               MenuItemButton(
+                onPressed: () {},
+                leadingIcon: Icon(
+                  Icons.person_rounded,
+                  color: t.textSecondary,
+                  size: DesignMetrics.iconSm,
+                ),
+                child: Text(
+                  'Perfil',
+                  style: theme.textTheme.erpMenuItem.copyWith(
+                    color: t.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              MenuItemButton(
+                onPressed: () {},
+                leadingIcon: Icon(
+                  Icons.tune_rounded,
+                  color: t.textSecondary,
+                  size: DesignMetrics.iconSm,
+                ),
+                child: Text(
+                  'Preferências',
+                  style: theme.textTheme.erpMenuItem.copyWith(
+                    color: t.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              MenuItemButton(
                 onPressed: onLogout,
                 leadingIcon: Icon(
                   Icons.logout_rounded,
@@ -166,7 +229,7 @@ class EnterpriseNavLogout extends ConsumerWidget {
                   size: DesignMetrics.iconSm,
                 ),
                 child: Text(
-                  'Encerrar sessão',
+                  'Sair',
                   style: theme.textTheme.erpMenuItem.copyWith(
                     color: t.posDanger,
                     fontWeight: FontWeight.w500,
@@ -257,12 +320,14 @@ class EnterpriseNavMenu extends ConsumerStatefulWidget {
     required this.sections,
     required this.onSelect,
     this.showSearch = true,
+    this.searchHint,
   });
 
   final String location;
   final List<AppNavSection> sections;
   final ValueChanged<String> onSelect;
   final bool showSearch;
+  final String? searchHint;
 
   @override
   ConsumerState<EnterpriseNavMenu> createState() => _EnterpriseNavMenuState();
@@ -296,17 +361,27 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
 
   void _updateActiveGroup() {
     if (widget.sections.isEmpty) return;
-    
-    final activeGroup = widget.sections.firstWhere(
-      (group) => group.items.any((item) => item.path == widget.location),
-      orElse: () => widget.sections.first,
-    ).title;
-    
+
+    final activeGroup = widget.sections
+        .firstWhere(
+          (group) => group.items.any(
+            (item) => _pathMatches(widget.location, item.path),
+          ),
+          orElse: () => widget.sections.first,
+        )
+        .title;
+
     Future.microtask(() {
       if (mounted) {
         ref.read(navGroupsExpandedProvider.notifier).updateActiveGroup(activeGroup);
       }
     });
+  }
+
+  bool _pathMatches(String location, String itemPath) {
+    if (location == itemPath) return true;
+    if (itemPath != '/' && location.startsWith('$itemPath/')) return true;
+    return false;
   }
 
   @override
@@ -361,7 +436,10 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
         if (widget.showSearch)
           Padding(
             padding: EdgeInsets.fromLTRB(s.md, 0, s.md, s.md),
-            child: _NavSearchField(controller: _searchController),
+            child: _NavSearchField(
+              controller: _searchController,
+              hintText: widget.searchHint ?? 'Pesquisar...',
+            ),
           ),
         SizedBox(height: s.sm),
         Expanded(
@@ -390,11 +468,27 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
                 }
 
                 final group = sections[index];
+                final isSingle = group.items.length == 1;
+                final single = isSingle ? group.items.first : null;
+                final groupActive = group.items.any(
+                  (item) => _pathMatches(widget.location, item.path),
+                );
+
+                // Secção com um único destino: tile directo (ex.: Dashboard).
+                if (isSingle && single != null) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: s.md),
+                    child: _NavPrimaryTile(
+                      label: group.title,
+                      icon: group.resolvedIcon,
+                      active: groupActive,
+                      onTap: () => widget.onSelect(single.path),
+                    ),
+                  );
+                }
+
                 final isExpanded =
                     searching || expandedGroups.contains(group.title);
-                final groupActive = group.items.any(
-                  (item) => item.path == widget.location,
-                );
 
                 return Padding(
                   padding: EdgeInsets.only(bottom: s.md),
@@ -412,7 +506,7 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
                       for (final item in group.items)
                         _NavLeafTile(
                           label: item.label,
-                          active: widget.location == item.path,
+                          active: _pathMatches(widget.location, item.path),
                           onTap: () => widget.onSelect(item.path),
                         ),
                     ],
@@ -428,9 +522,13 @@ class _EnterpriseNavMenuState extends ConsumerState<EnterpriseNavMenu> {
 }
 
 class _NavSearchField extends StatelessWidget {
-  const _NavSearchField({required this.controller});
+  const _NavSearchField({
+    required this.controller,
+    this.hintText = 'Pesquisar...',
+  });
 
   final TextEditingController controller;
+  final String hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -446,7 +544,7 @@ class _NavSearchField extends StatelessWidget {
         style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
         decoration: InputDecoration(
           isDense: true,
-          hintText: 'Pesquisar...',
+          hintText: hintText,
           hintStyle: theme.textTheme.erpBody.copyWith(color: t.textMuted),
           prefixIcon: Icon(
             Icons.search_rounded,
@@ -470,7 +568,68 @@ class _NavSearchField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide(color: colors.sidebarActiveIndicator),
+            borderSide: BorderSide(color: colors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavPrimaryTile extends StatelessWidget {
+  const _NavPrimaryTile({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.pharmaTokens;
+    final colors = context.colors;
+    final s = context.spacing;
+    final primary = colors.primary;
+
+    return _NavHoverTile(
+      onTap: onTap,
+      selected: active,
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        child: Container(
+          height: t.compactControlHeight,
+          decoration: BoxDecoration(
+            color: active ? primary.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(t.radiusMd),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: s.sm),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: DesignMetrics.iconSm,
+                color: active ? primary : t.textSecondary,
+              ),
+              SizedBox(width: s.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.erpMenuItem.copyWith(
+                        color: active ? primary : t.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -609,6 +768,7 @@ class _NavLeafTile extends StatelessWidget {
     final t = context.pharmaTokens;
     final colors = context.colors;
     final s = context.spacing;
+    final primary = colors.primary;
 
     return Padding(
       padding: EdgeInsets.only(bottom: s.xs),
@@ -621,43 +781,21 @@ class _NavLeafTile extends StatelessWidget {
           label: label,
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(t.radiusSm),
-                bottomRight: Radius.circular(t.radiusSm),
-              ),
-              color: active ? colors.sidebarActiveBackground : Colors.transparent,
+              borderRadius: BorderRadius.circular(t.radiusMd),
+              color: active ? primary.withValues(alpha: 0.12) : Colors.transparent,
             ),
             padding: EdgeInsets.symmetric(
               horizontal: s.sm,
               vertical: s.sm,
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: BorderTokens.indicator,
-                  height: SpacingTokens.lg,
-                  decoration: BoxDecoration(
-                    color: active
-                        ? colors.sidebarActiveIndicator
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(t.radiusSm),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.erpMenuItem.copyWith(
+                    color: active ? primary : t.textSecondary,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                   ),
-                ),
-                SizedBox(width: s.sm),
-                Expanded(
-                  child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.erpMenuItem.copyWith(
-                            color: active ? t.textPrimary : t.textSecondary,
-                            fontWeight: active
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                          ),
-                    ),
-                ),
-              ],
             ),
           ),
         ),

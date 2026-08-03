@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Teste fim-a-fim: criar tenant, validar MySQL, login e (opcional) seeds.
-# Uso (raiz do repo): bash scripts/test-tenant-creation.sh
-# Variáveis: SKIP_SEEDS=1 para omitir importação ANARME (~25 min em pasta partilhada VB).
+# Teste fim-a-fim: criar tenant (CreateTenantUseCase já aplica seeders estruturais), validar login.
+# Uso (raiz apps/phrx): bash scripts/test-tenant-creation.sh
+# Variáveis: RUN_DEMO_SEED=1 para carregar dados de demonstração (~25 min).
 
 set -euo pipefail
 
@@ -21,7 +21,11 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-phrx_backend}"
 MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password}"
 MYSQL_USER="${MYSQL_USER:-admin}"
 MYSQL_PASSWORD="${MYSQL_PASSWORD:-password}"
-SKIP_SEEDS="${SKIP_SEEDS:-0}"
+# Compat: SKIP_SEEDS=1 (legado) e RUN_DEMO_SEED=1 (novo)
+RUN_DEMO_SEED="${RUN_DEMO_SEED:-0}"
+if [[ "${SKIP_SEEDS:-1}" == "0" ]]; then
+  RUN_DEMO_SEED=1
+fi
 
 TS=$(date +%s)
 TENANT_SLUG="farmacia_${TS}"
@@ -32,7 +36,7 @@ OWNER_PASSWORD="123456"
 echo "==> 1. Health"
 curl -sf "${BASE_URL}/health" | grep -q '"status":"ok"' && echo "    OK" || { echo "    FALHA"; exit 1; }
 
-echo "==> 2. Criar tenant (POST /central/tenants)"
+echo "==> 2. Criar tenant (POST /central/tenants) — estrutural via CreateTenantUseCase"
 RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
   -d "{
@@ -99,16 +103,15 @@ HTTP_PROD=$(curl -s -o /tmp/produtos.json -w "%{http_code}" "${BASE_URL}/tenant/
 [[ "$HTTP_PROD" == "200" ]] || { echo "    HTTP ${HTTP_PROD}"; exit 1; }
 echo "    HTTP 200 ($(wc -c < /tmp/produtos.json) bytes)"
 
-if [[ "$SKIP_SEEDS" == "1" ]]; then
-  echo "==> 6. Seeds omitidos (SKIP_SEEDS=1)"
-else
-  echo "==> 6. Seeds (medicamentos + serviços) — pode demorar vários minutos"
+if [[ "$RUN_DEMO_SEED" == "1" ]]; then
+  echo "==> 6. Seed demo (medicamentos, serviços, terminais, estoque) — pode demorar vários minutos"
   DB_URL="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@phrx-db:3306/${DB_NAME}"
-  docker exec -e DATABASE_URL_TENANT="${DB_URL}" "$BACKEND_CONTAINER" bun prisma/seed-medicamentos.ts
-  docker exec -e DATABASE_URL_TENANT="${DB_URL}" "$BACKEND_CONTAINER" bun prisma/seed-servicos.ts
+  docker exec -e DATABASE_URL_TENANT="${DB_URL}" "$BACKEND_CONTAINER" bun run seed:demo "${DB_NAME}"
   COUNT=$(docker exec "$MYSQL_CONTAINER" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -N \
     -e "SELECT COUNT(*) FROM \`${DB_NAME}\`.produtos;" 2>/dev/null)
   echo "    Produtos na base: ${COUNT}"
+else
+  echo "==> 6. Seed demo omitido (RUN_DEMO_SEED=0). Estrutural já aplicado na criação."
 fi
 
 echo ""

@@ -77,16 +77,10 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
     final result = await showRegisterTenantFormDialog(context);
     if (result == null || !context.mounted) return;
 
-    try {
-      await ref
-          .read(platformBillingActionsProvider.notifier)
-          .registerTenant(result.payload);
-      if (!context.mounted) return;
+    // Sucesso: o dialog só fecha após a API concluir.
+    if (result.created != null) {
       PharmaFeedback.success(context, 'Cliente criado com sucesso.');
       ref.read(platformTenantsProvider.notifier).refresh();
-    } catch (e) {
-      if (!context.mounted) return;
-      PharmaFeedback.error(context, 'Falha ao criar cliente: $e');
     }
   }
 }

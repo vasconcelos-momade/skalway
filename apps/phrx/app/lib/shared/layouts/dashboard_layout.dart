@@ -19,6 +19,36 @@ import '../widgets/navigation/sidebar_menu_icon.dart';
 import '../refresh/page_refresh.dart';
 import 'tablet_layout.dart';
 
+/// Destino do bottom navigation configurável (ERP ou Painel Admin).
+class DashboardBottomNavDestination {
+  const DashboardBottomNavDestination({
+    required this.label,
+    required this.path,
+    required this.icon,
+    this.opensMore = false,
+  });
+
+  final String label;
+  final String path;
+  final IconData icon;
+  final bool opensMore;
+}
+
+/// Configuração opcional do bottom nav (substitui o menu ERP por defeito).
+class DashboardBottomNavConfig {
+  const DashboardBottomNavConfig({
+    required this.destinations,
+    this.pathMatches,
+    this.onMore,
+    this.fallbackIndex = 0,
+  });
+
+  final List<DashboardBottomNavDestination> destinations;
+  final bool Function(String location, String itemPath)? pathMatches;
+  final Future<void> Function(BuildContext context)? onMore;
+  final int fallbackIndex;
+}
+
 /// Shell enterprise: sidebar fixo no desktop (≥1280), drawer em tablet/mobile.
 class DashboardLayout extends ConsumerStatefulWidget {
   const DashboardLayout({
@@ -27,12 +57,22 @@ class DashboardLayout extends ConsumerStatefulWidget {
     this.navItemsOverride,
     this.navSectionsOverride,
     this.appTitle = 'Pharma ERP',
+    this.brandTitle,
+    this.brandSubtitle,
+    this.searchHint,
+    this.sectionTitleResolver,
+    this.bottomNav,
   });
 
   final Widget child;
   final List<AppNavItem>? navItemsOverride;
   final List<AppNavSection>? navSectionsOverride;
   final String appTitle;
+  final String? brandTitle;
+  final String? brandSubtitle;
+  final String? searchHint;
+  final String? Function(String path)? sectionTitleResolver;
+  final DashboardBottomNavConfig? bottomNav;
 
   @override
   ConsumerState<DashboardLayout> createState() => _DashboardLayoutState();
@@ -81,6 +121,9 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
           : _DrawerNav(
               location: location,
               sections: sections,
+              brandTitle: widget.brandTitle,
+              brandSubtitle: widget.brandSubtitle,
+              searchHint: widget.searchHint,
               onSelect: (path) {
                 context.go(path);
                 Navigator.of(context).pop();
@@ -93,6 +136,9 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
             EnterpriseSidebar(
               location: location,
               sections: sections,
+              brandTitle: widget.brandTitle,
+              brandSubtitle: widget.brandSubtitle,
+              searchHint: widget.searchHint,
               onLogout: () => _logout(context),
             ),
           Expanded(
@@ -102,6 +148,8 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                   isDesktop: isDesktop,
                   isMobile: isMobile,
                   location: location,
+                  brandLabel: widget.brandTitle ?? 'PhRx',
+                  sectionTitleResolver: widget.sectionTitleResolver,
                   onOpenDrawer: () => _shellKey.currentState?.openDrawer(),
                 ),
                 Expanded(
@@ -112,91 +160,124 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
           ),
         ],
       ),
-      bottomNavigationBar: isMobile
-          ? Theme(
-              data: Theme.of(context).copyWith(
-                navigationBarTheme: NavigationBarThemeData(
-                  height: AppDimensions.topBarCompact,
-                  indicatorColor: context.colors.primary.withValues(
-                    alpha: Theme.of(context).brightness == Brightness.light ? 0.25 : 0.15,
-                  ),
-                ),
-              ),
-              child: NavigationBar(
-                height: AppDimensions.topBarCompact,
-                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-                selectedIndex: _bottomNavIndex(location),
-                onDestinationSelected: (i) {
-                  if (i == 4) {
-                    _shellKey.currentState?.openDrawer();
-                    return;
-                  }
-                  switch (i) {
-                    case 0:
-                      context.go(AppRoutePaths.dashboard);
-                      break;
-                    case 1:
-                      context.go(AppRoutePaths.pos);
-                      break;
-                    case 2:
-                      context.go(AppRoutePaths.products);
-                      break;
-                    case 3:
-                      context.go(AppRoutePaths.financeCashflow);
-                      break;
-                  }
-                },
-                destinations: [
-                  NavigationDestination(
-                    tooltip: 'Painel',
-                    icon: Icon(
-                      Icons.dashboard_outlined,
-                      color: t.textSecondary,
-                    ),
-                    selectedIcon: Icon(Icons.dashboard, color: t.textPrimary),
-                    label: '',
-                  ),
-                  NavigationDestination(
-                    tooltip: 'PDV',
-                    icon: Icon(
-                      Icons.point_of_sale_outlined,
-                      color: t.textSecondary,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.point_of_sale,
-                      color: t.textPrimary,
-                    ),
-                    label: '',
-                  ),
-                  NavigationDestination(
-                    tooltip: 'Produtos',
-                    icon: Icon(
-                      Icons.medication_outlined,
-                      color: t.textSecondary,
-                    ),
-                    selectedIcon: Icon(Icons.medication, color: t.textPrimary),
-                    label: '',
-                  ),
-                  NavigationDestination(
-                    tooltip: 'Finanças',
-                    icon: Icon(Icons.payments_outlined, color: t.textSecondary),
-                    selectedIcon: Icon(Icons.payments, color: t.textPrimary),
-                    label: '',
-                  ),
-                  NavigationDestination(
-                    tooltip: 'Menu',
-                    icon: SidebarMenuIcon(color: t.textSecondary),
-                    selectedIcon: SidebarMenuIcon(color: t.textPrimary),
-                    label: '',
-                  ),
-                ],
-              ),
-            )
-          : null,
+      bottomNavigationBar: isMobile ? _buildBottomNav(context, location, t) : null,
     );
   }
 
-  int _bottomNavIndex(String path) {
+  Widget _buildBottomNav(
+    BuildContext context,
+    String location,
+    PharmaTokens t,
+  ) {
+    final config = widget.bottomNav;
+    final selectedIndex = config != null
+        ? _configuredBottomNavIndex(location, config)
+        : _erpBottomNavIndex(location);
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        navigationBarTheme: NavigationBarThemeData(
+          height: AppDimensions.topBarCompact,
+          indicatorColor: context.colors.primary.withValues(
+            alpha: Theme.of(context).brightness == Brightness.light ? 0.25 : 0.15,
+          ),
+        ),
+      ),
+      child: NavigationBar(
+        height: AppDimensions.topBarCompact,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) {
+          if (config != null) {
+            final dest = config.destinations[i];
+            if (dest.opensMore) {
+              final onMore = config.onMore;
+              if (onMore != null) {
+                onMore(context);
+              } else {
+                _shellKey.currentState?.openDrawer();
+              }
+              return;
+            }
+            context.go(dest.path);
+            return;
+          }
+          if (i == 4) {
+            _shellKey.currentState?.openDrawer();
+            return;
+          }
+          switch (i) {
+            case 0:
+              context.go(AppRoutePaths.dashboard);
+              break;
+            case 1:
+              context.go(AppRoutePaths.pos);
+              break;
+            case 2:
+              context.go(AppRoutePaths.products);
+              break;
+            case 3:
+              context.go(AppRoutePaths.financeCashflow);
+              break;
+          }
+        },
+        destinations: config != null
+            ? [
+                for (final dest in config.destinations)
+                  NavigationDestination(
+                    tooltip: dest.label,
+                    icon: Icon(dest.icon, color: t.textSecondary),
+                    selectedIcon: Icon(dest.icon, color: t.textPrimary),
+                    label: '',
+                  ),
+              ]
+            : [
+                NavigationDestination(
+                  tooltip: 'Painel',
+                  icon: Icon(Icons.dashboard_outlined, color: t.textSecondary),
+                  selectedIcon: Icon(Icons.dashboard, color: t.textPrimary),
+                  label: '',
+                ),
+                NavigationDestination(
+                  tooltip: 'PDV',
+                  icon: Icon(Icons.point_of_sale_outlined, color: t.textSecondary),
+                  selectedIcon: Icon(Icons.point_of_sale, color: t.textPrimary),
+                  label: '',
+                ),
+                NavigationDestination(
+                  tooltip: 'Produtos',
+                  icon: Icon(Icons.medication_outlined, color: t.textSecondary),
+                  selectedIcon: Icon(Icons.medication, color: t.textPrimary),
+                  label: '',
+                ),
+                NavigationDestination(
+                  tooltip: 'Finanças',
+                  icon: Icon(Icons.payments_outlined, color: t.textSecondary),
+                  selectedIcon: Icon(Icons.payments, color: t.textPrimary),
+                  label: '',
+                ),
+                NavigationDestination(
+                  tooltip: 'Menu',
+                  icon: SidebarMenuIcon(color: t.textSecondary),
+                  selectedIcon: SidebarMenuIcon(color: t.textPrimary),
+                  label: '',
+                ),
+              ],
+      ),
+    );
+  }
+
+  int _configuredBottomNavIndex(String path, DashboardBottomNavConfig config) {
+    final matches = config.pathMatches ?? (loc, item) => loc == item;
+    for (var i = 0; i < config.destinations.length; i++) {
+      final dest = config.destinations[i];
+      if (dest.opensMore) continue;
+      if (matches(path, dest.path)) return i;
+    }
+    return config.fallbackIndex.clamp(0, config.destinations.length - 1);
+  }
+
+  int _erpBottomNavIndex(String path) {
     if (path == AppRoutePaths.dashboard || path.startsWith('/dashboard')) {
       return 0;
     }
@@ -229,12 +310,16 @@ class _EnterpriseTopBar extends ConsumerWidget {
     required this.isMobile,
     required this.location,
     required this.onOpenDrawer,
+    this.brandLabel = 'PhRx',
+    this.sectionTitleResolver,
   });
 
   final bool isDesktop;
   final bool isMobile;
   final String location;
   final VoidCallback onOpenDrawer;
+  final String brandLabel;
+  final String? Function(String path)? sectionTitleResolver;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -242,8 +327,9 @@ class _EnterpriseTopBar extends ConsumerWidget {
     final s = context.spacing;
     final theme = Theme.of(context);
     final themeMode = ref.watch(appThemeModeProvider);
-    final section =
-        navSectionTitleForPath(location) ?? AppRouteTitles.sectionFor(location);
+    final section = sectionTitleResolver?.call(location) ??
+        navSectionTitleForPath(location) ??
+        AppRouteTitles.sectionFor(location);
     final compactActions = isMobile || MediaQuery.sizeOf(context).width < 520;
     final pagePadding = PharmaScreenLayout.pagePadding(context);
     final horizontalPadding = EdgeInsets.only(
@@ -289,7 +375,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'PhRx',
+                          brandLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.erpOverline.copyWith(
@@ -310,7 +396,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          'PhRx',
+                          brandLabel,
                           style: theme.textTheme.erpOverline.copyWith(
                             color: t.textMuted,
                           ),
@@ -485,12 +571,18 @@ class _DrawerNav extends StatelessWidget {
     required this.sections,
     required this.onSelect,
     required this.onLogout,
+    this.brandTitle,
+    this.brandSubtitle,
+    this.searchHint,
   });
 
   final String location;
   final List<AppNavSection> sections;
   final ValueChanged<String> onSelect;
   final VoidCallback onLogout;
+  final String? brandTitle;
+  final String? brandSubtitle;
+  final String? searchHint;
 
   @override
   Widget build(BuildContext context) {
@@ -505,6 +597,8 @@ class _DrawerNav extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             EnterpriseNavBrand(
+              title: brandTitle,
+              subtitle: brandSubtitle,
               trailing: IconButton(
                 tooltip: 'Fechar',
                 onPressed: () => Navigator.pop(context),
@@ -515,6 +609,7 @@ class _DrawerNav extends StatelessWidget {
               child: EnterpriseNavMenu(
                 location: location,
                 sections: sections,
+                searchHint: searchHint,
                 onSelect: onSelect,
               ),
             ),

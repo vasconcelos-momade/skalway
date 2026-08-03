@@ -28,11 +28,16 @@ docker compose -f docker-compose.dev.yml up --build
 
 Containers: `phrx_backend`, `phrx_backend_worker`, `phrx_mysql`, `phrx_redis`.
 
-Seed central:
+## Bootstrap Central
 
 ```bash
-docker exec phrx_backend bun prisma/seed.ts
+docker exec phrx_backend bun run bootstrap:central
 ```
+
+Idempotente: migrations + seeders da Central + `SUPER_ADMIN` (só se não existir).  
+Detalhes: [`backend/docs/bootstrap-e-seeders.md`](./backend/docs/bootstrap-e-seeders.md)
+
+Fluxo: **bootstrap Central → login SUPER_ADMIN → criar Tenant (UI)** → `CreateTenantUseCase` aplica BD, migrations e seed estrutural (inclui terminais). Demo (ANARME, etc.) é opcional via `bun run seed:demo <db>`.
 
 ## App
 
@@ -60,7 +65,7 @@ bash scripts/test-pos-owner.sh
 bash scripts/test-stock-entry.sh
 ```
 
-Setup completo (sobe stack + tenant + seeds):
+Setup completo (compose + bootstrap Central + tenant via API + validar login):
 
 ```bash
 bash scripts/setup-dev-environment.sh
@@ -68,6 +73,7 @@ bash scripts/setup-dev-environment.sh
 
 ## Docs detalhadas
 
+- Bootstrap / seeders: [`backend/docs/bootstrap-e-seeders.md`](./backend/docs/bootstrap-e-seeders.md)
 - Ops: [`INFRA.md`](./INFRA.md) · [`../../infra/README.md`](../../infra/README.md)
 - Billing API: [`backend/docs/api-central-billing.md`](./backend/docs/api-central-billing.md)
 - Schema billing: [`backend/docs/schema-central-billing.md`](./backend/docs/schema-central-billing.md)

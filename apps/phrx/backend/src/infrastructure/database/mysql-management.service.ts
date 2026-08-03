@@ -74,21 +74,30 @@ export class MySqlManagementService {
     }
   }
 
-  static runRolePermissionsSeed(dbName: string) {
-    console.log(`🔐 [Seed] Aplicando role_permissions no banco: ${dbName}`);
+  /**
+   * Seeders estruturais apenas (roles, permissões, consumidor final, FNM, impostos).
+   * Não inclui produtos, lotes, movimentações nem dados de demonstração.
+   */
+  static runStructuralSeed(dbName: string) {
+    console.log(`🔐 [Seed] Seeders estruturais no banco: ${dbName}`);
 
     const rootPassword = process.env.MYSQL_ROOT_PASSWORD;
     const dbUrl = `mysql://root:${rootPassword}@phrx-db:3306/${dbName}`;
 
     try {
-      execSync(`bun prisma/seed-role-permissions.ts`, {
+      execSync(`bun prisma/seed-tenant.ts`, {
         stdio: "inherit",
         env: { ...process.env, DATABASE_URL_TENANT: dbUrl },
       });
-      console.log(`✅ [Seed] role_permissions aplicadas em ${dbName}.`);
+      console.log(`✅ [Seed] Seeders estruturais aplicados em ${dbName}.`);
     } catch (error) {
-      console.error(`❌ [Seed] Erro ao semear role_permissions em ${dbName}:`, error);
-      throw new Error(`Falha ao semear permissoes no banco do tenant.`);
+      console.error(`❌ [Seed] Erro ao semear dados estruturais em ${dbName}:`, error);
+      throw new Error(`Falha ao semear dados estruturais no banco do tenant.`);
     }
+  }
+
+  /** @deprecated Preferir runStructuralSeed — mantido para compatibilidade. */
+  static runRolePermissionsSeed(dbName: string) {
+    return this.runStructuralSeed(dbName);
   }
 }

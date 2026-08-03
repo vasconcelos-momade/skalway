@@ -4,25 +4,35 @@ import process from "node:process";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // ----------------------------
-  // USUÁRIO ADMIN
-  // ----------------------------
-  const hashedPassword = await bcrypt.hash("admin123", 10);
-  await prisma.user.upsert({
-    where: { email: "admin@skalway.com" },
-    update: {},
-    create: {
+const SUPER_ADMIN_EMAIL = "admin@skalway.com";
+const SUPER_ADMIN_PASSWORD = "admin123";
+
+async function seedSuperAdmin() {
+  console.log("👤 [central] SUPER_ADMIN...");
+  const existing = await prisma.user.findUnique({
+    where: { email: SUPER_ADMIN_EMAIL },
+  });
+
+  if (existing) {
+    console.log(`   ⏭  SUPER_ADMIN já existe (${SUPER_ADMIN_EMAIL}) — a saltar.`);
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
+  await prisma.user.create({
+    data: {
       name: "Admin SkalWay",
-      email: "admin@skalway.com",
+      email: SUPER_ADMIN_EMAIL,
       password: hashedPassword,
       role: "superadmin",
     },
   });
+  console.log(`   ✅ SUPER_ADMIN criado (${SUPER_ADMIN_EMAIL}).`);
+}
 
-  // ----------------------------
-  // PLANOS (Modelo de Franquias - Preços em MZN)
-  // ----------------------------
+async function seedPlans() {
+  console.log("📦 [central] Planos...");
+
   await prisma.plan.upsert({
     where: { slug: "base" },
     update: {
@@ -44,7 +54,6 @@ async function main() {
     },
   });
 
-  // Alias para compatibilidade ou slug antigo
   await prisma.plan.upsert({
     where: { slug: "starter" },
     update: {
@@ -87,9 +96,12 @@ async function main() {
     },
   });
 
-  // ----------------------------
-  // PERMISSÕES BASE DO SISTEMA
-  // ----------------------------
+  console.log("   ✅ Planos upserted (base, starter, enterprise).");
+}
+
+async function seedPermissions() {
+  console.log("🔑 [central] Permissões base...");
+
   const basePermissions = [
     { code: "TENANT_VIEW", name: "Ver dados da empresa" },
     { code: "TENANT_EDIT", name: "Editar dados da empresa" },
@@ -109,7 +121,6 @@ async function main() {
     { code: "FINANCE_VIEW", name: "Ver relatórios financeiros" },
   ];
 
-  console.log("🔑 Semeando permissões base...");
   for (const p of basePermissions) {
     await prisma.permission.upsert({
       where: { code: p.code },
@@ -117,6 +128,16 @@ async function main() {
       create: p,
     });
   }
+
+  console.log(`   ✅ ${basePermissions.length} permissões upserted.`);
+}
+
+async function main() {
+  console.log("🚀 [central] Iniciando seeders (idempotente)...");
+  await seedSuperAdmin();
+  await seedPlans();
+  await seedPermissions();
+  console.log("🎉 [central] Seeders concluídos.");
 }
 
 main()

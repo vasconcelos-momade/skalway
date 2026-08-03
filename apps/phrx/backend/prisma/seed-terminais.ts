@@ -1,54 +1,43 @@
 import { PrismaClient } from "../src/infrastructure/prisma/tenant/generated/tenant";
 
+/**
+ * Seed estrutural: terminais POS e caixas associados.
+ * Sem produtos, lotes ou movimentos de estoque.
+ */
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log(`🚀 Iniciando seed de terminais e caixas...`);
+  console.log("🚀 [seed-terminais] Terminais e caixas...");
 
-  // 0. Garantir existência do usuário ID 1 para os movimentos
-  await prisma.user.upsert({
-    where: { id: BigInt(1) },
-    update: {},
-    create: {
-      id: BigInt(1),
-      name: "Admin Sistema",
-      email: "admin@farmacia.com",
-      role: "ADMIN",
-      centralUserId: BigInt(1)
-    }
-  });
-
-  // 1. Criar Terminais
   const terminal1 = await prisma.terminal.upsert({
     where: { id: BigInt(1) },
-    update: {},
+    update: { nome: "Terminal 01 - Balcão Principal", codigo: "T01", ativo: true },
     create: {
       id: BigInt(1),
       nome: "Terminal 01 - Balcão Principal",
       codigo: "T01",
-      ativo: true
-    }
+      ativo: true,
+    },
   });
 
   const terminal2 = await prisma.terminal.upsert({
     where: { id: BigInt(2) },
-    update: {},
+    update: { nome: "Terminal 02 - Balcão Secundário", codigo: "T02", ativo: true },
     create: {
       id: BigInt(2),
       nome: "Terminal 02 - Balcão Secundário",
       codigo: "T02",
-      ativo: true
-    }
+      ativo: true,
+    },
   });
 
-  // 2. Criar Caixas vinculados aos Terminais
   await (prisma as any).caixa.upsert({
     where: { terminalId: terminal1.id },
     update: {},
     create: {
       terminalId: terminal1.id,
-      saldoAtual: 0
-    }
+      saldoAtual: 0,
+    },
   });
 
   await (prisma as any).caixa.upsert({
@@ -56,36 +45,11 @@ async function main() {
     update: {},
     create: {
       terminalId: terminal2.id,
-      saldoAtual: 0
-    }
+      saldoAtual: 0,
+    },
   });
 
-  // 3. Obter o primeiro produto para criar o lote de teste
-  const firstProduto = await prisma.produto.findFirst();
-
-  if (!firstProduto) {
-    console.warn("⚠️ Nenhum produto encontrado. O seed de medicamentos já rodou?");
-  } else {
-    console.log(`📦 Criando lote para o produto: ${firstProduto.nome} (ID: ${firstProduto.id})`);
-    
-    await prisma.lote.upsert({
-      where: { id: BigInt(1) },
-      update: {
-        ativo: true
-      },
-      create: {
-        id: BigInt(1),
-        produtoId: firstProduto.id,
-        numeroLote: "TEST-BATCH-001",
-        dataValidade: new Date("2028-12-31"),
-        quantidadeInicial: 100,
-        precoCompra: 50,
-        ativo: true
-      }
-    });
-  }
-
-  console.log("✅ Seed de terminais, caixas e lote de teste concluído!");
+  console.log("✅ [seed-terminais] Terminais T01/T02 e caixas prontos.");
 }
 
 main()

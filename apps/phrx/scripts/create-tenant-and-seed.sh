@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Cria tenant + seed central + seed completo do tenant + testa login.
+# Bootstrap Central → criar Tenant via API → validar login.
 # Pré-requisito: containers já a correr (docker compose -f docker-compose.dev.yml up -d).
+# Não corre seed de demonstração (usar seed:demo manualmente se necessário).
 # Uso (raiz apps/phrx): bash scripts/create-tenant-and-seed.sh
 
 set -euo pipefail
@@ -18,9 +19,8 @@ cd "$ROOT"
 BASE_URL="${BASE_URL:-http://localhost:4001/api/v1}"
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-phrx_mysql}"
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-phrx_backend}"
-MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password}"
-MYSQL_USER="${MYSQL_USER:-admin}"
-MYSQL_PASSWORD="${MYSQL_PASSWORD:-password}"
+SUPER_ADMIN_EMAIL="${SUPER_ADMIN_EMAIL:-admin@skalway.com}"
+SUPER_ADMIN_PASSWORD="${SUPER_ADMIN_PASSWORD:-admin123}"
 
 wait_for_health() {
   local attempts=0
@@ -39,8 +39,8 @@ wait_for_health() {
 
 wait_for_health
 
-echo "==> 1. Seed central (planos + superadmin)"
-docker exec "$BACKEND_CONTAINER" bun prisma/seed.ts
+echo "==> 1. Bootstrap Central (migrations + seeders + SUPER_ADMIN)"
+docker exec "$BACKEND_CONTAINER" bun run bootstrap:central
 
 TS=$(date +%s)
 TENANT_SLUG="farmacia_${TS}"
@@ -48,9 +48,24 @@ DB_NAME="tenant_${TENANT_SLUG}"
 OWNER_EMAIL="dono.${TS}@demo.com"
 OWNER_PASSWORD="123456"
 
-echo "==> 2. Criar tenant (POST /central/tenants) — base: ${DB_NAME}"
+echo "==> 2. Validar login SUPER_ADMIN"
+SUPER_LOGIN=$(curl -s -X POST "${BASE_URL}/central/auth/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\": \"${SUPER_ADMIN_EMAIL}\", \"password\": \"${SUPER_ADMIN_PASSWORD}\"}")
+
+if command -v jq >/dev/null 2>&1; then
+  SUPER_TOKEN=$(echo "$SUPER_LOGIN" | jq -r '.data.token // .token // empty')
+else
+  SUPER_TOKEN=$(echo "$SUPER_LOGIN" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+fi
+
+[[ -n "$SUPER_TOKEN" ]] || { echo "    Login SUPER_ADMIN falhou: $SUPER_LOGIN"; exit 1; }
+echo "    SUPER_ADMIN OK"
+
+echo "==> 3. Criar Tenant via API (CreateTenantUseCase) — base: ${DB_NAME}"
 RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${SUPER_TOKEN}" \
   -d "{
     \"nomeEmpresa\": \"Farmacia Demo ${TS}\",
     \"nomeTenant\": \"${TENANT_SLUG}\",
@@ -79,16 +94,7 @@ if ! tenant_database_exists "${DB_NAME}"; then
 fi
 echo "    Base ${DB_NAME} confirmada no MySQL"
 
-echo "==> 3. Migrations tenant (baseline + deploy)"
-bash "${ROOT}/backend/scripts/migrate-tenant-deploy.sh" "${DB_NAME}" --baseline-all
-
-DB_URL="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@phrx-db:3306/${DB_NAME}"
-
-echo "==> 4. Seed completo do tenant (pode demorar 20–30 min com medicamentos ANARME)"
-docker exec -e DATABASE_URL_TENANT="${DB_URL}" "$BACKEND_CONTAINER" \
-  bun prisma/seed-all-tenant.ts "${DB_NAME}"
-
-echo "==> 5. Testar login"
+echo "==> 4. Validar login do owner"
 LOGIN=$(curl -s -X POST "${BASE_URL}/central/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\": \"${OWNER_EMAIL}\", \"password\": \"${OWNER_PASSWORD}\"}")
@@ -122,6 +128,8 @@ echo "    Tenant:   ${TENANT_SLUG}"
 echo "    Email:    ${OWNER_EMAIL}"
 echo "    Password: ${OWNER_PASSWORD}"
 echo "    DB:       ${DB_NAME}"
+echo ""
+echo "    Demo (opcional): docker exec ${BACKEND_CONTAINER} bun run seed:demo ${DB_NAME}"
 echo ""
 echo "    export LOGIN_EMAIL='${OWNER_EMAIL}'"
 echo "    export LOGIN_PASSWORD='${OWNER_PASSWORD}'"
