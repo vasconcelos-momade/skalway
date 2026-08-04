@@ -34,7 +34,7 @@ class PlatformDashboardPage extends ConsumerWidget {
       kpis: async.maybeWhen(
         data: (stats) => [
           EnterpriseStatCard(
-            title: 'Total Clientes',
+            title: 'Total Tenantes',
             value: '${stats.totalClients}',
             icon: Icons.business_outlined,
           ),
@@ -95,7 +95,7 @@ class PlatformDashboardPage extends ConsumerWidget {
               ),
               SizedBox(height: context.spacing.xl),
             ],
-            Text('Últimos clientes',
+            Text('Últimos tenantes',
                 style: Theme.of(context).textTheme.erpSectionTitle),
             SizedBox(height: context.spacing.md),
             EnterpriseDataTable(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/theme/design_tokens.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
@@ -40,6 +42,10 @@ class PlatformListPage extends ConsumerWidget {
 
     if (invoices) {
       final async = ref.watch(platformInvoicesProvider);
+      final busy = ref.watch(platformBillingActionsProvider);
+      final currency = NumberFormat.currency(symbol: 'MT ', decimalDigits: 0);
+      final dateFmt = DateFormat('dd/MM/yyyy');
+
       return EnterpriseModuleHub(
         title: title,
         subtitle: subtitle,
@@ -58,9 +64,14 @@ class PlatformListPage extends ConsumerWidget {
             return EnterpriseDataTable(
               columns: const [
                 DataColumn(label: Text('Número')),
-                DataColumn(label: Text('Cliente')),
+                DataColumn(label: Text('Período')),
+                DataColumn(label: Text('Plano')),
+                DataColumn(label: Text('Base')),
+                DataColumn(label: Text('Extras')),
                 DataColumn(label: Text('Total')),
                 DataColumn(label: Text('Estado')),
+                DataColumn(label: Text('Vencimento')),
+                DataColumn(label: Text('')),
               ],
               rowCount: items.length,
               rowBuilder: (context, index) {
@@ -68,9 +79,50 @@ class PlatformListPage extends ConsumerWidget {
                 return DataRow(
                   cells: [
                     DataCell(Text(i.number)),
-                    DataCell(Text(i.tenantName)),
-                    DataCell(Text('${i.total}')),
-                    DataCell(EnterpriseStatusChip(label: i.status)),
+                    DataCell(Text(i.period)),
+                    DataCell(Text(i.planName)),
+                    DataCell(
+                      Text(
+                        i.planMonthlyPrice == null
+                            ? '—'
+                            : currency.format(i.planMonthlyPrice),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '${i.extraBranches ?? 0} × '
+                        '${i.extraBranchPrice == null ? '—' : currency.format(i.extraBranchPrice)}',
+                      ),
+                    ),
+                    DataCell(Text(currency.format(i.total))),
+                    DataCell(
+                      EnterpriseStatusChip(
+                        label: _invoiceStatusLabel(i.status),
+                        color: _invoiceStatusColor(context, i.status),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        i.dueDate == null
+                            ? '—'
+                            : dateFmt.format(i.dueDate!.toLocal()),
+                      ),
+                    ),
+                    DataCell(
+                      IconButton(
+                        tooltip: 'PDF',
+                        onPressed: busy
+                            ? null
+                            : () => ref
+                                .read(platformBillingActionsProvider.notifier)
+                                .downloadInvoicePdf(
+                                  tenantId: i.tenantId,
+                                  invoiceId: i.id,
+                                  fileName: 'fatura-${i.number}.pdf',
+                                ),
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                      ),
+                    ),
                   ],
                 );
               },
@@ -128,5 +180,44 @@ class PlatformListPage extends ConsumerWidget {
       tag: 'Plataforma',
       child: const ModuleEmptyState(title: 'Em breve'),
     );
+  }
+}
+
+String _invoiceStatusLabel(String raw) {
+  switch (raw.toLowerCase()) {
+    case 'pendente':
+      return 'Pendente';
+    case 'parcial':
+      return 'Parcial';
+    case 'pago':
+    case 'paga':
+      return 'Paga';
+    case 'vencido':
+    case 'vencida':
+      return 'Vencida';
+    case 'cancelado':
+    case 'cancelada':
+      return 'Cancelada';
+    default:
+      return raw.toUpperCase();
+  }
+}
+
+Color? _invoiceStatusColor(BuildContext context, String raw) {
+  final tokens = context.pharmaTokens;
+  switch (raw.toLowerCase()) {
+    case 'pago':
+    case 'paga':
+      return tokens.posSuccess;
+    case 'parcial':
+    case 'pendente':
+      return tokens.posWarning;
+    case 'vencido':
+    case 'vencida':
+    case 'cancelado':
+    case 'cancelada':
+      return tokens.posDanger;
+    default:
+      return null;
   }
 }

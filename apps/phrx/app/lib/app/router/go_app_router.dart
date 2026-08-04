@@ -9,6 +9,7 @@ import '../../modules/sales/history/presentation/pages/sales_history_page.dart';
 import '../../modules/auth/presentation/pages/forgot_password_page.dart';
 import '../../modules/auth/presentation/pages/login_page.dart';
 import '../../modules/auth/presentation/pages/tenant_select_page.dart';
+import '../../modules/central/presentation/pages/platform_branches_page.dart';
 import '../../modules/central/presentation/pages/platform_dashboard_page.dart';
 import '../../modules/central/presentation/pages/platform_list_page.dart';
 import '../../modules/central/presentation/pages/platform_tenant_detail_page.dart';
@@ -210,29 +211,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutePaths.platformBranches,
             name: 'platform-branches',
-            builder: (context, state) => const PlatformListPage(
-              title: 'Filiais',
-              subtitle: 'Todas as filiais dos clientes.',
-              placeholder: 'Lista global de filiais',
-            ),
+            builder: (context, state) => const PlatformBranchesPage(),
           ),
           GoRoute(
             path: AppRoutePaths.platformPlans,
             name: 'platform-plans',
             builder: (context, state) => const PlatformListPage(
               title: 'Planos',
-              subtitle: 'Planos de subscrição disponíveis.',
-              placeholder: 'Gestão de planos',
+              subtitle: 'Catálogo de planos disponível para a operação SaaS.',
+              placeholder: 'CRUD de planos',
             ),
           ),
           GoRoute(
             path: AppRoutePaths.platformSubscriptions,
             name: 'platform-subscriptions',
-            builder: (context, state) => const PlatformListPage(
-              title: 'Assinaturas',
-              subtitle: 'Subscrições activas na plataforma.',
-              placeholder: 'Lista de assinaturas',
-            ),
+            builder: (context, state) => const PlatformTenantsPage(),
           ),
           GoRoute(
             path: AppRoutePaths.platformInvoices,
@@ -290,11 +283,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutePaths.platformSettings,
-            name: 'platform-settings',
+            redirect: (context, state) => AppRoutePaths.platformCompany,
+          ),
+          GoRoute(
+            path: AppRoutePaths.platformCompany,
+            name: 'platform-company',
             builder: (context, state) => const PlatformListPage(
-              title: 'Configurações',
-              subtitle: 'Parâmetros globais da plataforma.',
-              placeholder: 'Configurações SaaS',
+              title: 'Empresa',
+              subtitle:
+                  'Dados da empresa emissora usados nas faturas vinculadas aos clientes e tenants.',
+              placeholder: 'Atualização dos dados da empresa para faturação',
             ),
           ),
         ],

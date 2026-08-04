@@ -8,9 +8,8 @@ abstract final class PlatformNavSections {
   PlatformNavSections._();
 
   static const dashboard = 'Dashboard';
-  static const clientes = 'Clientes';
+  static const subscricao = 'Subscrição';
   static const comercial = 'Comercial';
-  static const infraestrutura = 'Infraestrutura';
   static const seguranca = 'Segurança';
   static const configuracoes = 'Configurações';
 }
@@ -29,18 +28,18 @@ const List<AppNavSection> kPlatformNavSections = <AppNavSection>[
     ],
   ),
   AppNavSection(
-    title: PlatformNavSections.clientes,
+    title: PlatformNavSections.subscricao,
     icon: Icons.apartment_rounded,
     items: <AppNavItem>[
       AppNavItem(
-        label: 'Clientes',
-        path: AppRoutePaths.platformTenants,
+        label: 'Tenantes',
+        path: AppRoutePaths.platformSubscriptions,
         icon: Icons.business_rounded,
       ),
       AppNavItem(
-        label: 'Filiais',
+        label: 'Branches / Filiais',
         path: AppRoutePaths.platformBranches,
-        icon: Icons.store_rounded,
+        icon: Icons.storefront_rounded,
       ),
     ],
   ),
@@ -48,16 +47,6 @@ const List<AppNavSection> kPlatformNavSections = <AppNavSection>[
     title: PlatformNavSections.comercial,
     icon: Icons.storefront_rounded,
     items: <AppNavItem>[
-      AppNavItem(
-        label: 'Planos',
-        path: AppRoutePaths.platformPlans,
-        icon: Icons.layers_rounded,
-      ),
-      AppNavItem(
-        label: 'Assinaturas',
-        path: AppRoutePaths.platformSubscriptions,
-        icon: Icons.card_membership_rounded,
-      ),
       AppNavItem(
         label: 'Faturas',
         path: AppRoutePaths.platformInvoices,
@@ -67,22 +56,6 @@ const List<AppNavSection> kPlatformNavSections = <AppNavSection>[
         label: 'Pagamentos',
         path: AppRoutePaths.platformPayments,
         icon: Icons.payments_rounded,
-      ),
-    ],
-  ),
-  AppNavSection(
-    title: PlatformNavSections.infraestrutura,
-    icon: Icons.dns_rounded,
-    items: <AppNavItem>[
-      AppNavItem(
-        label: 'Dispositivos',
-        path: AppRoutePaths.platformDevices,
-        icon: Icons.devices_rounded,
-      ),
-      AppNavItem(
-        label: 'Sincronização',
-        path: AppRoutePaths.platformSync,
-        icon: Icons.sync_rounded,
       ),
     ],
   ),
@@ -107,9 +80,14 @@ const List<AppNavSection> kPlatformNavSections = <AppNavSection>[
     icon: Icons.settings_rounded,
     items: <AppNavItem>[
       AppNavItem(
-        label: 'Configurações',
-        path: AppRoutePaths.platformSettings,
-        icon: Icons.settings_rounded,
+        label: 'Planos',
+        path: AppRoutePaths.platformPlans,
+        icon: Icons.layers_rounded,
+      ),
+      AppNavItem(
+        label: 'Empresa',
+        path: AppRoutePaths.platformCompany,
+        icon: Icons.business_center_rounded,
       ),
     ],
   ),
@@ -123,12 +101,12 @@ const List<AppNavItem> kPlatformBottomNavPrimary = <AppNavItem>[
     icon: Icons.space_dashboard_rounded,
   ),
   AppNavItem(
-    label: 'Clientes',
-    path: AppRoutePaths.platformTenants,
+    label: 'Tenantes',
+    path: AppRoutePaths.platformSubscriptions,
     icon: Icons.business_rounded,
   ),
   AppNavItem(
-    label: 'Financeiro',
+    label: 'Faturas',
     path: AppRoutePaths.platformInvoices,
     icon: Icons.receipt_long_rounded,
   ),
@@ -143,7 +121,7 @@ const List<AppNavItem> kPlatformBottomNavPrimary = <AppNavItem>[
 List<AppNavItem> platformMoreNavItems() {
   const primaryPaths = {
     AppRoutePaths.platformDashboard,
-    AppRoutePaths.platformTenants,
+    AppRoutePaths.platformSubscriptions,
     AppRoutePaths.platformInvoices,
     AppRoutePaths.platformUsers,
   };
@@ -156,8 +134,13 @@ List<AppNavItem> platformMoreNavItems() {
 
 bool platformNavPathMatches(String location, String itemPath) {
   if (location == itemPath) return true;
-  if (itemPath == AppRoutePaths.platformTenants &&
+  if ((itemPath == AppRoutePaths.platformTenants ||
+          itemPath == AppRoutePaths.platformSubscriptions) &&
       location.startsWith('${AppRoutePaths.platformTenants}/')) {
+    return true;
+  }
+  if (itemPath == AppRoutePaths.platformSubscriptions &&
+      location == AppRoutePaths.platformTenants) {
     return true;
   }
   return false;
@@ -170,7 +153,7 @@ String platformTitleForPath(String path) {
     }
   }
   if (path.startsWith('${AppRoutePaths.platformTenants}/')) {
-    return 'Detalhe do Cliente';
+    return 'Subscrição do tenant';
   }
   return 'Plataforma';
 }

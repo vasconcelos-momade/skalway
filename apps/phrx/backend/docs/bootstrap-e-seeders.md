@@ -18,7 +18,7 @@ O que faz, por ordem:
 1. Migrations da Central (`prisma migrate deploy`)
 2. Seeders da Central (`prisma/seed.ts`):
    - `SUPER_ADMIN` (`admin@skalway.com` / `admin123`) — **só se ainda não existir**
-   - Planos (`base`, `starter`, `enterprise`)
+   - Planos (`starter`, `enterprise`; legado `base` desactivado)
    - Permissões centrais
 
 Não cria Tenant nem Branch.
@@ -57,7 +57,7 @@ Campos enviados a `POST /api/v1/central/tenants`:
 |-------|--------|
 | Empresa | `nomeEmpresa`, `nuit` (9 dígitos), `email`, `endereco`, `telefone` |
 | Tenant | `nomeTenant`/`slug`, `planSlug`, `status` (`trial`\|`ativo`) |
-| Branch HQ | `branchName`, `branchCode`, `branchEndereco`, `branchContacto` |
+| Branch Matriz | `branchName`, `branchEndereco`, `branchContacto` (código gerado no backend) |
 | Contas | admin local + `ownerUser` (conta central) |
 
 `CreateTenantUseCase` cria atomicamente (com rollback soft-delete se a BD falhar): Tenant, settings, permissões, UserTenant, Subscription, Branch HQ, MySQL + migrations + seed estrutural.

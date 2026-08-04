@@ -73,7 +73,6 @@ class _RegisterTenantFormDialogState
   final _enderecoCtrl = TextEditingController();
   final _telefoneCtrl = TextEditingController();
   final _branchNameCtrl = TextEditingController(text: 'Matriz');
-  final _branchCodeCtrl = TextEditingController(text: 'HQ');
   final _branchEnderecoCtrl = TextEditingController();
   final _branchContactoCtrl = TextEditingController();
   final _adminNameCtrl = TextEditingController();
@@ -83,7 +82,7 @@ class _RegisterTenantFormDialogState
   final _ownerEmailCtrl = TextEditingController();
   final _ownerPassCtrl = TextEditingController();
 
-  String _planSlug = 'base';
+  String _planSlug = 'starter';
   String _status = 'trial';
   bool _slugManual = false;
   bool _submitting = false;
@@ -113,7 +112,6 @@ class _RegisterTenantFormDialogState
     _enderecoCtrl.dispose();
     _telefoneCtrl.dispose();
     _branchNameCtrl.dispose();
-    _branchCodeCtrl.dispose();
     _branchEnderecoCtrl.dispose();
     _branchContactoCtrl.dispose();
     _adminNameCtrl.dispose();
@@ -143,9 +141,6 @@ class _RegisterTenantFormDialogState
       planSlug: _planSlug,
       status: _status,
       branchName: branchName,
-      branchCode: _branchCodeCtrl.text.trim().isEmpty
-          ? 'HQ'
-          : _branchCodeCtrl.text.trim(),
       branchEndereco: _branchEnderecoCtrl.text.trim().isEmpty
           ? null
           : _branchEnderecoCtrl.text.trim(),
@@ -309,11 +304,7 @@ class _RegisterTenantFormDialogState
               value: _planSlug,
               decoration: const InputDecoration(labelText: 'Plano inicial *'),
               items: const [
-                DropdownMenuItem(value: 'base', child: Text('Plano Base')),
-                DropdownMenuItem(
-                  value: 'starter',
-                  child: Text('Plano Base (Starter)'),
-                ),
+                DropdownMenuItem(value: 'starter', child: Text('Starter')),
                 DropdownMenuItem(
                   value: 'enterprise',
                   child: Text('Enterprise'),
@@ -321,7 +312,7 @@ class _RegisterTenantFormDialogState
               ],
               onChanged: _submitting
                   ? null
-                  : (v) => setState(() => _planSlug = v ?? 'base'),
+                  : (v) => setState(() => _planSlug = v ?? 'starter'),
             ),
           ),
           Padding(
@@ -342,11 +333,6 @@ class _RegisterTenantFormDialogState
           const SizedBox(height: AppSpacing.sm),
           _sectionTitle('Filial principal'),
           _field(label: 'Nome da filial *', controller: _branchNameCtrl),
-          _field(
-            label: 'Código da filial *',
-            controller: _branchCodeCtrl,
-            hint: 'HQ',
-          ),
           _field(
             label: 'Endereço da filial',
             controller: _branchEnderecoCtrl,

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { CentralBranchController } from "../../modules/central/presentation/controllers/central-branch.controller";
 import { CentralBillingController } from "../../modules/central/presentation/controllers/central-billing.controller";
+import { CentralPlanController } from "../../modules/central/presentation/controllers/central-plan.controller";
 import { CentralTenantController } from "../../modules/central/presentation/controllers/central-tenant.controller";
+import { CentralUserController } from "../../modules/central/presentation/controllers/central-user.controller";
 import { CentralWebhookController } from "../../modules/central/presentation/controllers/central-webhook.controller";
 import {
   centralAuthMiddleware,
@@ -19,11 +21,17 @@ import type { Router } from "../../shared/http/router";
 
 const branchController = new CentralBranchController();
 const billingController = new CentralBillingController();
+const planController = new CentralPlanController();
 const tenantController = new CentralTenantController();
+const userController = new CentralUserController();
 const webhookController = new CentralWebhookController();
 
 const tenantIdParamSchema = z.object({
   tenantId: z.string().regex(/^\d+$/, "tenantId inválido"),
+});
+
+const tenantBranchParamSchema = tenantIdParamSchema.extend({
+  branchId: z.string().regex(/^\d+$/, "branchId inválido"),
 });
 
 const tenantInvoiceParamSchema = tenantIdParamSchema.extend({
@@ -32,6 +40,14 @@ const tenantInvoiceParamSchema = tenantIdParamSchema.extend({
 
 const tenantPaymentParamSchema = tenantIdParamSchema.extend({
   paymentId: z.string().regex(/^\d+$/, "paymentId inválido"),
+});
+
+const planIdParamSchema = z.object({
+  planId: z.string().regex(/^\d+$/, "planId inválido"),
+});
+
+const userIdParamSchema = z.object({
+  userId: z.string().regex(/^\d+$/, "userId inválido"),
 });
 
 const webhookProviderParamSchema = z.object({
@@ -88,6 +104,44 @@ export function registerAdminRoutes(router: Router, prefix: string): void {
     },
   );
 
+  router.post(
+    `${prefix}/central/tenants/:tenantId/branches/:branchId/deactivate`,
+    centralAuthMiddleware(),
+    tenantAccessMiddleware("tenantId"),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId, branchId } = parseRouteParams(
+        context.params,
+        tenantBranchParamSchema,
+      );
+      return branchController.deactivate(
+        tenantId,
+        branchId,
+        context.req,
+        getCentralAuth(context).userId,
+      );
+    },
+  );
+
+  router.post(
+    `${prefix}/central/tenants/:tenantId/branches/:branchId/activate`,
+    centralAuthMiddleware(),
+    tenantAccessMiddleware("tenantId"),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId, branchId } = parseRouteParams(
+        context.params,
+        tenantBranchParamSchema,
+      );
+      return branchController.activate(
+        tenantId,
+        branchId,
+        context.req,
+        getCentralAuth(context).userId,
+      );
+    },
+  );
+
   router.get(
     `${prefix}/central/tenants/:tenantId/subscription`,
     centralAuthMiddleware(),
@@ -95,6 +149,16 @@ export function registerAdminRoutes(router: Router, prefix: string): void {
     async (context) => {
       const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
       return billingController.getSubscription(tenantId);
+    },
+  );
+
+  router.get(
+    `${prefix}/central/tenants/:tenantId/subscription/branch-history`,
+    centralAuthMiddleware(),
+    tenantAccessMiddleware("tenantId"),
+    async (context) => {
+      const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
+      return billingController.listBranchHistory(tenantId, context.url);
     },
   );
 
@@ -158,6 +222,106 @@ export function registerAdminRoutes(router: Router, prefix: string): void {
     async (context) => {
       const { tenantId, paymentId } = parseRouteParams(context.params, tenantPaymentParamSchema);
       return billingController.confirmPayment(tenantId, paymentId, getCentralAuth(context).userId);
+    },
+  );
+
+  router.post(
+    `${prefix}/central/tenants/:tenantId/wallet/credit`,
+    centralAuthMiddleware(),
+    tenantAccessMiddleware("tenantId"),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
+      return billingController.creditWallet(
+        tenantId,
+        context.req,
+        getCentralAuth(context).userId,
+      );
+    },
+  );
+
+  router.get(
+    `${prefix}/central/plans`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    async (context) => planController.list(context.url),
+  );
+
+  router.get(
+    `${prefix}/central/plans/:planId`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    async (context) => {
+      const { planId } = parseRouteParams(context.params, planIdParamSchema);
+      return planController.getById(planId);
+    },
+  );
+
+  router.post(
+    `${prefix}/central/plans`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => planController.create(context.req),
+  );
+
+  router.patch(
+    `${prefix}/central/plans/:planId`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { planId } = parseRouteParams(context.params, planIdParamSchema);
+      return planController.update(planId, context.req);
+    },
+  );
+
+  router.post(
+    `${prefix}/central/plans/:planId/deactivate`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { planId } = parseRouteParams(context.params, planIdParamSchema);
+      return planController.deactivate(planId);
+    },
+  );
+
+  router.get(
+    `${prefix}/central/users`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    async (context) => userController.list(context.url),
+  );
+
+  router.post(
+    `${prefix}/central/users`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => userController.create(context.req),
+  );
+
+  router.patch(
+    `${prefix}/central/users/:userId`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { userId } = parseRouteParams(context.params, userIdParamSchema);
+      return userController.update(userId, context.req);
+    },
+  );
+
+  router.post(
+    `${prefix}/central/users/:userId/deactivate`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { userId } = parseRouteParams(context.params, userIdParamSchema);
+      return userController.deactivate(userId);
     },
   );
 

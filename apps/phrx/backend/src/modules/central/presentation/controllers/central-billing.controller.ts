@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { GetTenantSubscriptionUseCase } from "../../billing/application/use-cases/get-tenant-subscription.use-case";
 import { ListTenantInvoicesUseCase } from "../../billing/application/use-cases/list-tenant-invoices.use-case";
+import { ListSubscriptionBranchHistoryUseCase } from "../../billing/application/use-cases/list-subscription-branch-history.use-case";
 import { GetInvoiceUseCase } from "../../billing/application/use-cases/get-invoice.use-case";
 import { ListTenantPaymentsUseCase } from "../../billing/application/use-cases/list-tenant-payments.use-case";
 import { SubmitPaymentUseCase } from "../../billing/application/use-cases/submit-payment.use-case";
 import { ConfirmPaymentUseCase } from "../../billing/application/use-cases/confirm-payment.use-case";
+import { CreditWalletUseCase } from "../../billing/application/use-cases/credit-wallet.use-case";
 import { GenerateMonthlyBillingService } from "../../billing/application/services/generate-monthly-billing.service";
 import { generateCentralInvoicePdf } from "../../billing/application/services/generate-invoice-pdf.service";
 import { ProcessSubscriptionLifecycleService } from "../../billing/application/services/process-subscription-lifecycle.service";
@@ -19,6 +21,14 @@ const submitPaymentSchema = z.object({
   reference: z.string().trim().min(1),
   proofUrl: z.string().trim().min(1).optional(),
   notes: z.string().trim().min(1).optional(),
+});
+
+const creditWalletSchema = z.object({
+  amount: z.coerce.number().positive(),
+  months: z.coerce.number().int().min(1).max(36),
+  method: z.string().trim().min(1),
+  reference: z.string().trim().min(1),
+  notes: z.string().trim().min(1).optional().nullable(),
 });
 
 const lifecycleSchema = z.object({
@@ -69,6 +79,17 @@ export class CentralBillingController {
     const useCase = new GetTenantSubscriptionUseCase();
     const subscription = await useCase.execute({ tenantId });
     return Response.json(serializeForJson(subscription));
+  }
+
+  async listBranchHistory(tenantId: string, url: URL): Promise<Response> {
+    const limitRaw = url.searchParams.get("limit");
+    const limit = limitRaw ? Number(limitRaw) : undefined;
+    const useCase = new ListSubscriptionBranchHistoryUseCase();
+    const history = await useCase.execute({
+      tenantId,
+      limit: Number.isFinite(limit) ? limit : undefined,
+    });
+    return Response.json(serializeForJson(history));
   }
 
   async listInvoices(tenantId: string, url: URL): Promise<Response> {
@@ -134,6 +155,25 @@ export class CentralBillingController {
       confirmedByUserId: userId,
     });
     return Response.json(serializeForJson(result));
+  }
+
+  async creditWallet(
+    tenantId: string,
+    req: Request,
+    userId: string,
+  ): Promise<Response> {
+    const body = await parseJsonBody(req, creditWalletSchema);
+    const useCase = new CreditWalletUseCase();
+    const result = await useCase.execute({
+      tenantId,
+      amount: body.amount,
+      months: body.months,
+      method: body.method,
+      reference: body.reference,
+      notes: body.notes ?? null,
+      userId,
+    });
+    return Response.json(serializeForJson(result), { status: 201 });
   }
 
   async processLifecycle(req: Request): Promise<Response> {

@@ -66,6 +66,7 @@ model User {
   branchesUpdated   Branch[]  @relation("BranchUpdatedBy")
   subscriptionsCreated Subscription[] @relation("SubscriptionCreatedBy")
   subscriptionsUpdated Subscription[] @relation("SubscriptionUpdatedBy")
+  subscriptionBranchHistoryCreated SubscriptionBranchHistory[] @relation("SubscriptionBranchHistoryCreatedBy")
   auditLogs         AuditLog[]
   sessions          UserSession[]
 
@@ -226,6 +227,7 @@ model Branch {
   syncLogs      SyncLog[]
   syncSessions  SyncSession[]
   auditLogs     AuditLog[]
+  subscriptionBranchHistory SubscriptionBranchHistory[]
 
   @@unique([tenantId, code])
   @@unique([tenantId, name])
@@ -450,6 +452,10 @@ model Plan {
   extraBranchPrice Decimal @db.Decimal(10, 2)
   isEnterprise     Boolean @default(false)
   active           Boolean @default(true)
+  /// Intervalo de facturação do plano em meses (1=mensal, 12=anual).
+  billingIntervalMonths Int @default(1)
+  /// Dias de trial ao criar tenant (ex: 14 ou 30).
+  trialDays Int @default(14)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -475,6 +481,10 @@ model Subscription {
   trialEndsAt    DateTime?
   lastBillingAt  DateTime?
   nextBillingAt  DateTime?
+  /// Último dia coberto por pagamentos confirmados (suporta pagamento antecipado).
+  currentPeriodEnd DateTime?
+  /// Renovação automática via job mensal; se false, só gera fatura sob pedido.
+  autoRenew Boolean @default(true)
 
   version Int @default(0)
 
@@ -492,10 +502,31 @@ model Subscription {
 
   billingSnapshots BillingSnapshot[]
   invoices Invoice[]
+  branchHistory SubscriptionBranchHistory[]
 
   @@index([tenantId, status])
   @@index([deletedAt])
   @@map("subscriptions")
+}
+
+/// Histórico de alterações de filiais na subscrição (auditoria / futura pró-rata).
+model SubscriptionBranchHistory {
+  id             BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  subscriptionId BigInt                    @db.UnsignedBigInt
+  branchId       BigInt                    @db.UnsignedBigInt
+  action         SubscriptionBranchAction
+  effectiveDate  DateTime                  @default(now())
+  reason         String?                   @db.Text
+  createdBy      BigInt?                   @db.UnsignedBigInt
+  createdAt      DateTime                  @default(now())
+
+  subscription  Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  branch        Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdByUser User?        @relation("SubscriptionBranchHistoryCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId, effectiveDate])
+  @@index([branchId, effectiveDate])
+  @@map("subscription_branch_history")
 }
 
 model InvoiceFiscalCounter {
@@ -617,6 +648,8 @@ model Payment {
   proofUrl  String?       @db.Text
   coversFrom DateTime?
   coversTo   DateTime?
+  /// Número de meses cobertos (1=mensal; 6/12=pagamento antecipado).
+  monthsCovered Int?
   confirmedAt DateTime?
   confirmedBy BigInt? @db.UnsignedBigInt
   createdBy   BigInt? @db.UnsignedBigInt
@@ -919,6 +952,11 @@ enum SubscriptionStatus {
   ativo
   cancelado
   expirado
+}
+
+enum SubscriptionBranchAction {
+  ADD
+  REMOVE
 }
 
 enum InvoiceStatus {

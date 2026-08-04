@@ -33,10 +33,9 @@ const registerTenantSchema = z
     endereco: z.string().trim().min(1).optional().nullable(),
     nuit: z.string().trim().min(1).optional().nullable(),
     telefone: z.string().trim().min(1).optional().nullable(),
-    planSlug: z.enum(["base", "starter", "enterprise"]).optional().nullable(),
+    planSlug: z.enum(["starter", "enterprise"]).optional().nullable(),
     status: z.enum(["trial", "ativo"]).optional().nullable(),
     branchName: z.string().trim().min(1).optional().nullable(),
-    branchCode: z.string().trim().min(1).optional().nullable(),
     branchEndereco: z.string().trim().min(1).optional().nullable(),
     branchContacto: z.string().trim().min(1).optional().nullable(),
   })
@@ -108,20 +107,54 @@ const tenantListSelect = {
       code: true,
       name: true,
       active: true,
+      isHeadOffice: true,
     },
     orderBy: { createdAt: "asc" as const },
+  },
+  subscriptions: {
+    where: { deletedAt: null },
+    orderBy: { createdAt: "desc" as const },
+    take: 1,
+    select: {
+      status: true,
+      nextBillingAt: true,
+      currentPeriodEnd: true,
+      plan: {
+        select: {
+          name: true,
+          slug: true,
+          monthlyPrice: true,
+          extraBranchPrice: true,
+        },
+      },
+    },
   },
 };
 
 function mapTenantRecord(tenant: any) {
+  const currentSub = tenant.subscriptions?.[0] ?? null;
+  const plan = currentSub?.plan ?? null;
+  const { subscriptions: _subscriptions, ...rest } = tenant;
+
   return {
-    ...tenant,
+    ...rest,
     id: tenant.id.toString(),
     ownerId: tenant.ownerId.toString(),
     branches: tenant.branches.map((branch: any) => ({
       ...branch,
       id: branch.id.toString(),
     })),
+    subscription: currentSub
+      ? {
+          status: currentSub.status,
+          planName: plan?.name ?? null,
+          planSlug: plan?.slug ?? null,
+          monthlyPrice: plan?.monthlyPrice ?? null,
+          extraBranchPrice: plan?.extraBranchPrice ?? null,
+          nextBillingAt: currentSub.nextBillingAt,
+          currentPeriodEnd: currentSub.currentPeriodEnd,
+        }
+      : null,
   };
 }
 
@@ -228,10 +261,9 @@ export class CentralTenantController {
       endereco: body.endereco ?? null,
       nuit: body.nuit ?? null,
       telefone: body.telefone ?? null,
-      planSlug: body.planSlug ?? "base",
+      planSlug: body.planSlug ?? "starter",
       status: body.status ?? "trial",
       branchName: body.branchName ?? null,
-      branchCode: body.branchCode ?? "HQ",
       branchEndereco: body.branchEndereco ?? null,
       branchContacto: body.branchContacto ?? null,
     };

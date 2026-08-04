@@ -1,4 +1,5 @@
 /// Entidades do painel administrativo SaaS (API central).
+/// Valores financeiros vêm sempre do backend — sem cálculo local.
 class PlatformTenantSummary {
   const PlatformTenantSummary({
     required this.id,
@@ -45,6 +46,7 @@ class PlatformBranch {
     required this.code,
     required this.name,
     required this.active,
+    this.isHeadOffice = false,
     this.lastSyncAt,
     this.dbName,
     this.connectionStatus,
@@ -54,36 +56,141 @@ class PlatformBranch {
   final String code;
   final String name;
   final bool active;
+  final bool isHeadOffice;
   final DateTime? lastSyncAt;
   final String? dbName;
   final String? connectionStatus;
+}
+
+/// Filial na listagem global (com contexto do tenant).
+class PlatformBranchListItem {
+  const PlatformBranchListItem({
+    required this.tenantId,
+    required this.tenantName,
+    required this.companyName,
+    required this.branch,
+  });
+
+  final String tenantId;
+  final String tenantName;
+  final String companyName;
+  final PlatformBranch branch;
+}
+
+class PlatformEstimatedNextInvoice {
+  const PlatformEstimatedNextInvoice({
+    required this.amount,
+    this.currency = 'MZN',
+    this.periodStart,
+    this.periodEnd,
+    this.branchesUsed = 0,
+    this.includedBranches = 0,
+    this.extraBranches = 0,
+    this.planMonthlyPrice = 0,
+    this.extraBranchesCharge = 0,
+    this.extraBranchPrice = 0,
+  });
+
+  final double amount;
+  final String currency;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
+  final int branchesUsed;
+  final int includedBranches;
+  final int extraBranches;
+  final double planMonthlyPrice;
+  final double extraBranchesCharge;
+  final double extraBranchPrice;
 }
 
 class PlatformSubscription {
   const PlatformSubscription({
     required this.planName,
     required this.status,
+    this.planSlug,
     this.startDate,
     this.endDate,
     this.trialEndsAt,
+    this.nextBillingAt,
+    this.lastBillingAt,
+    this.currentPeriodEnd,
     this.includedBranches = 0,
     this.usedBranches = 0,
+    this.activeBranches = 0,
+    this.extraBranches = 0,
     this.monthlyPrice,
+    this.extraBranchPrice,
+    this.estimatedMonthlyTotal,
+    this.isEnterprise = false,
+    this.trialDays,
+    this.estimatedNextInvoice,
+    this.lastInvoiceNumber,
+    this.lastInvoiceStatus,
+    this.lastInvoiceAmount,
+    this.lastInvoiceDueDate,
+    this.pendingTrialInvoiceId,
+    this.pendingTrialInvoiceAmount,
+    this.pendingTrialInvoiceDueDate,
   });
 
   final String planName;
+  final String? planSlug;
   final String status;
   final DateTime? startDate;
   final DateTime? endDate;
   final DateTime? trialEndsAt;
+  final DateTime? nextBillingAt;
+  final DateTime? lastBillingAt;
+  final DateTime? currentPeriodEnd;
   final int includedBranches;
   final int usedBranches;
+  final int activeBranches;
+  final int extraBranches;
   final double? monthlyPrice;
+  final double? extraBranchPrice;
+  final double? estimatedMonthlyTotal;
+  final bool isEnterprise;
+  final int? trialDays;
+  final PlatformEstimatedNextInvoice? estimatedNextInvoice;
+  final String? lastInvoiceNumber;
+  final String? lastInvoiceStatus;
+  final double? lastInvoiceAmount;
+  final DateTime? lastInvoiceDueDate;
+  final String? pendingTrialInvoiceId;
+  final double? pendingTrialInvoiceAmount;
+  final DateTime? pendingTrialInvoiceDueDate;
+
+  bool get isTrial => status.toLowerCase() == 'trial';
+}
+
+class PlatformBranchHistoryItem {
+  const PlatformBranchHistoryItem({
+    required this.id,
+    required this.action,
+    required this.effectiveDate,
+    this.branchId,
+    this.branchCode,
+    this.branchName,
+    this.reason,
+    this.createdByName,
+    this.createdByEmail,
+  });
+
+  final String id;
+  final String action;
+  final DateTime effectiveDate;
+  final String? branchId;
+  final String? branchCode;
+  final String? branchName;
+  final String? reason;
+  final String? createdByName;
+  final String? createdByEmail;
 }
 
 class PlatformInvoice {
   const PlatformInvoice({
     required this.id,
+    required this.tenantId,
     required this.number,
     required this.tenantName,
     required this.planName,
@@ -93,9 +200,17 @@ class PlatformInvoice {
     required this.balance,
     required this.status,
     this.dueDate,
+    this.paidAt,
+    this.branchesUsed,
+    this.extraBranches,
+    this.planMonthlyPrice,
+    this.includedBranches,
+    this.extraBranchPrice,
+    this.subtotal,
   });
 
   final String id;
+  final String tenantId;
   final String number;
   final String tenantName;
   final String planName;
@@ -105,6 +220,13 @@ class PlatformInvoice {
   final double balance;
   final String status;
   final DateTime? dueDate;
+  final DateTime? paidAt;
+  final int? branchesUsed;
+  final int? extraBranches;
+  final double? planMonthlyPrice;
+  final int? includedBranches;
+  final double? extraBranchPrice;
+  final double? subtotal;
 }
 
 class PlatformPayment {
@@ -159,10 +281,9 @@ class RegisterTenantPayload {
     this.endereco,
     this.nuit,
     this.telefone,
-    this.planSlug = 'base',
+    this.planSlug = 'starter',
     this.status = 'trial',
     this.branchName,
-    this.branchCode = 'HQ',
     this.branchEndereco,
     this.branchContacto,
   });
@@ -182,7 +303,6 @@ class RegisterTenantPayload {
   final String planSlug;
   final String status;
   final String? branchName;
-  final String branchCode;
   final String? branchEndereco;
   final String? branchContacto;
 
@@ -200,7 +320,6 @@ class RegisterTenantPayload {
         'planSlug': planSlug,
         'status': status,
         'branchName': branchName,
-        'branchCode': branchCode,
         'branchEndereco': branchEndereco,
         'branchContacto': branchContacto,
         'ownerUser': {

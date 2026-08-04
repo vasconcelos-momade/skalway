@@ -134,7 +134,7 @@ curl -s "${BASE_URL}/central/tenants/${TENANT_ID}/branches" \
 |----------|------|--------|
 | `GET /central/tenants` | 200 | 1 tenant para este utilizador |
 | `GET /central/tenants/1` | 200 | Detalhe + `branches` |
-| `GET .../subscription` | 200 | Após lifecycle: `status: ativo`, plano **Plano Base** |
+| `GET .../subscription` | 200 | Após lifecycle: `status: ativo`, plano **Starter** |
 | `GET .../invoices` | 200 | Após lifecycle: ex. `INV-2026-000001`, 5000 MZN, `pendente` |
 | `GET .../payments` | 200 | Lista vazia `[]` (até submeter pagamento) |
 | `GET .../branches` | 200 | 1 branch (HQ) |
@@ -157,7 +157,7 @@ curl -s -X POST "${BASE_URL}/central/billing/process-lifecycle" \
   -d '{"referenceDate":"2026-05-28"}' | jq .
 ```
 
-**Resultado validado:** `trialInvoicesCreated: 1`, fatura `INV-2026-000001` (5000 MZN), subscrição `ativo`.
+**Resultado validado:** fatura trial criada na criação do tenant; no fim do trial sem pagamento → `vencido` + tenant `suspenso`.
 
 Script: `bash scripts/test-billing-tenant1.sh`
 

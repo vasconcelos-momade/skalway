@@ -32,8 +32,9 @@ export function buildTrialInvoiceDescription(params: {
   const periodEnd = params.periodEnd.toISOString().slice(0, 10);
 
   return [
-    `Conversao automatica do trial para o plano ${params.planName} (${params.planSlug}).`,
-    `Periodo: ${periodStart} a ${periodEnd}.`,
+    `Fatura do plano ${params.planName} (${params.planSlug}) emitida no inicio do trial.`,
+    `Periodo contratado apos trial: ${periodStart} a ${periodEnd}.`,
+    `Vencimento alinhado com o fim do trial.`,
     `Branches activas: ${params.branchesUsed}.`,
     `Incluidas: ${params.includedBranches}.`,
     `Extras: ${params.extraBranches}.`,

@@ -94,6 +94,7 @@ abstract final class AppRoutePaths {
   static const String platformAudit = '/platform/audit';
   static const String platformUsers = '/platform/users';
   static const String platformSettings = '/platform/settings';
+  static const String platformCompany = '/platform/company';
 
   static String platformTenantDetailPath(String tenantId) =>
       '/platform/tenants/$tenantId';
@@ -158,7 +159,16 @@ abstract final class AppRouteTitles {
       AppRoutePaths.settingsTerminals => 'Terminais',
       AppRoutePaths.settingsSync => 'Sincronização',
       AppRoutePaths.platformDashboard => 'Dashboard',
-      AppRoutePaths.platformTenants => 'Clientes',
+      AppRoutePaths.platformTenants => 'Subscrição de tenantes',
+      AppRoutePaths.platformBranches => 'Branches / Filiais',
+      AppRoutePaths.platformSubscriptions => 'Subscrição de tenantes',
+      AppRoutePaths.platformInvoices => 'Faturas',
+      AppRoutePaths.platformPayments => 'Pagamentos',
+      AppRoutePaths.platformPlans => 'Planos',
+      AppRoutePaths.platformUsers => 'Utilizadores',
+      AppRoutePaths.platformAudit => 'Auditoria',
+      AppRoutePaths.platformCompany => 'Empresa',
+      AppRoutePaths.platformSettings => 'Empresa',
       _ => path.replaceAll('/', ' ').trim(),
     };
   }

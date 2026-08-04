@@ -5,10 +5,11 @@ import { assertTenantBillingActive } from "../../../billing/application/services
 import { branchContext } from "../../../../../shared/context/branch-context";
 import { runWithCentralTenant } from "../../../../../shared/context/central-tenant-context";
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
+import { generateBranchCode } from "../../domain/generate-branch-code";
+import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
 
 export interface CreateBranchDTO {
   tenantId: string;
-  code: string;
   name: string;
 }
 
@@ -166,7 +167,8 @@ export class CreateBranchUseCase {
     return runWithCentralTenant(data.tenantId, async () => {
       const prisma = prismaCentralUnscoped as any;
       const tenantId = BigInt(data.tenantId);
-      const dbName = buildBranchDbName(data.tenantId, data.code);
+      const branchCode = generateBranchCode();
+      const dbName = buildBranchDbName(data.tenantId, branchCode);
 
       const setup = await prisma.$transaction(async (tx: any) => {
         const subscription = await tx.subscription.findFirst({
@@ -230,7 +232,7 @@ export class CreateBranchUseCase {
         const createdBranch = await tx.branch.create({
           data: {
             tenantId,
-            code: data.code,
+            code: branchCode,
             name: data.name,
             isHeadOffice: false,
             active: true,
@@ -244,21 +246,22 @@ export class CreateBranchUseCase {
           },
         });
 
-        const branchesUsed = await tx.branch.count({
-          where: { tenantId, active: true, deletedAt: null },
-        });
-
-        await tx.subscription.update({
-          where: { id: setup.subscriptionId },
-          data: {
-            branchesUsed: Math.max(branchesUsed, 1),
-          },
+        const history = await SubscriptionBranchHistoryService.recordBranchAdd({
+          tx,
+          tenantId,
+          subscriptionId: setup.subscriptionId,
+          branchId: createdBranch.id,
+          includedBranches: setup.includedBranches,
+          branchCode: createdBranch.code,
+          branchName: createdBranch.name,
+          reason: "Criação de filial adicional — cobrança no próximo ciclo",
         });
 
         return {
           branch: createdBranch,
-          branchesUsed,
-          includedBranches: setup.includedBranches,
+          branchesUsed: history.branchesUsed,
+          extraBranches: history.extraBranches,
+          includedBranches: history.includedBranches,
           tenant: setup.tenant,
         };
       });
@@ -285,6 +288,10 @@ export class CreateBranchUseCase {
 
       const ownerEmail = result.tenant?.owner?.email;
       if (ownerEmail) {
+        const extrasNote =
+          result.extraBranches > 0
+            ? `Filiais extras a cobrar no proximo ciclo: ${result.extraBranches} (${result.extraBranches} x preco extra do plano).`
+            : "Ainda dentro do limite de filiais incluidas no plano.";
         await EmailService.send({
           to: ownerEmail,
           subject: `Nova branch criada para ${result.tenant.companyName}`,
@@ -294,7 +301,8 @@ export class CreateBranchUseCase {
             `Utilizadores copiados da matriz: ${copiedUsers}.`,
             `Branches activas actuais: ${result.branchesUsed}.`,
             `Incluidas no plano actual: ${result.includedBranches}.`,
-            "Se houver branches extras, elas serao consideradas na proxima factura.",
+            extrasNote,
+            "Nao ha cobranca imediata — o valor sera reflectido na proxima factura.",
           ].join("\n"),
         });
       }
@@ -304,6 +312,9 @@ export class CreateBranchUseCase {
         code: result.branch.code,
         name: result.branch.name,
         dbName,
+        branchesUsed: result.branchesUsed,
+        extraBranches: result.extraBranches,
+        includedBranches: result.includedBranches,
       };
     });
   }

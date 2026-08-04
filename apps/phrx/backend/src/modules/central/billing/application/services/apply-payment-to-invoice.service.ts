@@ -4,6 +4,7 @@ import {
   deriveInvoiceStatus,
 } from "./invoice-financial-integrity.service";
 import { mapInvoiceFinancialFields } from "./invoice-response.mapper";
+import { addDaysUTC } from "@skalway/billing";
 
 export interface ApplyPaymentToInvoiceInput {
   tenantId: string;
@@ -30,6 +31,8 @@ export interface ApplyPaymentToInvoiceResult {
 
 /**
  * Confirma um pagamento pendente e actualiza a fatura associada (transacção Prisma).
+ * Quando a fatura fica paga, regista o período coberto e avança nextBillingAt / currentPeriodEnd
+ * para suportar pagamento antecipado sem gerar faturas duplicadas.
  */
 export async function applyPaymentToInvoice(
   tx: any,
@@ -70,6 +73,19 @@ export async function applyPaymentToInvoice(
   const status = deriveInvoiceStatus(amount, paidAfter, String(invoice.status));
   const confirmedAt = new Date();
 
+  const coversFrom = invoice.periodStart ?? payment.coversFrom ?? null;
+  const coversTo = invoice.periodEnd ?? payment.coversTo ?? null;
+  let monthsCovered = payment.monthsCovered as number | null;
+  if (monthsCovered == null && coversFrom && coversTo) {
+    const from = new Date(coversFrom);
+    const to = new Date(coversTo);
+    const monthDiff =
+      (to.getUTCFullYear() - from.getUTCFullYear()) * 12 +
+      (to.getUTCMonth() - from.getUTCMonth()) +
+      1;
+    monthsCovered = Math.max(1, monthDiff);
+  }
+
   await tx.payment.update({
     where: { id: payment.id },
     data: {
@@ -77,6 +93,9 @@ export async function applyPaymentToInvoice(
       confirmedAt,
       confirmedBy: input.confirmedByUserId ? BigInt(input.confirmedByUserId) : null,
       updatedBy: input.confirmedByUserId ? BigInt(input.confirmedByUserId) : null,
+      coversFrom,
+      coversTo,
+      monthsCovered,
     },
   });
 
@@ -103,6 +122,48 @@ export async function applyPaymentToInvoice(
       where: { id: BigInt(input.tenantId) },
       data: { status: "ativo" },
     });
+
+    if (coversTo) {
+      const coverageEnd = new Date(coversTo);
+      const nextBillingAt = addDaysUTC(coverageEnd, 1);
+      const subscription = await tx.subscription.findFirst({
+        where: { id: invoice.subscriptionId, deletedAt: null },
+        select: { id: true, nextBillingAt: true, currentPeriodEnd: true },
+      });
+
+      if (subscription) {
+        const currentNext = subscription.nextBillingAt
+          ? new Date(subscription.nextBillingAt)
+          : null;
+        const currentPeriodEnd = subscription.currentPeriodEnd
+          ? new Date(subscription.currentPeriodEnd)
+          : null;
+
+        await tx.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            status: "ativo",
+            lastBillingAt: confirmedAt,
+            nextBillingAt:
+              !currentNext || nextBillingAt > currentNext
+                ? nextBillingAt
+                : currentNext,
+            currentPeriodEnd:
+              !currentPeriodEnd || coverageEnd > currentPeriodEnd
+                ? coverageEnd
+                : currentPeriodEnd,
+          },
+        });
+      }
+    } else {
+      await tx.subscription.updateMany({
+        where: { id: invoice.subscriptionId, deletedAt: null },
+        data: {
+          status: "ativo",
+          lastBillingAt: confirmedAt,
+        },
+      });
+    }
   }
 
   const financials = mapInvoiceFinancialFields(updatedInvoice);

@@ -114,11 +114,19 @@ TENANT_STATUS=$(echo "$SUB_ROW" | awk '{print $5}')
 echo "    subscription=${SUBSCRIPTION_ID} status=${SUB_STATUS} trialEndsAt=${TRIAL_ENDS} plan=${PLAN_SLUG} tenant=${TENANT_STATUS}"
 [[ "$SUB_STATUS" == "trial" ]] || echo "    AVISO: esperado status trial, obteve ${SUB_STATUS}"
 
+INV_AT_CREATE=$(mysql_query "
+  SELECT i.number, i.status, i.amount, DATE_FORMAT(i.dueDate, '%Y-%m-%d')
+  FROM skalway_central.invoices i
+  WHERE i.subscriptionId = ${SUBSCRIPTION_ID}
+  ORDER BY i.createdAt ASC LIMIT 1;
+")
+[[ -n "$INV_AT_CREATE" ]] || { echo "    FALHA: fatura trial deveria existir na criação do tenant"; exit 1; }
+echo "    Fatura na criação: ${INV_AT_CREATE}"
+
 if [[ "$SKIP_BRANCH" != "1" && "$SKIP_TENANT_CREATE" != "1" ]]; then
   echo "==> 3. Criar filial extra (CreateBranchUseCase)"
   BRANCH_JSON=$(billing_exec scripts/test-create-branch.ts \
     --tenant-id="${TENANT_ID}" \
-    --code="L2" \
     --name="Filial 2 Demo")
   echo "    ${BRANCH_JSON}"
   BRANCHES=$(mysql_query "SELECT COUNT(*) FROM skalway_central.branches WHERE tenantId=${TENANT_ID} AND active=1 AND deletedAt IS NULL;")
@@ -127,8 +135,8 @@ else
   echo "==> 3. Filial extra omitida"
 fi
 
-echo "==> 4. Simular fim de trial (billing:process:lifecycle)"
-# Dia seguinte ao trialEndsAt (UTC) em ISO date
+echo "==> 4. Simular fim de trial sem pagamento (billing:process:lifecycle)"
+# Dia seguinte ao trialEndsAt (UTC) — fatura já existe; deve marcar vencido + suspender
 REF_TRIAL=$(mysql_query "
   SELECT DATE_FORMAT(DATE_ADD(s.trialEndsAt, INTERVAL 1 DAY), '%Y-%m-%d')
   FROM skalway_central.subscriptions s
@@ -152,20 +160,11 @@ AFTER=$(mysql_query "
   JOIN skalway_central.tenants t ON t.id = s.tenantId
   WHERE s.id = ${SUBSCRIPTION_ID};
 ")
-echo "    Pós-trial: subscription/tenant = ${AFTER}"
-echo "    Verifique email de factura emitida em: ${OWNER_EMAIL:-inbox do owner}"
+echo "    Pós-trial sem pagamento: subscription/tenant = ${AFTER}"
+echo "    Esperado: expirado / suspenso (fatura já criada na criação do tenant)"
 
 if [[ "$SKIP_SUSPENSION" != "1" ]]; then
-  echo "==> 5. Simular fatura vencida e suspensão"
-  REF_OVERDUE=$(mysql_query "
-    SELECT DATE_FORMAT(DATE_ADD(i.dueDate, INTERVAL 2 DAY), '%Y-%m-%d')
-    FROM skalway_central.invoices i
-    WHERE i.subscriptionId = ${SUBSCRIPTION_ID}
-    ORDER BY i.createdAt DESC LIMIT 1;
-  ")
-  LIFECYCLE_OVER=$(billing_exec run billing:process:lifecycle -- --reference-date="${REF_OVERDUE}")
-  echo "$LIFECYCLE_OVER" | head -15
-
+  echo "==> 5. Confirmar suspensão (já aplicada no passo 4 se dueDate < reference)"
   SUSP=$(mysql_query "
     SELECT s.status, t.status, i.status
     FROM skalway_central.subscriptions s
@@ -174,8 +173,7 @@ if [[ "$SKIP_SUSPENSION" != "1" ]]; then
     WHERE s.id = ${SUBSCRIPTION_ID}
     ORDER BY i.createdAt DESC LIMIT 1;
   ")
-  echo "    Pós-vencimento: sub/tenant/invoice = ${SUSP}"
-  echo "    Verifique email de suspensão"
+  echo "    Estado: sub/tenant/invoice = ${SUSP}"
 else
   echo "==> 5. Suspensão omitida (SKIP_SUSPENSION=1)"
 fi

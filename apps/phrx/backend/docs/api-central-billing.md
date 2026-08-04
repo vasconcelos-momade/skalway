@@ -420,7 +420,7 @@ POST /central/billing/process-lifecycle  (após dueDate, não pago)
 | `bash scripts/smoke-api-v1-validation.sh` | Health + validação Zod (body/query/params) sem dados de negócio |
 | `bash scripts/test-login-and-products.sh` | Login + `GET /tenant/produtos` (aceita `LOGIN_EMAIL` / `LOGIN_PASSWORD`) |
 | `bash scripts/test-owner-api.sh` | Central + produtos + POS com dono de teste (ver [teste-runtime-api-v1.md](./teste-runtime-api-v1.md)) |
-| `docker exec phrx_backend bun scripts/test-create-branch.ts --tenant-id=9 --code=L2 --name="Filial 2"` | Criar branch via CLI |
+| `docker exec phrx_backend bun scripts/test-create-branch.ts --tenant-id=9 --name="Filial 2"` | Criar branch via CLI |
 
 **Teste validado (2026-05-21)** — dono do tenant `farmacia_1779294744`: ver [teste-runtime-api-v1.md](./teste-runtime-api-v1.md).
 
@@ -431,7 +431,7 @@ POST /central/billing/process-lifecycle  (após dueDate, não pago)
 | `tenantId` / `branchId` | `1` / `1` (HQ) |
 | `GET /tenant/produtos` | `200`, **8446** produtos |
 | `GET .../invoices` | `200` (após lifecycle: `INV-2026-000001`, 5000 MZN) |
-| `GET .../subscription` | `200` (`ativo` após lifecycle / Plano Base) |
+| `GET .../subscription` | `200` (`ativo` após lifecycle / Starter) |
 | `POST .../billing/process-lifecycle` | superadmin, `referenceDate` pós-trial |
 | POS venda + anulação | ver [teste-runtime-api-v1.md](./teste-runtime-api-v1.md) §5 |
 | Scripts | `test-owner-api.sh`, `test-billing-tenant1.sh`, `test-pos-owner.sh` |

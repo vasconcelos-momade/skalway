@@ -7,6 +7,29 @@ const prisma = new PrismaClient();
 const SUPER_ADMIN_EMAIL = "admin@skalway.com";
 const SUPER_ADMIN_PASSWORD = "admin123";
 
+const PLANS = [
+  {
+    slug: "starter",
+    name: "Starter",
+    monthlyPrice: 1990.0,
+    includedBranches: 1,
+    extraBranchPrice: 900.0,
+    isEnterprise: false,
+    billingIntervalMonths: 1,
+    trialDays: 30,
+  },
+  {
+    slug: "enterprise",
+    name: "Enterprise",
+    monthlyPrice: 0.0,
+    includedBranches: 1,
+    extraBranchPrice: 0.0,
+    isEnterprise: true,
+    billingIntervalMonths: 1,
+    trialDays: 30,
+  },
+] as const;
+
 async function seedSuperAdmin() {
   console.log("👤 [central] SUPER_ADMIN...");
   const existing = await prisma.user.findUnique({
@@ -33,76 +56,59 @@ async function seedSuperAdmin() {
 async function seedPlans() {
   console.log("📦 [central] Planos...");
 
-  await prisma.plan.upsert({
-    where: { slug: "base" },
-    update: {
-      name: "Plano Base",
-      monthlyPrice: 5000,
-      includedBranches: 1,
-      extraBranchPrice: 2000,
-      isEnterprise: false,
-      active: true,
-    },
-    create: {
-      name: "Plano Base",
-      slug: "base",
-      monthlyPrice: 5000,
-      includedBranches: 1,
-      extraBranchPrice: 2000,
-      isEnterprise: false,
-      active: true,
-    },
-  });
+  for (const plan of PLANS) {
+    await prisma.plan.upsert({
+      where: { slug: plan.slug },
+      update: {
+        name: plan.name,
+        monthlyPrice: plan.monthlyPrice,
+        includedBranches: plan.includedBranches,
+        extraBranchPrice: plan.extraBranchPrice,
+        isEnterprise: plan.isEnterprise,
+        billingIntervalMonths: plan.billingIntervalMonths,
+        trialDays: plan.trialDays,
+        active: true,
+        deletedAt: null,
+      },
+      create: {
+        slug: plan.slug,
+        name: plan.name,
+        monthlyPrice: plan.monthlyPrice,
+        includedBranches: plan.includedBranches,
+        extraBranchPrice: plan.extraBranchPrice,
+        isEnterprise: plan.isEnterprise,
+        billingIntervalMonths: plan.billingIntervalMonths,
+        trialDays: plan.trialDays,
+        active: true,
+      },
+    });
+  }
 
-  await prisma.plan.upsert({
-    where: { slug: "starter" },
-    update: {
-      name: "Plano Base (Starter)",
-      monthlyPrice: 5000,
-      includedBranches: 1,
-      extraBranchPrice: 2000,
-      isEnterprise: false,
-      active: true,
-    },
-    create: {
-      name: "Plano Base (Starter)",
-      slug: "starter",
-      monthlyPrice: 5000,
-      includedBranches: 1,
-      extraBranchPrice: 2000,
-      isEnterprise: false,
-      active: true,
-    },
-  });
+  const catalogSlugs = PLANS.map((p) => p.slug);
+  const starter = await prisma.plan.findUnique({ where: { slug: "starter" } });
+  if (starter) {
+    const obsolete = await prisma.plan.findMany({
+      where: { slug: { notIn: [...catalogSlugs] }, deletedAt: null },
+    });
+    for (const plan of obsolete) {
+      await prisma.subscription.updateMany({
+        where: { planId: plan.id, deletedAt: null },
+        data: { planId: starter.id },
+      });
+      await prisma.plan.update({
+        where: { id: plan.id },
+        data: { active: false },
+      });
+    }
+  }
 
-  await prisma.plan.upsert({
-    where: { slug: "enterprise" },
-    update: {
-      name: "Enterprise",
-      monthlyPrice: 0,
-      includedBranches: 1,
-      extraBranchPrice: 0,
-      isEnterprise: true,
-      active: true,
-    },
-    create: {
-      name: "Enterprise",
-      slug: "enterprise",
-      monthlyPrice: 0,
-      includedBranches: 1,
-      extraBranchPrice: 0,
-      isEnterprise: true,
-      active: true,
-    },
-  });
-
-  console.log("   ✅ Planos upserted (base, starter, enterprise).");
+  console.log(`   ✅ Planos activos: ${catalogSlugs.join(", ")}.`);
 }
 
 async function seedPermissions() {
   console.log("🔑 [central] Permissões base...");
 
-  const basePermissions = [
+  const permissions = [
     { code: "TENANT_VIEW", name: "Ver dados da empresa" },
     { code: "TENANT_EDIT", name: "Editar dados da empresa" },
     { code: "BRANCH_VIEW", name: "Ver filiais" },
@@ -121,7 +127,7 @@ async function seedPermissions() {
     { code: "FINANCE_VIEW", name: "Ver relatórios financeiros" },
   ];
 
-  for (const p of basePermissions) {
+  for (const p of permissions) {
     await prisma.permission.upsert({
       where: { code: p.code },
       update: { name: p.name },
@@ -129,7 +135,7 @@ async function seedPermissions() {
     });
   }
 
-  console.log(`   ✅ ${basePermissions.length} permissões upserted.`);
+  console.log(`   ✅ ${permissions.length} permissões upserted.`);
 }
 
 async function main() {

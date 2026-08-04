@@ -10,18 +10,17 @@ function getArg(name: string): string | undefined {
 
 async function main() {
   const tenantId = getArg("tenant-id");
-  const code = getArg("code");
   const name = getArg("name");
 
-  if (!tenantId || !code || !name) {
+  if (!tenantId || !name) {
     console.error(
-      "Uso: bun scripts/test-create-branch.ts --tenant-id=<id> --code=<code> --name=<nome>",
+      "Uso: bun scripts/test-create-branch.ts --tenant-id=<id> --name=<nome>",
     );
     process.exit(1);
   }
 
   const useCase = new CreateBranchUseCase();
-  const result = await useCase.execute({ tenantId, code, name });
+  const result = await useCase.execute({ tenantId, name });
   console.log(JSON.stringify(result, null, 2));
 }
 

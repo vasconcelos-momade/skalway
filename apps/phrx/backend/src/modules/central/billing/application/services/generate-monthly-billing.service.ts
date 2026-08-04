@@ -1,16 +1,13 @@
 import { prismaCentralUnscoped } from "../../../../../infrastructure/prisma/prisma-central.service";
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
-import { allocateInvoiceFiscal } from "./allocate-invoice-fiscal.service";
+import { SubscriptionBillingService } from "./subscription-billing.service";
 import {
-  assertInvoiceAmounts,
-  deriveInvoiceStatus,
   parseReferenceDate,
   startOfMonthUTC,
   endOfMonthUTC,
   addDaysUTC,
   fromCents,
   buildMonthlyInvoiceDescription,
-  calculatePlanTotals,
 } from "@skalway/billing";
 
 export interface GenerateMonthlyBillingInput {
@@ -35,7 +32,7 @@ export interface GeneratedBillingItem {
   subtotal: string;
   total: string;
   snapshotAction: "preview" | "created" | "updated";
-  invoiceAction: "preview" | "created" | "updated" | "kept_paid";
+  invoiceAction: "preview" | "created" | "updated" | "kept_paid" | "skipped_free";
   invoiceId?: string;
   invoiceNumber?: string;
   companyName?: string;
@@ -55,6 +52,10 @@ export interface GenerateMonthlyBillingResult {
   items: GeneratedBillingItem[];
 }
 
+/**
+ * Orquestrador do job mensal — regras de selecção/skip;
+ * cálculo e persistência via SubscriptionBillingService.
+ */
 export class GenerateMonthlyBillingService {
   async execute(input: GenerateMonthlyBillingInput = {}): Promise<GenerateMonthlyBillingResult> {
     const prisma = prismaCentralUnscoped as any;
@@ -104,6 +105,24 @@ export class GenerateMonthlyBillingService {
         continue;
       }
 
+      if (
+        subscription.nextBillingAt &&
+        new Date(subscription.nextBillingAt) > periodEnd
+      ) {
+        skipped++;
+        continue;
+      }
+
+      if (subscription.autoRenew === false) {
+        const next = subscription.nextBillingAt
+          ? new Date(subscription.nextBillingAt)
+          : null;
+        if (next && (next < periodStart || next > periodEnd)) {
+          skipped++;
+          continue;
+        }
+      }
+
       const item = dryRun
         ? await this.previewSubscription({
             subscription,
@@ -120,7 +139,9 @@ export class GenerateMonthlyBillingService {
 
       if (item.invoiceAction === "created") generated++;
       if (item.invoiceAction === "updated") updated++;
-      if (item.invoiceAction === "kept_paid") skipped++;
+      if (item.invoiceAction === "kept_paid" || item.invoiceAction === "skipped_free") {
+        skipped++;
+      }
       items.push(item);
 
       if (!dryRun && ["created", "updated"].includes(item.invoiceAction)) {
@@ -147,13 +168,12 @@ export class GenerateMonthlyBillingService {
     periodEnd: Date;
     dueDate: Date;
   }): Promise<GeneratedBillingItem> {
-    const branchesUsed = await this.countActiveBranchesForPeriod(
-      BigInt(params.subscription.tenantId),
-      params.periodStart,
-      params.periodEnd,
-    );
-
-    const totals = this.calculateTotals(params.subscription.plan, branchesUsed);
+    const preview = await SubscriptionBillingService.previewPeriod({
+      tenantId: BigInt(params.subscription.tenantId),
+      plan: params.subscription.plan,
+      periodStart: params.periodStart,
+      periodEnd: params.periodEnd,
+    });
 
     return {
       tenantId: params.subscription.tenantId.toString(),
@@ -162,11 +182,11 @@ export class GenerateMonthlyBillingService {
       periodStart: params.periodStart.toISOString(),
       periodEnd: params.periodEnd.toISOString(),
       dueDate: params.dueDate.toISOString(),
-      branchesUsed,
-      includedBranches: totals.includedBranches,
-      extraBranches: totals.extraBranches,
-      subtotal: fromCents(totals.subtotalCents),
-      total: fromCents(totals.totalCents),
+      branchesUsed: preview.branchesUsed,
+      includedBranches: preview.includedBranches,
+      extraBranches: preview.extraBranches,
+      subtotal: fromCents(preview.subtotalCents),
+      total: fromCents(preview.totalCents),
       snapshotAction: "preview",
       invoiceAction: "preview",
     };
@@ -181,14 +201,16 @@ export class GenerateMonthlyBillingService {
     const prisma = prismaCentralUnscoped as any;
 
     return prisma.$transaction(async (tx: any) => {
-      const branchesUsed = await this.countActiveBranchesForPeriod(
+      const branchesUsed = await SubscriptionBillingService.countActiveBranchesForPeriod(
         BigInt(params.subscription.tenantId),
         params.periodStart,
         params.periodEnd,
         tx,
       );
-
-      const totals = this.calculateTotals(params.subscription.plan, branchesUsed);
+      const totals = SubscriptionBillingService.calculateTotals(
+        params.subscription.plan,
+        branchesUsed,
+      );
       const description = buildMonthlyInvoiceDescription({
         planName: String(params.subscription.plan.name),
         planSlug: String(params.subscription.plan.slug),
@@ -200,130 +222,18 @@ export class GenerateMonthlyBillingService {
         periodEnd: params.periodEnd,
       });
 
-      await tx.subscription.update({
-        where: { id: params.subscription.id },
-        data: { branchesUsed },
-      });
-
-      const existingSnapshot = await tx.billingSnapshot.findUnique({
-        where: {
-          subscriptionId_periodStart_periodEnd: {
-            subscriptionId: params.subscription.id,
-            periodStart: params.periodStart,
-            periodEnd: params.periodEnd,
-          },
-        },
-      });
-
-      const snapshot = await tx.billingSnapshot.upsert({
-        where: {
-          subscriptionId_periodStart_periodEnd: {
-            subscriptionId: params.subscription.id,
-            periodStart: params.periodStart,
-            periodEnd: params.periodEnd,
-          },
-        },
-        update: {
-          planMonthlyPrice: fromCents(totals.planMonthlyPriceCents),
-          includedBranches: totals.includedBranches,
-          extraBranchesUsed: totals.extraBranches,
-          extraBranchPrice: fromCents(totals.extraBranchPriceCents),
-          totalBranchesUsed: branchesUsed,
-          subtotal: fromCents(totals.subtotalCents),
-          total: fromCents(totals.totalCents),
-        },
-        create: {
+      const billed = await SubscriptionBillingService.billSubscriptionPeriod({
+        tx,
+        subscription: {
+          id: params.subscription.id,
           tenantId: params.subscription.tenantId,
-          subscriptionId: params.subscription.id,
-          periodStart: params.periodStart,
-          periodEnd: params.periodEnd,
-          planMonthlyPrice: fromCents(totals.planMonthlyPriceCents),
-          includedBranches: totals.includedBranches,
-          extraBranchesUsed: totals.extraBranches,
-          extraBranchPrice: fromCents(totals.extraBranchPriceCents),
-          totalBranchesUsed: branchesUsed,
-          subtotal: fromCents(totals.subtotalCents),
-          total: fromCents(totals.totalCents),
+          plan: params.subscription.plan,
         },
-      });
-
-      const existingInvoice = await tx.invoice.findUnique({
-        where: { billingSnapshotId: snapshot.id },
-      });
-
-      let invoiceAction: GeneratedBillingItem["invoiceAction"] = "created";
-      let invoiceId: string | undefined;
-      let invoiceNumber: string | undefined;
-
-      if (existingInvoice?.status === "pago") {
-        invoiceAction = "kept_paid";
-        invoiceId = existingInvoice.id.toString();
-        invoiceNumber = String(existingInvoice.number);
-      } else if (existingInvoice) {
-        const amountStr = fromCents(totals.totalCents);
-        const paid = Number(existingInvoice.paidAmount);
-        const amount = Number(amountStr);
-        assertInvoiceAmounts(amount, paid);
-        const status = deriveInvoiceStatus(amount, paid, existingInvoice.status);
-
-        const updatedInvoice = await tx.invoice.update({
-          where: { id: existingInvoice.id },
-          data: {
-            tenantId: params.subscription.tenantId,
-            subscriptionId: params.subscription.id,
-            amount: amountStr,
-            status,
-            dueDate: params.dueDate,
-            periodStart: params.periodStart,
-            periodEnd: params.periodEnd,
-            branchesUsed,
-            extraBranches: totals.extraBranches,
-            description,
-          },
-        });
-        invoiceAction = "updated";
-        invoiceId = updatedInvoice.id.toString();
-        invoiceNumber = String(updatedInvoice.number);
-      } else {
-        const fiscal = await allocateInvoiceFiscal(
-          params.subscription.tenantId,
-          params.periodStart,
-          tx,
-        );
-
-        const amountStr = fromCents(totals.totalCents);
-
-        const createdInvoice = await tx.invoice.create({
-          data: {
-            tenantId: params.subscription.tenantId,
-            fiscalYear: fiscal.fiscalYear,
-            sequence: fiscal.sequence,
-            subscriptionId: params.subscription.id,
-            billingSnapshotId: snapshot.id,
-            number: fiscal.number,
-            amount: amountStr,
-            paidAmount: 0,
-            remainingAmount: amountStr,
-            status: "pendente",
-            dueDate: params.dueDate,
-            periodStart: params.periodStart,
-            periodEnd: params.periodEnd,
-            branchesUsed,
-            extraBranches: totals.extraBranches,
-            description,
-          },
-        });
-        invoiceId = createdInvoice.id.toString();
-        invoiceNumber = String(createdInvoice.number);
-      }
-
-      const nextBillingAt = addDaysUTC(params.periodEnd, 1);
-      await tx.subscription.update({
-        where: { id: params.subscription.id },
-        data: {
-          lastBillingAt: new Date(),
-          nextBillingAt,
-        },
+        periodStart: params.periodStart,
+        periodEnd: params.periodEnd,
+        dueDate: params.dueDate,
+        description,
+        branchesUsedOverride: branchesUsed,
       });
 
       return {
@@ -333,15 +243,15 @@ export class GenerateMonthlyBillingService {
         periodStart: params.periodStart.toISOString(),
         periodEnd: params.periodEnd.toISOString(),
         dueDate: params.dueDate.toISOString(),
-        branchesUsed,
-        includedBranches: totals.includedBranches,
-        extraBranches: totals.extraBranches,
-        subtotal: fromCents(totals.subtotalCents),
-        total: fromCents(totals.totalCents),
-        snapshotAction: existingSnapshot ? "updated" : "created",
-        invoiceAction,
-        invoiceId,
-        invoiceNumber,
+        branchesUsed: billed.branchesUsed,
+        includedBranches: billed.includedBranches,
+        extraBranches: billed.extraBranches,
+        subtotal: billed.subtotal,
+        total: billed.total,
+        snapshotAction: billed.snapshotAction,
+        invoiceAction: billed.invoiceAction,
+        invoiceId: billed.invoiceId,
+        invoiceNumber: billed.invoiceNumber,
         companyName: String(params.subscription.tenant.companyName),
         ownerName: params.subscription.tenant.owner?.name
           ? String(params.subscription.tenant.owner.name)
@@ -362,6 +272,9 @@ export class GenerateMonthlyBillingService {
       text: [
         `Foi emitida a factura ${item.invoiceNumber} para a empresa ${item.companyName}.`,
         `Valor: ${item.total} MZN.`,
+        item.extraBranches > 0
+          ? `Inclui ${item.extraBranches} filial(is) adicional(is).`
+          : undefined,
         `Periodo faturado: ${item.periodStart.slice(0, 10)} a ${item.periodEnd.slice(0, 10)}.`,
         `Prazo limite de pagamento: ${item.dueDate.slice(0, 10)}.`,
         item.ownerName ? `Responsavel: ${item.ownerName}.` : undefined,
@@ -369,34 +282,6 @@ export class GenerateMonthlyBillingService {
       ]
         .filter(Boolean)
         .join("\n"),
-    });
-  }
-
-  private calculateTotals(plan: any, branchesUsed: number) {
-    const totals = calculatePlanTotals(plan, branchesUsed);
-    return {
-      includedBranches: totals.includedBranches,
-      extraBranches: totals.extraBranches,
-      planMonthlyPriceCents: totals.monthlyPriceCents,
-      extraBranchPriceCents: totals.extraBranchPriceCents,
-      subtotalCents: totals.totalCents,
-      totalCents: totals.totalCents,
-    };
-  }
-
-  private async countActiveBranchesForPeriod(
-    tenantId: bigint,
-    periodStart: Date,
-    periodEnd: Date,
-    prisma: any = prismaCentralUnscoped as any,
-  ): Promise<number> {
-    return prisma.branch.count({
-      where: {
-        tenantId,
-        active: true,
-        createdAt: { lte: periodEnd },
-        OR: [{ deletedAt: null }, { deletedAt: { gte: periodStart } }],
-      },
     });
   }
 }

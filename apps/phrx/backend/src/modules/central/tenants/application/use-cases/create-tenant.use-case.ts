@@ -5,6 +5,10 @@ import { TenantPrismaFactory } from "../../../../../infrastructure/prisma/tenant
 import { branchContext } from "../../../../../shared/context/branch-context";
 import { encryptTenantDbPassword } from "../../../../../infrastructure/security/tenant-db-credentials";
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
+import { generateBranchCode } from "../../domain/generate-branch-code";
+import { createTrialInvoice } from "../../../billing/application/services/create-trial-invoice.service";
+import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
+import { addDaysUTC } from "@skalway/billing";
 
 export interface CreateTenantDTO {
   nomeEmpresa: string;
@@ -21,7 +25,6 @@ export interface CreateTenantDTO {
   planSlug?: string | null;
   status?: "trial" | "ativo" | null;
   branchName?: string | null;
-  branchCode?: string | null;
   branchEndereco?: string | null;
   branchContacto?: string | null;
 }
@@ -78,9 +81,9 @@ export class CreateTenantUseCase {
     const dbHost = runtimeGlobals.process?.env?.MYSQL_HOST || "phrx-db";
     const dbPort = Number(runtimeGlobals.process?.env?.MYSQL_PORT || 3306);
 
-    const planSlug = (data.planSlug?.trim() || "base").toLowerCase();
+    const planSlug = (data.planSlug?.trim() || "starter").toLowerCase();
     const tenantStatus = data.status === "ativo" ? "ativo" : "trial";
-    const branchCode = normalizeTenantSlug(data.branchCode?.trim() || "HQ").toUpperCase().slice(0, 16) || "HQ";
+    const branchCode = generateBranchCode();
     const branchName =
       data.branchName?.trim() || `${data.nomeEmpresa.trim()} - Matriz`;
 
@@ -99,9 +102,12 @@ export class CreateTenantUseCase {
     }
 
     const plan =
-      (await prisma.plan.findUnique({ where: { slug: planSlug } })) ??
-      (await prisma.plan.findUnique({ where: { slug: "base" } })) ??
-      (await prisma.plan.findUnique({ where: { slug: "starter" } }));
+      (await prisma.plan.findFirst({
+        where: { slug: planSlug, active: true, deletedAt: null },
+      })) ??
+      (await prisma.plan.findFirst({
+        where: { slug: "starter", active: true, deletedAt: null },
+      }));
 
     if (!plan) {
       throw new Error(
@@ -110,8 +116,8 @@ export class CreateTenantUseCase {
     }
 
     const startDate = new Date();
-    const trialEndsAt = new Date(startDate);
-    trialEndsAt.setUTCDate(trialEndsAt.getUTCDate() + 7);
+    const trialDays = Math.max(1, Number(plan.trialDays ?? 14));
+    const trialEndsAt = addDaysUTC(startDate, trialDays);
     const subscriptionStatus = tenantStatus === "ativo" ? "ativo" : "trial";
 
     runtimeGlobals.console?.log(`📝 [CreateTenant] 1/6 Registo central (transação)...`);
@@ -183,11 +189,29 @@ export class CreateTenantUseCase {
           status: subscriptionStatus,
           startDate,
           trialEndsAt: subscriptionStatus === "trial" ? trialEndsAt : null,
+          currentPeriodEnd: subscriptionStatus === "trial" ? trialEndsAt : null,
           nextBillingAt: subscriptionStatus === "trial" ? trialEndsAt : startDate,
           createdBy: BigInt(data.userId),
           updatedBy: BigInt(data.userId),
         },
       });
+
+      if (subscriptionStatus === "trial") {
+        const invoice = await createTrialInvoice({
+          tx,
+          tenantId: tenant.id,
+          subscriptionId: subscription.id,
+          plan,
+          startDate,
+          trialEndsAt,
+          branchesUsed: 1,
+        });
+        if (invoice) {
+          runtimeGlobals.console?.log(
+            `🧾 [CreateTenant] Fatura trial ${invoice.invoiceNumber} (${invoice.amount} MZN) venc. ${invoice.dueDate.toISOString().slice(0, 10)}`,
+          );
+        }
+      }
 
       runtimeGlobals.console?.log(`🏢 [CreateTenant] 2/6 Branch principal (${branchCode})...`);
       const branch = await tx.branch.create({
@@ -207,6 +231,18 @@ export class CreateTenantUseCase {
           createdBy: BigInt(data.userId),
           updatedBy: BigInt(data.userId),
         },
+      });
+
+      await SubscriptionBranchHistoryService.recordBranchAdd({
+        tx,
+        tenantId: tenant.id,
+        subscriptionId: subscription.id,
+        branchId: branch.id,
+        createdBy: BigInt(data.userId),
+        includedBranches: Number(plan.includedBranches ?? 1),
+        branchCode: branch.code,
+        branchName: branch.name,
+        reason: "Filial Matriz criada com o tenant",
       });
 
       return { tenant, branch, subscription };

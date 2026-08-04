@@ -71,6 +71,11 @@ final platformInvoicesProvider =
   return ref.read(platformAdminDataSourceProvider).fetchAllInvoices();
 });
 
+final platformBranchesProvider =
+    FutureProvider.autoDispose<List<PlatformBranchListItem>>((ref) {
+  return ref.read(platformAdminDataSourceProvider).fetchAllBranches();
+});
+
 final platformPaymentsProvider =
     FutureProvider.autoDispose<List<PlatformPayment>>((ref) {
   return ref.read(platformAdminDataSourceProvider).fetchAllPayments();
@@ -85,6 +90,24 @@ final platformTenantPaymentsProvider = FutureProvider.autoDispose
     .family<List<PlatformPayment>, String>((ref, tenantId) {
   return ref.read(platformAdminDataSourceProvider).fetchPayments(tenantId);
 });
+
+final platformTenantBranchHistoryProvider = FutureProvider.autoDispose
+    .family<List<PlatformBranchHistoryItem>, String>((ref, tenantId) {
+  return ref.read(platformAdminDataSourceProvider).fetchBranchHistory(tenantId);
+});
+
+/// Invalida providers de billing do tenant (Ref ou WidgetRef).
+void invalidateTenantBilling(dynamic ref, String tenantId) {
+  ref.invalidate(platformTenantDetailProvider(tenantId));
+  ref.invalidate(platformTenantInvoicesProvider(tenantId));
+  ref.invalidate(platformTenantPaymentsProvider(tenantId));
+  ref.invalidate(platformTenantBranchHistoryProvider(tenantId));
+  ref.invalidate(platformTenantsProvider);
+  ref.invalidate(platformDashboardProvider);
+  ref.invalidate(platformInvoicesProvider);
+  ref.invalidate(platformPaymentsProvider);
+  ref.invalidate(platformBranchesProvider);
+}
 
 class PlatformBillingActionsNotifier extends Notifier<bool> {
   @override
@@ -103,6 +126,63 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
     }
   }
 
+  Future<PlatformBranch> createBranch({
+    required String tenantId,
+    required String name,
+  }) async {
+    state = true;
+    try {
+      final branch = await ref.read(platformAdminDataSourceProvider).createBranch(
+            tenantId: tenantId,
+            name: name,
+          );
+      invalidateTenantBilling(ref, tenantId);
+      return branch;
+    } finally {
+      state = false;
+    }
+  }
+
+  Future<PlatformBranch> deactivateBranch({
+    required String tenantId,
+    required String branchId,
+    String? reason,
+  }) async {
+    state = true;
+    try {
+      final branch =
+          await ref.read(platformAdminDataSourceProvider).deactivateBranch(
+                tenantId: tenantId,
+                branchId: branchId,
+                reason: reason,
+              );
+      invalidateTenantBilling(ref, tenantId);
+      return branch;
+    } finally {
+      state = false;
+    }
+  }
+
+  Future<PlatformBranch> activateBranch({
+    required String tenantId,
+    required String branchId,
+    String? reason,
+  }) async {
+    state = true;
+    try {
+      final branch =
+          await ref.read(platformAdminDataSourceProvider).activateBranch(
+                tenantId: tenantId,
+                branchId: branchId,
+                reason: reason,
+              );
+      invalidateTenantBilling(ref, tenantId);
+      return branch;
+    } finally {
+      state = false;
+    }
+  }
+
   Future<void> confirmPayment({
     required String tenantId,
     required String paymentId,
@@ -113,11 +193,7 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
             tenantId: tenantId,
             paymentId: paymentId,
           );
-      ref.invalidate(platformTenantPaymentsProvider(tenantId));
-      ref.invalidate(platformTenantInvoicesProvider(tenantId));
-      ref.invalidate(platformTenantDetailProvider(tenantId));
-      ref.invalidate(platformPaymentsProvider);
-      ref.invalidate(platformDashboardProvider);
+      invalidateTenantBilling(ref, tenantId);
     } finally {
       state = false;
     }
