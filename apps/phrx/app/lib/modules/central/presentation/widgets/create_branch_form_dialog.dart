@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/api_failure.dart';
-import '../../../../core/theme/spacing.dart';
-import '../../../../shared/navigation/adaptive_navigator.dart';
-import '../../../../shared/widgets/dialogs/enterprise_overlay_tokens.dart';
-import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../core/theme/extensions.dart';
+import '../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
+import '../../../../shared/widgets/dialogs/enterprise_side_sheet.dart';
+import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 
@@ -13,17 +14,10 @@ Future<PlatformBranch?> showCreateBranchFormDialog(
   BuildContext context, {
   required String tenantId,
 }) {
-  return AdaptiveNavigator.openEmbeddedForm<PlatformBranch>(
+  return EnterpriseSideSheet.show<PlatformBranch>(
     context: context,
-    title: const Text('Nova filial'),
-    routeSettings: RouteSettings(name: '/platform/tenants/$tenantId/branches/nova'),
-    size: EnterpriseOverlaySize.medium,
     barrierDismissible: false,
-    forceSideSheet: true,
-    formBuilder: (ctx, {required embedded}) => CreateBranchFormDialog(
-      tenantId: tenantId,
-      embedded: embedded,
-    ),
+    builder: (sheetContext) => CreateBranchFormDialog(tenantId: tenantId),
   );
 }
 
@@ -31,11 +25,9 @@ class CreateBranchFormDialog extends ConsumerStatefulWidget {
   const CreateBranchFormDialog({
     super.key,
     required this.tenantId,
-    this.embedded = false,
   });
 
   final String tenantId;
-  final bool embedded;
 
   @override
   ConsumerState<CreateBranchFormDialog> createState() =>
@@ -47,6 +39,7 @@ class _CreateBranchFormDialogState
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   bool _submitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -55,6 +48,7 @@ class _CreateBranchFormDialogState
   }
 
   Future<void> _submit() async {
+    setState(() => _errorMessage = null);
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
     try {
@@ -65,86 +59,80 @@ class _CreateBranchFormDialogState
             name: _nameCtrl.text.trim(),
           );
       if (!mounted) return;
-      AdaptiveNavigator.complete(context, branch);
+      closeEnterpriseSideSheet(context, branch);
     } catch (e) {
       if (!mounted) return;
       final message = e is ApiFailure ? e.message : e.toString();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      if (mounted) setState(() => _submitting = false);
+      setState(() {
+        _submitting = false;
+        _errorMessage = message;
+      });
     }
   }
-
-  Widget _buildBody() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Cria uma filial para este tenant. '
-            'O código é gerado automaticamente. '
-            'A criação nunca é bloqueada pelo limite do plano — '
-            'filiais extras entram na próxima factura.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TextFormField(
-            controller: _nameCtrl,
-            enabled: !_submitting,
-            decoration: const InputDecoration(
-              labelText: 'Nome *',
-              hintText: 'ex: Filial Beira',
-            ),
-            validator: (v) {
-              if ((v ?? '').trim().isEmpty) return 'Nome obrigatório';
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _actions() => [
-        TextButton(
-          onPressed:
-              _submitting ? null : () => AdaptiveNavigator.cancel(context),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _submitting ? null : _submit,
-          child: _submitting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Criar filial'),
-        ),
-      ];
 
   @override
   Widget build(BuildContext context) {
-    if (widget.embedded) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildBody(),
-          const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: _actions()),
-        ],
-      );
-    }
+    final s = context.spacing;
 
-    return PharmaResponsiveDialog(
+    return EnterpriseFormSideSheet(
       title: const Text('Nova filial'),
-      content: _buildBody(),
-      actions: _actions(),
+      onClose: _submitting
+          ? null
+          : () => closeEnterpriseSideSheet(context),
+      body: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_errorMessage != null) ...[
+              Material(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: EdgeInsets.all(s.md),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: s.md),
+            ],
+            Text(
+              'Cria uma filial para este tenant. '
+              'O código é gerado automaticamente. '
+              'A criação nunca é bloqueada pelo limite do plano — '
+              'filiais extras entram na próxima factura.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            SizedBox(height: s.md),
+            EnterpriseTextFormField(
+              controller: _nameCtrl,
+              enabled: !_submitting,
+              labelText: 'Nome *',
+              hintText: 'ex: Filial Beira',
+              validator: (v) {
+                if ((v ?? '').trim().isEmpty) return 'Nome obrigatório';
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        EnterpriseOverlayActions.secondary(
+          label: 'Cancelar',
+          onPressed: _submitting
+              ? null
+              : () => closeEnterpriseSideSheet(context),
+        ),
+        EnterpriseOverlayActions.primary(
+          label: _submitting ? 'A criar…' : 'Criar filial',
+          onPressed: _submitting ? null : _submit,
+        ),
+      ],
     );
   }
 }

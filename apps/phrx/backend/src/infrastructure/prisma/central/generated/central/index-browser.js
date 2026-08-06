@@ -154,10 +154,12 @@ exports.Prisma.UserTenantScalarFieldEnum = {
 exports.Prisma.TenantScalarFieldEnum = {
   id: 'id',
   uuid: 'uuid',
-  ownerId: 'ownerId',
-  name: 'name',
-  companyName: 'companyName',
+  ownerUserId: 'ownerUserId',
+  tenantKey: 'tenantKey',
+  tenantName: 'tenantName',
   nuit: 'nuit',
+  email: 'email',
+  endereco: 'endereco',
   status: 'status',
   country: 'country',
   version: 'version',
@@ -224,6 +226,45 @@ exports.Prisma.DeviceScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.PrinterScalarFieldEnum = {
+  id: 'id',
+  uuid: 'uuid',
+  tenantId: 'tenantId',
+  branchId: 'branchId',
+  deviceId: 'deviceId',
+  name: 'name',
+  type: 'type',
+  connection: 'connection',
+  ip: 'ip',
+  port: 'port',
+  model: 'model',
+  manufacturer: 'manufacturer',
+  active: 'active',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.PrintJobScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  branchId: 'branchId',
+  printerId: 'printerId',
+  document: 'document',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  errorMessage: 'errorMessage',
+  printedAt: 'printedAt',
+  lockedAt: 'lockedAt',
+  lockedBy: 'lockedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.SyncLogScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -274,6 +315,8 @@ exports.Prisma.PlanScalarFieldEnum = {
   extraBranchPrice: 'extraBranchPrice',
   isEnterprise: 'isEnterprise',
   active: 'active',
+  billingIntervalMonths: 'billingIntervalMonths',
+  trialDays: 'trialDays',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -290,12 +333,25 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   trialEndsAt: 'trialEndsAt',
   lastBillingAt: 'lastBillingAt',
   nextBillingAt: 'nextBillingAt',
+  currentPeriodEnd: 'currentPeriodEnd',
+  autoRenew: 'autoRenew',
   version: 'version',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
+};
+
+exports.Prisma.SubscriptionBranchHistoryScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  branchId: 'branchId',
+  action: 'action',
+  effectiveDate: 'effectiveDate',
+  reason: 'reason',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.InvoiceFiscalCounterScalarFieldEnum = {
@@ -315,6 +371,7 @@ exports.Prisma.InvoiceScalarFieldEnum = {
   subscriptionId: 'subscriptionId',
   billingSnapshotId: 'billingSnapshotId',
   amount: 'amount',
+  discount: 'discount',
   paidAmount: 'paidAmount',
   remainingAmount: 'remainingAmount',
   status: 'status',
@@ -367,6 +424,7 @@ exports.Prisma.PaymentScalarFieldEnum = {
   proofUrl: 'proofUrl',
   coversFrom: 'coversFrom',
   coversTo: 'coversTo',
+  monthsCovered: 'monthsCovered',
   confirmedAt: 'confirmedAt',
   confirmedBy: 'confirmedBy',
   createdBy: 'createdBy',
@@ -489,6 +547,37 @@ exports.Prisma.UserPermissionScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.CentralSettingsScalarFieldEnum = {
+  id: 'id',
+  singletonKey: 'singletonKey',
+  companyName: 'companyName',
+  companyNuit: 'companyNuit',
+  companyEmail: 'companyEmail',
+  companyPhone: 'companyPhone',
+  companyAddress: 'companyAddress',
+  companyCity: 'companyCity',
+  companyProvince: 'companyProvince',
+  companyCountry: 'companyCountry',
+  companyLogo: 'companyLogo',
+  mpesaAccountName: 'mpesaAccountName',
+  mpesaAccountNumber: 'mpesaAccountNumber',
+  emolaAccountName: 'emolaAccountName',
+  emolaAccountNumber: 'emolaAccountNumber',
+  bankName: 'bankName',
+  bankAccountName: 'bankAccountName',
+  bankAccountNumber: 'bankAccountNumber',
+  bankAccountNib: 'bankAccountNib',
+  bankAccountSwift: 'bankAccountSwift',
+  bankTransferInstructions: 'bankTransferInstructions',
+  invoiceFooter: 'invoiceFooter',
+  receiptFooter: 'receiptFooter',
+  defaultMessage: 'defaultMessage',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -541,6 +630,27 @@ exports.BranchConnectionStatus = exports.$Enums.BranchConnectionStatus = {
   DEGRADED: 'DEGRADED'
 };
 
+exports.PrinterType = exports.$Enums.PrinterType = {
+  ESC_POS: 'ESC_POS',
+  A4: 'A4',
+  LABEL: 'LABEL'
+};
+
+exports.PrinterConnection = exports.$Enums.PrinterConnection = {
+  NETWORK: 'NETWORK',
+  USB: 'USB',
+  BLUETOOTH: 'BLUETOOTH',
+  PDF: 'PDF'
+};
+
+exports.PrintStatus = exports.$Enums.PrintStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  PRINTED: 'PRINTED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.SyncOperation = exports.$Enums.SyncOperation = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
@@ -566,6 +676,11 @@ exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
   ativo: 'ativo',
   cancelado: 'cancelado',
   expirado: 'expirado'
+};
+
+exports.SubscriptionBranchAction = exports.$Enums.SubscriptionBranchAction = {
+  ADD: 'ADD',
+  REMOVE: 'REMOVE'
 };
 
 exports.InvoiceStatus = exports.$Enums.InvoiceStatus = {
@@ -612,10 +727,13 @@ exports.Prisma.ModelName = {
   TenantSetting: 'TenantSetting',
   Branch: 'Branch',
   Device: 'Device',
+  Printer: 'Printer',
+  PrintJob: 'PrintJob',
   SyncLog: 'SyncLog',
   SyncSession: 'SyncSession',
   Plan: 'Plan',
   Subscription: 'Subscription',
+  SubscriptionBranchHistory: 'SubscriptionBranchHistory',
   InvoiceFiscalCounter: 'InvoiceFiscalCounter',
   Invoice: 'Invoice',
   BillingSnapshot: 'BillingSnapshot',
@@ -629,7 +747,8 @@ exports.Prisma.ModelName = {
   LoginAttempt: 'LoginAttempt',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
-  UserPermission: 'UserPermission'
+  UserPermission: 'UserPermission',
+  CentralSettings: 'CentralSettings'
 };
 
 /**

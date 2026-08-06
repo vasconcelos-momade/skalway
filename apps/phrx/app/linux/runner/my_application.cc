@@ -22,6 +22,9 @@ static void first_frame_cb(MyApplication* self, FlView *view)
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
+  g_set_prgname("skalway_phrx");
+  g_set_application_name("Skalway PhRx");
+
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
@@ -46,11 +49,30 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "pharma_erp");
+    gtk_header_bar_set_title(header_bar, "Skalway PhRx");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "pharma_erp");
+    gtk_window_set_title(window, "Skalway PhRx");
+  }
+
+  // DEFINIR O ID DA APLICAÇÃO PARA O ÍCONE NA BARRA
+  g_application_set_application_id(G_APPLICATION(application), "skalway_phrx");
+
+  // O sistema vai procurar o ícone pelo nome nas pastas /usr/share/icons/hicolor
+  gtk_window_set_icon_name(window, "skalway_phrx");
+
+  const gchar* appdir = g_getenv("APPDIR");
+  if (appdir != nullptr) {
+    g_autofree gchar* icon_path =
+        g_build_filename(appdir, "SkalwayPhRx.png", nullptr);
+    g_autoptr(GError) icon_error = nullptr;
+    gtk_window_set_icon_from_file(window, icon_path, &icon_error);
+    if (icon_error != nullptr) {
+      gtk_window_set_icon_name(window, "SkalwayPhRx");
+    }
+  } else {
+    gtk_window_set_icon_name(window, "SkalwayPhRx");
   }
 
   gtk_window_set_default_size(window, 1280, 720);

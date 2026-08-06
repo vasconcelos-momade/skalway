@@ -199,7 +199,7 @@ export class CreateBranchUseCase {
         const tenant = await tx.tenant.findUnique({
           where: { id: tenantId },
           select: {
-            companyName: true,
+            tenantName: true,
             owner: {
               select: {
                 name: true,
@@ -294,7 +294,7 @@ export class CreateBranchUseCase {
             : "Ainda dentro do limite de filiais incluidas no plano.";
         await EmailService.send({
           to: ownerEmail,
-          subject: `Nova branch criada para ${result.tenant.companyName}`,
+          subject: `Nova branch criada para ${result.tenant.tenantName}`,
           text: [
             `A branch ${result.branch.name} (${result.branch.code}) foi criada com sucesso.`,
             `Base de dados dedicada: ${dbName}.`,

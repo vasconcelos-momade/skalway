@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/spacing.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
@@ -216,7 +217,7 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
               DataCell(
                 _TenantCell(
                   title: t.tenantName,
-                  subtitle: t.companyName,
+                  subtitle: t.tenantKey,
                 ),
               ),
               DataCell(
@@ -285,7 +286,7 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
           final t = tenants[index];
           return EnterpriseListCard(
             title: t.tenantName,
-            subtitle: t.companyName,
+            subtitle: t.tenantKey,
             chip: EnterpriseStatusChip(
               label: _tenantStatusLabel(t.status),
               color: _tenantStatusColor(context, t.status),
@@ -456,7 +457,7 @@ class _TenantActionsMenuButton extends StatelessWidget {
             EnterpriseOverlay.show<void>(
               context: context,
               title: const Text('Mais informações'),
-              subtitle: '${tenant.tenantName} • ${tenant.companyName}',
+              subtitle: '${tenant.tenantName} • ${tenant.tenantKey}',
               icon: Icons.info_outline_rounded,
               body: _TenantMoreInfoSheet(
                 tenantId: tenant.id,
@@ -468,7 +469,7 @@ class _TenantActionsMenuButton extends StatelessWidget {
             EnterpriseOverlay.show<void>(
               context: context,
               title: const Text('Histórico do tenant'),
-              subtitle: '${tenant.tenantName} • ${tenant.companyName}',
+              subtitle: '${tenant.tenantName} • ${tenant.tenantKey}',
               icon: Icons.history_rounded,
               size: EnterpriseOverlaySize.large,
               desktopSurface: EnterpriseDesktopSurface.sideSheet,
@@ -492,7 +493,6 @@ class _TenantActionsMenuButton extends StatelessWidget {
               context,
               tenantId: tenant.id,
               tenantName: tenant.tenantName,
-              companyName: tenant.companyName,
             );
             if (ok && context.mounted) {
               PharmaFeedback.success(context, 'Créditos adicionados.');
@@ -558,7 +558,7 @@ class _TenantMoreInfoSheet extends ConsumerWidget {
             ),
             EnterpriseListCard(
               title: 'Empresa',
-              subtitle: summary.companyName,
+              subtitle: summary.tenantName,
               leading: Icons.apartment_rounded,
             ),
             EnterpriseListCard(

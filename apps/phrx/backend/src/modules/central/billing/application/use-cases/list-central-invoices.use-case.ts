@@ -41,8 +41,8 @@ export class ListCentralInvoicesUseCase {
             OR: [
               { number: { contains: search } },
               { description: { contains: search } },
-              { tenant: { name: { contains: search } } },
-              { tenant: { companyName: { contains: search } } },
+              { tenant: { tenantKey: { contains: search } } },
+              { tenant: { tenantName: { contains: search } } },
             ],
           }
         : {}),
@@ -73,8 +73,8 @@ export class ListCentralInvoicesUseCase {
           tenant: {
             select: {
               id: true,
-              name: true,
-              companyName: true,
+              tenantKey: true,
+              tenantName: true,
             },
           },
           billingSnapshot: {
@@ -133,8 +133,8 @@ export class ListCentralInvoicesUseCase {
         branchesUsed: invoice.branchesUsed,
         extraBranches: invoice.extraBranches,
         description: invoice.description,
-        tenantName: invoice.tenant?.name ?? null,
-        companyName: invoice.tenant?.companyName ?? null,
+        tenantKey: invoice.tenant?.tenantKey ?? null,
+        tenantName: invoice.tenant?.tenantName ?? null,
         planName: invoice.subscription?.plan?.name ?? null,
         planSlug: invoice.subscription?.plan?.slug ?? null,
         planMonthlyPrice: snapshot ? Number(snapshot.planMonthlyPrice) : null,

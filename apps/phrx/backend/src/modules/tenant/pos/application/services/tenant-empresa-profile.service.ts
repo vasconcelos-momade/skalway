@@ -19,7 +19,7 @@ export async function resolveTenantEmpresaProfile(): Promise<TenantEmpresaProfil
   const tenant = await (prismaCentralUnscoped as any).tenant.findUnique({
     where: { id: BigInt(tenantId) },
     select: {
-      companyName: true,
+      tenantName: true,
       nuit: true,
       email: true,
       endereco: true,
@@ -27,7 +27,7 @@ export async function resolveTenantEmpresaProfile(): Promise<TenantEmpresaProfil
   });
 
   return {
-    nome: toNullableText(tenant?.companyName),
+    nome: toNullableText(tenant?.tenantName),
     nuit: toNullableText(tenant?.nuit),
     endereco: toNullableText(tenant?.endereco),
     email: toNullableText(tenant?.email),

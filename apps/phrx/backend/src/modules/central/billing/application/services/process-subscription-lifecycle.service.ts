@@ -193,7 +193,7 @@ export class ProcessSubscriptionLifecycleService {
         include: {
           tenant: {
             select: {
-              companyName: true,
+              tenantName: true,
               owner: {
                 select: {
                   name: true,
@@ -243,7 +243,7 @@ export class ProcessSubscriptionLifecycleService {
       });
 
       return {
-        companyName: String(invoice.tenant.companyName),
+        tenantName: String(invoice.tenant.tenantName),
         ownerName: invoice.tenant.owner?.name ? String(invoice.tenant.owner.name) : null,
         ownerEmail: invoice.tenant.owner?.email ? String(invoice.tenant.owner.email) : null,
         invoiceNumber: String(invoice.number),
@@ -262,7 +262,7 @@ export class ProcessSubscriptionLifecycleService {
         include: {
           tenant: {
             select: {
-              companyName: true,
+              tenantName: true,
               owner: {
                 select: {
                   name: true,
@@ -300,7 +300,7 @@ export class ProcessSubscriptionLifecycleService {
       });
 
       return {
-        companyName: String(invoice.tenant.companyName),
+        tenantName: String(invoice.tenant.tenantName),
         ownerName: invoice.tenant.owner?.name ? String(invoice.tenant.owner.name) : null,
         ownerEmail: invoice.tenant.owner?.email ? String(invoice.tenant.owner.email) : null,
         invoiceNumber: String(invoice.number),
@@ -311,7 +311,7 @@ export class ProcessSubscriptionLifecycleService {
   }
 
   private async sendSuspensionEmail(payload: {
-    companyName: string;
+    tenantName: string;
     ownerName: string | null;
     ownerEmail: string | null;
     invoiceNumber: string;
@@ -322,9 +322,9 @@ export class ProcessSubscriptionLifecycleService {
 
     await EmailService.send({
       to: payload.ownerEmail,
-      subject: `Tenant suspenso por falta de pagamento: ${payload.companyName}`,
+      subject: `Tenant suspenso por falta de pagamento: ${payload.tenantName}`,
       text: [
-        `A factura ${payload.invoiceNumber} da empresa ${payload.companyName} venceu sem pagamento.`,
+        `A factura ${payload.invoiceNumber} do tenant ${payload.tenantName} venceu sem pagamento.`,
         `Valor pendente: ${payload.amount} MZN.`,
         `Data limite: ${payload.dueDate.toISOString().slice(0, 10)}.`,
         payload.ownerName ? `Responsavel: ${payload.ownerName}.` : undefined,
@@ -336,7 +336,7 @@ export class ProcessSubscriptionLifecycleService {
   }
 
   private async sendCancellationEmail(payload: {
-    companyName: string;
+    tenantName: string;
     ownerName: string | null;
     ownerEmail: string | null;
     invoiceNumber: string;
@@ -347,9 +347,9 @@ export class ProcessSubscriptionLifecycleService {
 
     await EmailService.send({
       to: payload.ownerEmail,
-      subject: `Subscricao cancelada por falta de pagamento: ${payload.companyName}`,
+      subject: `Subscricao cancelada por falta de pagamento: ${payload.tenantName}`,
       text: [
-        `A factura ${payload.invoiceNumber} da empresa ${payload.companyName} permanece sem pagamento ha mais de 30 dias.`,
+        `A factura ${payload.invoiceNumber} do tenant ${payload.tenantName} permanece sem pagamento ha mais de 30 dias.`,
         `Valor pendente: ${payload.amount} MZN.`,
         `Vencimento original: ${payload.dueDate.toISOString().slice(0, 10)}.`,
         payload.ownerName ? `Responsavel: ${payload.ownerName}.` : undefined,

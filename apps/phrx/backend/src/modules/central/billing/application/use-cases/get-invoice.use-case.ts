@@ -23,8 +23,8 @@ export class GetInvoiceUseCase {
         include: {
           tenant: {
             select: {
-              companyName: true,
-              name: true,
+              tenantKey: true,
+              tenantName: true,
               nuit: true,
               email: true,
               endereco: true,
@@ -103,8 +103,8 @@ export class GetInvoiceUseCase {
         createdAt: invoice.createdAt,
         tenant: invoice.tenant
           ? {
-              companyName: invoice.tenant.companyName,
-              tenantName: invoice.tenant.name,
+              tenantKey: invoice.tenant.tenantKey,
+              tenantName: invoice.tenant.tenantName,
               nuit: invoice.tenant.nuit,
               contact: invoice.tenant.email,
               address: invoice.tenant.endereco,

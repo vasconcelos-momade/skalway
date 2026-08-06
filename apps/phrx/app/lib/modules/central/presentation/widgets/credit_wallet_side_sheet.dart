@@ -21,7 +21,6 @@ Future<bool> showCreditWalletSideSheet(
   BuildContext context, {
   required String tenantId,
   required String tenantName,
-  required String companyName,
 }) async {
   final result = await EnterpriseSideSheet.show<bool>(
     context: context,
@@ -29,7 +28,6 @@ Future<bool> showCreditWalletSideSheet(
     builder: (sheetContext) => CreditWalletSideSheet(
       tenantId: tenantId,
       tenantName: tenantName,
-      companyName: companyName,
     ),
   );
   return result == true;
@@ -40,12 +38,10 @@ class CreditWalletSideSheet extends ConsumerStatefulWidget {
     super.key,
     required this.tenantId,
     required this.tenantName,
-    required this.companyName,
   });
 
   final String tenantId;
   final String tenantName;
-  final String companyName;
 
   @override
   ConsumerState<CreditWalletSideSheet> createState() =>
@@ -142,11 +138,6 @@ class _CreditWalletSideSheetState extends ConsumerState<CreditWalletSideSheet> {
                 title: 'Tenant',
                 subtitle: widget.tenantName,
                 leading: Icons.business_rounded,
-              ),
-              EnterpriseListCard(
-                title: 'Empresa',
-                subtitle: widget.companyName,
-                leading: Icons.apartment_rounded,
               ),
               EnterpriseListCard(
                 title: 'Saldo Actual',

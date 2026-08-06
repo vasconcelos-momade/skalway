@@ -35,6 +35,7 @@ class EnterpriseListCard extends StatelessWidget {
     this.trailing,
     this.chip,
     this.metadata = const [],
+    this.customMetadata,
     this.trailingMeta,
     this.onTap,
     this.actions,
@@ -48,6 +49,7 @@ class EnterpriseListCard extends StatelessWidget {
   final Widget? trailing;
   final Widget? chip;
   final List<EnterpriseListCardMeta> metadata;
+  final Widget? customMetadata;
   final EnterpriseListCardMeta? trailingMeta;
   final VoidCallback? onTap;
   final Widget? actions;
@@ -106,6 +108,10 @@ class EnterpriseListCard extends StatelessWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                            ],
+                            if (customMetadata != null) ...[
+                              SizedBox(height: s.xxs),
+                              customMetadata!,
                             ],
                             if (metadata.isNotEmpty) ...[
                               SizedBox(height: s.xxs),

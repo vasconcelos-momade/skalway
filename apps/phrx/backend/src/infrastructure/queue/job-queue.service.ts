@@ -10,13 +10,17 @@ export interface TenantRegisterJobPayload {
   adminEmail: string;
   adminPassword: string;
   userId: string;
+  adminUserId?: string | null;
   email?: string | null;
   endereco?: string | null;
   nuit?: string | null;
   telefone?: string | null;
   planSlug?: string | null;
   status?: "trial" | "ativo" | null;
+  billingPeriodMonths?: number | null;
+  /** @deprecated Preferir `branches`. */
   branchName?: string | null;
+  branches?: Array<{ name: string }> | null;
 }
 
 export interface MonthlyBillingJobPayload {

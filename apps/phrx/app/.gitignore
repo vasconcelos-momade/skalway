@@ -47,3 +47,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .trae_tmp_home/
+
+*.AppImage
+*.AppDir/
+appimagetool
+appimagetool-*.AppImage
+*.deb
+pkg_deb/

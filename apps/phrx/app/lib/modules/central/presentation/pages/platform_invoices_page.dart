@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/extensions.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
@@ -18,6 +19,7 @@ import '../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 import '../widgets/confirm_payment_side_sheet.dart';
+import '../widgets/apply_invoice_discount_side_sheet.dart';
 
 /// Página de faturas SaaS da Central.
 class PlatformInvoicesPage extends ConsumerStatefulWidget {
@@ -197,7 +199,7 @@ class _PlatformInvoicesPageState extends ConsumerState<PlatformInvoicesPage> {
               DataCell(
                 _TenantCell(
                   title: i.tenantName,
-                  subtitle: i.companyName,
+                  subtitle: i.tenantKey,
                 ),
               ),
               DataCell(Text(i.number)),
@@ -280,8 +282,8 @@ class _PlatformInvoicesPageState extends ConsumerState<PlatformInvoicesPage> {
                 title: i.number,
                 subtitle: [
                   i.tenantName,
-                  if (i.companyName != null && i.companyName!.trim().isNotEmpty)
-                    i.companyName!,
+                  if (i.tenantKey != null && i.tenantKey!.trim().isNotEmpty)
+                    i.tenantKey!,
                 ].join('\n'),
                 actions: _InvoiceActionsMenu(invoice: i, busy: busy),
                 chip: EnterpriseStatusChip(
@@ -293,11 +295,25 @@ class _PlatformInvoicesPageState extends ConsumerState<PlatformInvoicesPage> {
                       ? 'Sem vencimento'
                       : 'Vence ${dateFmt.format(i.dueDate!.toLocal())}',
                 ),
+                customMetadata: Wrap(
+                  spacing: 16,
+                  runSpacing: 4,
+                  children: [
+                    Text(
+                      'Período: $periodArrow',
+                      style: Theme.of(context).textTheme.erpCaption.copyWith(
+                            color: context.pharmaTokens.textMuted,
+                          ),
+                    ),
+                    Text(
+                      'Plano: ${i.planName}',
+                      style: Theme.of(context).textTheme.erpCaption.copyWith(
+                            color: context.pharmaTokens.textMuted,
+                          ),
+                    ),
+                  ],
+                ),
                 metadata: [
-                  EnterpriseListCardMeta(label: 'Período'),
-                  EnterpriseListCardMeta(label: periodArrow),
-                  EnterpriseListCardMeta(label: 'Plano'),
-                  EnterpriseListCardMeta(label: i.planName),
                   EnterpriseListCardMeta(
                     label:
                         'Base ${i.planMonthlyPrice == null ? '—' : currency.format(i.planMonthlyPrice)}'
@@ -363,7 +379,7 @@ class _TenantCell extends StatelessWidget {
   }
 }
 
-enum _InvoiceAction { confirmPayment, downloadPdf }
+enum _InvoiceAction { confirmPayment, applyDiscount, downloadPdf }
 
 class _InvoiceActionsMenu extends ConsumerWidget {
   const _InvoiceActionsMenu({
@@ -383,6 +399,12 @@ class _InvoiceActionsMenu extends ConsumerWidget {
           label: 'Confirmar Pagamento',
           icon: Icons.verified_outlined,
         ),
+      if (invoice.canApplyDiscount)
+        const EnterpriseDropdownItem(
+          value: _InvoiceAction.applyDiscount,
+          label: 'Adicionar desconto',
+          icon: Icons.discount_outlined,
+        ),
       const EnterpriseDropdownItem(
         value: _InvoiceAction.downloadPdf,
         label: 'Descarregar PDF',
@@ -397,6 +419,8 @@ class _InvoiceActionsMenu extends ConsumerWidget {
         switch (action) {
           case _InvoiceAction.confirmPayment:
             await showConfirmPaymentSideSheet(context, invoice: invoice);
+          case _InvoiceAction.applyDiscount:
+            await showApplyInvoiceDiscountSideSheet(context, invoice: invoice);
           case _InvoiceAction.downloadPdf:
             try {
               await ref

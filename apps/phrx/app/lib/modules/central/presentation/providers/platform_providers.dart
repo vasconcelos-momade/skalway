@@ -623,6 +623,27 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
     }
   }
 
+  Future<void> applyInvoiceDiscount({
+    required String tenantId,
+    required String invoiceId,
+    required double discount,
+    String? reason,
+  }) async {
+    state = true;
+    try {
+      await ref.read(platformAdminDataSourceProvider).applyInvoiceDiscount(
+            tenantId: tenantId,
+            invoiceId: invoiceId,
+            discount: discount,
+            reason: reason,
+          );
+      invalidateTenantBilling(ref, tenantId);
+      ref.invalidate(platformInvoicesProvider);
+    } finally {
+      state = false;
+    }
+  }
+
   Future<PlatformPlan> createPlan(PlatformPlanPayload payload) async {
     state = true;
     try {

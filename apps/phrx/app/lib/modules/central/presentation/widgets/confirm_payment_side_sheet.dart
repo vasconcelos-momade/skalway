@@ -126,12 +126,11 @@ class _ConfirmPaymentSideSheetState
             subtitle: invoice.tenantName,
             leading: Icons.business_rounded,
           ),
-          if (invoice.companyName != null &&
-              invoice.companyName!.trim().isNotEmpty)
+          if (invoice.tenantKey != null && invoice.tenantKey!.trim().isNotEmpty)
             EnterpriseListCard(
-              title: 'Empresa',
-              subtitle: invoice.companyName!,
-              leading: Icons.apartment_rounded,
+              title: 'Identificador',
+              subtitle: invoice.tenantKey!,
+              leading: Icons.tag_rounded,
             ),
           EnterpriseListCard(
             title: 'Número da Factura',

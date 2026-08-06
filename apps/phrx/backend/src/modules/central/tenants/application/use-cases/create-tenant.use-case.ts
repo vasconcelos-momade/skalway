@@ -8,7 +8,11 @@ import { EmailService } from "../../../../../infrastructure/notifications/email.
 import { generateBranchCode } from "../../domain/generate-branch-code";
 import { createTrialInvoice } from "../../../billing/application/services/create-trial-invoice.service";
 import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
-import { addDaysUTC } from "@skalway/billing";
+import { addDaysUTC, addMonthsUTC } from "@skalway/billing";
+
+export interface CreateTenantBranchInput {
+  name: string;
+}
 
 export interface CreateTenantDTO {
   /** Nome visível do tenant. */
@@ -21,15 +25,22 @@ export interface CreateTenantDTO {
   adminName: string;
   adminEmail: string;
   adminPassword: string;
+  /** Utilizador dono (central). */
   userId: string;
+  /** Administrador local (central), se já criado. */
+  adminUserId?: string | null;
   email?: string | null;
   endereco?: string | null;
   nuit?: string | null;
   telefone?: string | null;
   planSlug?: string | null;
   status?: "trial" | "ativo" | null;
-  /** Nome da branch inicial (default = tenantName). */
+  /** @deprecated Preferir `branches`. */
   branchName?: string | null;
+  /** Lista de branches a criar (a primeira é a principal). */
+  branches?: CreateTenantBranchInput[] | null;
+  /** Período de faturação em meses (1, 3, 6 ou 12). */
+  billingPeriodMonths?: number | null;
 }
 
 /** @deprecated Use CreateTenantDTO */
@@ -60,6 +71,28 @@ export function isValidNuit(nuit: string): boolean {
   return /^\d{9}$/.test(nuit.replace(/\s+/g, ""));
 }
 
+function normalizeDbIdentifier(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function buildBranchDbName(tenantId: string, branchCode: string) {
+  const normalizedCode = normalizeDbIdentifier(branchCode);
+  return `tenant_${tenantId}_branch_${normalizedCode}`.slice(0, 64);
+}
+
+function resolveBranchNames(data: CreateTenantDTO, tenantName: string): string[] {
+  const fromList = (data.branches ?? [])
+    .map((b) => b.name?.trim())
+    .filter((name): name is string => Boolean(name));
+  if (fromList.length > 0) return fromList;
+  const single = data.branchName?.trim();
+  return [single || tenantName];
+}
+
 export class CreateTenantUseCase {
   async execute(data: CreateTenantDTO) {
     const prisma = prismaCentralUnscoped as any;
@@ -81,7 +114,12 @@ export class CreateTenantUseCase {
     }
     const nuit = nuitRaw ? nuitRaw.replace(/\s+/g, "") : null;
 
-    const dbName = `tenant_${slug}`;
+    const branchNames = resolveBranchNames(data, tenantName);
+    if (branchNames.length === 0) {
+      throw new Error("É necessário informar pelo menos uma Branch.");
+    }
+
+    const hqDbName = `tenant_${slug}`;
     const adminEmail = data.adminEmail.trim().toLowerCase();
     const dbPasswordPlain = runtimeGlobals.process?.env?.MYSQL_ROOT_PASSWORD;
     if (!dbPasswordPlain) {
@@ -93,12 +131,18 @@ export class CreateTenantUseCase {
 
     const planSlug = (data.planSlug?.trim() || "starter").toLowerCase();
     const tenantStatus = data.status === "ativo" ? "ativo" : "trial";
-    const branchCode = generateBranchCode();
-    const branchName = data.branchName?.trim() || tenantName;
+    const branchesUsed = branchNames.length;
+    const allowedPeriods = new Set([1, 3, 6, 12]);
+    const billingPeriodMonths = allowedPeriods.has(
+      Number(data.billingPeriodMonths),
+    )
+      ? Number(data.billingPeriodMonths)
+      : 1;
 
-    runtimeGlobals.console?.log(`🚀 [CreateTenant] Iniciando: ${slug}`);
+    runtimeGlobals.console?.log(
+      `🚀 [CreateTenant] Iniciando: ${slug} (${branchesUsed} branch(es))`,
+    );
 
-    // Libertar tenantKey se existir apenas soft-deleted (@@unique global).
     const existingByKey = await prisma.tenant.findUnique({
       where: { tenantKey: slug },
     });
@@ -130,130 +174,180 @@ export class CreateTenantUseCase {
     const trialDays = Math.max(1, Number(plan.trialDays ?? 14));
     const trialEndsAt = addDaysUTC(startDate, trialDays);
     const subscriptionStatus = tenantStatus === "ativo" ? "ativo" : "trial";
+    const includedBranches = Number(plan.includedBranches ?? 1);
+    const activePeriodEnd = addDaysUTC(
+      addMonthsUTC(startDate, billingPeriodMonths),
+      -1,
+    );
+    const activeNextBilling = addMonthsUTC(startDate, billingPeriodMonths);
 
     runtimeGlobals.console?.log(`📝 [CreateTenant] 1/6 Registo central (transação)...`);
 
-    const { tenant, branch, subscription } = await prisma.$transaction(async (tx: any) => {
-      const tenant = await tx.tenant.create({
-        data: {
-          tenantName,
-          tenantKey: slug,
-          ownerUserId: BigInt(data.userId),
-          status: tenantStatus,
-          email: data.email?.trim() || null,
-          endereco: data.endereco?.trim() || null,
-          nuit,
-          country: "MZ",
-          createdBy: BigInt(data.userId),
-          updatedBy: BigInt(data.userId),
-        },
-      });
+    const { tenant, branches, subscription } = await prisma.$transaction(
+      async (tx: any) => {
+        const tenant = await tx.tenant.create({
+          data: {
+            tenantName,
+            tenantKey: slug,
+            ownerUserId: BigInt(data.userId),
+            status: tenantStatus,
+            email: data.email?.trim() || null,
+            endereco: data.endereco?.trim() || null,
+            nuit,
+            country: "MZ",
+            createdBy: BigInt(data.userId),
+            updatedBy: BigInt(data.userId),
+          },
+        });
 
-      const settings: Array<{ tenantId: bigint; key: string; value: unknown }> = [
-        { tenantId: tenant.id, key: "language", value: "pt" },
-      ];
-      if (data.telefone?.trim()) {
-        settings.push({ tenantId: tenant.id, key: "telefone", value: data.telefone.trim() });
-      }
-      await tx.tenantSetting.createMany({ data: settings });
-
-      const allPermissions = await tx.permission.findMany();
-      if (allPermissions.length > 0) {
-        await tx.userPermission.createMany({
-          data: allPermissions.map((p: any) => ({
-            userId: BigInt(data.userId),
-            permissionId: p.id,
+        const settings: Array<{ tenantId: bigint; key: string; value: unknown }> = [
+          { tenantId: tenant.id, key: "language", value: "pt" },
+        ];
+        if (data.telefone?.trim()) {
+          settings.push({
             tenantId: tenant.id,
-            allowed: true,
-          })),
-        });
-      }
-
-      await tx.userTenant.create({
-        data: {
-          userId: BigInt(data.userId),
-          tenantId: tenant.id,
-          role: "ADMIN",
-          active: true,
-        },
-      });
-
-      const subscription = await tx.subscription.create({
-        data: {
-          tenantId: tenant.id,
-          planId: plan.id,
-          branchesUsed: 1,
-          status: subscriptionStatus,
-          startDate,
-          trialEndsAt: subscriptionStatus === "trial" ? trialEndsAt : null,
-          currentPeriodEnd: subscriptionStatus === "trial" ? trialEndsAt : null,
-          nextBillingAt: subscriptionStatus === "trial" ? trialEndsAt : startDate,
-          createdBy: BigInt(data.userId),
-          updatedBy: BigInt(data.userId),
-        },
-      });
-
-      if (subscriptionStatus === "trial") {
-        const invoice = await createTrialInvoice({
-          tx,
-          tenantId: tenant.id,
-          subscriptionId: subscription.id,
-          plan,
-          startDate,
-          trialEndsAt,
-          branchesUsed: 1,
-        });
-        if (invoice) {
-          runtimeGlobals.console?.log(
-            `🧾 [CreateTenant] Fatura trial ${invoice.invoiceNumber} (${invoice.amount} MZN) venc. ${invoice.dueDate.toISOString().slice(0, 10)}`,
-          );
+            key: "telefone",
+            value: data.telefone.trim(),
+          });
         }
-      }
+        await tx.tenantSetting.createMany({ data: settings });
 
-      runtimeGlobals.console?.log(`🏢 [CreateTenant] 2/6 Branch principal (${branchCode})...`);
-      const branch = await tx.branch.create({
-        data: {
-          tenantId: tenant.id,
-          code: branchCode,
-          name: branchName,
-          isHeadOffice: true,
-          active: true,
-          dbHost,
-          dbPort,
-          dbName,
-          dbUsername: "root",
-          dbPasswordCipherText: cipherText,
-          dbPasswordIv: iv,
-          dbPasswordTag: tag,
-          createdBy: BigInt(data.userId),
-          updatedBy: BigInt(data.userId),
-        },
-      });
+        const allPermissions = await tx.permission.findMany();
+        if (allPermissions.length > 0) {
+          await tx.userPermission.createMany({
+            data: allPermissions.map((p: any) => ({
+              userId: BigInt(data.userId),
+              permissionId: p.id,
+              tenantId: tenant.id,
+              allowed: true,
+            })),
+          });
+        }
 
-      await SubscriptionBranchHistoryService.recordBranchAdd({
-        tx,
-        tenantId: tenant.id,
-        subscriptionId: subscription.id,
-        branchId: branch.id,
-        createdBy: BigInt(data.userId),
-        includedBranches: Number(plan.includedBranches ?? 1),
-        branchCode: branch.code,
-        branchName: branch.name,
-        reason: "Filial Matriz criada com o tenant",
-      });
+        await tx.userTenant.create({
+          data: {
+            userId: BigInt(data.userId),
+            tenantId: tenant.id,
+            role: "ADMIN",
+            active: true,
+          },
+        });
 
-      return { tenant, branch, subscription };
-    });
+        if (data.adminUserId && data.adminUserId !== data.userId) {
+          await tx.userTenant.create({
+            data: {
+              userId: BigInt(data.adminUserId),
+              tenantId: tenant.id,
+              role: "ADMIN",
+              active: true,
+            },
+          });
+          if (allPermissions.length > 0) {
+            await tx.userPermission.createMany({
+              data: allPermissions.map((p: any) => ({
+                userId: BigInt(data.adminUserId!),
+                permissionId: p.id,
+                tenantId: tenant.id,
+                allowed: true,
+              })),
+            });
+          }
+        }
+
+        const subscription = await tx.subscription.create({
+          data: {
+            tenantId: tenant.id,
+            planId: plan.id,
+            branchesUsed,
+            status: subscriptionStatus,
+            startDate,
+            trialEndsAt: subscriptionStatus === "trial" ? trialEndsAt : null,
+            currentPeriodEnd:
+              subscriptionStatus === "trial" ? trialEndsAt : activePeriodEnd,
+            nextBillingAt:
+              subscriptionStatus === "trial" ? trialEndsAt : activeNextBilling,
+            createdBy: BigInt(data.userId),
+            updatedBy: BigInt(data.userId),
+          },
+        });
+
+        if (subscriptionStatus === "trial") {
+          const invoice = await createTrialInvoice({
+            tx,
+            tenantId: tenant.id,
+            subscriptionId: subscription.id,
+            plan,
+            startDate,
+            trialEndsAt,
+            branchesUsed,
+            periodMonths: billingPeriodMonths,
+          });
+          if (invoice) {
+            runtimeGlobals.console?.log(
+              `🧾 [CreateTenant] Fatura trial ${invoice.invoiceNumber} (${invoice.amount} MZN) venc. ${invoice.dueDate.toISOString().slice(0, 10)}`,
+            );
+          }
+        }
+
+        const createdBranches: any[] = [];
+        for (let i = 0; i < branchNames.length; i++) {
+          const isHeadOffice = i === 0;
+          const code = generateBranchCode();
+          const dbName = isHeadOffice
+            ? hqDbName
+            : buildBranchDbName(tenant.id.toString(), code);
+
+          const branch = await tx.branch.create({
+            data: {
+              tenantId: tenant.id,
+              code,
+              name: branchNames[i],
+              isHeadOffice,
+              active: true,
+              dbHost,
+              dbPort,
+              dbName,
+              dbUsername: "root",
+              dbPasswordCipherText: cipherText,
+              dbPasswordIv: iv,
+              dbPasswordTag: tag,
+              createdBy: BigInt(data.userId),
+              updatedBy: BigInt(data.userId),
+            },
+          });
+
+          await SubscriptionBranchHistoryService.recordBranchAdd({
+            tx,
+            tenantId: tenant.id,
+            subscriptionId: subscription.id,
+            branchId: branch.id,
+            createdBy: BigInt(data.userId),
+            includedBranches,
+            branchCode: branch.code,
+            branchName: branch.name,
+            reason: isHeadOffice
+              ? "Filial principal criada com o tenant"
+              : "Filial adicional criada com o tenant",
+          });
+
+          createdBranches.push(branch);
+        }
+
+        return { tenant, branches: createdBranches, subscription };
+      },
+    );
+
+    const hqBranch = branches[0];
 
     try {
-      runtimeGlobals.console?.log(`🛠  [CreateTenant] 3/6 Criar base de dados ${dbName}...`);
-      await MySqlManagementService.createDatabase(dbName);
+      runtimeGlobals.console?.log(`🛠  [CreateTenant] 3/6 Criar base de dados ${hqDbName}...`);
+      await MySqlManagementService.createDatabase(hqDbName);
 
       runtimeGlobals.console?.log(`⚙️  [CreateTenant] 4/6 Migrations do tenant...`);
-      MySqlManagementService.runMigrations(dbName);
+      MySqlManagementService.runMigrations(hqDbName);
 
       runtimeGlobals.console?.log(`🔐 [CreateTenant] 5/6 Seeders estruturais...`);
-      MySqlManagementService.runStructuralSeed(dbName);
+      MySqlManagementService.runStructuralSeed(hqDbName);
 
       runtimeGlobals.console?.log(`👤 [CreateTenant] 6/6 Sincronizar utilizadores...`);
       const centralForAdmin = await prisma.user.findUnique({
@@ -268,8 +362,8 @@ export class CreateTenantUseCase {
       const tenantUserCount = await branchContext.run(
         {
           tenantId: tenant.id.toString(),
-          branchId: branch.id.toString(),
-          dbName,
+          branchId: hqBranch.id.toString(),
+          dbName: hqDbName,
           dbHost,
           dbPort,
           dbUsername: "root",
@@ -294,8 +388,46 @@ export class CreateTenantUseCase {
       );
 
       runtimeGlobals.console?.log(
-        `👤 ${tenantUserCount} utilizador(es) tenant sincronizados em ${dbName}.`,
+        `👤 ${tenantUserCount} utilizador(es) tenant sincronizados em ${hqDbName}.`,
       );
+
+      for (let i = 1; i < branches.length; i++) {
+        const branch = branches[i];
+        runtimeGlobals.console?.log(
+          `🏢 [CreateTenant] Provisionar branch extra ${branch.name} (${branch.dbName})...`,
+        );
+        await MySqlManagementService.createDatabase(branch.dbName);
+        MySqlManagementService.runMigrations(branch.dbName);
+        MySqlManagementService.runStructuralSeed(branch.dbName);
+
+        await branchContext.run(
+          {
+            tenantId: tenant.id.toString(),
+            branchId: branch.id.toString(),
+            dbName: branch.dbName,
+            dbHost,
+            dbPort,
+            dbUsername: "root",
+            dbPasswordCipherText: cipherText,
+            dbPasswordIv: iv,
+            dbPasswordTag: tag,
+          },
+          async () => {
+            const prismaTenant = TenantPrismaFactory.getClient();
+            return syncTenantUsersFromCentral({
+              tenantId: tenant.id,
+              prismaTenant,
+              extraUsers: [
+                {
+                  name: data.adminName,
+                  email: adminEmail,
+                  centralUserId: centralForAdmin?.id ?? null,
+                },
+              ],
+            });
+          },
+        );
+      }
 
       const notificationEmail = ownerCentral?.email ?? adminEmail;
       const notificationName = ownerCentral?.name ?? data.adminName;
@@ -312,7 +444,7 @@ export class CreateTenantUseCase {
             subscriptionStatus === "trial"
               ? `Trial válido até ${trialEndsAt.toISOString().slice(0, 10)}.`
               : "Subscrição activa.",
-            `Branch inicial: ${branch.name} (${branch.code}).`,
+            `Branches: ${branches.map((b: any) => `${b.name} (${b.code})`).join(", ")}.`,
             `Responsável registado: ${notificationName}.`,
           ].join("\n"),
         });
@@ -331,11 +463,18 @@ export class CreateTenantUseCase {
         tenantKey: tenant.tenantKey,
         status: tenantStatus,
         plan: { slug: plan.slug, name: plan.name },
+        branchesUsed,
         branch: {
-          id: branch.id.toString(),
-          code: branch.code,
-          name: branch.name,
+          id: hqBranch.id.toString(),
+          code: hqBranch.code,
+          name: hqBranch.name,
         },
+        branches: branches.map((b: any) => ({
+          id: b.id.toString(),
+          code: b.code,
+          name: b.name,
+          isHeadOffice: Boolean(b.isHeadOffice),
+        })),
       };
     } catch (error) {
       runtimeGlobals.console?.log(
@@ -343,16 +482,18 @@ export class CreateTenantUseCase {
         error instanceof Error ? error.message : error,
       );
       const now = new Date();
-      await prisma.subscription.update({
-        where: { id: subscription.id },
-        data: { deletedAt: now, updatedBy: BigInt(data.userId) },
-      }).catch(() => undefined);
-      await prisma.branch.update({
-        where: { id: branch.id },
+      await prisma.subscription
+        .update({
+          where: { id: subscription.id },
+          data: { deletedAt: now, updatedBy: BigInt(data.userId) },
+        })
+        .catch(() => undefined);
+      await prisma.branch.updateMany({
+        where: { tenantId: tenant.id },
         data: { deletedAt: now, active: false, updatedBy: BigInt(data.userId) },
       });
       await prisma.userTenant.updateMany({
-        where: { tenantId: tenant.id, userId: BigInt(data.userId) },
+        where: { tenantId: tenant.id },
         data: { active: false, deletedAt: now },
       });
       await prisma.tenant.update({
@@ -360,7 +501,7 @@ export class CreateTenantUseCase {
         data: {
           deletedAt: now,
           updatedBy: BigInt(data.userId),
-          name: `${slug}_deleted_${tenant.id}`,
+          tenantKey: `${slug}_deleted_${tenant.id}`,
         },
       });
       throw error instanceof Error

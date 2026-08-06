@@ -1,4 +1,4 @@
-package com.example.pharma_erp
+package com.skalway.skalway_phrx
 
 import io.flutter.embedding.android.FlutterActivity
 

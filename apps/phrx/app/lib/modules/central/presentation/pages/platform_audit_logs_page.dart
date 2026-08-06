@@ -143,7 +143,7 @@ class _PlatformAuditLogsPageState extends ConsumerState<PlatformAuditLogsPage> {
                 ),
               ),
               DataCell(
-                Text(log.tenantName ?? log.companyName ?? '—'),
+                Text(log.tenantName ?? log.tenantKey ?? '—'),
               ),
               DataCell(Text(log.userName ?? '—')),
               DataCell(Text(log.ip ?? '—')),
@@ -195,9 +195,9 @@ class _PlatformAuditLogsPageState extends ConsumerState<PlatformAuditLogsPage> {
                   EnterpriseListCardMeta(
                     label: _dateTime.format(log.createdAt.toLocal()),
                   ),
-                  if (log.tenantName != null || log.companyName != null)
+                  if (log.tenantName != null || log.tenantKey != null)
                     EnterpriseListCardMeta(
-                      label: log.tenantName ?? log.companyName!,
+                      label: log.tenantName ?? log.tenantKey!,
                     ),
                   EnterpriseListCardMeta(
                     label: log.userName ?? 'Sistema',

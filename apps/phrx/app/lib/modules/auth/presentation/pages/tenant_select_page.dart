@@ -207,11 +207,11 @@ class _TenantSelectPageState extends ConsumerState<TenantSelectPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  tenant.companyName,
+                                  tenant.tenantName,
                                   style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
                                 ),
                                 Text(
-                                  tenant.name,
+                                  tenant.tenantKey,
                                   style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
                                 ),
                               ],

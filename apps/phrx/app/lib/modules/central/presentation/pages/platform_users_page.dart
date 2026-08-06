@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/elevation_tokens.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
@@ -79,67 +80,86 @@ class _PlatformUsersPageState extends ConsumerState<PlatformUsersPage> {
 
         return PageRefreshBinder(
           onRefresh: () => notifier.refresh(),
-          child: EnterpriseModuleHub(
-            title: 'Utilizadores',
-            subtitle: 'SuperAdmins e operadores da plataforma central.',
-            tag: 'Plataforma',
-            actions: isMobile
-                ? null
-                : [
-                    FilledButton.icon(
-                      onPressed: busy ? null : () => _create(context),
-                      icon: const Icon(Icons.person_add_alt_1_rounded),
-                      label: const Text('Novo utilizador'),
+          child: Scaffold(
+            backgroundColor: context.pharmaTokens.bgPrimary,
+            floatingActionButton: isMobile
+                ? FloatingActionButton(
+                    onPressed: busy ? null : () => _create(context),
+                    backgroundColor: context.pharmaTokens.brandBlue,
+                    foregroundColor: Colors.white,
+                    elevation:
+                        Theme.of(context).extension<ElevationTokens>()?.level3 ??
+                            3.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        context.pharmaTokens.radiusLg,
+                      ),
                     ),
-                  ],
-            child: async.when(
-              loading: () => _accumulated.isEmpty
-                  ? const ModuleLoadingState()
-                  : _buildBody(
-                      context,
-                      isMobile: isMobile,
-                      users: _accumulated,
-                      page: pageData?.page ?? notifier.page,
-                      pageSize: pageData?.pageSize ?? notifier.pageSize,
-                      hasMore: pageData?.hasMore ?? false,
-                      totalCount: pageData?.totalCount,
-                      isLoading: true,
-                      busy: busy,
-                      dateFmt: dateFmt,
-                      notifier: notifier,
-                    ),
-              error: (e, _) => _accumulated.isEmpty
-                  ? ModuleErrorState(
-                      title: 'Erro ao carregar utilizadores',
-                      message: e.toString(),
-                      onRetry: () => notifier.refresh(),
-                    )
-                  : _buildBody(
-                      context,
-                      isMobile: isMobile,
-                      users: _accumulated,
-                      page: notifier.page,
-                      pageSize: notifier.pageSize,
-                      hasMore: false,
-                      totalCount: null,
-                      isLoading: false,
-                      errorText: e.toString(),
-                      busy: busy,
-                      dateFmt: dateFmt,
-                      notifier: notifier,
-                    ),
-              data: (page) => _buildBody(
-                context,
-                isMobile: isMobile,
-                users: isMobile ? _accumulated : page.items,
-                page: page.page,
-                pageSize: page.pageSize,
-                hasMore: page.hasMore,
-                totalCount: page.totalCount,
-                isLoading: false,
-                busy: busy,
-                dateFmt: dateFmt,
-                notifier: notifier,
+                    child: const Icon(Icons.person_add_alt_1_rounded),
+                  )
+                : null,
+            body: EnterpriseModuleHub(
+              title: 'Utilizadores',
+              subtitle: 'SuperAdmins e operadores da plataforma central.',
+              tag: 'Plataforma',
+              actions: isMobile
+                  ? null
+                  : [
+                      FilledButton.icon(
+                        onPressed: busy ? null : () => _create(context),
+                        icon: const Icon(Icons.person_add_alt_1_rounded),
+                        label: const Text('Novo utilizador'),
+                      ),
+                    ],
+              child: async.when(
+                loading: () => _accumulated.isEmpty
+                    ? const ModuleLoadingState()
+                    : _buildBody(
+                        context,
+                        isMobile: isMobile,
+                        users: _accumulated,
+                        page: pageData?.page ?? notifier.page,
+                        pageSize: pageData?.pageSize ?? notifier.pageSize,
+                        hasMore: pageData?.hasMore ?? false,
+                        totalCount: pageData?.totalCount,
+                        isLoading: true,
+                        busy: busy,
+                        dateFmt: dateFmt,
+                        notifier: notifier,
+                      ),
+                error: (e, _) => _accumulated.isEmpty
+                    ? ModuleErrorState(
+                        title: 'Erro ao carregar utilizadores',
+                        message: e.toString(),
+                        onRetry: () => notifier.refresh(),
+                      )
+                    : _buildBody(
+                        context,
+                        isMobile: isMobile,
+                        users: _accumulated,
+                        page: notifier.page,
+                        pageSize: notifier.pageSize,
+                        hasMore: false,
+                        totalCount: null,
+                        isLoading: false,
+                        errorText: e.toString(),
+                        busy: busy,
+                        dateFmt: dateFmt,
+                        notifier: notifier,
+                      ),
+                data: (page) => _buildBody(
+                  context,
+                  isMobile: isMobile,
+                  users: isMobile ? _accumulated : page.items,
+                  page: page.page,
+                  pageSize: page.pageSize,
+                  hasMore: page.hasMore,
+                  totalCount: page.totalCount,
+                  isLoading: false,
+                  busy: busy,
+                  dateFmt: dateFmt,
+                  notifier: notifier,
+                ),
               ),
             ),
           ),

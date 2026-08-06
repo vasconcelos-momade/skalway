@@ -8,6 +8,7 @@ import { ListTenantPaymentsUseCase } from "../../billing/application/use-cases/l
 import { SubmitPaymentUseCase } from "../../billing/application/use-cases/submit-payment.use-case";
 import { ConfirmPaymentUseCase } from "../../billing/application/use-cases/confirm-payment.use-case";
 import { CreditWalletUseCase } from "../../billing/application/use-cases/credit-wallet.use-case";
+import { ApplyInvoiceDiscountUseCase } from "../../billing/application/use-cases/apply-invoice-discount.use-case";
 import { GenerateMonthlyBillingService } from "../../billing/application/services/generate-monthly-billing.service";
 import { generateCentralInvoicePdf } from "../../billing/application/services/generate-invoice-pdf.service";
 import { ProcessSubscriptionLifecycleService } from "../../billing/application/services/process-subscription-lifecycle.service";
@@ -57,6 +58,11 @@ const creditWalletSchema = z
       });
     }
   });
+
+const applyDiscountSchema = z.object({
+  discount: z.coerce.number().min(0),
+  reason: z.string().trim().min(1).optional().nullable(),
+});
 
 const lifecycleSchema = z.object({
   referenceDate: z.string().trim().min(1).optional(),
@@ -186,8 +192,8 @@ export class CentralBillingController {
         ? {
             OR: [
               { reference: { contains: search } },
-              { tenant: { name: { contains: search } } },
-              { tenant: { companyName: { contains: search } } },
+              { tenant: { tenantKey: { contains: search } } },
+              { tenant: { tenantName: { contains: search } } },
               { invoice: { number: { contains: search } } },
             ],
           }
@@ -208,7 +214,7 @@ export class CentralBillingController {
           reference: true,
           confirmedAt: true,
           createdAt: true,
-          tenant: { select: { name: true, companyName: true } },
+          tenant: { select: { tenantKey: true, tenantName: true } },
           invoice: { select: { number: true } },
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -220,8 +226,8 @@ export class CentralBillingController {
     const items = rows.slice(0, pageSize).map((payment: any) => ({
       id: payment.id.toString(),
       tenantId: payment.tenantId.toString(),
-      tenantName: payment.tenant?.name ?? null,
-      companyName: payment.tenant?.companyName ?? null,
+      tenantKey: payment.tenant?.tenantKey ?? null,
+      tenantName: payment.tenant?.tenantName ?? null,
       invoiceId: payment.invoiceId?.toString() ?? null,
       invoiceNumber: payment.invoice?.number ?? null,
       amount: Number(payment.amount),
@@ -314,6 +320,30 @@ export class CentralBillingController {
       userId,
     });
     return Response.json(serializeForJson(result), { status: 201 });
+  }
+
+  async applyInvoiceDiscount(
+    tenantId: string,
+    invoiceId: string,
+    req: Request,
+    userId: string,
+  ): Promise<Response> {
+    const body = await parseJsonBody(req, applyDiscountSchema);
+    try {
+      const useCase = new ApplyInvoiceDiscountUseCase();
+      const result = await useCase.execute({
+        tenantId,
+        invoiceId,
+        discount: body.discount,
+        reason: body.reason ?? null,
+        userId,
+      });
+      return Response.json(serializeForJson(result));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao aplicar desconto.";
+      return Response.json({ error: { message } }, { status: 400 });
+    }
   }
 
   async processLifecycle(req: Request): Promise<Response> {

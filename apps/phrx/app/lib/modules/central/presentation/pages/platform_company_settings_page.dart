@@ -8,6 +8,7 @@ import '../../../../core/theme/extensions.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../shared/widgets/inputs/enterprise_form_grid.dart';
 import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../domain/entities/platform_entities.dart';
@@ -26,6 +27,7 @@ class _PlatformCompanySettingsPageState
     extends ConsumerState<PlatformCompanySettingsPage> {
   final _formKey = GlobalKey<FormState>();
   var _hydrated = false;
+  var _editing = false;
 
   late final TextEditingController _companyName;
   late final TextEditingController _companyNuit;
@@ -155,6 +157,14 @@ class _PlatformCompanySettingsPageState
     return null;
   }
 
+  Future<void> _onPrimaryAction() async {
+    if (!_editing) {
+      setState(() => _editing = true);
+      return;
+    }
+    await _save();
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final payload = PlatformCentralSettingsPayload(
@@ -189,6 +199,11 @@ class _PlatformCompanySettingsPageState
           .read(platformBillingActionsProvider.notifier)
           .updateCentralSettings(payload);
       if (!mounted) return;
+      setState(() {
+        _editing = false;
+        _hydrated = false;
+      });
+      ref.invalidate(platformCentralSettingsProvider);
       PharmaFeedback.success(context, 'Configurações guardadas.');
     } catch (e) {
       if (!mounted) return;
@@ -205,7 +220,10 @@ class _PlatformCompanySettingsPageState
   }
 
   void _cancel() {
-    _hydrated = false;
+    setState(() {
+      _editing = false;
+      _hydrated = false;
+    });
     ref.invalidate(platformCentralSettingsProvider);
   }
 
@@ -214,10 +232,15 @@ class _PlatformCompanySettingsPageState
     final async = ref.watch(platformCentralSettingsProvider);
     final busy = ref.watch(platformBillingActionsProvider);
     final s = context.spacing;
+    final maxFormWidth = context.widths.contentMax.clamp(0, 960).toDouble();
+    final fieldsEnabled = _editing && !busy;
 
     return PageRefreshBinder(
       onRefresh: () async {
-        _hydrated = false;
+        setState(() {
+          _editing = false;
+          _hydrated = false;
+        });
         ref.invalidate(platformCentralSettingsProvider);
       },
       child: EnterpriseModuleHub(
@@ -226,14 +249,21 @@ class _PlatformCompanySettingsPageState
             'Dados institucionais usados em faturas, recibos, PDFs e documentos oficiais.',
         tag: 'Plataforma',
         actions: [
-          OutlinedButton(
-            onPressed: busy ? null : _cancel,
-            child: const Text('Cancelar'),
-          ),
+          if (_editing)
+            OutlinedButton(
+              onPressed: busy ? null : _cancel,
+              child: const Text('Cancelar'),
+            ),
           FilledButton.icon(
-            onPressed: busy ? null : _save,
-            icon: const Icon(Icons.save_outlined),
-            label: Text(busy ? 'A guardar…' : 'Guardar Alterações'),
+            onPressed: busy ? null : _onPrimaryAction,
+            icon: Icon(_editing ? Icons.save_outlined : Icons.edit_outlined),
+            label: Text(
+              busy
+                  ? 'A guardar…'
+                  : _editing
+                      ? 'Salvar'
+                      : 'Editar',
+            ),
           ),
         ],
         child: async.when(
@@ -242,198 +272,333 @@ class _PlatformCompanySettingsPageState
             title: 'Erro ao carregar configurações',
             message: e.toString(),
             onRetry: () {
-              _hydrated = false;
+              setState(() {
+                _editing = false;
+                _hydrated = false;
+              });
               ref.invalidate(platformCentralSettingsProvider);
             },
           ),
           data: (settings) {
             _hydrate(settings);
-            return Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  _SettingsSection(
-                    title: 'Informações da Empresa',
+            return Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxFormWidth),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
                     children: [
-                      EnterpriseTextFormField(
-                        controller: _companyName,
-                        labelText: 'Nome da Empresa *',
-                        validator: _required,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyNuit,
-                        labelText: 'NUIT *',
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(9),
-                        ],
-                        validator: _nuit,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyEmail,
-                        labelText: 'Email *',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: _email,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyPhone,
-                        labelText: 'Telefone *',
-                        keyboardType: TextInputType.phone,
-                        validator: _phone,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyAddress,
-                        labelText: 'Endereço *',
-                        maxLines: 2,
-                        minLines: 2,
-                        validator: _required,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyCity,
-                        labelText: 'Cidade',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyProvince,
-                        labelText: 'Província',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyCountry,
-                        labelText: 'País',
-                        helperText: 'Código ISO (ex.: MZ)',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _companyLogo,
-                        labelText: 'Logo (URL)',
-                        helperText: 'URL pública do logótipo institucional',
-                      ),
-                    ],
-                  ),
-                  _SettingsSection(
-                    title: 'Recebimentos',
-                    children: [
-                      Text(
-                        'M-Pesa',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      SizedBox(height: s.sm),
-                      EnterpriseTextFormField(
-                        controller: _mpesaName,
-                        labelText: 'Titular M-Pesa',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _mpesaNumber,
-                        labelText: 'Número M-Pesa',
-                        keyboardType: TextInputType.phone,
-                      ),
-                      SizedBox(height: s.lg),
-                      Text(
-                        'E-Mola',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      SizedBox(height: s.sm),
-                      EnterpriseTextFormField(
-                        controller: _emolaName,
-                        labelText: 'Titular E-Mola',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _emolaNumber,
-                        labelText: 'Número E-Mola',
-                        keyboardType: TextInputType.phone,
-                      ),
-                      SizedBox(height: s.lg),
-                      Text(
-                        'Transferência Bancária',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      SizedBox(height: s.sm),
-                      EnterpriseTextFormField(
-                        controller: _bankName,
-                        labelText: 'Banco',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _bankAccountName,
-                        labelText: 'Nome da Conta',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _bankAccountNumber,
-                        labelText: 'Número da Conta',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _bankNib,
-                        labelText: 'NIB',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _bankSwift,
-                        labelText: 'SWIFT',
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _bankInstructions,
-                        labelText: 'Instruções para Transferência Bancária',
-                        maxLines: 3,
-                        minLines: 2,
-                      ),
-                    ],
-                  ),
-                  _SettingsSection(
-                    title: 'Documentos',
-                    children: [
-                      EnterpriseTextFormField(
-                        controller: _invoiceFooter,
-                        labelText: 'Rodapé das Facturas',
-                        maxLines: 3,
-                        minLines: 2,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _receiptFooter,
-                        labelText: 'Rodapé dos Recibos',
-                        maxLines: 3,
-                        minLines: 2,
-                      ),
-                      SizedBox(height: s.md),
-                      EnterpriseTextFormField(
-                        controller: _defaultMessage,
-                        labelText: 'Mensagem padrão',
-                        maxLines: 3,
-                        minLines: 2,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: s.xl),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: busy ? null : _cancel,
-                        child: const Text('Cancelar'),
-                      ),
-                      SizedBox(width: s.md),
-                      FilledButton(
-                        onPressed: busy ? null : _save,
-                        child: Text(
-                          busy ? 'A guardar…' : 'Guardar Alterações',
+                      _SettingsSection(
+                        title: 'Informações da Empresa',
+                        child: EnterpriseFormGrid(
+                          gap: s.md,
+                          children: [
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _companyName,
+                                labelText: 'Nome da Empresa *',
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                                validator: _required,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      _SettingsSection(
+                        title: 'Identificação',
+                        child: EnterpriseFormGrid(
+                          gap: s.md,
+                          children: [
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyNuit,
+                                labelText: 'NUIT *',
+                                keyboardType: TextInputType.number,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(9),
+                                ],
+                                validator: _nuit,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyEmail,
+                                labelText: 'Email *',
+                                keyboardType: TextInputType.emailAddress,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                                validator: _email,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyPhone,
+                                labelText: 'Telefone *',
+                                keyboardType: TextInputType.phone,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                                validator: _phone,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _SettingsSection(
+                        title: 'Localização',
+                        child: EnterpriseFormGrid(
+                          gap: s.md,
+                          children: [
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _companyAddress,
+                                labelText: 'Endereço *',
+                                maxLines: 2,
+                                minLines: 2,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                                validator: _required,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyCity,
+                                labelText: 'Cidade',
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyProvince,
+                                labelText: 'Província',
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              child: EnterpriseTextFormField(
+                                controller: _companyCountry,
+                                labelText: 'País',
+                                helperText: 'Código ISO (ex.: MZ)',
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _SettingsSection(
+                        title: 'Documentos',
+                        child: EnterpriseFormGrid(
+                          gap: s.md,
+                          children: [
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _companyLogo,
+                                labelText: 'Logo (URL)',
+                                helperText:
+                                    'URL pública do logótipo institucional',
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _invoiceFooter,
+                                labelText: 'Rodapé das Facturas',
+                                maxLines: 3,
+                                minLines: 2,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _receiptFooter,
+                                labelText: 'Rodapé dos Recibos',
+                                maxLines: 3,
+                                minLines: 2,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                            EnterpriseFormGridItem(
+                              fullWidth: true,
+                              child: EnterpriseTextFormField(
+                                controller: _defaultMessage,
+                                labelText: 'Mensagem padrão',
+                                maxLines: 3,
+                                minLines: 2,
+                                readOnly: !fieldsEnabled,
+                                enabled: fieldsEnabled,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _SettingsSection(
+                        title: 'Recebimentos',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'M-Pesa',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            SizedBox(height: s.sm),
+                            EnterpriseFormGrid(
+                              gap: s.md,
+                              children: [
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _mpesaName,
+                                    labelText: 'Titular M-Pesa',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _mpesaNumber,
+                                    labelText: 'Número M-Pesa',
+                                    keyboardType: TextInputType.phone,
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: s.lg),
+                            Text(
+                              'E-Mola',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            SizedBox(height: s.sm),
+                            EnterpriseFormGrid(
+                              gap: s.md,
+                              children: [
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _emolaName,
+                                    labelText: 'Titular E-Mola',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _emolaNumber,
+                                    labelText: 'Número E-Mola',
+                                    keyboardType: TextInputType.phone,
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: s.lg),
+                            Text(
+                              'Transferência Bancária',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            SizedBox(height: s.sm),
+                            EnterpriseFormGrid(
+                              gap: s.md,
+                              children: [
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankName,
+                                    labelText: 'Banco',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankAccountName,
+                                    labelText: 'Nome da Conta',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankAccountNumber,
+                                    labelText: 'Número da Conta',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankNib,
+                                    labelText: 'NIB',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankSwift,
+                                    labelText: 'SWIFT',
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                                EnterpriseFormGridItem(
+                                  fullWidth: true,
+                                  child: EnterpriseTextFormField(
+                                    controller: _bankInstructions,
+                                    labelText:
+                                        'Instruções para Transferência Bancária',
+                                    maxLines: 3,
+                                    minLines: 2,
+                                    readOnly: !fieldsEnabled,
+                                    enabled: fieldsEnabled,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: s.xl),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (_editing) ...[
+                            OutlinedButton(
+                              onPressed: busy ? null : _cancel,
+                              child: const Text('Cancelar'),
+                            ),
+                            SizedBox(width: s.md),
+                          ],
+                          FilledButton(
+                            onPressed: busy ? null : _onPrimaryAction,
+                            child: Text(
+                              busy
+                                  ? 'A guardar…'
+                                  : _editing
+                                      ? 'Salvar'
+                                      : 'Editar',
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: s.xl),
                     ],
                   ),
-                  SizedBox(height: s.xl),
-                ],
+                ),
               ),
             );
           },
@@ -446,11 +611,11 @@ class _PlatformCompanySettingsPageState
 class _SettingsSection extends StatelessWidget {
   const _SettingsSection({
     required this.title,
-    required this.children,
+    required this.child,
   });
 
   final String title;
-  final List<Widget> children;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -476,10 +641,7 @@ class _SettingsSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(t.radiusMd),
             child: Padding(
               padding: EdgeInsets.all(s.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: children,
-              ),
+              child: child,
             ),
           ),
         ],

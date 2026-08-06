@@ -127,10 +127,7 @@ function buildView(invoice: any, issuer: any): CentralInvoicePdfView {
       defaultMessage: issuer.defaultMessage,
     },
     customer: {
-      companyName:
-        invoice.tenant?.companyName ||
-        invoice.tenant?.tenantName ||
-        "Cliente",
+      companyName: invoice.tenant?.tenantName || "Cliente",
       nuit: invoice.tenant?.nuit,
       contact: invoice.tenant?.contact,
       address: invoice.tenant?.address,
@@ -178,7 +175,7 @@ export async function generateCentralInvoicePdf(
   const fallback = [
     `${issuer.companyName} — Factura SaaS`,
     `NUIT: ${issuer.companyNuit}`,
-    `Cliente: ${invoice.tenant?.companyName ?? "—"}`,
+    `Cliente: ${invoice.tenant?.tenantName ?? "—"}`,
     `Numero: ${invoice.number}`,
     `Total: ${invoice.amount} ${invoice.currency}`,
     issuer.invoiceFooter || "",

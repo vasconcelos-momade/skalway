@@ -113,7 +113,7 @@ class PlatformDashboardPage extends ConsumerWidget {
                     AppRoutePaths.platformTenantDetailPath(t.id),
                   ),
                   cells: [
-                    DataCell(Text(t.companyName)),
+                    DataCell(Text(t.tenantName)),
                     DataCell(Text(t.tenantName)),
                     DataCell(EnterpriseStatusChip(label: t.status)),
                     DataCell(Text(t.planName ?? '—')),

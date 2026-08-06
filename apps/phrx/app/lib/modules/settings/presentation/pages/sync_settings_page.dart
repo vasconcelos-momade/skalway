@@ -27,7 +27,7 @@ class SyncSettingsPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
             ),
             subtitle: Text(
-              tenant?.companyName ?? '—',
+              tenant?.tenantName ?? '—',
               style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
             ),
           ),

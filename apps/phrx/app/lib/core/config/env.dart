@@ -6,7 +6,7 @@ abstract final class Env {
   Env._();
 
   static String get appName =>
-      const String.fromEnvironment('APP_NAME', defaultValue: 'Pharma ERP');
+      const String.fromEnvironment('APP_NAME', defaultValue: 'Skalway PhRx');
 
   /// API local (Bun) — LAN, emulador ou localhost. Inclui prefixo `/api/v1`.
   static String get apiBaseUrlLocal =>

@@ -89,8 +89,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         .map(
           (t) => {
             'id': t.id,
-            'companyName': t.companyName,
-            'name': t.name,
+            'tenantKey': t.tenantKey,
+            'tenantName': t.tenantName,
             'branches': t.branches
                 .map(
                   (b) => {

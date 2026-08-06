@@ -3,7 +3,7 @@
 class PlatformTenantSummary {
   const PlatformTenantSummary({
     required this.id,
-    required this.companyName,
+    required this.tenantKey,
     required this.tenantName,
     required this.status,
     required this.country,
@@ -15,7 +15,7 @@ class PlatformTenantSummary {
   });
 
   final String id;
-  final String companyName;
+  final String tenantKey;
   final String tenantName;
   final String status;
   final String country;
@@ -66,14 +66,14 @@ class PlatformBranch {
 class PlatformBranchListItem {
   const PlatformBranchListItem({
     required this.tenantId,
+    required this.tenantKey,
     required this.tenantName,
-    required this.companyName,
     required this.branch,
   });
 
   final String tenantId;
+  final String tenantKey;
   final String tenantName;
-  final String companyName;
   final PlatformBranch branch;
 }
 
@@ -201,7 +201,7 @@ class PlatformInvoice {
     required this.paid,
     required this.balance,
     required this.status,
-    this.companyName,
+    this.tenantKey,
     this.dueDate,
     this.paidAt,
     this.branchesUsed,
@@ -219,7 +219,7 @@ class PlatformInvoice {
   final String tenantId;
   final String number;
   final String tenantName;
-  final String? companyName;
+  final String? tenantKey;
   final String planName;
   final String period;
   final double total;
@@ -241,6 +241,18 @@ class PlatformInvoice {
   final double? payableAmount;
 
   bool get canConfirmPayment {
+    switch (status.toLowerCase()) {
+      case 'pendente':
+      case 'parcial':
+      case 'vencido':
+      case 'vencida':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get canApplyDiscount {
     switch (status.toLowerCase()) {
       case 'pendente':
       case 'parcial':
@@ -317,74 +329,54 @@ class PlatformPayment {
 class RegisterTenantResult {
   const RegisterTenantResult({
     required this.id,
-    required this.companyName,
-    this.tenantName,
+    required this.tenantName,
+    this.tenantKey,
     this.branchCode,
   });
 
   final String id;
-  final String companyName;
-  final String? tenantName;
+  final String tenantName;
+  final String? tenantKey;
   final String? branchCode;
 }
 
 class RegisterTenantPayload {
   const RegisterTenantPayload({
-    required this.nomeEmpresa,
-    required this.nomeTenant,
+    required this.tenantName,
+    required this.ownerEmail,
+    required this.ownerPassword,
     required this.adminName,
     required this.adminEmail,
     required this.adminPassword,
-    required this.ownerName,
-    required this.ownerEmail,
-    required this.ownerPassword,
-    this.email,
-    this.endereco,
-    this.nuit,
-    this.telefone,
+    required this.branches,
     this.planSlug = 'starter',
     this.status = 'trial',
-    this.branchName,
-    this.branchEndereco,
-    this.branchContacto,
+    this.billingPeriodMonths = 1,
   });
 
-  final String nomeEmpresa;
-  final String nomeTenant;
+  final String tenantName;
+  final String ownerEmail;
+  final String ownerPassword;
   final String adminName;
   final String adminEmail;
   final String adminPassword;
-  final String ownerName;
-  final String ownerEmail;
-  final String ownerPassword;
-  final String? email;
-  final String? endereco;
-  final String? nuit;
-  final String? telefone;
+  final List<String> branches;
   final String planSlug;
   final String status;
-  final String? branchName;
-  final String? branchEndereco;
-  final String? branchContacto;
+  final int billingPeriodMonths;
 
   Map<String, dynamic> toJson() => {
-        'nomeEmpresa': nomeEmpresa,
-        'nomeTenant': nomeTenant,
-        'slug': nomeTenant,
+        'tenantName': tenantName,
+        'email': ownerEmail,
         'adminName': adminName,
         'adminEmail': adminEmail,
         'adminPassword': adminPassword,
-        'email': email,
-        'endereco': endereco,
-        'nuit': nuit,
-        'telefone': telefone,
         'planSlug': planSlug,
         'status': status,
-        'branchName': branchName,
-        'branchEndereco': branchEndereco,
-        'branchContacto': branchContacto,
+        'billingPeriodMonths': billingPeriodMonths,
+        'branches': branches.map((name) => {'name': name}).toList(),
         'ownerUser': {
-          'name': ownerName,
+          'name': tenantName,
           'email': ownerEmail,
           'password': ownerPassword,
           'role': 'admin',
@@ -725,8 +717,8 @@ class PlatformAuditLogEntry {
     required this.createdAt,
     this.entityId,
     this.tenantId,
+    this.tenantKey,
     this.tenantName,
-    this.companyName,
     this.userName,
     this.ip,
     this.path,
@@ -738,8 +730,8 @@ class PlatformAuditLogEntry {
   final DateTime createdAt;
   final String? entityId;
   final String? tenantId;
+  final String? tenantKey;
   final String? tenantName;
-  final String? companyName;
   final String? userName;
   final String? ip;
   final String? path;
@@ -752,8 +744,8 @@ class PlatformAuditLogEntry {
       entity: json['entity']?.toString() ?? '',
       entityId: json['entityId']?.toString(),
       tenantId: json['tenantId']?.toString(),
+      tenantKey: json['tenantKey']?.toString(),
       tenantName: json['tenantName']?.toString(),
-      companyName: json['companyName']?.toString(),
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       userName: user is Map<String, dynamic>

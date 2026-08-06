@@ -165,8 +165,9 @@ class TenantAccessModel {
 
     return TenantAccess(
       id: '${json['id']}',
-      companyName: json['companyName'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      tenantKey: json['tenantKey'] as String? ?? json['name'] as String? ?? '',
+      tenantName:
+          json['tenantName'] as String? ?? json['companyName'] as String? ?? '',
       branches: branches,
     );
   }

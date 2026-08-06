@@ -176,7 +176,7 @@ class _PlatformBranchesPageState extends ConsumerState<PlatformBranchesPage> {
               DataCell(
                 _BranchTenantCell(
                   title: item.tenantName,
-                  subtitle: item.companyName,
+                  subtitle: item.tenantKey,
                 ),
               ),
               DataCell(
@@ -235,7 +235,7 @@ class _PlatformBranchesPageState extends ConsumerState<PlatformBranchesPage> {
               if (index > 0) const EnterpriseListDivider(),
               EnterpriseListCard(
                 title: branch.name,
-                subtitle: '${item.tenantName}\n${item.companyName}',
+                subtitle: '${item.tenantName}\n${item.tenantKey}',
                 chip: EnterpriseStatusChip(
                   label: branch.active ? 'Activa' : 'Inactiva',
                   color: branch.active

@@ -36,6 +36,7 @@ export interface GeneratedBillingItem {
   invoiceId?: string;
   invoiceNumber?: string;
   companyName?: string;
+  tenantName?: string;
   ownerName?: string | null;
   ownerEmail?: string | null;
 }
@@ -80,8 +81,8 @@ export class GenerateMonthlyBillingService {
         tenant: {
           select: {
             id: true,
-            name: true,
-            companyName: true,
+            tenantKey: true,
+            tenantName: true,
             owner: {
               select: {
                 name: true,
@@ -252,7 +253,7 @@ export class GenerateMonthlyBillingService {
         invoiceAction: billed.invoiceAction,
         invoiceId: billed.invoiceId,
         invoiceNumber: billed.invoiceNumber,
-        companyName: String(params.subscription.tenant.companyName),
+        tenantName: String(params.subscription.tenant.tenantName),
         ownerName: params.subscription.tenant.owner?.name
           ? String(params.subscription.tenant.owner.name)
           : null,
@@ -264,13 +265,13 @@ export class GenerateMonthlyBillingService {
   }
 
   private async sendRecurringInvoiceEmail(item: GeneratedBillingItem): Promise<void> {
-    if (!item.ownerEmail || !item.companyName || !item.invoiceNumber) return;
+    if (!item.ownerEmail || !item.tenantName || !item.invoiceNumber) return;
 
     await EmailService.send({
       to: item.ownerEmail,
-      subject: `Factura emitida para ${item.companyName}`,
+      subject: `Factura emitida para ${item.tenantName}`,
       text: [
-        `Foi emitida a factura ${item.invoiceNumber} para a empresa ${item.companyName}.`,
+        `Foi emitida a factura ${item.invoiceNumber} para o tenant ${item.tenantName}.`,
         `Valor: ${item.total} MZN.`,
         item.extraBranches > 0
           ? `Inclui ${item.extraBranches} filial(is) adicional(is).`

@@ -44,6 +44,16 @@ export type Branch = $Result.DefaultSelection<Prisma.$BranchPayload>
  */
 export type Device = $Result.DefaultSelection<Prisma.$DevicePayload>
 /**
+ * Model Printer
+ * 
+ */
+export type Printer = $Result.DefaultSelection<Prisma.$PrinterPayload>
+/**
+ * Model PrintJob
+ * 
+ */
+export type PrintJob = $Result.DefaultSelection<Prisma.$PrintJobPayload>
+/**
  * Model SyncLog
  * 
  */
@@ -63,6 +73,11 @@ export type Plan = $Result.DefaultSelection<Prisma.$PlanPayload>
  * 
  */
 export type Subscription = $Result.DefaultSelection<Prisma.$SubscriptionPayload>
+/**
+ * Model SubscriptionBranchHistory
+ * Histórico de alterações de filiais na subscrição (auditoria / futura pró-rata).
+ */
+export type SubscriptionBranchHistory = $Result.DefaultSelection<Prisma.$SubscriptionBranchHistoryPayload>
 /**
  * Model InvoiceFiscalCounter
  * 
@@ -133,6 +148,11 @@ export type RolePermission = $Result.DefaultSelection<Prisma.$RolePermissionPayl
  * 
  */
 export type UserPermission = $Result.DefaultSelection<Prisma.$UserPermissionPayload>
+/**
+ * Model CentralSettings
+ * Configuração institucional singleton da Central (empresa proprietária do PhRx).
+ */
+export type CentralSettings = $Result.DefaultSelection<Prisma.$CentralSettingsPayload>
 
 /**
  * Enums
@@ -178,6 +198,36 @@ export const BranchConnectionStatus: {
 export type BranchConnectionStatus = (typeof BranchConnectionStatus)[keyof typeof BranchConnectionStatus]
 
 
+export const PrinterType: {
+  ESC_POS: 'ESC_POS',
+  A4: 'A4',
+  LABEL: 'LABEL'
+};
+
+export type PrinterType = (typeof PrinterType)[keyof typeof PrinterType]
+
+
+export const PrinterConnection: {
+  NETWORK: 'NETWORK',
+  USB: 'USB',
+  BLUETOOTH: 'BLUETOOTH',
+  PDF: 'PDF'
+};
+
+export type PrinterConnection = (typeof PrinterConnection)[keyof typeof PrinterConnection]
+
+
+export const PrintStatus: {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  PRINTED: 'PRINTED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type PrintStatus = (typeof PrintStatus)[keyof typeof PrintStatus]
+
+
 export const SyncOperation: {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
@@ -215,6 +265,14 @@ export const SubscriptionStatus: {
 };
 
 export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
+
+
+export const SubscriptionBranchAction: {
+  ADD: 'ADD',
+  REMOVE: 'REMOVE'
+};
+
+export type SubscriptionBranchAction = (typeof SubscriptionBranchAction)[keyof typeof SubscriptionBranchAction]
 
 
 export const InvoiceStatus: {
@@ -286,6 +344,18 @@ export type BranchConnectionStatus = $Enums.BranchConnectionStatus
 
 export const BranchConnectionStatus: typeof $Enums.BranchConnectionStatus
 
+export type PrinterType = $Enums.PrinterType
+
+export const PrinterType: typeof $Enums.PrinterType
+
+export type PrinterConnection = $Enums.PrinterConnection
+
+export const PrinterConnection: typeof $Enums.PrinterConnection
+
+export type PrintStatus = $Enums.PrintStatus
+
+export const PrintStatus: typeof $Enums.PrintStatus
+
 export type SyncOperation = $Enums.SyncOperation
 
 export const SyncOperation: typeof $Enums.SyncOperation
@@ -301,6 +371,10 @@ export const SyncSessionStatus: typeof $Enums.SyncSessionStatus
 export type SubscriptionStatus = $Enums.SubscriptionStatus
 
 export const SubscriptionStatus: typeof $Enums.SubscriptionStatus
+
+export type SubscriptionBranchAction = $Enums.SubscriptionBranchAction
+
+export const SubscriptionBranchAction: typeof $Enums.SubscriptionBranchAction
 
 export type InvoiceStatus = $Enums.InvoiceStatus
 
@@ -506,6 +580,26 @@ export class PrismaClient<
   get device(): Prisma.DeviceDelegate<ExtArgs>;
 
   /**
+   * `prisma.printer`: Exposes CRUD operations for the **Printer** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Printers
+    * const printers = await prisma.printer.findMany()
+    * ```
+    */
+  get printer(): Prisma.PrinterDelegate<ExtArgs>;
+
+  /**
+   * `prisma.printJob`: Exposes CRUD operations for the **PrintJob** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PrintJobs
+    * const printJobs = await prisma.printJob.findMany()
+    * ```
+    */
+  get printJob(): Prisma.PrintJobDelegate<ExtArgs>;
+
+  /**
    * `prisma.syncLog`: Exposes CRUD operations for the **SyncLog** model.
     * Example usage:
     * ```ts
@@ -544,6 +638,16 @@ export class PrismaClient<
     * ```
     */
   get subscription(): Prisma.SubscriptionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.subscriptionBranchHistory`: Exposes CRUD operations for the **SubscriptionBranchHistory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SubscriptionBranchHistories
+    * const subscriptionBranchHistories = await prisma.subscriptionBranchHistory.findMany()
+    * ```
+    */
+  get subscriptionBranchHistory(): Prisma.SubscriptionBranchHistoryDelegate<ExtArgs>;
 
   /**
    * `prisma.invoiceFiscalCounter`: Exposes CRUD operations for the **InvoiceFiscalCounter** model.
@@ -684,6 +788,16 @@ export class PrismaClient<
     * ```
     */
   get userPermission(): Prisma.UserPermissionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.centralSettings`: Exposes CRUD operations for the **CentralSettings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CentralSettings
+    * const centralSettings = await prisma.centralSettings.findMany()
+    * ```
+    */
+  get centralSettings(): Prisma.CentralSettingsDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1131,10 +1245,13 @@ export namespace Prisma {
     TenantSetting: 'TenantSetting',
     Branch: 'Branch',
     Device: 'Device',
+    Printer: 'Printer',
+    PrintJob: 'PrintJob',
     SyncLog: 'SyncLog',
     SyncSession: 'SyncSession',
     Plan: 'Plan',
     Subscription: 'Subscription',
+    SubscriptionBranchHistory: 'SubscriptionBranchHistory',
     InvoiceFiscalCounter: 'InvoiceFiscalCounter',
     Invoice: 'Invoice',
     BillingSnapshot: 'BillingSnapshot',
@@ -1148,7 +1265,8 @@ export namespace Prisma {
     LoginAttempt: 'LoginAttempt',
     Permission: 'Permission',
     RolePermission: 'RolePermission',
-    UserPermission: 'UserPermission'
+    UserPermission: 'UserPermission',
+    CentralSettings: 'CentralSettings'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1164,7 +1282,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "userTenant" | "tenant" | "tenantSetting" | "branch" | "device" | "syncLog" | "syncSession" | "plan" | "subscription" | "invoiceFiscalCounter" | "invoice" | "billingSnapshot" | "tenantWallet" | "payment" | "paymentWebhook" | "jobQueue" | "walletTransaction" | "auditLog" | "userSession" | "loginAttempt" | "permission" | "rolePermission" | "userPermission"
+      modelProps: "user" | "userTenant" | "tenant" | "tenantSetting" | "branch" | "device" | "printer" | "printJob" | "syncLog" | "syncSession" | "plan" | "subscription" | "subscriptionBranchHistory" | "invoiceFiscalCounter" | "invoice" | "billingSnapshot" | "tenantWallet" | "payment" | "paymentWebhook" | "jobQueue" | "walletTransaction" | "auditLog" | "userSession" | "loginAttempt" | "permission" | "rolePermission" | "userPermission" | "centralSettings"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1564,6 +1682,138 @@ export namespace Prisma {
           }
         }
       }
+      Printer: {
+        payload: Prisma.$PrinterPayload<ExtArgs>
+        fields: Prisma.PrinterFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PrinterFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PrinterFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          findFirst: {
+            args: Prisma.PrinterFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PrinterFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          findMany: {
+            args: Prisma.PrinterFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>[]
+          }
+          create: {
+            args: Prisma.PrinterCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          createMany: {
+            args: Prisma.PrinterCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.PrinterDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          update: {
+            args: Prisma.PrinterUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          deleteMany: {
+            args: Prisma.PrinterDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PrinterUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PrinterUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterPayload>
+          }
+          aggregate: {
+            args: Prisma.PrinterAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePrinter>
+          }
+          groupBy: {
+            args: Prisma.PrinterGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PrinterGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PrinterCountArgs<ExtArgs>
+            result: $Utils.Optional<PrinterCountAggregateOutputType> | number
+          }
+        }
+      }
+      PrintJob: {
+        payload: Prisma.$PrintJobPayload<ExtArgs>
+        fields: Prisma.PrintJobFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PrintJobFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PrintJobFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          findFirst: {
+            args: Prisma.PrintJobFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PrintJobFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          findMany: {
+            args: Prisma.PrintJobFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>[]
+          }
+          create: {
+            args: Prisma.PrintJobCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          createMany: {
+            args: Prisma.PrintJobCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.PrintJobDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          update: {
+            args: Prisma.PrintJobUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          deleteMany: {
+            args: Prisma.PrintJobDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PrintJobUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PrintJobUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintJobPayload>
+          }
+          aggregate: {
+            args: Prisma.PrintJobAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePrintJob>
+          }
+          groupBy: {
+            args: Prisma.PrintJobGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PrintJobGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PrintJobCountArgs<ExtArgs>
+            result: $Utils.Optional<PrintJobCountAggregateOutputType> | number
+          }
+        }
+      }
       SyncLog: {
         payload: Prisma.$SyncLogPayload<ExtArgs>
         fields: Prisma.SyncLogFieldRefs
@@ -1825,6 +2075,72 @@ export namespace Prisma {
           count: {
             args: Prisma.SubscriptionCountArgs<ExtArgs>
             result: $Utils.Optional<SubscriptionCountAggregateOutputType> | number
+          }
+        }
+      }
+      SubscriptionBranchHistory: {
+        payload: Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>
+        fields: Prisma.SubscriptionBranchHistoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SubscriptionBranchHistoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SubscriptionBranchHistoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          findFirst: {
+            args: Prisma.SubscriptionBranchHistoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SubscriptionBranchHistoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          findMany: {
+            args: Prisma.SubscriptionBranchHistoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>[]
+          }
+          create: {
+            args: Prisma.SubscriptionBranchHistoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          createMany: {
+            args: Prisma.SubscriptionBranchHistoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.SubscriptionBranchHistoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          update: {
+            args: Prisma.SubscriptionBranchHistoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.SubscriptionBranchHistoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SubscriptionBranchHistoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SubscriptionBranchHistoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SubscriptionBranchHistoryPayload>
+          }
+          aggregate: {
+            args: Prisma.SubscriptionBranchHistoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSubscriptionBranchHistory>
+          }
+          groupBy: {
+            args: Prisma.SubscriptionBranchHistoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SubscriptionBranchHistoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SubscriptionBranchHistoryCountArgs<ExtArgs>
+            result: $Utils.Optional<SubscriptionBranchHistoryCountAggregateOutputType> | number
           }
         }
       }
@@ -2752,6 +3068,72 @@ export namespace Prisma {
           }
         }
       }
+      CentralSettings: {
+        payload: Prisma.$CentralSettingsPayload<ExtArgs>
+        fields: Prisma.CentralSettingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CentralSettingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CentralSettingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          findFirst: {
+            args: Prisma.CentralSettingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CentralSettingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          findMany: {
+            args: Prisma.CentralSettingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>[]
+          }
+          create: {
+            args: Prisma.CentralSettingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          createMany: {
+            args: Prisma.CentralSettingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.CentralSettingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          update: {
+            args: Prisma.CentralSettingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.CentralSettingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CentralSettingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CentralSettingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CentralSettingsPayload>
+          }
+          aggregate: {
+            args: Prisma.CentralSettingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCentralSettings>
+          }
+          groupBy: {
+            args: Prisma.CentralSettingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CentralSettingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CentralSettingsCountArgs<ExtArgs>
+            result: $Utils.Optional<CentralSettingsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2926,6 +3308,7 @@ export namespace Prisma {
     branchesUpdated: number
     subscriptionsCreated: number
     subscriptionsUpdated: number
+    subscriptionBranchHistoryCreated: number
     auditLogs: number
     sessions: number
   }
@@ -2944,6 +3327,7 @@ export namespace Prisma {
     branchesUpdated?: boolean | UserCountOutputTypeCountBranchesUpdatedArgs
     subscriptionsCreated?: boolean | UserCountOutputTypeCountSubscriptionsCreatedArgs
     subscriptionsUpdated?: boolean | UserCountOutputTypeCountSubscriptionsUpdatedArgs
+    subscriptionBranchHistoryCreated?: boolean | UserCountOutputTypeCountSubscriptionBranchHistoryCreatedArgs
     auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   }
@@ -3053,6 +3437,13 @@ export namespace Prisma {
   /**
    * UserCountOutputType without action
    */
+  export type UserCountOutputTypeCountSubscriptionBranchHistoryCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionBranchHistoryWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
   export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditLogWhereInput
   }
@@ -3080,6 +3471,8 @@ export namespace Prisma {
     settings: number
     userTenants: number
     devices: number
+    printers: number
+    printJobs: number
     syncLogs: number
     syncSessions: number
     auditLogs: number
@@ -3097,6 +3490,8 @@ export namespace Prisma {
     settings?: boolean | TenantCountOutputTypeCountSettingsArgs
     userTenants?: boolean | TenantCountOutputTypeCountUserTenantsArgs
     devices?: boolean | TenantCountOutputTypeCountDevicesArgs
+    printers?: boolean | TenantCountOutputTypeCountPrintersArgs
+    printJobs?: boolean | TenantCountOutputTypeCountPrintJobsArgs
     syncLogs?: boolean | TenantCountOutputTypeCountSyncLogsArgs
     syncSessions?: boolean | TenantCountOutputTypeCountSyncSessionsArgs
     auditLogs?: boolean | TenantCountOutputTypeCountAuditLogsArgs
@@ -3187,6 +3582,20 @@ export namespace Prisma {
   /**
    * TenantCountOutputType without action
    */
+  export type TenantCountOutputTypeCountPrintersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountPrintJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
   export type TenantCountOutputTypeCountSyncLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SyncLogWhereInput
   }
@@ -3219,16 +3628,22 @@ export namespace Prisma {
 
   export type BranchCountOutputType = {
     devices: number
+    printers: number
+    printJobs: number
     syncLogs: number
     syncSessions: number
     auditLogs: number
+    subscriptionBranchHistory: number
   }
 
   export type BranchCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     devices?: boolean | BranchCountOutputTypeCountDevicesArgs
+    printers?: boolean | BranchCountOutputTypeCountPrintersArgs
+    printJobs?: boolean | BranchCountOutputTypeCountPrintJobsArgs
     syncLogs?: boolean | BranchCountOutputTypeCountSyncLogsArgs
     syncSessions?: boolean | BranchCountOutputTypeCountSyncSessionsArgs
     auditLogs?: boolean | BranchCountOutputTypeCountAuditLogsArgs
+    subscriptionBranchHistory?: boolean | BranchCountOutputTypeCountSubscriptionBranchHistoryArgs
   }
 
   // Custom InputTypes
@@ -3252,6 +3667,20 @@ export namespace Prisma {
   /**
    * BranchCountOutputType without action
    */
+  export type BranchCountOutputTypeCountPrintersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountPrintJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
   export type BranchCountOutputTypeCountSyncLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SyncLogWhereInput
   }
@@ -3270,18 +3699,27 @@ export namespace Prisma {
     where?: AuditLogWhereInput
   }
 
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountSubscriptionBranchHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionBranchHistoryWhereInput
+  }
+
 
   /**
    * Count Type DeviceCountOutputType
    */
 
   export type DeviceCountOutputType = {
+    printers: number
     syncLogs: number
     syncSessions: number
     userSessions: number
   }
 
   export type DeviceCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    printers?: boolean | DeviceCountOutputTypeCountPrintersArgs
     syncLogs?: boolean | DeviceCountOutputTypeCountSyncLogsArgs
     syncSessions?: boolean | DeviceCountOutputTypeCountSyncSessionsArgs
     userSessions?: boolean | DeviceCountOutputTypeCountUserSessionsArgs
@@ -3296,6 +3734,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the DeviceCountOutputType
      */
     select?: DeviceCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * DeviceCountOutputType without action
+   */
+  export type DeviceCountOutputTypeCountPrintersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterWhereInput
   }
 
   /**
@@ -3317,6 +3762,37 @@ export namespace Prisma {
    */
   export type DeviceCountOutputTypeCountUserSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserSessionWhereInput
+  }
+
+
+  /**
+   * Count Type PrinterCountOutputType
+   */
+
+  export type PrinterCountOutputType = {
+    printJobs: number
+  }
+
+  export type PrinterCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    printJobs?: boolean | PrinterCountOutputTypeCountPrintJobsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PrinterCountOutputType without action
+   */
+  export type PrinterCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterCountOutputType
+     */
+    select?: PrinterCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PrinterCountOutputType without action
+   */
+  export type PrinterCountOutputTypeCountPrintJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
   }
 
 
@@ -3358,11 +3834,13 @@ export namespace Prisma {
   export type SubscriptionCountOutputType = {
     billingSnapshots: number
     invoices: number
+    branchHistory: number
   }
 
   export type SubscriptionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     billingSnapshots?: boolean | SubscriptionCountOutputTypeCountBillingSnapshotsArgs
     invoices?: boolean | SubscriptionCountOutputTypeCountInvoicesArgs
+    branchHistory?: boolean | SubscriptionCountOutputTypeCountBranchHistoryArgs
   }
 
   // Custom InputTypes
@@ -3388,6 +3866,13 @@ export namespace Prisma {
    */
   export type SubscriptionCountOutputTypeCountInvoicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: InvoiceWhereInput
+  }
+
+  /**
+   * SubscriptionCountOutputType without action
+   */
+  export type SubscriptionCountOutputTypeCountBranchHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionBranchHistoryWhereInput
   }
 
 
@@ -3797,6 +4282,7 @@ export namespace Prisma {
     branchesUpdated?: boolean | User$branchesUpdatedArgs<ExtArgs>
     subscriptionsCreated?: boolean | User$subscriptionsCreatedArgs<ExtArgs>
     subscriptionsUpdated?: boolean | User$subscriptionsUpdatedArgs<ExtArgs>
+    subscriptionBranchHistoryCreated?: boolean | User$subscriptionBranchHistoryCreatedArgs<ExtArgs>
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -3834,6 +4320,7 @@ export namespace Prisma {
     branchesUpdated?: boolean | User$branchesUpdatedArgs<ExtArgs>
     subscriptionsCreated?: boolean | User$subscriptionsCreatedArgs<ExtArgs>
     subscriptionsUpdated?: boolean | User$subscriptionsUpdatedArgs<ExtArgs>
+    subscriptionBranchHistoryCreated?: boolean | User$subscriptionBranchHistoryCreatedArgs<ExtArgs>
     auditLogs?: boolean | User$auditLogsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -3855,6 +4342,7 @@ export namespace Prisma {
       branchesUpdated: Prisma.$BranchPayload<ExtArgs>[]
       subscriptionsCreated: Prisma.$SubscriptionPayload<ExtArgs>[]
       subscriptionsUpdated: Prisma.$SubscriptionPayload<ExtArgs>[]
+      subscriptionBranchHistoryCreated: Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
       sessions: Prisma.$UserSessionPayload<ExtArgs>[]
     }
@@ -4226,6 +4714,7 @@ export namespace Prisma {
     branchesUpdated<T extends User$branchesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, User$branchesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findMany"> | Null>
     subscriptionsCreated<T extends User$subscriptionsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, User$subscriptionsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findMany"> | Null>
     subscriptionsUpdated<T extends User$subscriptionsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, User$subscriptionsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findMany"> | Null>
+    subscriptionBranchHistoryCreated<T extends User$subscriptionBranchHistoryCreatedArgs<ExtArgs> = {}>(args?: Subset<T, User$subscriptionBranchHistoryCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findMany"> | Null>
     auditLogs<T extends User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany"> | Null>
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
@@ -4827,6 +5316,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: SubscriptionScalarFieldEnum | SubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * User.subscriptionBranchHistoryCreated
+   */
+  export type User$subscriptionBranchHistoryCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    where?: SubscriptionBranchHistoryWhereInput
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
   }
 
   /**
@@ -5871,7 +6380,7 @@ export namespace Prisma {
 
   export type TenantAvgAggregateOutputType = {
     id: number | null
-    ownerId: number | null
+    ownerUserId: number | null
     version: number | null
     createdBy: number | null
     updatedBy: number | null
@@ -5879,7 +6388,7 @@ export namespace Prisma {
 
   export type TenantSumAggregateOutputType = {
     id: bigint | null
-    ownerId: bigint | null
+    ownerUserId: bigint | null
     version: number | null
     createdBy: bigint | null
     updatedBy: bigint | null
@@ -5888,10 +6397,12 @@ export namespace Prisma {
   export type TenantMinAggregateOutputType = {
     id: bigint | null
     uuid: string | null
-    ownerId: bigint | null
-    name: string | null
-    companyName: string | null
+    ownerUserId: bigint | null
+    tenantKey: string | null
+    tenantName: string | null
     nuit: string | null
+    email: string | null
+    endereco: string | null
     status: $Enums.TenantStatus | null
     country: string | null
     version: number | null
@@ -5905,10 +6416,12 @@ export namespace Prisma {
   export type TenantMaxAggregateOutputType = {
     id: bigint | null
     uuid: string | null
-    ownerId: bigint | null
-    name: string | null
-    companyName: string | null
+    ownerUserId: bigint | null
+    tenantKey: string | null
+    tenantName: string | null
     nuit: string | null
+    email: string | null
+    endereco: string | null
     status: $Enums.TenantStatus | null
     country: string | null
     version: number | null
@@ -5922,10 +6435,12 @@ export namespace Prisma {
   export type TenantCountAggregateOutputType = {
     id: number
     uuid: number
-    ownerId: number
-    name: number
-    companyName: number
+    ownerUserId: number
+    tenantKey: number
+    tenantName: number
     nuit: number
+    email: number
+    endereco: number
     status: number
     country: number
     version: number
@@ -5940,7 +6455,7 @@ export namespace Prisma {
 
   export type TenantAvgAggregateInputType = {
     id?: true
-    ownerId?: true
+    ownerUserId?: true
     version?: true
     createdBy?: true
     updatedBy?: true
@@ -5948,7 +6463,7 @@ export namespace Prisma {
 
   export type TenantSumAggregateInputType = {
     id?: true
-    ownerId?: true
+    ownerUserId?: true
     version?: true
     createdBy?: true
     updatedBy?: true
@@ -5957,10 +6472,12 @@ export namespace Prisma {
   export type TenantMinAggregateInputType = {
     id?: true
     uuid?: true
-    ownerId?: true
-    name?: true
-    companyName?: true
+    ownerUserId?: true
+    tenantKey?: true
+    tenantName?: true
     nuit?: true
+    email?: true
+    endereco?: true
     status?: true
     country?: true
     version?: true
@@ -5974,10 +6491,12 @@ export namespace Prisma {
   export type TenantMaxAggregateInputType = {
     id?: true
     uuid?: true
-    ownerId?: true
-    name?: true
-    companyName?: true
+    ownerUserId?: true
+    tenantKey?: true
+    tenantName?: true
     nuit?: true
+    email?: true
+    endereco?: true
     status?: true
     country?: true
     version?: true
@@ -5991,10 +6510,12 @@ export namespace Prisma {
   export type TenantCountAggregateInputType = {
     id?: true
     uuid?: true
-    ownerId?: true
-    name?: true
-    companyName?: true
+    ownerUserId?: true
+    tenantKey?: true
+    tenantName?: true
     nuit?: true
+    email?: true
+    endereco?: true
     status?: true
     country?: true
     version?: true
@@ -6095,10 +6616,12 @@ export namespace Prisma {
   export type TenantGroupByOutputType = {
     id: bigint
     uuid: string
-    ownerId: bigint
-    name: string
-    companyName: string
+    ownerUserId: bigint
+    tenantKey: string
+    tenantName: string
     nuit: string | null
+    email: string | null
+    endereco: string | null
     status: $Enums.TenantStatus
     country: string
     version: number
@@ -6131,10 +6654,12 @@ export namespace Prisma {
   export type TenantSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     uuid?: boolean
-    ownerId?: boolean
-    name?: boolean
-    companyName?: boolean
+    ownerUserId?: boolean
+    tenantKey?: boolean
+    tenantName?: boolean
     nuit?: boolean
+    email?: boolean
+    endereco?: boolean
     status?: boolean
     country?: boolean
     version?: boolean
@@ -6157,6 +6682,8 @@ export namespace Prisma {
     settings?: boolean | Tenant$settingsArgs<ExtArgs>
     userTenants?: boolean | Tenant$userTenantsArgs<ExtArgs>
     devices?: boolean | Tenant$devicesArgs<ExtArgs>
+    printers?: boolean | Tenant$printersArgs<ExtArgs>
+    printJobs?: boolean | Tenant$printJobsArgs<ExtArgs>
     syncLogs?: boolean | Tenant$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Tenant$syncSessionsArgs<ExtArgs>
     auditLogs?: boolean | Tenant$auditLogsArgs<ExtArgs>
@@ -6168,10 +6695,12 @@ export namespace Prisma {
   export type TenantSelectScalar = {
     id?: boolean
     uuid?: boolean
-    ownerId?: boolean
-    name?: boolean
-    companyName?: boolean
+    ownerUserId?: boolean
+    tenantKey?: boolean
+    tenantName?: boolean
     nuit?: boolean
+    email?: boolean
+    endereco?: boolean
     status?: boolean
     country?: boolean
     version?: boolean
@@ -6197,6 +6726,8 @@ export namespace Prisma {
     settings?: boolean | Tenant$settingsArgs<ExtArgs>
     userTenants?: boolean | Tenant$userTenantsArgs<ExtArgs>
     devices?: boolean | Tenant$devicesArgs<ExtArgs>
+    printers?: boolean | Tenant$printersArgs<ExtArgs>
+    printJobs?: boolean | Tenant$printJobsArgs<ExtArgs>
     syncLogs?: boolean | Tenant$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Tenant$syncSessionsArgs<ExtArgs>
     auditLogs?: boolean | Tenant$auditLogsArgs<ExtArgs>
@@ -6221,6 +6752,8 @@ export namespace Prisma {
       settings: Prisma.$TenantSettingPayload<ExtArgs>[]
       userTenants: Prisma.$UserTenantPayload<ExtArgs>[]
       devices: Prisma.$DevicePayload<ExtArgs>[]
+      printers: Prisma.$PrinterPayload<ExtArgs>[]
+      printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
       syncLogs: Prisma.$SyncLogPayload<ExtArgs>[]
       syncSessions: Prisma.$SyncSessionPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
@@ -6229,10 +6762,21 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
       uuid: string
-      ownerId: bigint
-      name: string
-      companyName: string
+      /**
+       * Utilizador dono do tenant na Central.
+       */
+      ownerUserId: bigint
+      /**
+       * Identificador técnico único, imutável (URLs, APIs, DB).
+       */
+      tenantKey: string
+      /**
+       * Nome visível do tenant na UI.
+       */
+      tenantName: string
       nuit: string | null
+      email: string | null
+      endereco: string | null
       status: $Enums.TenantStatus
       country: string
       version: number
@@ -6595,6 +7139,8 @@ export namespace Prisma {
     settings<T extends Tenant$settingsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$settingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TenantSettingPayload<ExtArgs>, T, "findMany"> | Null>
     userTenants<T extends Tenant$userTenantsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$userTenantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserTenantPayload<ExtArgs>, T, "findMany"> | Null>
     devices<T extends Tenant$devicesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$devicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevicePayload<ExtArgs>, T, "findMany"> | Null>
+    printers<T extends Tenant$printersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
+    printJobs<T extends Tenant$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
     syncLogs<T extends Tenant$syncLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$syncLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncLogPayload<ExtArgs>, T, "findMany"> | Null>
     syncSessions<T extends Tenant$syncSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$syncSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncSessionPayload<ExtArgs>, T, "findMany"> | Null>
     auditLogs<T extends Tenant$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany"> | Null>
@@ -6630,10 +7176,12 @@ export namespace Prisma {
   interface TenantFieldRefs {
     readonly id: FieldRef<"Tenant", 'BigInt'>
     readonly uuid: FieldRef<"Tenant", 'String'>
-    readonly ownerId: FieldRef<"Tenant", 'BigInt'>
-    readonly name: FieldRef<"Tenant", 'String'>
-    readonly companyName: FieldRef<"Tenant", 'String'>
+    readonly ownerUserId: FieldRef<"Tenant", 'BigInt'>
+    readonly tenantKey: FieldRef<"Tenant", 'String'>
+    readonly tenantName: FieldRef<"Tenant", 'String'>
     readonly nuit: FieldRef<"Tenant", 'String'>
+    readonly email: FieldRef<"Tenant", 'String'>
+    readonly endereco: FieldRef<"Tenant", 'String'>
     readonly status: FieldRef<"Tenant", 'TenantStatus'>
     readonly country: FieldRef<"Tenant", 'String'>
     readonly version: FieldRef<"Tenant", 'Int'>
@@ -7183,6 +7731,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: DeviceScalarFieldEnum | DeviceScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.printers
+   */
+  export type Tenant$printersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    cursor?: PrinterWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.printJobs
+   */
+  export type Tenant$printJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    cursor?: PrintJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
   }
 
   /**
@@ -8624,9 +9212,12 @@ export namespace Prisma {
     createdByUser?: boolean | Branch$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Branch$updatedByUserArgs<ExtArgs>
     devices?: boolean | Branch$devicesArgs<ExtArgs>
+    printers?: boolean | Branch$printersArgs<ExtArgs>
+    printJobs?: boolean | Branch$printJobsArgs<ExtArgs>
     syncLogs?: boolean | Branch$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Branch$syncSessionsArgs<ExtArgs>
     auditLogs?: boolean | Branch$auditLogsArgs<ExtArgs>
+    subscriptionBranchHistory?: boolean | Branch$subscriptionBranchHistoryArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["branch"]>
 
@@ -8665,9 +9256,12 @@ export namespace Prisma {
     createdByUser?: boolean | Branch$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Branch$updatedByUserArgs<ExtArgs>
     devices?: boolean | Branch$devicesArgs<ExtArgs>
+    printers?: boolean | Branch$printersArgs<ExtArgs>
+    printJobs?: boolean | Branch$printJobsArgs<ExtArgs>
     syncLogs?: boolean | Branch$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Branch$syncSessionsArgs<ExtArgs>
     auditLogs?: boolean | Branch$auditLogsArgs<ExtArgs>
+    subscriptionBranchHistory?: boolean | Branch$subscriptionBranchHistoryArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -8678,9 +9272,12 @@ export namespace Prisma {
       createdByUser: Prisma.$UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$UserPayload<ExtArgs> | null
       devices: Prisma.$DevicePayload<ExtArgs>[]
+      printers: Prisma.$PrinterPayload<ExtArgs>[]
+      printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
       syncLogs: Prisma.$SyncLogPayload<ExtArgs>[]
       syncSessions: Prisma.$SyncSessionPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+      subscriptionBranchHistory: Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
@@ -9053,9 +9650,12 @@ export namespace Prisma {
     createdByUser<T extends Branch$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Branch$createdByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     updatedByUser<T extends Branch$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Branch$updatedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     devices<T extends Branch$devicesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$devicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevicePayload<ExtArgs>, T, "findMany"> | Null>
+    printers<T extends Branch$printersArgs<ExtArgs> = {}>(args?: Subset<T, Branch$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
+    printJobs<T extends Branch$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
     syncLogs<T extends Branch$syncLogsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$syncLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncLogPayload<ExtArgs>, T, "findMany"> | Null>
     syncSessions<T extends Branch$syncSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$syncSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncSessionPayload<ExtArgs>, T, "findMany"> | Null>
     auditLogs<T extends Branch$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany"> | Null>
+    subscriptionBranchHistory<T extends Branch$subscriptionBranchHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Branch$subscriptionBranchHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9460,6 +10060,46 @@ export namespace Prisma {
   }
 
   /**
+   * Branch.printers
+   */
+  export type Branch$printersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    cursor?: PrinterWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.printJobs
+   */
+  export type Branch$printJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    cursor?: PrintJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
    * Branch.syncLogs
    */
   export type Branch$syncLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9517,6 +10157,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AuditLogScalarFieldEnum | AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.subscriptionBranchHistory
+   */
+  export type Branch$subscriptionBranchHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    where?: SubscriptionBranchHistoryWhereInput
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
   }
 
   /**
@@ -9810,6 +10470,7 @@ export namespace Prisma {
     deletedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    printers?: boolean | Device$printersArgs<ExtArgs>
     syncLogs?: boolean | Device$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Device$syncSessionsArgs<ExtArgs>
     userSessions?: boolean | Device$userSessionsArgs<ExtArgs>
@@ -9836,6 +10497,7 @@ export namespace Prisma {
   export type DeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    printers?: boolean | Device$printersArgs<ExtArgs>
     syncLogs?: boolean | Device$syncLogsArgs<ExtArgs>
     syncSessions?: boolean | Device$syncSessionsArgs<ExtArgs>
     userSessions?: boolean | Device$userSessionsArgs<ExtArgs>
@@ -9847,6 +10509,7 @@ export namespace Prisma {
     objects: {
       tenant: Prisma.$TenantPayload<ExtArgs>
       branch: Prisma.$BranchPayload<ExtArgs>
+      printers: Prisma.$PrinterPayload<ExtArgs>[]
       syncLogs: Prisma.$SyncLogPayload<ExtArgs>[]
       syncSessions: Prisma.$SyncSessionPayload<ExtArgs>[]
       userSessions: Prisma.$UserSessionPayload<ExtArgs>[]
@@ -10207,6 +10870,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    printers<T extends Device$printersArgs<ExtArgs> = {}>(args?: Subset<T, Device$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
     syncLogs<T extends Device$syncLogsArgs<ExtArgs> = {}>(args?: Subset<T, Device$syncLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncLogPayload<ExtArgs>, T, "findMany"> | Null>
     syncSessions<T extends Device$syncSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Device$syncSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SyncSessionPayload<ExtArgs>, T, "findMany"> | Null>
     userSessions<T extends Device$userSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Device$userSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findMany"> | Null>
@@ -10551,6 +11215,26 @@ export namespace Prisma {
   }
 
   /**
+   * Device.printers
+   */
+  export type Device$printersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    cursor?: PrinterWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
    * Device.syncLogs
    */
   export type Device$syncLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10622,6 +11306,2178 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DeviceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Printer
+   */
+
+  export type AggregatePrinter = {
+    _count: PrinterCountAggregateOutputType | null
+    _avg: PrinterAvgAggregateOutputType | null
+    _sum: PrinterSumAggregateOutputType | null
+    _min: PrinterMinAggregateOutputType | null
+    _max: PrinterMaxAggregateOutputType | null
+  }
+
+  export type PrinterAvgAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+    branchId: number | null
+    deviceId: number | null
+    port: number | null
+    version: number | null
+  }
+
+  export type PrinterSumAggregateOutputType = {
+    id: bigint | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    deviceId: bigint | null
+    port: number | null
+    version: number | null
+  }
+
+  export type PrinterMinAggregateOutputType = {
+    id: bigint | null
+    uuid: string | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    deviceId: bigint | null
+    name: string | null
+    type: $Enums.PrinterType | null
+    connection: $Enums.PrinterConnection | null
+    ip: string | null
+    port: number | null
+    model: string | null
+    manufacturer: string | null
+    active: boolean | null
+    version: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type PrinterMaxAggregateOutputType = {
+    id: bigint | null
+    uuid: string | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    deviceId: bigint | null
+    name: string | null
+    type: $Enums.PrinterType | null
+    connection: $Enums.PrinterConnection | null
+    ip: string | null
+    port: number | null
+    model: string | null
+    manufacturer: string | null
+    active: boolean | null
+    version: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type PrinterCountAggregateOutputType = {
+    id: number
+    uuid: number
+    tenantId: number
+    branchId: number
+    deviceId: number
+    name: number
+    type: number
+    connection: number
+    ip: number
+    port: number
+    model: number
+    manufacturer: number
+    active: number
+    version: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type PrinterAvgAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    deviceId?: true
+    port?: true
+    version?: true
+  }
+
+  export type PrinterSumAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    deviceId?: true
+    port?: true
+    version?: true
+  }
+
+  export type PrinterMinAggregateInputType = {
+    id?: true
+    uuid?: true
+    tenantId?: true
+    branchId?: true
+    deviceId?: true
+    name?: true
+    type?: true
+    connection?: true
+    ip?: true
+    port?: true
+    model?: true
+    manufacturer?: true
+    active?: true
+    version?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type PrinterMaxAggregateInputType = {
+    id?: true
+    uuid?: true
+    tenantId?: true
+    branchId?: true
+    deviceId?: true
+    name?: true
+    type?: true
+    connection?: true
+    ip?: true
+    port?: true
+    model?: true
+    manufacturer?: true
+    active?: true
+    version?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type PrinterCountAggregateInputType = {
+    id?: true
+    uuid?: true
+    tenantId?: true
+    branchId?: true
+    deviceId?: true
+    name?: true
+    type?: true
+    connection?: true
+    ip?: true
+    port?: true
+    model?: true
+    manufacturer?: true
+    active?: true
+    version?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type PrinterAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Printer to aggregate.
+     */
+    where?: PrinterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Printers to fetch.
+     */
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PrinterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Printers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Printers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Printers
+    **/
+    _count?: true | PrinterCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PrinterAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PrinterSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PrinterMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PrinterMaxAggregateInputType
+  }
+
+  export type GetPrinterAggregateType<T extends PrinterAggregateArgs> = {
+        [P in keyof T & keyof AggregatePrinter]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePrinter[P]>
+      : GetScalarType<T[P], AggregatePrinter[P]>
+  }
+
+
+
+
+  export type PrinterGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterWhereInput
+    orderBy?: PrinterOrderByWithAggregationInput | PrinterOrderByWithAggregationInput[]
+    by: PrinterScalarFieldEnum[] | PrinterScalarFieldEnum
+    having?: PrinterScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PrinterCountAggregateInputType | true
+    _avg?: PrinterAvgAggregateInputType
+    _sum?: PrinterSumAggregateInputType
+    _min?: PrinterMinAggregateInputType
+    _max?: PrinterMaxAggregateInputType
+  }
+
+  export type PrinterGroupByOutputType = {
+    id: bigint
+    uuid: string
+    tenantId: bigint
+    branchId: bigint
+    deviceId: bigint | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip: string | null
+    port: number | null
+    model: string | null
+    manufacturer: string | null
+    active: boolean
+    version: number
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: PrinterCountAggregateOutputType | null
+    _avg: PrinterAvgAggregateOutputType | null
+    _sum: PrinterSumAggregateOutputType | null
+    _min: PrinterMinAggregateOutputType | null
+    _max: PrinterMaxAggregateOutputType | null
+  }
+
+  type GetPrinterGroupByPayload<T extends PrinterGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PrinterGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PrinterGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PrinterGroupByOutputType[P]>
+            : GetScalarType<T[P], PrinterGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PrinterSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uuid?: boolean
+    tenantId?: boolean
+    branchId?: boolean
+    deviceId?: boolean
+    name?: boolean
+    type?: boolean
+    connection?: boolean
+    ip?: boolean
+    port?: boolean
+    model?: boolean
+    manufacturer?: boolean
+    active?: boolean
+    version?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    device?: boolean | Printer$deviceArgs<ExtArgs>
+    printJobs?: boolean | Printer$printJobsArgs<ExtArgs>
+    _count?: boolean | PrinterCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["printer"]>
+
+
+  export type PrinterSelectScalar = {
+    id?: boolean
+    uuid?: boolean
+    tenantId?: boolean
+    branchId?: boolean
+    deviceId?: boolean
+    name?: boolean
+    type?: boolean
+    connection?: boolean
+    ip?: boolean
+    port?: boolean
+    model?: boolean
+    manufacturer?: boolean
+    active?: boolean
+    version?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type PrinterInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    device?: boolean | Printer$deviceArgs<ExtArgs>
+    printJobs?: boolean | Printer$printJobsArgs<ExtArgs>
+    _count?: boolean | PrinterCountOutputTypeDefaultArgs<ExtArgs>
+  }
+
+  export type $PrinterPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Printer"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      branch: Prisma.$BranchPayload<ExtArgs>
+      device: Prisma.$DevicePayload<ExtArgs> | null
+      printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      uuid: string
+      tenantId: bigint
+      branchId: bigint
+      deviceId: bigint | null
+      name: string
+      type: $Enums.PrinterType
+      connection: $Enums.PrinterConnection
+      ip: string | null
+      port: number | null
+      model: string | null
+      manufacturer: string | null
+      active: boolean
+      version: number
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["printer"]>
+    composites: {}
+  }
+
+  type PrinterGetPayload<S extends boolean | null | undefined | PrinterDefaultArgs> = $Result.GetResult<Prisma.$PrinterPayload, S>
+
+  type PrinterCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PrinterFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PrinterCountAggregateInputType | true
+    }
+
+  export interface PrinterDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Printer'], meta: { name: 'Printer' } }
+    /**
+     * Find zero or one Printer that matches the filter.
+     * @param {PrinterFindUniqueArgs} args - Arguments to find a Printer
+     * @example
+     * // Get one Printer
+     * const printer = await prisma.printer.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PrinterFindUniqueArgs>(args: SelectSubset<T, PrinterFindUniqueArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Printer that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PrinterFindUniqueOrThrowArgs} args - Arguments to find a Printer
+     * @example
+     * // Get one Printer
+     * const printer = await prisma.printer.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PrinterFindUniqueOrThrowArgs>(args: SelectSubset<T, PrinterFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Printer that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterFindFirstArgs} args - Arguments to find a Printer
+     * @example
+     * // Get one Printer
+     * const printer = await prisma.printer.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PrinterFindFirstArgs>(args?: SelectSubset<T, PrinterFindFirstArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Printer that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterFindFirstOrThrowArgs} args - Arguments to find a Printer
+     * @example
+     * // Get one Printer
+     * const printer = await prisma.printer.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PrinterFindFirstOrThrowArgs>(args?: SelectSubset<T, PrinterFindFirstOrThrowArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Printers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Printers
+     * const printers = await prisma.printer.findMany()
+     * 
+     * // Get first 10 Printers
+     * const printers = await prisma.printer.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const printerWithIdOnly = await prisma.printer.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PrinterFindManyArgs>(args?: SelectSubset<T, PrinterFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Printer.
+     * @param {PrinterCreateArgs} args - Arguments to create a Printer.
+     * @example
+     * // Create one Printer
+     * const Printer = await prisma.printer.create({
+     *   data: {
+     *     // ... data to create a Printer
+     *   }
+     * })
+     * 
+     */
+    create<T extends PrinterCreateArgs>(args: SelectSubset<T, PrinterCreateArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Printers.
+     * @param {PrinterCreateManyArgs} args - Arguments to create many Printers.
+     * @example
+     * // Create many Printers
+     * const printer = await prisma.printer.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PrinterCreateManyArgs>(args?: SelectSubset<T, PrinterCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Printer.
+     * @param {PrinterDeleteArgs} args - Arguments to delete one Printer.
+     * @example
+     * // Delete one Printer
+     * const Printer = await prisma.printer.delete({
+     *   where: {
+     *     // ... filter to delete one Printer
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PrinterDeleteArgs>(args: SelectSubset<T, PrinterDeleteArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Printer.
+     * @param {PrinterUpdateArgs} args - Arguments to update one Printer.
+     * @example
+     * // Update one Printer
+     * const printer = await prisma.printer.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PrinterUpdateArgs>(args: SelectSubset<T, PrinterUpdateArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Printers.
+     * @param {PrinterDeleteManyArgs} args - Arguments to filter Printers to delete.
+     * @example
+     * // Delete a few Printers
+     * const { count } = await prisma.printer.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PrinterDeleteManyArgs>(args?: SelectSubset<T, PrinterDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Printers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Printers
+     * const printer = await prisma.printer.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PrinterUpdateManyArgs>(args: SelectSubset<T, PrinterUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Printer.
+     * @param {PrinterUpsertArgs} args - Arguments to update or create a Printer.
+     * @example
+     * // Update or create a Printer
+     * const printer = await prisma.printer.upsert({
+     *   create: {
+     *     // ... data to create a Printer
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Printer we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PrinterUpsertArgs>(args: SelectSubset<T, PrinterUpsertArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Printers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterCountArgs} args - Arguments to filter Printers to count.
+     * @example
+     * // Count the number of Printers
+     * const count = await prisma.printer.count({
+     *   where: {
+     *     // ... the filter for the Printers we want to count
+     *   }
+     * })
+    **/
+    count<T extends PrinterCountArgs>(
+      args?: Subset<T, PrinterCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PrinterCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Printer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PrinterAggregateArgs>(args: Subset<T, PrinterAggregateArgs>): Prisma.PrismaPromise<GetPrinterAggregateType<T>>
+
+    /**
+     * Group by Printer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PrinterGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PrinterGroupByArgs['orderBy'] }
+        : { orderBy?: PrinterGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PrinterGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPrinterGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Printer model
+   */
+  readonly fields: PrinterFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Printer.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PrinterClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    device<T extends Printer$deviceArgs<ExtArgs> = {}>(args?: Subset<T, Printer$deviceArgs<ExtArgs>>): Prisma__DeviceClient<$Result.GetResult<Prisma.$DevicePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    printJobs<T extends Printer$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Printer$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Printer model
+   */ 
+  interface PrinterFieldRefs {
+    readonly id: FieldRef<"Printer", 'BigInt'>
+    readonly uuid: FieldRef<"Printer", 'String'>
+    readonly tenantId: FieldRef<"Printer", 'BigInt'>
+    readonly branchId: FieldRef<"Printer", 'BigInt'>
+    readonly deviceId: FieldRef<"Printer", 'BigInt'>
+    readonly name: FieldRef<"Printer", 'String'>
+    readonly type: FieldRef<"Printer", 'PrinterType'>
+    readonly connection: FieldRef<"Printer", 'PrinterConnection'>
+    readonly ip: FieldRef<"Printer", 'String'>
+    readonly port: FieldRef<"Printer", 'Int'>
+    readonly model: FieldRef<"Printer", 'String'>
+    readonly manufacturer: FieldRef<"Printer", 'String'>
+    readonly active: FieldRef<"Printer", 'Boolean'>
+    readonly version: FieldRef<"Printer", 'Int'>
+    readonly createdAt: FieldRef<"Printer", 'DateTime'>
+    readonly updatedAt: FieldRef<"Printer", 'DateTime'>
+    readonly deletedAt: FieldRef<"Printer", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Printer findUnique
+   */
+  export type PrinterFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter, which Printer to fetch.
+     */
+    where: PrinterWhereUniqueInput
+  }
+
+  /**
+   * Printer findUniqueOrThrow
+   */
+  export type PrinterFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter, which Printer to fetch.
+     */
+    where: PrinterWhereUniqueInput
+  }
+
+  /**
+   * Printer findFirst
+   */
+  export type PrinterFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter, which Printer to fetch.
+     */
+    where?: PrinterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Printers to fetch.
+     */
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Printers.
+     */
+    cursor?: PrinterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Printers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Printers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Printers.
+     */
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * Printer findFirstOrThrow
+   */
+  export type PrinterFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter, which Printer to fetch.
+     */
+    where?: PrinterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Printers to fetch.
+     */
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Printers.
+     */
+    cursor?: PrinterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Printers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Printers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Printers.
+     */
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * Printer findMany
+   */
+  export type PrinterFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter, which Printers to fetch.
+     */
+    where?: PrinterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Printers to fetch.
+     */
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Printers.
+     */
+    cursor?: PrinterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Printers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Printers.
+     */
+    skip?: number
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * Printer create
+   */
+  export type PrinterCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Printer.
+     */
+    data: XOR<PrinterCreateInput, PrinterUncheckedCreateInput>
+  }
+
+  /**
+   * Printer createMany
+   */
+  export type PrinterCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Printers.
+     */
+    data: PrinterCreateManyInput | PrinterCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Printer update
+   */
+  export type PrinterUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Printer.
+     */
+    data: XOR<PrinterUpdateInput, PrinterUncheckedUpdateInput>
+    /**
+     * Choose, which Printer to update.
+     */
+    where: PrinterWhereUniqueInput
+  }
+
+  /**
+   * Printer updateMany
+   */
+  export type PrinterUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Printers.
+     */
+    data: XOR<PrinterUpdateManyMutationInput, PrinterUncheckedUpdateManyInput>
+    /**
+     * Filter which Printers to update
+     */
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * Printer upsert
+   */
+  export type PrinterUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Printer to update in case it exists.
+     */
+    where: PrinterWhereUniqueInput
+    /**
+     * In case the Printer found by the `where` argument doesn't exist, create a new Printer with this data.
+     */
+    create: XOR<PrinterCreateInput, PrinterUncheckedCreateInput>
+    /**
+     * In case the Printer was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PrinterUpdateInput, PrinterUncheckedUpdateInput>
+  }
+
+  /**
+   * Printer delete
+   */
+  export type PrinterDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    /**
+     * Filter which Printer to delete.
+     */
+    where: PrinterWhereUniqueInput
+  }
+
+  /**
+   * Printer deleteMany
+   */
+  export type PrinterDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Printers to delete
+     */
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * Printer.device
+   */
+  export type Printer$deviceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Device
+     */
+    select?: DeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeviceInclude<ExtArgs> | null
+    where?: DeviceWhereInput
+  }
+
+  /**
+   * Printer.printJobs
+   */
+  export type Printer$printJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    cursor?: PrintJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * Printer without action
+   */
+  export type PrinterDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PrintJob
+   */
+
+  export type AggregatePrintJob = {
+    _count: PrintJobCountAggregateOutputType | null
+    _avg: PrintJobAvgAggregateOutputType | null
+    _sum: PrintJobSumAggregateOutputType | null
+    _min: PrintJobMinAggregateOutputType | null
+    _max: PrintJobMaxAggregateOutputType | null
+  }
+
+  export type PrintJobAvgAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+    branchId: number | null
+    printerId: number | null
+    attempts: number | null
+    maxAttempts: number | null
+  }
+
+  export type PrintJobSumAggregateOutputType = {
+    id: bigint | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    printerId: bigint | null
+    attempts: number | null
+    maxAttempts: number | null
+  }
+
+  export type PrintJobMinAggregateOutputType = {
+    id: bigint | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    printerId: bigint | null
+    document: string | null
+    status: $Enums.PrintStatus | null
+    attempts: number | null
+    maxAttempts: number | null
+    errorMessage: string | null
+    printedAt: Date | null
+    lockedAt: Date | null
+    lockedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type PrintJobMaxAggregateOutputType = {
+    id: bigint | null
+    tenantId: bigint | null
+    branchId: bigint | null
+    printerId: bigint | null
+    document: string | null
+    status: $Enums.PrintStatus | null
+    attempts: number | null
+    maxAttempts: number | null
+    errorMessage: string | null
+    printedAt: Date | null
+    lockedAt: Date | null
+    lockedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type PrintJobCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    branchId: number
+    printerId: number
+    document: number
+    payload: number
+    status: number
+    attempts: number
+    maxAttempts: number
+    errorMessage: number
+    printedAt: number
+    lockedAt: number
+    lockedBy: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type PrintJobAvgAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    printerId?: true
+    attempts?: true
+    maxAttempts?: true
+  }
+
+  export type PrintJobSumAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    printerId?: true
+    attempts?: true
+    maxAttempts?: true
+  }
+
+  export type PrintJobMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    printerId?: true
+    document?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    errorMessage?: true
+    printedAt?: true
+    lockedAt?: true
+    lockedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type PrintJobMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    printerId?: true
+    document?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    errorMessage?: true
+    printedAt?: true
+    lockedAt?: true
+    lockedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type PrintJobCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    branchId?: true
+    printerId?: true
+    document?: true
+    payload?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    errorMessage?: true
+    printedAt?: true
+    lockedAt?: true
+    lockedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type PrintJobAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrintJob to aggregate.
+     */
+    where?: PrintJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintJobs to fetch.
+     */
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PrintJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PrintJobs
+    **/
+    _count?: true | PrintJobCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PrintJobAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PrintJobSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PrintJobMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PrintJobMaxAggregateInputType
+  }
+
+  export type GetPrintJobAggregateType<T extends PrintJobAggregateArgs> = {
+        [P in keyof T & keyof AggregatePrintJob]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePrintJob[P]>
+      : GetScalarType<T[P], AggregatePrintJob[P]>
+  }
+
+
+
+
+  export type PrintJobGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithAggregationInput | PrintJobOrderByWithAggregationInput[]
+    by: PrintJobScalarFieldEnum[] | PrintJobScalarFieldEnum
+    having?: PrintJobScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PrintJobCountAggregateInputType | true
+    _avg?: PrintJobAvgAggregateInputType
+    _sum?: PrintJobSumAggregateInputType
+    _min?: PrintJobMinAggregateInputType
+    _max?: PrintJobMaxAggregateInputType
+  }
+
+  export type PrintJobGroupByOutputType = {
+    id: bigint
+    tenantId: bigint
+    branchId: bigint
+    printerId: bigint
+    document: string
+    payload: JsonValue
+    status: $Enums.PrintStatus
+    attempts: number
+    maxAttempts: number
+    errorMessage: string | null
+    printedAt: Date | null
+    lockedAt: Date | null
+    lockedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: PrintJobCountAggregateOutputType | null
+    _avg: PrintJobAvgAggregateOutputType | null
+    _sum: PrintJobSumAggregateOutputType | null
+    _min: PrintJobMinAggregateOutputType | null
+    _max: PrintJobMaxAggregateOutputType | null
+  }
+
+  type GetPrintJobGroupByPayload<T extends PrintJobGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PrintJobGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PrintJobGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PrintJobGroupByOutputType[P]>
+            : GetScalarType<T[P], PrintJobGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PrintJobSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    branchId?: boolean
+    printerId?: boolean
+    document?: boolean
+    payload?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    errorMessage?: boolean
+    printedAt?: boolean
+    lockedAt?: boolean
+    lockedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    printer?: boolean | PrinterDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["printJob"]>
+
+
+  export type PrintJobSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    branchId?: boolean
+    printerId?: boolean
+    document?: boolean
+    payload?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    errorMessage?: boolean
+    printedAt?: boolean
+    lockedAt?: boolean
+    lockedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type PrintJobInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    printer?: boolean | PrinterDefaultArgs<ExtArgs>
+  }
+
+  export type $PrintJobPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PrintJob"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      branch: Prisma.$BranchPayload<ExtArgs>
+      printer: Prisma.$PrinterPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      tenantId: bigint
+      branchId: bigint
+      printerId: bigint
+      document: string
+      payload: Prisma.JsonValue
+      status: $Enums.PrintStatus
+      attempts: number
+      maxAttempts: number
+      errorMessage: string | null
+      printedAt: Date | null
+      lockedAt: Date | null
+      lockedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["printJob"]>
+    composites: {}
+  }
+
+  type PrintJobGetPayload<S extends boolean | null | undefined | PrintJobDefaultArgs> = $Result.GetResult<Prisma.$PrintJobPayload, S>
+
+  type PrintJobCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PrintJobFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PrintJobCountAggregateInputType | true
+    }
+
+  export interface PrintJobDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PrintJob'], meta: { name: 'PrintJob' } }
+    /**
+     * Find zero or one PrintJob that matches the filter.
+     * @param {PrintJobFindUniqueArgs} args - Arguments to find a PrintJob
+     * @example
+     * // Get one PrintJob
+     * const printJob = await prisma.printJob.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PrintJobFindUniqueArgs>(args: SelectSubset<T, PrintJobFindUniqueArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PrintJob that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PrintJobFindUniqueOrThrowArgs} args - Arguments to find a PrintJob
+     * @example
+     * // Get one PrintJob
+     * const printJob = await prisma.printJob.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PrintJobFindUniqueOrThrowArgs>(args: SelectSubset<T, PrintJobFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PrintJob that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobFindFirstArgs} args - Arguments to find a PrintJob
+     * @example
+     * // Get one PrintJob
+     * const printJob = await prisma.printJob.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PrintJobFindFirstArgs>(args?: SelectSubset<T, PrintJobFindFirstArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PrintJob that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobFindFirstOrThrowArgs} args - Arguments to find a PrintJob
+     * @example
+     * // Get one PrintJob
+     * const printJob = await prisma.printJob.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PrintJobFindFirstOrThrowArgs>(args?: SelectSubset<T, PrintJobFindFirstOrThrowArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PrintJobs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PrintJobs
+     * const printJobs = await prisma.printJob.findMany()
+     * 
+     * // Get first 10 PrintJobs
+     * const printJobs = await prisma.printJob.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const printJobWithIdOnly = await prisma.printJob.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PrintJobFindManyArgs>(args?: SelectSubset<T, PrintJobFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PrintJob.
+     * @param {PrintJobCreateArgs} args - Arguments to create a PrintJob.
+     * @example
+     * // Create one PrintJob
+     * const PrintJob = await prisma.printJob.create({
+     *   data: {
+     *     // ... data to create a PrintJob
+     *   }
+     * })
+     * 
+     */
+    create<T extends PrintJobCreateArgs>(args: SelectSubset<T, PrintJobCreateArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PrintJobs.
+     * @param {PrintJobCreateManyArgs} args - Arguments to create many PrintJobs.
+     * @example
+     * // Create many PrintJobs
+     * const printJob = await prisma.printJob.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PrintJobCreateManyArgs>(args?: SelectSubset<T, PrintJobCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a PrintJob.
+     * @param {PrintJobDeleteArgs} args - Arguments to delete one PrintJob.
+     * @example
+     * // Delete one PrintJob
+     * const PrintJob = await prisma.printJob.delete({
+     *   where: {
+     *     // ... filter to delete one PrintJob
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PrintJobDeleteArgs>(args: SelectSubset<T, PrintJobDeleteArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PrintJob.
+     * @param {PrintJobUpdateArgs} args - Arguments to update one PrintJob.
+     * @example
+     * // Update one PrintJob
+     * const printJob = await prisma.printJob.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PrintJobUpdateArgs>(args: SelectSubset<T, PrintJobUpdateArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PrintJobs.
+     * @param {PrintJobDeleteManyArgs} args - Arguments to filter PrintJobs to delete.
+     * @example
+     * // Delete a few PrintJobs
+     * const { count } = await prisma.printJob.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PrintJobDeleteManyArgs>(args?: SelectSubset<T, PrintJobDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PrintJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PrintJobs
+     * const printJob = await prisma.printJob.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PrintJobUpdateManyArgs>(args: SelectSubset<T, PrintJobUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PrintJob.
+     * @param {PrintJobUpsertArgs} args - Arguments to update or create a PrintJob.
+     * @example
+     * // Update or create a PrintJob
+     * const printJob = await prisma.printJob.upsert({
+     *   create: {
+     *     // ... data to create a PrintJob
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PrintJob we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PrintJobUpsertArgs>(args: SelectSubset<T, PrintJobUpsertArgs<ExtArgs>>): Prisma__PrintJobClient<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PrintJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobCountArgs} args - Arguments to filter PrintJobs to count.
+     * @example
+     * // Count the number of PrintJobs
+     * const count = await prisma.printJob.count({
+     *   where: {
+     *     // ... the filter for the PrintJobs we want to count
+     *   }
+     * })
+    **/
+    count<T extends PrintJobCountArgs>(
+      args?: Subset<T, PrintJobCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PrintJobCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PrintJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PrintJobAggregateArgs>(args: Subset<T, PrintJobAggregateArgs>): Prisma.PrismaPromise<GetPrintJobAggregateType<T>>
+
+    /**
+     * Group by PrintJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintJobGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PrintJobGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PrintJobGroupByArgs['orderBy'] }
+        : { orderBy?: PrintJobGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PrintJobGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPrintJobGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PrintJob model
+   */
+  readonly fields: PrintJobFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PrintJob.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PrintJobClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    printer<T extends PrinterDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PrinterDefaultArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PrintJob model
+   */ 
+  interface PrintJobFieldRefs {
+    readonly id: FieldRef<"PrintJob", 'BigInt'>
+    readonly tenantId: FieldRef<"PrintJob", 'BigInt'>
+    readonly branchId: FieldRef<"PrintJob", 'BigInt'>
+    readonly printerId: FieldRef<"PrintJob", 'BigInt'>
+    readonly document: FieldRef<"PrintJob", 'String'>
+    readonly payload: FieldRef<"PrintJob", 'Json'>
+    readonly status: FieldRef<"PrintJob", 'PrintStatus'>
+    readonly attempts: FieldRef<"PrintJob", 'Int'>
+    readonly maxAttempts: FieldRef<"PrintJob", 'Int'>
+    readonly errorMessage: FieldRef<"PrintJob", 'String'>
+    readonly printedAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly lockedAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly lockedBy: FieldRef<"PrintJob", 'String'>
+    readonly createdAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly updatedAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly deletedAt: FieldRef<"PrintJob", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PrintJob findUnique
+   */
+  export type PrintJobFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintJob to fetch.
+     */
+    where: PrintJobWhereUniqueInput
+  }
+
+  /**
+   * PrintJob findUniqueOrThrow
+   */
+  export type PrintJobFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintJob to fetch.
+     */
+    where: PrintJobWhereUniqueInput
+  }
+
+  /**
+   * PrintJob findFirst
+   */
+  export type PrintJobFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintJob to fetch.
+     */
+    where?: PrintJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintJobs to fetch.
+     */
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrintJobs.
+     */
+    cursor?: PrintJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrintJobs.
+     */
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * PrintJob findFirstOrThrow
+   */
+  export type PrintJobFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintJob to fetch.
+     */
+    where?: PrintJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintJobs to fetch.
+     */
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrintJobs.
+     */
+    cursor?: PrintJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrintJobs.
+     */
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * PrintJob findMany
+   */
+  export type PrintJobFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintJobs to fetch.
+     */
+    where?: PrintJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintJobs to fetch.
+     */
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PrintJobs.
+     */
+    cursor?: PrintJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintJobs.
+     */
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * PrintJob create
+   */
+  export type PrintJobCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PrintJob.
+     */
+    data: XOR<PrintJobCreateInput, PrintJobUncheckedCreateInput>
+  }
+
+  /**
+   * PrintJob createMany
+   */
+  export type PrintJobCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PrintJobs.
+     */
+    data: PrintJobCreateManyInput | PrintJobCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PrintJob update
+   */
+  export type PrintJobUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PrintJob.
+     */
+    data: XOR<PrintJobUpdateInput, PrintJobUncheckedUpdateInput>
+    /**
+     * Choose, which PrintJob to update.
+     */
+    where: PrintJobWhereUniqueInput
+  }
+
+  /**
+   * PrintJob updateMany
+   */
+  export type PrintJobUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PrintJobs.
+     */
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyInput>
+    /**
+     * Filter which PrintJobs to update
+     */
+    where?: PrintJobWhereInput
+  }
+
+  /**
+   * PrintJob upsert
+   */
+  export type PrintJobUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PrintJob to update in case it exists.
+     */
+    where: PrintJobWhereUniqueInput
+    /**
+     * In case the PrintJob found by the `where` argument doesn't exist, create a new PrintJob with this data.
+     */
+    create: XOR<PrintJobCreateInput, PrintJobUncheckedCreateInput>
+    /**
+     * In case the PrintJob was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PrintJobUpdateInput, PrintJobUncheckedUpdateInput>
+  }
+
+  /**
+   * PrintJob delete
+   */
+  export type PrintJobDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    /**
+     * Filter which PrintJob to delete.
+     */
+    where: PrintJobWhereUniqueInput
+  }
+
+  /**
+   * PrintJob deleteMany
+   */
+  export type PrintJobDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrintJobs to delete
+     */
+    where?: PrintJobWhereInput
+  }
+
+  /**
+   * PrintJob without action
+   */
+  export type PrintJobDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
   }
 
 
@@ -12837,6 +15693,8 @@ export namespace Prisma {
     monthlyPrice: Decimal | null
     includedBranches: number | null
     extraBranchPrice: Decimal | null
+    billingIntervalMonths: number | null
+    trialDays: number | null
   }
 
   export type PlanSumAggregateOutputType = {
@@ -12844,6 +15702,8 @@ export namespace Prisma {
     monthlyPrice: Decimal | null
     includedBranches: number | null
     extraBranchPrice: Decimal | null
+    billingIntervalMonths: number | null
+    trialDays: number | null
   }
 
   export type PlanMinAggregateOutputType = {
@@ -12855,6 +15715,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | null
     isEnterprise: boolean | null
     active: boolean | null
+    billingIntervalMonths: number | null
+    trialDays: number | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -12869,6 +15731,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | null
     isEnterprise: boolean | null
     active: boolean | null
+    billingIntervalMonths: number | null
+    trialDays: number | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -12883,6 +15747,8 @@ export namespace Prisma {
     extraBranchPrice: number
     isEnterprise: number
     active: number
+    billingIntervalMonths: number
+    trialDays: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -12895,6 +15761,8 @@ export namespace Prisma {
     monthlyPrice?: true
     includedBranches?: true
     extraBranchPrice?: true
+    billingIntervalMonths?: true
+    trialDays?: true
   }
 
   export type PlanSumAggregateInputType = {
@@ -12902,6 +15770,8 @@ export namespace Prisma {
     monthlyPrice?: true
     includedBranches?: true
     extraBranchPrice?: true
+    billingIntervalMonths?: true
+    trialDays?: true
   }
 
   export type PlanMinAggregateInputType = {
@@ -12913,6 +15783,8 @@ export namespace Prisma {
     extraBranchPrice?: true
     isEnterprise?: true
     active?: true
+    billingIntervalMonths?: true
+    trialDays?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -12927,6 +15799,8 @@ export namespace Prisma {
     extraBranchPrice?: true
     isEnterprise?: true
     active?: true
+    billingIntervalMonths?: true
+    trialDays?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -12941,6 +15815,8 @@ export namespace Prisma {
     extraBranchPrice?: true
     isEnterprise?: true
     active?: true
+    billingIntervalMonths?: true
+    trialDays?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -13042,6 +15918,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal
     isEnterprise: boolean
     active: boolean
+    billingIntervalMonths: number
+    trialDays: number
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -13075,6 +15953,8 @@ export namespace Prisma {
     extraBranchPrice?: boolean
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: boolean
+    trialDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -13092,6 +15972,8 @@ export namespace Prisma {
     extraBranchPrice?: boolean
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: boolean
+    trialDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -13116,6 +15998,14 @@ export namespace Prisma {
       extraBranchPrice: Prisma.Decimal
       isEnterprise: boolean
       active: boolean
+      /**
+       * Intervalo de facturação do plano em meses (1=mensal, 12=anual).
+       */
+      billingIntervalMonths: number
+      /**
+       * Dias de trial ao criar tenant (ex: 14 ou 30).
+       */
+      trialDays: number
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -13497,6 +16387,8 @@ export namespace Prisma {
     readonly extraBranchPrice: FieldRef<"Plan", 'Decimal'>
     readonly isEnterprise: FieldRef<"Plan", 'Boolean'>
     readonly active: FieldRef<"Plan", 'Boolean'>
+    readonly billingIntervalMonths: FieldRef<"Plan", 'Int'>
+    readonly trialDays: FieldRef<"Plan", 'Int'>
     readonly createdAt: FieldRef<"Plan", 'DateTime'>
     readonly updatedAt: FieldRef<"Plan", 'DateTime'>
     readonly deletedAt: FieldRef<"Plan", 'DateTime'>
@@ -13876,6 +16768,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     lastBillingAt: Date | null
     nextBillingAt: Date | null
+    currentPeriodEnd: Date | null
+    autoRenew: boolean | null
     version: number | null
     createdBy: bigint | null
     updatedBy: bigint | null
@@ -13895,6 +16789,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     lastBillingAt: Date | null
     nextBillingAt: Date | null
+    currentPeriodEnd: Date | null
+    autoRenew: boolean | null
     version: number | null
     createdBy: bigint | null
     updatedBy: bigint | null
@@ -13914,6 +16810,8 @@ export namespace Prisma {
     trialEndsAt: number
     lastBillingAt: number
     nextBillingAt: number
+    currentPeriodEnd: number
+    autoRenew: number
     version: number
     createdBy: number
     updatedBy: number
@@ -13955,6 +16853,8 @@ export namespace Prisma {
     trialEndsAt?: true
     lastBillingAt?: true
     nextBillingAt?: true
+    currentPeriodEnd?: true
+    autoRenew?: true
     version?: true
     createdBy?: true
     updatedBy?: true
@@ -13974,6 +16874,8 @@ export namespace Prisma {
     trialEndsAt?: true
     lastBillingAt?: true
     nextBillingAt?: true
+    currentPeriodEnd?: true
+    autoRenew?: true
     version?: true
     createdBy?: true
     updatedBy?: true
@@ -13993,6 +16895,8 @@ export namespace Prisma {
     trialEndsAt?: true
     lastBillingAt?: true
     nextBillingAt?: true
+    currentPeriodEnd?: true
+    autoRenew?: true
     version?: true
     createdBy?: true
     updatedBy?: true
@@ -14099,6 +17003,8 @@ export namespace Prisma {
     trialEndsAt: Date | null
     lastBillingAt: Date | null
     nextBillingAt: Date | null
+    currentPeriodEnd: Date | null
+    autoRenew: boolean
     version: number
     createdBy: bigint | null
     updatedBy: bigint | null
@@ -14137,6 +17043,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     lastBillingAt?: boolean
     nextBillingAt?: boolean
+    currentPeriodEnd?: boolean
+    autoRenew?: boolean
     version?: boolean
     createdBy?: boolean
     updatedBy?: boolean
@@ -14149,6 +17057,7 @@ export namespace Prisma {
     updatedByUser?: boolean | Subscription$updatedByUserArgs<ExtArgs>
     billingSnapshots?: boolean | Subscription$billingSnapshotsArgs<ExtArgs>
     invoices?: boolean | Subscription$invoicesArgs<ExtArgs>
+    branchHistory?: boolean | Subscription$branchHistoryArgs<ExtArgs>
     _count?: boolean | SubscriptionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -14164,6 +17073,8 @@ export namespace Prisma {
     trialEndsAt?: boolean
     lastBillingAt?: boolean
     nextBillingAt?: boolean
+    currentPeriodEnd?: boolean
+    autoRenew?: boolean
     version?: boolean
     createdBy?: boolean
     updatedBy?: boolean
@@ -14179,6 +17090,7 @@ export namespace Prisma {
     updatedByUser?: boolean | Subscription$updatedByUserArgs<ExtArgs>
     billingSnapshots?: boolean | Subscription$billingSnapshotsArgs<ExtArgs>
     invoices?: boolean | Subscription$invoicesArgs<ExtArgs>
+    branchHistory?: boolean | Subscription$branchHistoryArgs<ExtArgs>
     _count?: boolean | SubscriptionCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -14191,6 +17103,7 @@ export namespace Prisma {
       updatedByUser: Prisma.$UserPayload<ExtArgs> | null
       billingSnapshots: Prisma.$BillingSnapshotPayload<ExtArgs>[]
       invoices: Prisma.$InvoicePayload<ExtArgs>[]
+      branchHistory: Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
@@ -14206,6 +17119,14 @@ export namespace Prisma {
       trialEndsAt: Date | null
       lastBillingAt: Date | null
       nextBillingAt: Date | null
+      /**
+       * Último dia coberto por pagamentos confirmados (suporta pagamento antecipado).
+       */
+      currentPeriodEnd: Date | null
+      /**
+       * Renovação automática via job mensal; se false, só gera fatura sob pedido.
+       */
+      autoRenew: boolean
       version: number
       createdBy: bigint | null
       updatedBy: bigint | null
@@ -14558,6 +17479,7 @@ export namespace Prisma {
     updatedByUser<T extends Subscription$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Subscription$updatedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     billingSnapshots<T extends Subscription$billingSnapshotsArgs<ExtArgs> = {}>(args?: Subset<T, Subscription$billingSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingSnapshotPayload<ExtArgs>, T, "findMany"> | Null>
     invoices<T extends Subscription$invoicesArgs<ExtArgs> = {}>(args?: Subset<T, Subscription$invoicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findMany"> | Null>
+    branchHistory<T extends Subscription$branchHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Subscription$branchHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14597,6 +17519,8 @@ export namespace Prisma {
     readonly trialEndsAt: FieldRef<"Subscription", 'DateTime'>
     readonly lastBillingAt: FieldRef<"Subscription", 'DateTime'>
     readonly nextBillingAt: FieldRef<"Subscription", 'DateTime'>
+    readonly currentPeriodEnd: FieldRef<"Subscription", 'DateTime'>
+    readonly autoRenew: FieldRef<"Subscription", 'Boolean'>
     readonly version: FieldRef<"Subscription", 'Int'>
     readonly createdBy: FieldRef<"Subscription", 'BigInt'>
     readonly updatedBy: FieldRef<"Subscription", 'BigInt'>
@@ -14972,6 +17896,26 @@ export namespace Prisma {
   }
 
   /**
+   * Subscription.branchHistory
+   */
+  export type Subscription$branchHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    where?: SubscriptionBranchHistoryWhereInput
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
+  }
+
+  /**
    * Subscription without action
    */
   export type SubscriptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14983,6 +17927,987 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SubscriptionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SubscriptionBranchHistory
+   */
+
+  export type AggregateSubscriptionBranchHistory = {
+    _count: SubscriptionBranchHistoryCountAggregateOutputType | null
+    _avg: SubscriptionBranchHistoryAvgAggregateOutputType | null
+    _sum: SubscriptionBranchHistorySumAggregateOutputType | null
+    _min: SubscriptionBranchHistoryMinAggregateOutputType | null
+    _max: SubscriptionBranchHistoryMaxAggregateOutputType | null
+  }
+
+  export type SubscriptionBranchHistoryAvgAggregateOutputType = {
+    id: number | null
+    subscriptionId: number | null
+    branchId: number | null
+    createdBy: number | null
+  }
+
+  export type SubscriptionBranchHistorySumAggregateOutputType = {
+    id: bigint | null
+    subscriptionId: bigint | null
+    branchId: bigint | null
+    createdBy: bigint | null
+  }
+
+  export type SubscriptionBranchHistoryMinAggregateOutputType = {
+    id: bigint | null
+    subscriptionId: bigint | null
+    branchId: bigint | null
+    action: $Enums.SubscriptionBranchAction | null
+    effectiveDate: Date | null
+    reason: string | null
+    createdBy: bigint | null
+    createdAt: Date | null
+  }
+
+  export type SubscriptionBranchHistoryMaxAggregateOutputType = {
+    id: bigint | null
+    subscriptionId: bigint | null
+    branchId: bigint | null
+    action: $Enums.SubscriptionBranchAction | null
+    effectiveDate: Date | null
+    reason: string | null
+    createdBy: bigint | null
+    createdAt: Date | null
+  }
+
+  export type SubscriptionBranchHistoryCountAggregateOutputType = {
+    id: number
+    subscriptionId: number
+    branchId: number
+    action: number
+    effectiveDate: number
+    reason: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SubscriptionBranchHistoryAvgAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    branchId?: true
+    createdBy?: true
+  }
+
+  export type SubscriptionBranchHistorySumAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    branchId?: true
+    createdBy?: true
+  }
+
+  export type SubscriptionBranchHistoryMinAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    branchId?: true
+    action?: true
+    effectiveDate?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SubscriptionBranchHistoryMaxAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    branchId?: true
+    action?: true
+    effectiveDate?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SubscriptionBranchHistoryCountAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    branchId?: true
+    action?: true
+    effectiveDate?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SubscriptionBranchHistoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SubscriptionBranchHistory to aggregate.
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SubscriptionBranchHistories to fetch.
+     */
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SubscriptionBranchHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SubscriptionBranchHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SubscriptionBranchHistories
+    **/
+    _count?: true | SubscriptionBranchHistoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SubscriptionBranchHistoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SubscriptionBranchHistorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SubscriptionBranchHistoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SubscriptionBranchHistoryMaxAggregateInputType
+  }
+
+  export type GetSubscriptionBranchHistoryAggregateType<T extends SubscriptionBranchHistoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateSubscriptionBranchHistory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSubscriptionBranchHistory[P]>
+      : GetScalarType<T[P], AggregateSubscriptionBranchHistory[P]>
+  }
+
+
+
+
+  export type SubscriptionBranchHistoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionBranchHistoryWhereInput
+    orderBy?: SubscriptionBranchHistoryOrderByWithAggregationInput | SubscriptionBranchHistoryOrderByWithAggregationInput[]
+    by: SubscriptionBranchHistoryScalarFieldEnum[] | SubscriptionBranchHistoryScalarFieldEnum
+    having?: SubscriptionBranchHistoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SubscriptionBranchHistoryCountAggregateInputType | true
+    _avg?: SubscriptionBranchHistoryAvgAggregateInputType
+    _sum?: SubscriptionBranchHistorySumAggregateInputType
+    _min?: SubscriptionBranchHistoryMinAggregateInputType
+    _max?: SubscriptionBranchHistoryMaxAggregateInputType
+  }
+
+  export type SubscriptionBranchHistoryGroupByOutputType = {
+    id: bigint
+    subscriptionId: bigint
+    branchId: bigint
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate: Date
+    reason: string | null
+    createdBy: bigint | null
+    createdAt: Date
+    _count: SubscriptionBranchHistoryCountAggregateOutputType | null
+    _avg: SubscriptionBranchHistoryAvgAggregateOutputType | null
+    _sum: SubscriptionBranchHistorySumAggregateOutputType | null
+    _min: SubscriptionBranchHistoryMinAggregateOutputType | null
+    _max: SubscriptionBranchHistoryMaxAggregateOutputType | null
+  }
+
+  type GetSubscriptionBranchHistoryGroupByPayload<T extends SubscriptionBranchHistoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SubscriptionBranchHistoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SubscriptionBranchHistoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SubscriptionBranchHistoryGroupByOutputType[P]>
+            : GetScalarType<T[P], SubscriptionBranchHistoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SubscriptionBranchHistorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    subscriptionId?: boolean
+    branchId?: boolean
+    action?: boolean
+    effectiveDate?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    subscription?: boolean | SubscriptionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    createdByUser?: boolean | SubscriptionBranchHistory$createdByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["subscriptionBranchHistory"]>
+
+
+  export type SubscriptionBranchHistorySelectScalar = {
+    id?: boolean
+    subscriptionId?: boolean
+    branchId?: boolean
+    action?: boolean
+    effectiveDate?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type SubscriptionBranchHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscription?: boolean | SubscriptionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    createdByUser?: boolean | SubscriptionBranchHistory$createdByUserArgs<ExtArgs>
+  }
+
+  export type $SubscriptionBranchHistoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SubscriptionBranchHistory"
+    objects: {
+      subscription: Prisma.$SubscriptionPayload<ExtArgs>
+      branch: Prisma.$BranchPayload<ExtArgs>
+      createdByUser: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      subscriptionId: bigint
+      branchId: bigint
+      action: $Enums.SubscriptionBranchAction
+      effectiveDate: Date
+      reason: string | null
+      createdBy: bigint | null
+      createdAt: Date
+    }, ExtArgs["result"]["subscriptionBranchHistory"]>
+    composites: {}
+  }
+
+  type SubscriptionBranchHistoryGetPayload<S extends boolean | null | undefined | SubscriptionBranchHistoryDefaultArgs> = $Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload, S>
+
+  type SubscriptionBranchHistoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SubscriptionBranchHistoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SubscriptionBranchHistoryCountAggregateInputType | true
+    }
+
+  export interface SubscriptionBranchHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SubscriptionBranchHistory'], meta: { name: 'SubscriptionBranchHistory' } }
+    /**
+     * Find zero or one SubscriptionBranchHistory that matches the filter.
+     * @param {SubscriptionBranchHistoryFindUniqueArgs} args - Arguments to find a SubscriptionBranchHistory
+     * @example
+     * // Get one SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SubscriptionBranchHistoryFindUniqueArgs>(args: SelectSubset<T, SubscriptionBranchHistoryFindUniqueArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SubscriptionBranchHistory that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SubscriptionBranchHistoryFindUniqueOrThrowArgs} args - Arguments to find a SubscriptionBranchHistory
+     * @example
+     * // Get one SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SubscriptionBranchHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, SubscriptionBranchHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SubscriptionBranchHistory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryFindFirstArgs} args - Arguments to find a SubscriptionBranchHistory
+     * @example
+     * // Get one SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SubscriptionBranchHistoryFindFirstArgs>(args?: SelectSubset<T, SubscriptionBranchHistoryFindFirstArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SubscriptionBranchHistory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryFindFirstOrThrowArgs} args - Arguments to find a SubscriptionBranchHistory
+     * @example
+     * // Get one SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SubscriptionBranchHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, SubscriptionBranchHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SubscriptionBranchHistories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SubscriptionBranchHistories
+     * const subscriptionBranchHistories = await prisma.subscriptionBranchHistory.findMany()
+     * 
+     * // Get first 10 SubscriptionBranchHistories
+     * const subscriptionBranchHistories = await prisma.subscriptionBranchHistory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const subscriptionBranchHistoryWithIdOnly = await prisma.subscriptionBranchHistory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SubscriptionBranchHistoryFindManyArgs>(args?: SelectSubset<T, SubscriptionBranchHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SubscriptionBranchHistory.
+     * @param {SubscriptionBranchHistoryCreateArgs} args - Arguments to create a SubscriptionBranchHistory.
+     * @example
+     * // Create one SubscriptionBranchHistory
+     * const SubscriptionBranchHistory = await prisma.subscriptionBranchHistory.create({
+     *   data: {
+     *     // ... data to create a SubscriptionBranchHistory
+     *   }
+     * })
+     * 
+     */
+    create<T extends SubscriptionBranchHistoryCreateArgs>(args: SelectSubset<T, SubscriptionBranchHistoryCreateArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SubscriptionBranchHistories.
+     * @param {SubscriptionBranchHistoryCreateManyArgs} args - Arguments to create many SubscriptionBranchHistories.
+     * @example
+     * // Create many SubscriptionBranchHistories
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SubscriptionBranchHistoryCreateManyArgs>(args?: SelectSubset<T, SubscriptionBranchHistoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a SubscriptionBranchHistory.
+     * @param {SubscriptionBranchHistoryDeleteArgs} args - Arguments to delete one SubscriptionBranchHistory.
+     * @example
+     * // Delete one SubscriptionBranchHistory
+     * const SubscriptionBranchHistory = await prisma.subscriptionBranchHistory.delete({
+     *   where: {
+     *     // ... filter to delete one SubscriptionBranchHistory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SubscriptionBranchHistoryDeleteArgs>(args: SelectSubset<T, SubscriptionBranchHistoryDeleteArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SubscriptionBranchHistory.
+     * @param {SubscriptionBranchHistoryUpdateArgs} args - Arguments to update one SubscriptionBranchHistory.
+     * @example
+     * // Update one SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SubscriptionBranchHistoryUpdateArgs>(args: SelectSubset<T, SubscriptionBranchHistoryUpdateArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SubscriptionBranchHistories.
+     * @param {SubscriptionBranchHistoryDeleteManyArgs} args - Arguments to filter SubscriptionBranchHistories to delete.
+     * @example
+     * // Delete a few SubscriptionBranchHistories
+     * const { count } = await prisma.subscriptionBranchHistory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SubscriptionBranchHistoryDeleteManyArgs>(args?: SelectSubset<T, SubscriptionBranchHistoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SubscriptionBranchHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SubscriptionBranchHistories
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SubscriptionBranchHistoryUpdateManyArgs>(args: SelectSubset<T, SubscriptionBranchHistoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SubscriptionBranchHistory.
+     * @param {SubscriptionBranchHistoryUpsertArgs} args - Arguments to update or create a SubscriptionBranchHistory.
+     * @example
+     * // Update or create a SubscriptionBranchHistory
+     * const subscriptionBranchHistory = await prisma.subscriptionBranchHistory.upsert({
+     *   create: {
+     *     // ... data to create a SubscriptionBranchHistory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SubscriptionBranchHistory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SubscriptionBranchHistoryUpsertArgs>(args: SelectSubset<T, SubscriptionBranchHistoryUpsertArgs<ExtArgs>>): Prisma__SubscriptionBranchHistoryClient<$Result.GetResult<Prisma.$SubscriptionBranchHistoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SubscriptionBranchHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryCountArgs} args - Arguments to filter SubscriptionBranchHistories to count.
+     * @example
+     * // Count the number of SubscriptionBranchHistories
+     * const count = await prisma.subscriptionBranchHistory.count({
+     *   where: {
+     *     // ... the filter for the SubscriptionBranchHistories we want to count
+     *   }
+     * })
+    **/
+    count<T extends SubscriptionBranchHistoryCountArgs>(
+      args?: Subset<T, SubscriptionBranchHistoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SubscriptionBranchHistoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SubscriptionBranchHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SubscriptionBranchHistoryAggregateArgs>(args: Subset<T, SubscriptionBranchHistoryAggregateArgs>): Prisma.PrismaPromise<GetSubscriptionBranchHistoryAggregateType<T>>
+
+    /**
+     * Group by SubscriptionBranchHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SubscriptionBranchHistoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SubscriptionBranchHistoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SubscriptionBranchHistoryGroupByArgs['orderBy'] }
+        : { orderBy?: SubscriptionBranchHistoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SubscriptionBranchHistoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSubscriptionBranchHistoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SubscriptionBranchHistory model
+   */
+  readonly fields: SubscriptionBranchHistoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SubscriptionBranchHistory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SubscriptionBranchHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    subscription<T extends SubscriptionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SubscriptionDefaultArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    createdByUser<T extends SubscriptionBranchHistory$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, SubscriptionBranchHistory$createdByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SubscriptionBranchHistory model
+   */ 
+  interface SubscriptionBranchHistoryFieldRefs {
+    readonly id: FieldRef<"SubscriptionBranchHistory", 'BigInt'>
+    readonly subscriptionId: FieldRef<"SubscriptionBranchHistory", 'BigInt'>
+    readonly branchId: FieldRef<"SubscriptionBranchHistory", 'BigInt'>
+    readonly action: FieldRef<"SubscriptionBranchHistory", 'SubscriptionBranchAction'>
+    readonly effectiveDate: FieldRef<"SubscriptionBranchHistory", 'DateTime'>
+    readonly reason: FieldRef<"SubscriptionBranchHistory", 'String'>
+    readonly createdBy: FieldRef<"SubscriptionBranchHistory", 'BigInt'>
+    readonly createdAt: FieldRef<"SubscriptionBranchHistory", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SubscriptionBranchHistory findUnique
+   */
+  export type SubscriptionBranchHistoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which SubscriptionBranchHistory to fetch.
+     */
+    where: SubscriptionBranchHistoryWhereUniqueInput
+  }
+
+  /**
+   * SubscriptionBranchHistory findUniqueOrThrow
+   */
+  export type SubscriptionBranchHistoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which SubscriptionBranchHistory to fetch.
+     */
+    where: SubscriptionBranchHistoryWhereUniqueInput
+  }
+
+  /**
+   * SubscriptionBranchHistory findFirst
+   */
+  export type SubscriptionBranchHistoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which SubscriptionBranchHistory to fetch.
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SubscriptionBranchHistories to fetch.
+     */
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SubscriptionBranchHistories.
+     */
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SubscriptionBranchHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SubscriptionBranchHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SubscriptionBranchHistories.
+     */
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * SubscriptionBranchHistory findFirstOrThrow
+   */
+  export type SubscriptionBranchHistoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which SubscriptionBranchHistory to fetch.
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SubscriptionBranchHistories to fetch.
+     */
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SubscriptionBranchHistories.
+     */
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SubscriptionBranchHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SubscriptionBranchHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SubscriptionBranchHistories.
+     */
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * SubscriptionBranchHistory findMany
+   */
+  export type SubscriptionBranchHistoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which SubscriptionBranchHistories to fetch.
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SubscriptionBranchHistories to fetch.
+     */
+    orderBy?: SubscriptionBranchHistoryOrderByWithRelationInput | SubscriptionBranchHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SubscriptionBranchHistories.
+     */
+    cursor?: SubscriptionBranchHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SubscriptionBranchHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SubscriptionBranchHistories.
+     */
+    skip?: number
+    distinct?: SubscriptionBranchHistoryScalarFieldEnum | SubscriptionBranchHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * SubscriptionBranchHistory create
+   */
+  export type SubscriptionBranchHistoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SubscriptionBranchHistory.
+     */
+    data: XOR<SubscriptionBranchHistoryCreateInput, SubscriptionBranchHistoryUncheckedCreateInput>
+  }
+
+  /**
+   * SubscriptionBranchHistory createMany
+   */
+  export type SubscriptionBranchHistoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SubscriptionBranchHistories.
+     */
+    data: SubscriptionBranchHistoryCreateManyInput | SubscriptionBranchHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SubscriptionBranchHistory update
+   */
+  export type SubscriptionBranchHistoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SubscriptionBranchHistory.
+     */
+    data: XOR<SubscriptionBranchHistoryUpdateInput, SubscriptionBranchHistoryUncheckedUpdateInput>
+    /**
+     * Choose, which SubscriptionBranchHistory to update.
+     */
+    where: SubscriptionBranchHistoryWhereUniqueInput
+  }
+
+  /**
+   * SubscriptionBranchHistory updateMany
+   */
+  export type SubscriptionBranchHistoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SubscriptionBranchHistories.
+     */
+    data: XOR<SubscriptionBranchHistoryUpdateManyMutationInput, SubscriptionBranchHistoryUncheckedUpdateManyInput>
+    /**
+     * Filter which SubscriptionBranchHistories to update
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+  }
+
+  /**
+   * SubscriptionBranchHistory upsert
+   */
+  export type SubscriptionBranchHistoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SubscriptionBranchHistory to update in case it exists.
+     */
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    /**
+     * In case the SubscriptionBranchHistory found by the `where` argument doesn't exist, create a new SubscriptionBranchHistory with this data.
+     */
+    create: XOR<SubscriptionBranchHistoryCreateInput, SubscriptionBranchHistoryUncheckedCreateInput>
+    /**
+     * In case the SubscriptionBranchHistory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SubscriptionBranchHistoryUpdateInput, SubscriptionBranchHistoryUncheckedUpdateInput>
+  }
+
+  /**
+   * SubscriptionBranchHistory delete
+   */
+  export type SubscriptionBranchHistoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
+    /**
+     * Filter which SubscriptionBranchHistory to delete.
+     */
+    where: SubscriptionBranchHistoryWhereUniqueInput
+  }
+
+  /**
+   * SubscriptionBranchHistory deleteMany
+   */
+  export type SubscriptionBranchHistoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SubscriptionBranchHistories to delete
+     */
+    where?: SubscriptionBranchHistoryWhereInput
+  }
+
+  /**
+   * SubscriptionBranchHistory.createdByUser
+   */
+  export type SubscriptionBranchHistory$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * SubscriptionBranchHistory without action
+   */
+  export type SubscriptionBranchHistoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SubscriptionBranchHistory
+     */
+    select?: SubscriptionBranchHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionBranchHistoryInclude<ExtArgs> | null
   }
 
 
@@ -15916,6 +19841,7 @@ export namespace Prisma {
     subscriptionId: number | null
     billingSnapshotId: number | null
     amount: Decimal | null
+    discount: Decimal | null
     paidAmount: Decimal | null
     remainingAmount: Decimal | null
     branchesUsed: number | null
@@ -15931,6 +19857,7 @@ export namespace Prisma {
     subscriptionId: bigint | null
     billingSnapshotId: bigint | null
     amount: Decimal | null
+    discount: Decimal | null
     paidAmount: Decimal | null
     remainingAmount: Decimal | null
     branchesUsed: number | null
@@ -15948,6 +19875,7 @@ export namespace Prisma {
     subscriptionId: bigint | null
     billingSnapshotId: bigint | null
     amount: Decimal | null
+    discount: Decimal | null
     paidAmount: Decimal | null
     remainingAmount: Decimal | null
     status: $Enums.InvoiceStatus | null
@@ -15974,6 +19902,7 @@ export namespace Prisma {
     subscriptionId: bigint | null
     billingSnapshotId: bigint | null
     amount: Decimal | null
+    discount: Decimal | null
     paidAmount: Decimal | null
     remainingAmount: Decimal | null
     status: $Enums.InvoiceStatus | null
@@ -16000,6 +19929,7 @@ export namespace Prisma {
     subscriptionId: number
     billingSnapshotId: number
     amount: number
+    discount: number
     paidAmount: number
     remainingAmount: number
     status: number
@@ -16026,6 +19956,7 @@ export namespace Prisma {
     subscriptionId?: true
     billingSnapshotId?: true
     amount?: true
+    discount?: true
     paidAmount?: true
     remainingAmount?: true
     branchesUsed?: true
@@ -16041,6 +19972,7 @@ export namespace Prisma {
     subscriptionId?: true
     billingSnapshotId?: true
     amount?: true
+    discount?: true
     paidAmount?: true
     remainingAmount?: true
     branchesUsed?: true
@@ -16058,6 +19990,7 @@ export namespace Prisma {
     subscriptionId?: true
     billingSnapshotId?: true
     amount?: true
+    discount?: true
     paidAmount?: true
     remainingAmount?: true
     status?: true
@@ -16084,6 +20017,7 @@ export namespace Prisma {
     subscriptionId?: true
     billingSnapshotId?: true
     amount?: true
+    discount?: true
     paidAmount?: true
     remainingAmount?: true
     status?: true
@@ -16110,6 +20044,7 @@ export namespace Prisma {
     subscriptionId?: true
     billingSnapshotId?: true
     amount?: true
+    discount?: true
     paidAmount?: true
     remainingAmount?: true
     status?: true
@@ -16223,6 +20158,7 @@ export namespace Prisma {
     subscriptionId: bigint
     billingSnapshotId: bigint | null
     amount: Decimal
+    discount: Decimal
     paidAmount: Decimal
     remainingAmount: Decimal
     status: $Enums.InvoiceStatus
@@ -16268,6 +20204,7 @@ export namespace Prisma {
     subscriptionId?: boolean
     billingSnapshotId?: boolean
     amount?: boolean
+    discount?: boolean
     paidAmount?: boolean
     remainingAmount?: boolean
     status?: boolean
@@ -16301,6 +20238,7 @@ export namespace Prisma {
     subscriptionId?: boolean
     billingSnapshotId?: boolean
     amount?: boolean
+    discount?: boolean
     paidAmount?: boolean
     remainingAmount?: boolean
     status?: boolean
@@ -16345,6 +20283,10 @@ export namespace Prisma {
       subscriptionId: bigint
       billingSnapshotId: bigint | null
       amount: Prisma.Decimal
+      /**
+       * Desconto comercial aplicado à factura (valor absoluto em MZN).
+       */
+      discount: Prisma.Decimal
       paidAmount: Prisma.Decimal
       remainingAmount: Prisma.Decimal
       status: $Enums.InvoiceStatus
@@ -16742,6 +20684,7 @@ export namespace Prisma {
     readonly subscriptionId: FieldRef<"Invoice", 'BigInt'>
     readonly billingSnapshotId: FieldRef<"Invoice", 'BigInt'>
     readonly amount: FieldRef<"Invoice", 'Decimal'>
+    readonly discount: FieldRef<"Invoice", 'Decimal'>
     readonly paidAmount: FieldRef<"Invoice", 'Decimal'>
     readonly remainingAmount: FieldRef<"Invoice", 'Decimal'>
     readonly status: FieldRef<"Invoice", 'InvoiceStatus'>
@@ -19133,6 +23076,7 @@ export namespace Prisma {
     tenantId: number | null
     invoiceId: number | null
     amount: Decimal | null
+    monthsCovered: number | null
     confirmedBy: number | null
     createdBy: number | null
     updatedBy: number | null
@@ -19143,6 +23087,7 @@ export namespace Prisma {
     tenantId: bigint | null
     invoiceId: bigint | null
     amount: Decimal | null
+    monthsCovered: number | null
     confirmedBy: bigint | null
     createdBy: bigint | null
     updatedBy: bigint | null
@@ -19159,6 +23104,7 @@ export namespace Prisma {
     proofUrl: string | null
     coversFrom: Date | null
     coversTo: Date | null
+    monthsCovered: number | null
     confirmedAt: Date | null
     confirmedBy: bigint | null
     createdBy: bigint | null
@@ -19180,6 +23126,7 @@ export namespace Prisma {
     proofUrl: string | null
     coversFrom: Date | null
     coversTo: Date | null
+    monthsCovered: number | null
     confirmedAt: Date | null
     confirmedBy: bigint | null
     createdBy: bigint | null
@@ -19201,6 +23148,7 @@ export namespace Prisma {
     proofUrl: number
     coversFrom: number
     coversTo: number
+    monthsCovered: number
     confirmedAt: number
     confirmedBy: number
     createdBy: number
@@ -19218,6 +23166,7 @@ export namespace Prisma {
     tenantId?: true
     invoiceId?: true
     amount?: true
+    monthsCovered?: true
     confirmedBy?: true
     createdBy?: true
     updatedBy?: true
@@ -19228,6 +23177,7 @@ export namespace Prisma {
     tenantId?: true
     invoiceId?: true
     amount?: true
+    monthsCovered?: true
     confirmedBy?: true
     createdBy?: true
     updatedBy?: true
@@ -19244,6 +23194,7 @@ export namespace Prisma {
     proofUrl?: true
     coversFrom?: true
     coversTo?: true
+    monthsCovered?: true
     confirmedAt?: true
     confirmedBy?: true
     createdBy?: true
@@ -19265,6 +23216,7 @@ export namespace Prisma {
     proofUrl?: true
     coversFrom?: true
     coversTo?: true
+    monthsCovered?: true
     confirmedAt?: true
     confirmedBy?: true
     createdBy?: true
@@ -19286,6 +23238,7 @@ export namespace Prisma {
     proofUrl?: true
     coversFrom?: true
     coversTo?: true
+    monthsCovered?: true
     confirmedAt?: true
     confirmedBy?: true
     createdBy?: true
@@ -19394,6 +23347,7 @@ export namespace Prisma {
     proofUrl: string | null
     coversFrom: Date | null
     coversTo: Date | null
+    monthsCovered: number | null
     confirmedAt: Date | null
     confirmedBy: bigint | null
     createdBy: bigint | null
@@ -19434,6 +23388,7 @@ export namespace Prisma {
     proofUrl?: boolean
     coversFrom?: boolean
     coversTo?: boolean
+    monthsCovered?: boolean
     confirmedAt?: boolean
     confirmedBy?: boolean
     createdBy?: boolean
@@ -19463,6 +23418,7 @@ export namespace Prisma {
     proofUrl?: boolean
     coversFrom?: boolean
     coversTo?: boolean
+    monthsCovered?: boolean
     confirmedAt?: boolean
     confirmedBy?: boolean
     createdBy?: boolean
@@ -19504,6 +23460,10 @@ export namespace Prisma {
       proofUrl: string | null
       coversFrom: Date | null
       coversTo: Date | null
+      /**
+       * Número de meses cobertos (1=mensal; 6/12=pagamento antecipado).
+       */
+      monthsCovered: number | null
       confirmedAt: Date | null
       confirmedBy: bigint | null
       createdBy: bigint | null
@@ -19897,6 +23857,7 @@ export namespace Prisma {
     readonly proofUrl: FieldRef<"Payment", 'String'>
     readonly coversFrom: FieldRef<"Payment", 'DateTime'>
     readonly coversTo: FieldRef<"Payment", 'DateTime'>
+    readonly monthsCovered: FieldRef<"Payment", 'Int'>
     readonly confirmedAt: FieldRef<"Payment", 'DateTime'>
     readonly confirmedBy: FieldRef<"Payment", 'BigInt'>
     readonly createdBy: FieldRef<"Payment", 'BigInt'>
@@ -29155,6 +33116,1132 @@ export namespace Prisma {
 
 
   /**
+   * Model CentralSettings
+   */
+
+  export type AggregateCentralSettings = {
+    _count: CentralSettingsCountAggregateOutputType | null
+    _avg: CentralSettingsAvgAggregateOutputType | null
+    _sum: CentralSettingsSumAggregateOutputType | null
+    _min: CentralSettingsMinAggregateOutputType | null
+    _max: CentralSettingsMaxAggregateOutputType | null
+  }
+
+  export type CentralSettingsAvgAggregateOutputType = {
+    id: number | null
+    singletonKey: number | null
+  }
+
+  export type CentralSettingsSumAggregateOutputType = {
+    id: bigint | null
+    singletonKey: number | null
+  }
+
+  export type CentralSettingsMinAggregateOutputType = {
+    id: bigint | null
+    singletonKey: number | null
+    companyName: string | null
+    companyNuit: string | null
+    companyEmail: string | null
+    companyPhone: string | null
+    companyAddress: string | null
+    companyCity: string | null
+    companyProvince: string | null
+    companyCountry: string | null
+    companyLogo: string | null
+    mpesaAccountName: string | null
+    mpesaAccountNumber: string | null
+    emolaAccountName: string | null
+    emolaAccountNumber: string | null
+    bankName: string | null
+    bankAccountName: string | null
+    bankAccountNumber: string | null
+    bankAccountNib: string | null
+    bankAccountSwift: string | null
+    bankTransferInstructions: string | null
+    invoiceFooter: string | null
+    receiptFooter: string | null
+    defaultMessage: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type CentralSettingsMaxAggregateOutputType = {
+    id: bigint | null
+    singletonKey: number | null
+    companyName: string | null
+    companyNuit: string | null
+    companyEmail: string | null
+    companyPhone: string | null
+    companyAddress: string | null
+    companyCity: string | null
+    companyProvince: string | null
+    companyCountry: string | null
+    companyLogo: string | null
+    mpesaAccountName: string | null
+    mpesaAccountNumber: string | null
+    emolaAccountName: string | null
+    emolaAccountNumber: string | null
+    bankName: string | null
+    bankAccountName: string | null
+    bankAccountNumber: string | null
+    bankAccountNib: string | null
+    bankAccountSwift: string | null
+    bankTransferInstructions: string | null
+    invoiceFooter: string | null
+    receiptFooter: string | null
+    defaultMessage: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type CentralSettingsCountAggregateOutputType = {
+    id: number
+    singletonKey: number
+    companyName: number
+    companyNuit: number
+    companyEmail: number
+    companyPhone: number
+    companyAddress: number
+    companyCity: number
+    companyProvince: number
+    companyCountry: number
+    companyLogo: number
+    mpesaAccountName: number
+    mpesaAccountNumber: number
+    emolaAccountName: number
+    emolaAccountNumber: number
+    bankName: number
+    bankAccountName: number
+    bankAccountNumber: number
+    bankAccountNib: number
+    bankAccountSwift: number
+    bankTransferInstructions: number
+    invoiceFooter: number
+    receiptFooter: number
+    defaultMessage: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type CentralSettingsAvgAggregateInputType = {
+    id?: true
+    singletonKey?: true
+  }
+
+  export type CentralSettingsSumAggregateInputType = {
+    id?: true
+    singletonKey?: true
+  }
+
+  export type CentralSettingsMinAggregateInputType = {
+    id?: true
+    singletonKey?: true
+    companyName?: true
+    companyNuit?: true
+    companyEmail?: true
+    companyPhone?: true
+    companyAddress?: true
+    companyCity?: true
+    companyProvince?: true
+    companyCountry?: true
+    companyLogo?: true
+    mpesaAccountName?: true
+    mpesaAccountNumber?: true
+    emolaAccountName?: true
+    emolaAccountNumber?: true
+    bankName?: true
+    bankAccountName?: true
+    bankAccountNumber?: true
+    bankAccountNib?: true
+    bankAccountSwift?: true
+    bankTransferInstructions?: true
+    invoiceFooter?: true
+    receiptFooter?: true
+    defaultMessage?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type CentralSettingsMaxAggregateInputType = {
+    id?: true
+    singletonKey?: true
+    companyName?: true
+    companyNuit?: true
+    companyEmail?: true
+    companyPhone?: true
+    companyAddress?: true
+    companyCity?: true
+    companyProvince?: true
+    companyCountry?: true
+    companyLogo?: true
+    mpesaAccountName?: true
+    mpesaAccountNumber?: true
+    emolaAccountName?: true
+    emolaAccountNumber?: true
+    bankName?: true
+    bankAccountName?: true
+    bankAccountNumber?: true
+    bankAccountNib?: true
+    bankAccountSwift?: true
+    bankTransferInstructions?: true
+    invoiceFooter?: true
+    receiptFooter?: true
+    defaultMessage?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type CentralSettingsCountAggregateInputType = {
+    id?: true
+    singletonKey?: true
+    companyName?: true
+    companyNuit?: true
+    companyEmail?: true
+    companyPhone?: true
+    companyAddress?: true
+    companyCity?: true
+    companyProvince?: true
+    companyCountry?: true
+    companyLogo?: true
+    mpesaAccountName?: true
+    mpesaAccountNumber?: true
+    emolaAccountName?: true
+    emolaAccountNumber?: true
+    bankName?: true
+    bankAccountName?: true
+    bankAccountNumber?: true
+    bankAccountNib?: true
+    bankAccountSwift?: true
+    bankTransferInstructions?: true
+    invoiceFooter?: true
+    receiptFooter?: true
+    defaultMessage?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type CentralSettingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CentralSettings to aggregate.
+     */
+    where?: CentralSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CentralSettings to fetch.
+     */
+    orderBy?: CentralSettingsOrderByWithRelationInput | CentralSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CentralSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CentralSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CentralSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CentralSettings
+    **/
+    _count?: true | CentralSettingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CentralSettingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CentralSettingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CentralSettingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CentralSettingsMaxAggregateInputType
+  }
+
+  export type GetCentralSettingsAggregateType<T extends CentralSettingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateCentralSettings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCentralSettings[P]>
+      : GetScalarType<T[P], AggregateCentralSettings[P]>
+  }
+
+
+
+
+  export type CentralSettingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CentralSettingsWhereInput
+    orderBy?: CentralSettingsOrderByWithAggregationInput | CentralSettingsOrderByWithAggregationInput[]
+    by: CentralSettingsScalarFieldEnum[] | CentralSettingsScalarFieldEnum
+    having?: CentralSettingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CentralSettingsCountAggregateInputType | true
+    _avg?: CentralSettingsAvgAggregateInputType
+    _sum?: CentralSettingsSumAggregateInputType
+    _min?: CentralSettingsMinAggregateInputType
+    _max?: CentralSettingsMaxAggregateInputType
+  }
+
+  export type CentralSettingsGroupByOutputType = {
+    id: bigint
+    singletonKey: number
+    companyName: string
+    companyNuit: string
+    companyEmail: string
+    companyPhone: string
+    companyAddress: string
+    companyCity: string | null
+    companyProvince: string | null
+    companyCountry: string
+    companyLogo: string | null
+    mpesaAccountName: string | null
+    mpesaAccountNumber: string | null
+    emolaAccountName: string | null
+    emolaAccountNumber: string | null
+    bankName: string | null
+    bankAccountName: string | null
+    bankAccountNumber: string | null
+    bankAccountNib: string | null
+    bankAccountSwift: string | null
+    bankTransferInstructions: string | null
+    invoiceFooter: string | null
+    receiptFooter: string | null
+    defaultMessage: string | null
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: CentralSettingsCountAggregateOutputType | null
+    _avg: CentralSettingsAvgAggregateOutputType | null
+    _sum: CentralSettingsSumAggregateOutputType | null
+    _min: CentralSettingsMinAggregateOutputType | null
+    _max: CentralSettingsMaxAggregateOutputType | null
+  }
+
+  type GetCentralSettingsGroupByPayload<T extends CentralSettingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CentralSettingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CentralSettingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CentralSettingsGroupByOutputType[P]>
+            : GetScalarType<T[P], CentralSettingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CentralSettingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    singletonKey?: boolean
+    companyName?: boolean
+    companyNuit?: boolean
+    companyEmail?: boolean
+    companyPhone?: boolean
+    companyAddress?: boolean
+    companyCity?: boolean
+    companyProvince?: boolean
+    companyCountry?: boolean
+    companyLogo?: boolean
+    mpesaAccountName?: boolean
+    mpesaAccountNumber?: boolean
+    emolaAccountName?: boolean
+    emolaAccountNumber?: boolean
+    bankName?: boolean
+    bankAccountName?: boolean
+    bankAccountNumber?: boolean
+    bankAccountNib?: boolean
+    bankAccountSwift?: boolean
+    bankTransferInstructions?: boolean
+    invoiceFooter?: boolean
+    receiptFooter?: boolean
+    defaultMessage?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }, ExtArgs["result"]["centralSettings"]>
+
+
+  export type CentralSettingsSelectScalar = {
+    id?: boolean
+    singletonKey?: boolean
+    companyName?: boolean
+    companyNuit?: boolean
+    companyEmail?: boolean
+    companyPhone?: boolean
+    companyAddress?: boolean
+    companyCity?: boolean
+    companyProvince?: boolean
+    companyCountry?: boolean
+    companyLogo?: boolean
+    mpesaAccountName?: boolean
+    mpesaAccountNumber?: boolean
+    emolaAccountName?: boolean
+    emolaAccountNumber?: boolean
+    bankName?: boolean
+    bankAccountName?: boolean
+    bankAccountNumber?: boolean
+    bankAccountNib?: boolean
+    bankAccountSwift?: boolean
+    bankTransferInstructions?: boolean
+    invoiceFooter?: boolean
+    receiptFooter?: boolean
+    defaultMessage?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+
+  export type $CentralSettingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CentralSettings"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      /**
+       * Garante um único registo activo (singleton).
+       */
+      singletonKey: number
+      companyName: string
+      companyNuit: string
+      companyEmail: string
+      companyPhone: string
+      companyAddress: string
+      companyCity: string | null
+      companyProvince: string | null
+      companyCountry: string
+      companyLogo: string | null
+      mpesaAccountName: string | null
+      mpesaAccountNumber: string | null
+      emolaAccountName: string | null
+      emolaAccountNumber: string | null
+      bankName: string | null
+      bankAccountName: string | null
+      bankAccountNumber: string | null
+      bankAccountNib: string | null
+      bankAccountSwift: string | null
+      bankTransferInstructions: string | null
+      invoiceFooter: string | null
+      receiptFooter: string | null
+      defaultMessage: string | null
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["centralSettings"]>
+    composites: {}
+  }
+
+  type CentralSettingsGetPayload<S extends boolean | null | undefined | CentralSettingsDefaultArgs> = $Result.GetResult<Prisma.$CentralSettingsPayload, S>
+
+  type CentralSettingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CentralSettingsFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CentralSettingsCountAggregateInputType | true
+    }
+
+  export interface CentralSettingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CentralSettings'], meta: { name: 'CentralSettings' } }
+    /**
+     * Find zero or one CentralSettings that matches the filter.
+     * @param {CentralSettingsFindUniqueArgs} args - Arguments to find a CentralSettings
+     * @example
+     * // Get one CentralSettings
+     * const centralSettings = await prisma.centralSettings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CentralSettingsFindUniqueArgs>(args: SelectSubset<T, CentralSettingsFindUniqueArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CentralSettings that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CentralSettingsFindUniqueOrThrowArgs} args - Arguments to find a CentralSettings
+     * @example
+     * // Get one CentralSettings
+     * const centralSettings = await prisma.centralSettings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CentralSettingsFindUniqueOrThrowArgs>(args: SelectSubset<T, CentralSettingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CentralSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsFindFirstArgs} args - Arguments to find a CentralSettings
+     * @example
+     * // Get one CentralSettings
+     * const centralSettings = await prisma.centralSettings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CentralSettingsFindFirstArgs>(args?: SelectSubset<T, CentralSettingsFindFirstArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CentralSettings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsFindFirstOrThrowArgs} args - Arguments to find a CentralSettings
+     * @example
+     * // Get one CentralSettings
+     * const centralSettings = await prisma.centralSettings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CentralSettingsFindFirstOrThrowArgs>(args?: SelectSubset<T, CentralSettingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CentralSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CentralSettings
+     * const centralSettings = await prisma.centralSettings.findMany()
+     * 
+     * // Get first 10 CentralSettings
+     * const centralSettings = await prisma.centralSettings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const centralSettingsWithIdOnly = await prisma.centralSettings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CentralSettingsFindManyArgs>(args?: SelectSubset<T, CentralSettingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CentralSettings.
+     * @param {CentralSettingsCreateArgs} args - Arguments to create a CentralSettings.
+     * @example
+     * // Create one CentralSettings
+     * const CentralSettings = await prisma.centralSettings.create({
+     *   data: {
+     *     // ... data to create a CentralSettings
+     *   }
+     * })
+     * 
+     */
+    create<T extends CentralSettingsCreateArgs>(args: SelectSubset<T, CentralSettingsCreateArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CentralSettings.
+     * @param {CentralSettingsCreateManyArgs} args - Arguments to create many CentralSettings.
+     * @example
+     * // Create many CentralSettings
+     * const centralSettings = await prisma.centralSettings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CentralSettingsCreateManyArgs>(args?: SelectSubset<T, CentralSettingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a CentralSettings.
+     * @param {CentralSettingsDeleteArgs} args - Arguments to delete one CentralSettings.
+     * @example
+     * // Delete one CentralSettings
+     * const CentralSettings = await prisma.centralSettings.delete({
+     *   where: {
+     *     // ... filter to delete one CentralSettings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CentralSettingsDeleteArgs>(args: SelectSubset<T, CentralSettingsDeleteArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CentralSettings.
+     * @param {CentralSettingsUpdateArgs} args - Arguments to update one CentralSettings.
+     * @example
+     * // Update one CentralSettings
+     * const centralSettings = await prisma.centralSettings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CentralSettingsUpdateArgs>(args: SelectSubset<T, CentralSettingsUpdateArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CentralSettings.
+     * @param {CentralSettingsDeleteManyArgs} args - Arguments to filter CentralSettings to delete.
+     * @example
+     * // Delete a few CentralSettings
+     * const { count } = await prisma.centralSettings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CentralSettingsDeleteManyArgs>(args?: SelectSubset<T, CentralSettingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CentralSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CentralSettings
+     * const centralSettings = await prisma.centralSettings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CentralSettingsUpdateManyArgs>(args: SelectSubset<T, CentralSettingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CentralSettings.
+     * @param {CentralSettingsUpsertArgs} args - Arguments to update or create a CentralSettings.
+     * @example
+     * // Update or create a CentralSettings
+     * const centralSettings = await prisma.centralSettings.upsert({
+     *   create: {
+     *     // ... data to create a CentralSettings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CentralSettings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CentralSettingsUpsertArgs>(args: SelectSubset<T, CentralSettingsUpsertArgs<ExtArgs>>): Prisma__CentralSettingsClient<$Result.GetResult<Prisma.$CentralSettingsPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CentralSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsCountArgs} args - Arguments to filter CentralSettings to count.
+     * @example
+     * // Count the number of CentralSettings
+     * const count = await prisma.centralSettings.count({
+     *   where: {
+     *     // ... the filter for the CentralSettings we want to count
+     *   }
+     * })
+    **/
+    count<T extends CentralSettingsCountArgs>(
+      args?: Subset<T, CentralSettingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CentralSettingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CentralSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CentralSettingsAggregateArgs>(args: Subset<T, CentralSettingsAggregateArgs>): Prisma.PrismaPromise<GetCentralSettingsAggregateType<T>>
+
+    /**
+     * Group by CentralSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CentralSettingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CentralSettingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CentralSettingsGroupByArgs['orderBy'] }
+        : { orderBy?: CentralSettingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CentralSettingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCentralSettingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CentralSettings model
+   */
+  readonly fields: CentralSettingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CentralSettings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CentralSettingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CentralSettings model
+   */ 
+  interface CentralSettingsFieldRefs {
+    readonly id: FieldRef<"CentralSettings", 'BigInt'>
+    readonly singletonKey: FieldRef<"CentralSettings", 'Int'>
+    readonly companyName: FieldRef<"CentralSettings", 'String'>
+    readonly companyNuit: FieldRef<"CentralSettings", 'String'>
+    readonly companyEmail: FieldRef<"CentralSettings", 'String'>
+    readonly companyPhone: FieldRef<"CentralSettings", 'String'>
+    readonly companyAddress: FieldRef<"CentralSettings", 'String'>
+    readonly companyCity: FieldRef<"CentralSettings", 'String'>
+    readonly companyProvince: FieldRef<"CentralSettings", 'String'>
+    readonly companyCountry: FieldRef<"CentralSettings", 'String'>
+    readonly companyLogo: FieldRef<"CentralSettings", 'String'>
+    readonly mpesaAccountName: FieldRef<"CentralSettings", 'String'>
+    readonly mpesaAccountNumber: FieldRef<"CentralSettings", 'String'>
+    readonly emolaAccountName: FieldRef<"CentralSettings", 'String'>
+    readonly emolaAccountNumber: FieldRef<"CentralSettings", 'String'>
+    readonly bankName: FieldRef<"CentralSettings", 'String'>
+    readonly bankAccountName: FieldRef<"CentralSettings", 'String'>
+    readonly bankAccountNumber: FieldRef<"CentralSettings", 'String'>
+    readonly bankAccountNib: FieldRef<"CentralSettings", 'String'>
+    readonly bankAccountSwift: FieldRef<"CentralSettings", 'String'>
+    readonly bankTransferInstructions: FieldRef<"CentralSettings", 'String'>
+    readonly invoiceFooter: FieldRef<"CentralSettings", 'String'>
+    readonly receiptFooter: FieldRef<"CentralSettings", 'String'>
+    readonly defaultMessage: FieldRef<"CentralSettings", 'String'>
+    readonly active: FieldRef<"CentralSettings", 'Boolean'>
+    readonly createdAt: FieldRef<"CentralSettings", 'DateTime'>
+    readonly updatedAt: FieldRef<"CentralSettings", 'DateTime'>
+    readonly deletedAt: FieldRef<"CentralSettings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CentralSettings findUnique
+   */
+  export type CentralSettingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter, which CentralSettings to fetch.
+     */
+    where: CentralSettingsWhereUniqueInput
+  }
+
+  /**
+   * CentralSettings findUniqueOrThrow
+   */
+  export type CentralSettingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter, which CentralSettings to fetch.
+     */
+    where: CentralSettingsWhereUniqueInput
+  }
+
+  /**
+   * CentralSettings findFirst
+   */
+  export type CentralSettingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter, which CentralSettings to fetch.
+     */
+    where?: CentralSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CentralSettings to fetch.
+     */
+    orderBy?: CentralSettingsOrderByWithRelationInput | CentralSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CentralSettings.
+     */
+    cursor?: CentralSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CentralSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CentralSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CentralSettings.
+     */
+    distinct?: CentralSettingsScalarFieldEnum | CentralSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * CentralSettings findFirstOrThrow
+   */
+  export type CentralSettingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter, which CentralSettings to fetch.
+     */
+    where?: CentralSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CentralSettings to fetch.
+     */
+    orderBy?: CentralSettingsOrderByWithRelationInput | CentralSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CentralSettings.
+     */
+    cursor?: CentralSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CentralSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CentralSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CentralSettings.
+     */
+    distinct?: CentralSettingsScalarFieldEnum | CentralSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * CentralSettings findMany
+   */
+  export type CentralSettingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter, which CentralSettings to fetch.
+     */
+    where?: CentralSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CentralSettings to fetch.
+     */
+    orderBy?: CentralSettingsOrderByWithRelationInput | CentralSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CentralSettings.
+     */
+    cursor?: CentralSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CentralSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CentralSettings.
+     */
+    skip?: number
+    distinct?: CentralSettingsScalarFieldEnum | CentralSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * CentralSettings create
+   */
+  export type CentralSettingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * The data needed to create a CentralSettings.
+     */
+    data: XOR<CentralSettingsCreateInput, CentralSettingsUncheckedCreateInput>
+  }
+
+  /**
+   * CentralSettings createMany
+   */
+  export type CentralSettingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CentralSettings.
+     */
+    data: CentralSettingsCreateManyInput | CentralSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CentralSettings update
+   */
+  export type CentralSettingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * The data needed to update a CentralSettings.
+     */
+    data: XOR<CentralSettingsUpdateInput, CentralSettingsUncheckedUpdateInput>
+    /**
+     * Choose, which CentralSettings to update.
+     */
+    where: CentralSettingsWhereUniqueInput
+  }
+
+  /**
+   * CentralSettings updateMany
+   */
+  export type CentralSettingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CentralSettings.
+     */
+    data: XOR<CentralSettingsUpdateManyMutationInput, CentralSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which CentralSettings to update
+     */
+    where?: CentralSettingsWhereInput
+  }
+
+  /**
+   * CentralSettings upsert
+   */
+  export type CentralSettingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * The filter to search for the CentralSettings to update in case it exists.
+     */
+    where: CentralSettingsWhereUniqueInput
+    /**
+     * In case the CentralSettings found by the `where` argument doesn't exist, create a new CentralSettings with this data.
+     */
+    create: XOR<CentralSettingsCreateInput, CentralSettingsUncheckedCreateInput>
+    /**
+     * In case the CentralSettings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CentralSettingsUpdateInput, CentralSettingsUncheckedUpdateInput>
+  }
+
+  /**
+   * CentralSettings delete
+   */
+  export type CentralSettingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+    /**
+     * Filter which CentralSettings to delete.
+     */
+    where: CentralSettingsWhereUniqueInput
+  }
+
+  /**
+   * CentralSettings deleteMany
+   */
+  export type CentralSettingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CentralSettings to delete
+     */
+    where?: CentralSettingsWhereInput
+  }
+
+  /**
+   * CentralSettings without action
+   */
+  export type CentralSettingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CentralSettings
+     */
+    select?: CentralSettingsSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -29206,10 +34293,12 @@ export namespace Prisma {
   export const TenantScalarFieldEnum: {
     id: 'id',
     uuid: 'uuid',
-    ownerId: 'ownerId',
-    name: 'name',
-    companyName: 'companyName',
+    ownerUserId: 'ownerUserId',
+    tenantKey: 'tenantKey',
+    tenantName: 'tenantName',
     nuit: 'nuit',
+    email: 'email',
+    endereco: 'endereco',
     status: 'status',
     country: 'country',
     version: 'version',
@@ -29288,6 +34377,51 @@ export namespace Prisma {
   export type DeviceScalarFieldEnum = (typeof DeviceScalarFieldEnum)[keyof typeof DeviceScalarFieldEnum]
 
 
+  export const PrinterScalarFieldEnum: {
+    id: 'id',
+    uuid: 'uuid',
+    tenantId: 'tenantId',
+    branchId: 'branchId',
+    deviceId: 'deviceId',
+    name: 'name',
+    type: 'type',
+    connection: 'connection',
+    ip: 'ip',
+    port: 'port',
+    model: 'model',
+    manufacturer: 'manufacturer',
+    active: 'active',
+    version: 'version',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type PrinterScalarFieldEnum = (typeof PrinterScalarFieldEnum)[keyof typeof PrinterScalarFieldEnum]
+
+
+  export const PrintJobScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    branchId: 'branchId',
+    printerId: 'printerId',
+    document: 'document',
+    payload: 'payload',
+    status: 'status',
+    attempts: 'attempts',
+    maxAttempts: 'maxAttempts',
+    errorMessage: 'errorMessage',
+    printedAt: 'printedAt',
+    lockedAt: 'lockedAt',
+    lockedBy: 'lockedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type PrintJobScalarFieldEnum = (typeof PrintJobScalarFieldEnum)[keyof typeof PrintJobScalarFieldEnum]
+
+
   export const SyncLogScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -29344,6 +34478,8 @@ export namespace Prisma {
     extraBranchPrice: 'extraBranchPrice',
     isEnterprise: 'isEnterprise',
     active: 'active',
+    billingIntervalMonths: 'billingIntervalMonths',
+    trialDays: 'trialDays',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -29363,6 +34499,8 @@ export namespace Prisma {
     trialEndsAt: 'trialEndsAt',
     lastBillingAt: 'lastBillingAt',
     nextBillingAt: 'nextBillingAt',
+    currentPeriodEnd: 'currentPeriodEnd',
+    autoRenew: 'autoRenew',
     version: 'version',
     createdBy: 'createdBy',
     updatedBy: 'updatedBy',
@@ -29372,6 +34510,20 @@ export namespace Prisma {
   };
 
   export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+  export const SubscriptionBranchHistoryScalarFieldEnum: {
+    id: 'id',
+    subscriptionId: 'subscriptionId',
+    branchId: 'branchId',
+    action: 'action',
+    effectiveDate: 'effectiveDate',
+    reason: 'reason',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type SubscriptionBranchHistoryScalarFieldEnum = (typeof SubscriptionBranchHistoryScalarFieldEnum)[keyof typeof SubscriptionBranchHistoryScalarFieldEnum]
 
 
   export const InvoiceFiscalCounterScalarFieldEnum: {
@@ -29394,6 +34546,7 @@ export namespace Prisma {
     subscriptionId: 'subscriptionId',
     billingSnapshotId: 'billingSnapshotId',
     amount: 'amount',
+    discount: 'discount',
     paidAmount: 'paidAmount',
     remainingAmount: 'remainingAmount',
     status: 'status',
@@ -29455,6 +34608,7 @@ export namespace Prisma {
     proofUrl: 'proofUrl',
     coversFrom: 'coversFrom',
     coversTo: 'coversTo',
+    monthsCovered: 'monthsCovered',
     confirmedAt: 'confirmedAt',
     confirmedBy: 'confirmedBy',
     createdBy: 'createdBy',
@@ -29607,6 +34761,40 @@ export namespace Prisma {
   export type UserPermissionScalarFieldEnum = (typeof UserPermissionScalarFieldEnum)[keyof typeof UserPermissionScalarFieldEnum]
 
 
+  export const CentralSettingsScalarFieldEnum: {
+    id: 'id',
+    singletonKey: 'singletonKey',
+    companyName: 'companyName',
+    companyNuit: 'companyNuit',
+    companyEmail: 'companyEmail',
+    companyPhone: 'companyPhone',
+    companyAddress: 'companyAddress',
+    companyCity: 'companyCity',
+    companyProvince: 'companyProvince',
+    companyCountry: 'companyCountry',
+    companyLogo: 'companyLogo',
+    mpesaAccountName: 'mpesaAccountName',
+    mpesaAccountNumber: 'mpesaAccountNumber',
+    emolaAccountName: 'emolaAccountName',
+    emolaAccountNumber: 'emolaAccountNumber',
+    bankName: 'bankName',
+    bankAccountName: 'bankAccountName',
+    bankAccountNumber: 'bankAccountNumber',
+    bankAccountNib: 'bankAccountNib',
+    bankAccountSwift: 'bankAccountSwift',
+    bankTransferInstructions: 'bankTransferInstructions',
+    invoiceFooter: 'invoiceFooter',
+    receiptFooter: 'receiptFooter',
+    defaultMessage: 'defaultMessage',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type CentralSettingsScalarFieldEnum = (typeof CentralSettingsScalarFieldEnum)[keyof typeof CentralSettingsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -29723,6 +34911,27 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'PrinterType'
+   */
+  export type EnumPrinterTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterType'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrinterConnection'
+   */
+  export type EnumPrinterConnectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterConnection'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrintStatus'
+   */
+  export type EnumPrintStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintStatus'>
+    
+
+
+  /**
    * Reference to a field of type 'SyncOperation'
    */
   export type EnumSyncOperationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncOperation'>
@@ -29754,6 +34963,13 @@ export namespace Prisma {
    * Reference to a field of type 'SubscriptionStatus'
    */
   export type EnumSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SubscriptionBranchAction'
+   */
+  export type EnumSubscriptionBranchActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionBranchAction'>
     
 
 
@@ -29833,6 +35049,7 @@ export namespace Prisma {
     branchesUpdated?: BranchListRelationFilter
     subscriptionsCreated?: SubscriptionListRelationFilter
     subscriptionsUpdated?: SubscriptionListRelationFilter
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     sessions?: UserSessionListRelationFilter
   }
@@ -29865,6 +35082,7 @@ export namespace Prisma {
     branchesUpdated?: BranchOrderByRelationAggregateInput
     subscriptionsCreated?: SubscriptionOrderByRelationAggregateInput
     subscriptionsUpdated?: SubscriptionOrderByRelationAggregateInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
     sessions?: UserSessionOrderByRelationAggregateInput
   }
@@ -29900,6 +35118,7 @@ export namespace Prisma {
     branchesUpdated?: BranchListRelationFilter
     subscriptionsCreated?: SubscriptionListRelationFilter
     subscriptionsUpdated?: SubscriptionListRelationFilter
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     sessions?: UserSessionListRelationFilter
   }, "id" | "uuid" | "email">
@@ -30033,10 +35252,12 @@ export namespace Prisma {
     NOT?: TenantWhereInput | TenantWhereInput[]
     id?: BigIntFilter<"Tenant"> | bigint | number
     uuid?: StringFilter<"Tenant"> | string
-    ownerId?: BigIntFilter<"Tenant"> | bigint | number
-    name?: StringFilter<"Tenant"> | string
-    companyName?: StringFilter<"Tenant"> | string
+    ownerUserId?: BigIntFilter<"Tenant"> | bigint | number
+    tenantKey?: StringFilter<"Tenant"> | string
+    tenantName?: StringFilter<"Tenant"> | string
     nuit?: StringNullableFilter<"Tenant"> | string | null
+    email?: StringNullableFilter<"Tenant"> | string | null
+    endereco?: StringNullableFilter<"Tenant"> | string | null
     status?: EnumTenantStatusFilter<"Tenant"> | $Enums.TenantStatus
     country?: StringFilter<"Tenant"> | string
     version?: IntFilter<"Tenant"> | number
@@ -30059,6 +35280,8 @@ export namespace Prisma {
     settings?: TenantSettingListRelationFilter
     userTenants?: UserTenantListRelationFilter
     devices?: DeviceListRelationFilter
+    printers?: PrinterListRelationFilter
+    printJobs?: PrintJobListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     auditLogs?: AuditLogListRelationFilter
@@ -30068,10 +35291,12 @@ export namespace Prisma {
   export type TenantOrderByWithRelationInput = {
     id?: SortOrder
     uuid?: SortOrder
-    ownerId?: SortOrder
-    name?: SortOrder
-    companyName?: SortOrder
+    ownerUserId?: SortOrder
+    tenantKey?: SortOrder
+    tenantName?: SortOrder
     nuit?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    endereco?: SortOrderInput | SortOrder
     status?: SortOrder
     country?: SortOrder
     version?: SortOrder
@@ -30094,6 +35319,8 @@ export namespace Prisma {
     settings?: TenantSettingOrderByRelationAggregateInput
     userTenants?: UserTenantOrderByRelationAggregateInput
     devices?: DeviceOrderByRelationAggregateInput
+    printers?: PrinterOrderByRelationAggregateInput
+    printJobs?: PrintJobOrderByRelationAggregateInput
     syncLogs?: SyncLogOrderByRelationAggregateInput
     syncSessions?: SyncSessionOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
@@ -30103,13 +35330,15 @@ export namespace Prisma {
   export type TenantWhereUniqueInput = Prisma.AtLeast<{
     id?: bigint | number
     uuid?: string
-    name?: string
+    tenantKey?: string
     AND?: TenantWhereInput | TenantWhereInput[]
     OR?: TenantWhereInput[]
     NOT?: TenantWhereInput | TenantWhereInput[]
-    ownerId?: BigIntFilter<"Tenant"> | bigint | number
-    companyName?: StringFilter<"Tenant"> | string
+    ownerUserId?: BigIntFilter<"Tenant"> | bigint | number
+    tenantName?: StringFilter<"Tenant"> | string
     nuit?: StringNullableFilter<"Tenant"> | string | null
+    email?: StringNullableFilter<"Tenant"> | string | null
+    endereco?: StringNullableFilter<"Tenant"> | string | null
     status?: EnumTenantStatusFilter<"Tenant"> | $Enums.TenantStatus
     country?: StringFilter<"Tenant"> | string
     version?: IntFilter<"Tenant"> | number
@@ -30132,19 +35361,23 @@ export namespace Prisma {
     settings?: TenantSettingListRelationFilter
     userTenants?: UserTenantListRelationFilter
     devices?: DeviceListRelationFilter
+    printers?: PrinterListRelationFilter
+    printJobs?: PrintJobListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     jobQueues?: JobQueueListRelationFilter
-  }, "id" | "uuid" | "name">
+  }, "id" | "uuid" | "tenantKey">
 
   export type TenantOrderByWithAggregationInput = {
     id?: SortOrder
     uuid?: SortOrder
-    ownerId?: SortOrder
-    name?: SortOrder
-    companyName?: SortOrder
+    ownerUserId?: SortOrder
+    tenantKey?: SortOrder
+    tenantName?: SortOrder
     nuit?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    endereco?: SortOrderInput | SortOrder
     status?: SortOrder
     country?: SortOrder
     version?: SortOrder
@@ -30166,10 +35399,12 @@ export namespace Prisma {
     NOT?: TenantScalarWhereWithAggregatesInput | TenantScalarWhereWithAggregatesInput[]
     id?: BigIntWithAggregatesFilter<"Tenant"> | bigint | number
     uuid?: StringWithAggregatesFilter<"Tenant"> | string
-    ownerId?: BigIntWithAggregatesFilter<"Tenant"> | bigint | number
-    name?: StringWithAggregatesFilter<"Tenant"> | string
-    companyName?: StringWithAggregatesFilter<"Tenant"> | string
+    ownerUserId?: BigIntWithAggregatesFilter<"Tenant"> | bigint | number
+    tenantKey?: StringWithAggregatesFilter<"Tenant"> | string
+    tenantName?: StringWithAggregatesFilter<"Tenant"> | string
     nuit?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
+    email?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
+    endereco?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
     status?: EnumTenantStatusWithAggregatesFilter<"Tenant"> | $Enums.TenantStatus
     country?: StringWithAggregatesFilter<"Tenant"> | string
     version?: IntWithAggregatesFilter<"Tenant"> | number
@@ -30287,9 +35522,12 @@ export namespace Prisma {
     createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     updatedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     devices?: DeviceListRelationFilter
+    printers?: PrinterListRelationFilter
+    printJobs?: PrintJobListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     auditLogs?: AuditLogListRelationFilter
+    subscriptionBranchHistory?: SubscriptionBranchHistoryListRelationFilter
   }
 
   export type BranchOrderByWithRelationInput = {
@@ -30323,9 +35561,12 @@ export namespace Prisma {
     createdByUser?: UserOrderByWithRelationInput
     updatedByUser?: UserOrderByWithRelationInput
     devices?: DeviceOrderByRelationAggregateInput
+    printers?: PrinterOrderByRelationAggregateInput
+    printJobs?: PrintJobOrderByRelationAggregateInput
     syncLogs?: SyncLogOrderByRelationAggregateInput
     syncSessions?: SyncSessionOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryOrderByRelationAggregateInput
   }
 
   export type BranchWhereUniqueInput = Prisma.AtLeast<{
@@ -30364,9 +35605,12 @@ export namespace Prisma {
     createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     updatedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     devices?: DeviceListRelationFilter
+    printers?: PrinterListRelationFilter
+    printJobs?: PrintJobListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     auditLogs?: AuditLogListRelationFilter
+    subscriptionBranchHistory?: SubscriptionBranchHistoryListRelationFilter
   }, "id" | "uuid" | "tenantId_code" | "tenantId_name">
 
   export type BranchOrderByWithAggregationInput = {
@@ -30454,6 +35698,7 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"Device"> | Date | string | null
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    printers?: PrinterListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     userSessions?: UserSessionListRelationFilter
@@ -30475,6 +35720,7 @@ export namespace Prisma {
     deletedAt?: SortOrderInput | SortOrder
     tenant?: TenantOrderByWithRelationInput
     branch?: BranchOrderByWithRelationInput
+    printers?: PrinterOrderByRelationAggregateInput
     syncLogs?: SyncLogOrderByRelationAggregateInput
     syncSessions?: SyncSessionOrderByRelationAggregateInput
     userSessions?: UserSessionOrderByRelationAggregateInput
@@ -30500,6 +35746,7 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"Device"> | Date | string | null
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    printers?: PrinterListRelationFilter
     syncLogs?: SyncLogListRelationFilter
     syncSessions?: SyncSessionListRelationFilter
     userSessions?: UserSessionListRelationFilter
@@ -30543,6 +35790,251 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Device"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Device"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Device"> | Date | string | null
+  }
+
+  export type PrinterWhereInput = {
+    AND?: PrinterWhereInput | PrinterWhereInput[]
+    OR?: PrinterWhereInput[]
+    NOT?: PrinterWhereInput | PrinterWhereInput[]
+    id?: BigIntFilter<"Printer"> | bigint | number
+    uuid?: StringFilter<"Printer"> | string
+    tenantId?: BigIntFilter<"Printer"> | bigint | number
+    branchId?: BigIntFilter<"Printer"> | bigint | number
+    deviceId?: BigIntNullableFilter<"Printer"> | bigint | number | null
+    name?: StringFilter<"Printer"> | string
+    type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFilter<"Printer"> | $Enums.PrinterConnection
+    ip?: StringNullableFilter<"Printer"> | string | null
+    port?: IntNullableFilter<"Printer"> | number | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    manufacturer?: StringNullableFilter<"Printer"> | string | null
+    active?: BoolFilter<"Printer"> | boolean
+    version?: IntFilter<"Printer"> | number
+    createdAt?: DateTimeFilter<"Printer"> | Date | string
+    updatedAt?: DateTimeFilter<"Printer"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    device?: XOR<DeviceNullableRelationFilter, DeviceWhereInput> | null
+    printJobs?: PrintJobListRelationFilter
+  }
+
+  export type PrinterOrderByWithRelationInput = {
+    id?: SortOrder
+    uuid?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    connection?: SortOrder
+    ip?: SortOrderInput | SortOrder
+    port?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    manufacturer?: SortOrderInput | SortOrder
+    active?: SortOrder
+    version?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    branch?: BranchOrderByWithRelationInput
+    device?: DeviceOrderByWithRelationInput
+    printJobs?: PrintJobOrderByRelationAggregateInput
+  }
+
+  export type PrinterWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    uuid?: string
+    tenantId_branchId_name?: PrinterTenantIdBranchIdNameCompoundUniqueInput
+    AND?: PrinterWhereInput | PrinterWhereInput[]
+    OR?: PrinterWhereInput[]
+    NOT?: PrinterWhereInput | PrinterWhereInput[]
+    tenantId?: BigIntFilter<"Printer"> | bigint | number
+    branchId?: BigIntFilter<"Printer"> | bigint | number
+    deviceId?: BigIntNullableFilter<"Printer"> | bigint | number | null
+    name?: StringFilter<"Printer"> | string
+    type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFilter<"Printer"> | $Enums.PrinterConnection
+    ip?: StringNullableFilter<"Printer"> | string | null
+    port?: IntNullableFilter<"Printer"> | number | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    manufacturer?: StringNullableFilter<"Printer"> | string | null
+    active?: BoolFilter<"Printer"> | boolean
+    version?: IntFilter<"Printer"> | number
+    createdAt?: DateTimeFilter<"Printer"> | Date | string
+    updatedAt?: DateTimeFilter<"Printer"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    device?: XOR<DeviceNullableRelationFilter, DeviceWhereInput> | null
+    printJobs?: PrintJobListRelationFilter
+  }, "id" | "uuid" | "tenantId_branchId_name">
+
+  export type PrinterOrderByWithAggregationInput = {
+    id?: SortOrder
+    uuid?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    connection?: SortOrder
+    ip?: SortOrderInput | SortOrder
+    port?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    manufacturer?: SortOrderInput | SortOrder
+    active?: SortOrder
+    version?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: PrinterCountOrderByAggregateInput
+    _avg?: PrinterAvgOrderByAggregateInput
+    _max?: PrinterMaxOrderByAggregateInput
+    _min?: PrinterMinOrderByAggregateInput
+    _sum?: PrinterSumOrderByAggregateInput
+  }
+
+  export type PrinterScalarWhereWithAggregatesInput = {
+    AND?: PrinterScalarWhereWithAggregatesInput | PrinterScalarWhereWithAggregatesInput[]
+    OR?: PrinterScalarWhereWithAggregatesInput[]
+    NOT?: PrinterScalarWhereWithAggregatesInput | PrinterScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"Printer"> | bigint | number
+    uuid?: StringWithAggregatesFilter<"Printer"> | string
+    tenantId?: BigIntWithAggregatesFilter<"Printer"> | bigint | number
+    branchId?: BigIntWithAggregatesFilter<"Printer"> | bigint | number
+    deviceId?: BigIntNullableWithAggregatesFilter<"Printer"> | bigint | number | null
+    name?: StringWithAggregatesFilter<"Printer"> | string
+    type?: EnumPrinterTypeWithAggregatesFilter<"Printer"> | $Enums.PrinterType
+    connection?: EnumPrinterConnectionWithAggregatesFilter<"Printer"> | $Enums.PrinterConnection
+    ip?: StringNullableWithAggregatesFilter<"Printer"> | string | null
+    port?: IntNullableWithAggregatesFilter<"Printer"> | number | null
+    model?: StringNullableWithAggregatesFilter<"Printer"> | string | null
+    manufacturer?: StringNullableWithAggregatesFilter<"Printer"> | string | null
+    active?: BoolWithAggregatesFilter<"Printer"> | boolean
+    version?: IntWithAggregatesFilter<"Printer"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"Printer"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Printer"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"Printer"> | Date | string | null
+  }
+
+  export type PrintJobWhereInput = {
+    AND?: PrintJobWhereInput | PrintJobWhereInput[]
+    OR?: PrintJobWhereInput[]
+    NOT?: PrintJobWhereInput | PrintJobWhereInput[]
+    id?: BigIntFilter<"PrintJob"> | bigint | number
+    tenantId?: BigIntFilter<"PrintJob"> | bigint | number
+    branchId?: BigIntFilter<"PrintJob"> | bigint | number
+    printerId?: BigIntFilter<"PrintJob"> | bigint | number
+    document?: StringFilter<"PrintJob"> | string
+    payload?: JsonFilter<"PrintJob">
+    status?: EnumPrintStatusFilter<"PrintJob"> | $Enums.PrintStatus
+    attempts?: IntFilter<"PrintJob"> | number
+    maxAttempts?: IntFilter<"PrintJob"> | number
+    errorMessage?: StringNullableFilter<"PrintJob"> | string | null
+    printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedBy?: StringNullableFilter<"PrintJob"> | string | null
+    createdAt?: DateTimeFilter<"PrintJob"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    printer?: XOR<PrinterRelationFilter, PrinterWhereInput>
+  }
+
+  export type PrintJobOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    document?: SortOrder
+    payload?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    printedAt?: SortOrderInput | SortOrder
+    lockedAt?: SortOrderInput | SortOrder
+    lockedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    branch?: BranchOrderByWithRelationInput
+    printer?: PrinterOrderByWithRelationInput
+  }
+
+  export type PrintJobWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: PrintJobWhereInput | PrintJobWhereInput[]
+    OR?: PrintJobWhereInput[]
+    NOT?: PrintJobWhereInput | PrintJobWhereInput[]
+    tenantId?: BigIntFilter<"PrintJob"> | bigint | number
+    branchId?: BigIntFilter<"PrintJob"> | bigint | number
+    printerId?: BigIntFilter<"PrintJob"> | bigint | number
+    document?: StringFilter<"PrintJob"> | string
+    payload?: JsonFilter<"PrintJob">
+    status?: EnumPrintStatusFilter<"PrintJob"> | $Enums.PrintStatus
+    attempts?: IntFilter<"PrintJob"> | number
+    maxAttempts?: IntFilter<"PrintJob"> | number
+    errorMessage?: StringNullableFilter<"PrintJob"> | string | null
+    printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedBy?: StringNullableFilter<"PrintJob"> | string | null
+    createdAt?: DateTimeFilter<"PrintJob"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    printer?: XOR<PrinterRelationFilter, PrinterWhereInput>
+  }, "id">
+
+  export type PrintJobOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    document?: SortOrder
+    payload?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    printedAt?: SortOrderInput | SortOrder
+    lockedAt?: SortOrderInput | SortOrder
+    lockedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: PrintJobCountOrderByAggregateInput
+    _avg?: PrintJobAvgOrderByAggregateInput
+    _max?: PrintJobMaxOrderByAggregateInput
+    _min?: PrintJobMinOrderByAggregateInput
+    _sum?: PrintJobSumOrderByAggregateInput
+  }
+
+  export type PrintJobScalarWhereWithAggregatesInput = {
+    AND?: PrintJobScalarWhereWithAggregatesInput | PrintJobScalarWhereWithAggregatesInput[]
+    OR?: PrintJobScalarWhereWithAggregatesInput[]
+    NOT?: PrintJobScalarWhereWithAggregatesInput | PrintJobScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"PrintJob"> | bigint | number
+    tenantId?: BigIntWithAggregatesFilter<"PrintJob"> | bigint | number
+    branchId?: BigIntWithAggregatesFilter<"PrintJob"> | bigint | number
+    printerId?: BigIntWithAggregatesFilter<"PrintJob"> | bigint | number
+    document?: StringWithAggregatesFilter<"PrintJob"> | string
+    payload?: JsonWithAggregatesFilter<"PrintJob">
+    status?: EnumPrintStatusWithAggregatesFilter<"PrintJob"> | $Enums.PrintStatus
+    attempts?: IntWithAggregatesFilter<"PrintJob"> | number
+    maxAttempts?: IntWithAggregatesFilter<"PrintJob"> | number
+    errorMessage?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    printedAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    lockedAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    lockedBy?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
   }
 
   export type SyncLogWhereInput = {
@@ -30809,6 +36301,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFilter<"Plan"> | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFilter<"Plan"> | boolean
     active?: BoolFilter<"Plan"> | boolean
+    billingIntervalMonths?: IntFilter<"Plan"> | number
+    trialDays?: IntFilter<"Plan"> | number
     createdAt?: DateTimeFilter<"Plan"> | Date | string
     updatedAt?: DateTimeFilter<"Plan"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Plan"> | Date | string | null
@@ -30824,6 +36318,8 @@ export namespace Prisma {
     extraBranchPrice?: SortOrder
     isEnterprise?: SortOrder
     active?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -30842,6 +36338,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFilter<"Plan"> | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFilter<"Plan"> | boolean
     active?: BoolFilter<"Plan"> | boolean
+    billingIntervalMonths?: IntFilter<"Plan"> | number
+    trialDays?: IntFilter<"Plan"> | number
     createdAt?: DateTimeFilter<"Plan"> | Date | string
     updatedAt?: DateTimeFilter<"Plan"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Plan"> | Date | string | null
@@ -30857,6 +36355,8 @@ export namespace Prisma {
     extraBranchPrice?: SortOrder
     isEnterprise?: SortOrder
     active?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -30879,6 +36379,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalWithAggregatesFilter<"Plan"> | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolWithAggregatesFilter<"Plan"> | boolean
     active?: BoolWithAggregatesFilter<"Plan"> | boolean
+    billingIntervalMonths?: IntWithAggregatesFilter<"Plan"> | number
+    trialDays?: IntWithAggregatesFilter<"Plan"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Plan"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Plan"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Plan"> | Date | string | null
@@ -30898,6 +36400,8 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     lastBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     nextBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    autoRenew?: BoolFilter<"Subscription"> | boolean
     version?: IntFilter<"Subscription"> | number
     createdBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
     updatedBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
@@ -30910,6 +36414,7 @@ export namespace Prisma {
     updatedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     billingSnapshots?: BillingSnapshotListRelationFilter
     invoices?: InvoiceListRelationFilter
+    branchHistory?: SubscriptionBranchHistoryListRelationFilter
   }
 
   export type SubscriptionOrderByWithRelationInput = {
@@ -30923,6 +36428,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     lastBillingAt?: SortOrderInput | SortOrder
     nextBillingAt?: SortOrderInput | SortOrder
+    currentPeriodEnd?: SortOrderInput | SortOrder
+    autoRenew?: SortOrder
     version?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     updatedBy?: SortOrderInput | SortOrder
@@ -30935,6 +36442,7 @@ export namespace Prisma {
     updatedByUser?: UserOrderByWithRelationInput
     billingSnapshots?: BillingSnapshotOrderByRelationAggregateInput
     invoices?: InvoiceOrderByRelationAggregateInput
+    branchHistory?: SubscriptionBranchHistoryOrderByRelationAggregateInput
   }
 
   export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
@@ -30951,6 +36459,8 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     lastBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     nextBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    autoRenew?: BoolFilter<"Subscription"> | boolean
     version?: IntFilter<"Subscription"> | number
     createdBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
     updatedBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
@@ -30963,6 +36473,7 @@ export namespace Prisma {
     updatedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
     billingSnapshots?: BillingSnapshotListRelationFilter
     invoices?: InvoiceListRelationFilter
+    branchHistory?: SubscriptionBranchHistoryListRelationFilter
   }, "id">
 
   export type SubscriptionOrderByWithAggregationInput = {
@@ -30976,6 +36487,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrderInput | SortOrder
     lastBillingAt?: SortOrderInput | SortOrder
     nextBillingAt?: SortOrderInput | SortOrder
+    currentPeriodEnd?: SortOrderInput | SortOrder
+    autoRenew?: SortOrder
     version?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     updatedBy?: SortOrderInput | SortOrder
@@ -31003,12 +36516,92 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
     lastBillingAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
     nextBillingAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
+    autoRenew?: BoolWithAggregatesFilter<"Subscription"> | boolean
     version?: IntWithAggregatesFilter<"Subscription"> | number
     createdBy?: BigIntNullableWithAggregatesFilter<"Subscription"> | bigint | number | null
     updatedBy?: BigIntNullableWithAggregatesFilter<"Subscription"> | bigint | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Subscription"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
+  }
+
+  export type SubscriptionBranchHistoryWhereInput = {
+    AND?: SubscriptionBranchHistoryWhereInput | SubscriptionBranchHistoryWhereInput[]
+    OR?: SubscriptionBranchHistoryWhereInput[]
+    NOT?: SubscriptionBranchHistoryWhereInput | SubscriptionBranchHistoryWhereInput[]
+    id?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    subscriptionId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    branchId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    action?: EnumSubscriptionBranchActionFilter<"SubscriptionBranchHistory"> | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
+    reason?: StringNullableFilter<"SubscriptionBranchHistory"> | string | null
+    createdBy?: BigIntNullableFilter<"SubscriptionBranchHistory"> | bigint | number | null
+    createdAt?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
+    subscription?: XOR<SubscriptionRelationFilter, SubscriptionWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }
+
+  export type SubscriptionBranchHistoryOrderByWithRelationInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    action?: SortOrder
+    effectiveDate?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    subscription?: SubscriptionOrderByWithRelationInput
+    branch?: BranchOrderByWithRelationInput
+    createdByUser?: UserOrderByWithRelationInput
+  }
+
+  export type SubscriptionBranchHistoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: SubscriptionBranchHistoryWhereInput | SubscriptionBranchHistoryWhereInput[]
+    OR?: SubscriptionBranchHistoryWhereInput[]
+    NOT?: SubscriptionBranchHistoryWhereInput | SubscriptionBranchHistoryWhereInput[]
+    subscriptionId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    branchId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    action?: EnumSubscriptionBranchActionFilter<"SubscriptionBranchHistory"> | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
+    reason?: StringNullableFilter<"SubscriptionBranchHistory"> | string | null
+    createdBy?: BigIntNullableFilter<"SubscriptionBranchHistory"> | bigint | number | null
+    createdAt?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
+    subscription?: XOR<SubscriptionRelationFilter, SubscriptionWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }, "id">
+
+  export type SubscriptionBranchHistoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    action?: SortOrder
+    effectiveDate?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: SubscriptionBranchHistoryCountOrderByAggregateInput
+    _avg?: SubscriptionBranchHistoryAvgOrderByAggregateInput
+    _max?: SubscriptionBranchHistoryMaxOrderByAggregateInput
+    _min?: SubscriptionBranchHistoryMinOrderByAggregateInput
+    _sum?: SubscriptionBranchHistorySumOrderByAggregateInput
+  }
+
+  export type SubscriptionBranchHistoryScalarWhereWithAggregatesInput = {
+    AND?: SubscriptionBranchHistoryScalarWhereWithAggregatesInput | SubscriptionBranchHistoryScalarWhereWithAggregatesInput[]
+    OR?: SubscriptionBranchHistoryScalarWhereWithAggregatesInput[]
+    NOT?: SubscriptionBranchHistoryScalarWhereWithAggregatesInput | SubscriptionBranchHistoryScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"SubscriptionBranchHistory"> | bigint | number
+    subscriptionId?: BigIntWithAggregatesFilter<"SubscriptionBranchHistory"> | bigint | number
+    branchId?: BigIntWithAggregatesFilter<"SubscriptionBranchHistory"> | bigint | number
+    action?: EnumSubscriptionBranchActionWithAggregatesFilter<"SubscriptionBranchHistory"> | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeWithAggregatesFilter<"SubscriptionBranchHistory"> | Date | string
+    reason?: StringNullableWithAggregatesFilter<"SubscriptionBranchHistory"> | string | null
+    createdBy?: BigIntNullableWithAggregatesFilter<"SubscriptionBranchHistory"> | bigint | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"SubscriptionBranchHistory"> | Date | string
   }
 
   export type InvoiceFiscalCounterWhereInput = {
@@ -31077,6 +36670,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFilter<"Invoice"> | bigint | number
     billingSnapshotId?: BigIntNullableFilter<"Invoice"> | bigint | number | null
     amount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
@@ -31108,6 +36702,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrderInput | SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     status?: SortOrder
@@ -31145,6 +36740,7 @@ export namespace Prisma {
     sequence?: IntFilter<"Invoice"> | number
     subscriptionId?: BigIntFilter<"Invoice"> | bigint | number
     amount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
@@ -31176,6 +36772,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrderInput | SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     status?: SortOrder
@@ -31210,6 +36807,7 @@ export namespace Prisma {
     subscriptionId?: BigIntWithAggregatesFilter<"Invoice"> | bigint | number
     billingSnapshotId?: BigIntNullableWithAggregatesFilter<"Invoice"> | bigint | number | null
     amount?: DecimalWithAggregatesFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
+    discount?: DecimalWithAggregatesFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalWithAggregatesFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalWithAggregatesFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusWithAggregatesFilter<"Invoice"> | $Enums.InvoiceStatus
@@ -31406,6 +37004,7 @@ export namespace Prisma {
     proofUrl?: StringNullableFilter<"Payment"> | string | null
     coversFrom?: DateTimeNullableFilter<"Payment"> | Date | string | null
     coversTo?: DateTimeNullableFilter<"Payment"> | Date | string | null
+    monthsCovered?: IntNullableFilter<"Payment"> | number | null
     confirmedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
     confirmedBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
     createdBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
@@ -31433,6 +37032,7 @@ export namespace Prisma {
     proofUrl?: SortOrderInput | SortOrder
     coversFrom?: SortOrderInput | SortOrder
     coversTo?: SortOrderInput | SortOrder
+    monthsCovered?: SortOrderInput | SortOrder
     confirmedAt?: SortOrderInput | SortOrder
     confirmedBy?: SortOrderInput | SortOrder
     createdBy?: SortOrderInput | SortOrder
@@ -31464,6 +37064,7 @@ export namespace Prisma {
     proofUrl?: StringNullableFilter<"Payment"> | string | null
     coversFrom?: DateTimeNullableFilter<"Payment"> | Date | string | null
     coversTo?: DateTimeNullableFilter<"Payment"> | Date | string | null
+    monthsCovered?: IntNullableFilter<"Payment"> | number | null
     confirmedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
     confirmedBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
     createdBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
@@ -31491,6 +37092,7 @@ export namespace Prisma {
     proofUrl?: SortOrderInput | SortOrder
     coversFrom?: SortOrderInput | SortOrder
     coversTo?: SortOrderInput | SortOrder
+    monthsCovered?: SortOrderInput | SortOrder
     confirmedAt?: SortOrderInput | SortOrder
     confirmedBy?: SortOrderInput | SortOrder
     createdBy?: SortOrderInput | SortOrder
@@ -31520,6 +37122,7 @@ export namespace Prisma {
     proofUrl?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     coversFrom?: DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
     coversTo?: DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
+    monthsCovered?: IntNullableWithAggregatesFilter<"Payment"> | number | null
     confirmedAt?: DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
     confirmedBy?: BigIntNullableWithAggregatesFilter<"Payment"> | bigint | number | null
     createdBy?: BigIntNullableWithAggregatesFilter<"Payment"> | bigint | number | null
@@ -32264,6 +37867,175 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableWithAggregatesFilter<"UserPermission"> | Date | string | null
   }
 
+  export type CentralSettingsWhereInput = {
+    AND?: CentralSettingsWhereInput | CentralSettingsWhereInput[]
+    OR?: CentralSettingsWhereInput[]
+    NOT?: CentralSettingsWhereInput | CentralSettingsWhereInput[]
+    id?: BigIntFilter<"CentralSettings"> | bigint | number
+    singletonKey?: IntFilter<"CentralSettings"> | number
+    companyName?: StringFilter<"CentralSettings"> | string
+    companyNuit?: StringFilter<"CentralSettings"> | string
+    companyEmail?: StringFilter<"CentralSettings"> | string
+    companyPhone?: StringFilter<"CentralSettings"> | string
+    companyAddress?: StringFilter<"CentralSettings"> | string
+    companyCity?: StringNullableFilter<"CentralSettings"> | string | null
+    companyProvince?: StringNullableFilter<"CentralSettings"> | string | null
+    companyCountry?: StringFilter<"CentralSettings"> | string
+    companyLogo?: StringNullableFilter<"CentralSettings"> | string | null
+    mpesaAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    mpesaAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    emolaAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    emolaAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    bankName?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountNib?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountSwift?: StringNullableFilter<"CentralSettings"> | string | null
+    bankTransferInstructions?: StringNullableFilter<"CentralSettings"> | string | null
+    invoiceFooter?: StringNullableFilter<"CentralSettings"> | string | null
+    receiptFooter?: StringNullableFilter<"CentralSettings"> | string | null
+    defaultMessage?: StringNullableFilter<"CentralSettings"> | string | null
+    active?: BoolFilter<"CentralSettings"> | boolean
+    createdAt?: DateTimeFilter<"CentralSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"CentralSettings"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"CentralSettings"> | Date | string | null
+  }
+
+  export type CentralSettingsOrderByWithRelationInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+    companyName?: SortOrder
+    companyNuit?: SortOrder
+    companyEmail?: SortOrder
+    companyPhone?: SortOrder
+    companyAddress?: SortOrder
+    companyCity?: SortOrderInput | SortOrder
+    companyProvince?: SortOrderInput | SortOrder
+    companyCountry?: SortOrder
+    companyLogo?: SortOrderInput | SortOrder
+    mpesaAccountName?: SortOrderInput | SortOrder
+    mpesaAccountNumber?: SortOrderInput | SortOrder
+    emolaAccountName?: SortOrderInput | SortOrder
+    emolaAccountNumber?: SortOrderInput | SortOrder
+    bankName?: SortOrderInput | SortOrder
+    bankAccountName?: SortOrderInput | SortOrder
+    bankAccountNumber?: SortOrderInput | SortOrder
+    bankAccountNib?: SortOrderInput | SortOrder
+    bankAccountSwift?: SortOrderInput | SortOrder
+    bankTransferInstructions?: SortOrderInput | SortOrder
+    invoiceFooter?: SortOrderInput | SortOrder
+    receiptFooter?: SortOrderInput | SortOrder
+    defaultMessage?: SortOrderInput | SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+  }
+
+  export type CentralSettingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    singletonKey?: number
+    AND?: CentralSettingsWhereInput | CentralSettingsWhereInput[]
+    OR?: CentralSettingsWhereInput[]
+    NOT?: CentralSettingsWhereInput | CentralSettingsWhereInput[]
+    companyName?: StringFilter<"CentralSettings"> | string
+    companyNuit?: StringFilter<"CentralSettings"> | string
+    companyEmail?: StringFilter<"CentralSettings"> | string
+    companyPhone?: StringFilter<"CentralSettings"> | string
+    companyAddress?: StringFilter<"CentralSettings"> | string
+    companyCity?: StringNullableFilter<"CentralSettings"> | string | null
+    companyProvince?: StringNullableFilter<"CentralSettings"> | string | null
+    companyCountry?: StringFilter<"CentralSettings"> | string
+    companyLogo?: StringNullableFilter<"CentralSettings"> | string | null
+    mpesaAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    mpesaAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    emolaAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    emolaAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    bankName?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountName?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountNumber?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountNib?: StringNullableFilter<"CentralSettings"> | string | null
+    bankAccountSwift?: StringNullableFilter<"CentralSettings"> | string | null
+    bankTransferInstructions?: StringNullableFilter<"CentralSettings"> | string | null
+    invoiceFooter?: StringNullableFilter<"CentralSettings"> | string | null
+    receiptFooter?: StringNullableFilter<"CentralSettings"> | string | null
+    defaultMessage?: StringNullableFilter<"CentralSettings"> | string | null
+    active?: BoolFilter<"CentralSettings"> | boolean
+    createdAt?: DateTimeFilter<"CentralSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"CentralSettings"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"CentralSettings"> | Date | string | null
+  }, "id" | "singletonKey">
+
+  export type CentralSettingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+    companyName?: SortOrder
+    companyNuit?: SortOrder
+    companyEmail?: SortOrder
+    companyPhone?: SortOrder
+    companyAddress?: SortOrder
+    companyCity?: SortOrderInput | SortOrder
+    companyProvince?: SortOrderInput | SortOrder
+    companyCountry?: SortOrder
+    companyLogo?: SortOrderInput | SortOrder
+    mpesaAccountName?: SortOrderInput | SortOrder
+    mpesaAccountNumber?: SortOrderInput | SortOrder
+    emolaAccountName?: SortOrderInput | SortOrder
+    emolaAccountNumber?: SortOrderInput | SortOrder
+    bankName?: SortOrderInput | SortOrder
+    bankAccountName?: SortOrderInput | SortOrder
+    bankAccountNumber?: SortOrderInput | SortOrder
+    bankAccountNib?: SortOrderInput | SortOrder
+    bankAccountSwift?: SortOrderInput | SortOrder
+    bankTransferInstructions?: SortOrderInput | SortOrder
+    invoiceFooter?: SortOrderInput | SortOrder
+    receiptFooter?: SortOrderInput | SortOrder
+    defaultMessage?: SortOrderInput | SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: CentralSettingsCountOrderByAggregateInput
+    _avg?: CentralSettingsAvgOrderByAggregateInput
+    _max?: CentralSettingsMaxOrderByAggregateInput
+    _min?: CentralSettingsMinOrderByAggregateInput
+    _sum?: CentralSettingsSumOrderByAggregateInput
+  }
+
+  export type CentralSettingsScalarWhereWithAggregatesInput = {
+    AND?: CentralSettingsScalarWhereWithAggregatesInput | CentralSettingsScalarWhereWithAggregatesInput[]
+    OR?: CentralSettingsScalarWhereWithAggregatesInput[]
+    NOT?: CentralSettingsScalarWhereWithAggregatesInput | CentralSettingsScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"CentralSettings"> | bigint | number
+    singletonKey?: IntWithAggregatesFilter<"CentralSettings"> | number
+    companyName?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyNuit?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyEmail?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyPhone?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyAddress?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyCity?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    companyProvince?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    companyCountry?: StringWithAggregatesFilter<"CentralSettings"> | string
+    companyLogo?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    mpesaAccountName?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    mpesaAccountNumber?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    emolaAccountName?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    emolaAccountNumber?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankName?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankAccountName?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankAccountNumber?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankAccountNib?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankAccountSwift?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    bankTransferInstructions?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    invoiceFooter?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    receiptFooter?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    defaultMessage?: StringNullableWithAggregatesFilter<"CentralSettings"> | string | null
+    active?: BoolWithAggregatesFilter<"CentralSettings"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"CentralSettings"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CentralSettings"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"CentralSettings"> | Date | string | null
+  }
+
   export type UserCreateInput = {
     id?: bigint | number
     uuid?: string
@@ -32292,6 +38064,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -32324,6 +38097,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -32356,6 +38130,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -32388,6 +38163,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -32528,9 +38304,11 @@ export namespace Prisma {
   export type TenantCreateInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -32551,6 +38329,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -32560,10 +38340,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -32583,6 +38365,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -32592,9 +38376,11 @@ export namespace Prisma {
   export type TenantUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -32615,6 +38401,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -32624,10 +38412,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -32647,6 +38437,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -32656,10 +38448,12 @@ export namespace Prisma {
   export type TenantCreateManyInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -32673,9 +38467,11 @@ export namespace Prisma {
   export type TenantUpdateManyMutationInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -32687,10 +38483,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateManyInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -32805,9 +38603,12 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateInput = {
@@ -32838,9 +38639,12 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUpdateInput = {
@@ -32871,9 +38675,12 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateInput = {
@@ -32904,9 +38711,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchCreateManyInput = {
@@ -33007,6 +38817,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     tenant: TenantCreateNestedOneWithoutDevicesInput
     branch: BranchCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
@@ -33026,6 +38837,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
@@ -33045,6 +38857,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
     branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
@@ -33064,6 +38877,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
@@ -33110,6 +38924,277 @@ export namespace Prisma {
     apiKeyHash?: NullableStringFieldUpdateOperationsInput | string | null
     active?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrinterCreateInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintersInput
+    branch: BranchCreateNestedOneWithoutPrintersInput
+    device?: DeviceCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterUncheckedCreateInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintersNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPrintersNestedInput
+    device?: DeviceUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterCreateManyInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrinterUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrinterUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobCreateInput = {
+    id?: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    branch: BranchCreateNestedOneWithoutPrintJobsInput
+    printer: PrinterCreateNestedOneWithoutPrintJobsInput
+  }
+
+  export type PrintJobUncheckedCreateInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    branchId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPrintJobsNestedInput
+    printer?: PrinterUpdateOneRequiredWithoutPrintJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobCreateManyInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    branchId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33404,6 +39489,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | DecimalJsLike | number | string
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: number
+    trialDays?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -33419,6 +39506,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | DecimalJsLike | number | string
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: number
+    trialDays?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -33433,6 +39522,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33448,6 +39539,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33463,6 +39556,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | DecimalJsLike | number | string
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: number
+    trialDays?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -33476,6 +39571,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33490,6 +39587,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33504,6 +39603,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -33514,6 +39615,7 @@ export namespace Prisma {
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateInput = {
@@ -33527,6 +39629,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -33535,6 +39639,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUpdateInput = {
@@ -33546,6 +39651,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33556,6 +39663,7 @@ export namespace Prisma {
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateInput = {
@@ -33569,6 +39677,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -33577,6 +39687,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionCreateManyInput = {
@@ -33590,6 +39701,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -33607,6 +39720,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33624,12 +39739,88 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SubscriptionBranchHistoryCreateInput = {
+    id?: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+    subscription: SubscriptionCreateNestedOneWithoutBranchHistoryInput
+    branch: BranchCreateNestedOneWithoutSubscriptionBranchHistoryInput
+    createdByUser?: UserCreateNestedOneWithoutSubscriptionBranchHistoryCreatedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
+  }
+
+  export type SubscriptionBranchHistoryUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription?: SubscriptionUpdateOneRequiredWithoutBranchHistoryNestedInput
+    branch?: BranchUpdateOneRequiredWithoutSubscriptionBranchHistoryNestedInput
+    createdByUser?: UserUpdateOneWithoutSubscriptionBranchHistoryCreatedNestedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionBranchHistoryCreateManyInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
+  }
+
+  export type SubscriptionBranchHistoryUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type InvoiceFiscalCounterCreateInput = {
@@ -33687,6 +39878,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -33718,6 +39910,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -33743,6 +39936,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -33774,6 +39968,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -33802,6 +39997,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -33825,6 +40021,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -33851,6 +40048,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -34052,6 +40250,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -34076,6 +40275,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -34096,6 +40296,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34120,6 +40321,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -34142,6 +40344,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -34161,6 +40364,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34179,6 +40383,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -34965,6 +41170,223 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type CentralSettingsCreateInput = {
+    id?: bigint | number
+    singletonKey?: number
+    companyName: string
+    companyNuit: string
+    companyEmail: string
+    companyPhone: string
+    companyAddress: string
+    companyCity?: string | null
+    companyProvince?: string | null
+    companyCountry?: string
+    companyLogo?: string | null
+    mpesaAccountName?: string | null
+    mpesaAccountNumber?: string | null
+    emolaAccountName?: string | null
+    emolaAccountNumber?: string | null
+    bankName?: string | null
+    bankAccountName?: string | null
+    bankAccountNumber?: string | null
+    bankAccountNib?: string | null
+    bankAccountSwift?: string | null
+    bankTransferInstructions?: string | null
+    invoiceFooter?: string | null
+    receiptFooter?: string | null
+    defaultMessage?: string | null
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CentralSettingsUncheckedCreateInput = {
+    id?: bigint | number
+    singletonKey?: number
+    companyName: string
+    companyNuit: string
+    companyEmail: string
+    companyPhone: string
+    companyAddress: string
+    companyCity?: string | null
+    companyProvince?: string | null
+    companyCountry?: string
+    companyLogo?: string | null
+    mpesaAccountName?: string | null
+    mpesaAccountNumber?: string | null
+    emolaAccountName?: string | null
+    emolaAccountNumber?: string | null
+    bankName?: string | null
+    bankAccountName?: string | null
+    bankAccountNumber?: string | null
+    bankAccountNib?: string | null
+    bankAccountSwift?: string | null
+    bankTransferInstructions?: string | null
+    invoiceFooter?: string | null
+    receiptFooter?: string | null
+    defaultMessage?: string | null
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CentralSettingsUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    singletonKey?: IntFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyNuit?: StringFieldUpdateOperationsInput | string
+    companyEmail?: StringFieldUpdateOperationsInput | string
+    companyPhone?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyCity?: NullableStringFieldUpdateOperationsInput | string | null
+    companyProvince?: NullableStringFieldUpdateOperationsInput | string | null
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNib?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountSwift?: NullableStringFieldUpdateOperationsInput | string | null
+    bankTransferInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    invoiceFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CentralSettingsUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    singletonKey?: IntFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyNuit?: StringFieldUpdateOperationsInput | string
+    companyEmail?: StringFieldUpdateOperationsInput | string
+    companyPhone?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyCity?: NullableStringFieldUpdateOperationsInput | string | null
+    companyProvince?: NullableStringFieldUpdateOperationsInput | string | null
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNib?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountSwift?: NullableStringFieldUpdateOperationsInput | string | null
+    bankTransferInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    invoiceFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CentralSettingsCreateManyInput = {
+    id?: bigint | number
+    singletonKey?: number
+    companyName: string
+    companyNuit: string
+    companyEmail: string
+    companyPhone: string
+    companyAddress: string
+    companyCity?: string | null
+    companyProvince?: string | null
+    companyCountry?: string
+    companyLogo?: string | null
+    mpesaAccountName?: string | null
+    mpesaAccountNumber?: string | null
+    emolaAccountName?: string | null
+    emolaAccountNumber?: string | null
+    bankName?: string | null
+    bankAccountName?: string | null
+    bankAccountNumber?: string | null
+    bankAccountNib?: string | null
+    bankAccountSwift?: string | null
+    bankTransferInstructions?: string | null
+    invoiceFooter?: string | null
+    receiptFooter?: string | null
+    defaultMessage?: string | null
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CentralSettingsUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    singletonKey?: IntFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyNuit?: StringFieldUpdateOperationsInput | string
+    companyEmail?: StringFieldUpdateOperationsInput | string
+    companyPhone?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyCity?: NullableStringFieldUpdateOperationsInput | string | null
+    companyProvince?: NullableStringFieldUpdateOperationsInput | string | null
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNib?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountSwift?: NullableStringFieldUpdateOperationsInput | string | null
+    bankTransferInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    invoiceFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CentralSettingsUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    singletonKey?: IntFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyNuit?: StringFieldUpdateOperationsInput | string
+    companyEmail?: StringFieldUpdateOperationsInput | string
+    companyPhone?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyCity?: NullableStringFieldUpdateOperationsInput | string | null
+    companyProvince?: NullableStringFieldUpdateOperationsInput | string | null
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    mpesaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    emolaAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountNib?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccountSwift?: NullableStringFieldUpdateOperationsInput | string | null
+    bankTransferInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    invoiceFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptFooter?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type BigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[]
@@ -35077,6 +41499,12 @@ export namespace Prisma {
     none?: SubscriptionWhereInput
   }
 
+  export type SubscriptionBranchHistoryListRelationFilter = {
+    every?: SubscriptionBranchHistoryWhereInput
+    some?: SubscriptionBranchHistoryWhereInput
+    none?: SubscriptionBranchHistoryWhereInput
+  }
+
   export type AuditLogListRelationFilter = {
     every?: AuditLogWhereInput
     some?: AuditLogWhereInput
@@ -35119,6 +41547,10 @@ export namespace Prisma {
   }
 
   export type SubscriptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SubscriptionBranchHistoryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -35448,6 +41880,18 @@ export namespace Prisma {
     none?: DeviceWhereInput
   }
 
+  export type PrinterListRelationFilter = {
+    every?: PrinterWhereInput
+    some?: PrinterWhereInput
+    none?: PrinterWhereInput
+  }
+
+  export type PrintJobListRelationFilter = {
+    every?: PrintJobWhereInput
+    some?: PrintJobWhereInput
+    none?: PrintJobWhereInput
+  }
+
   export type SyncLogListRelationFilter = {
     every?: SyncLogWhereInput
     some?: SyncLogWhereInput
@@ -35490,6 +41934,14 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type PrinterOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PrintJobOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type SyncLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -35505,10 +41957,12 @@ export namespace Prisma {
   export type TenantCountOrderByAggregateInput = {
     id?: SortOrder
     uuid?: SortOrder
-    ownerId?: SortOrder
-    name?: SortOrder
-    companyName?: SortOrder
+    ownerUserId?: SortOrder
+    tenantKey?: SortOrder
+    tenantName?: SortOrder
     nuit?: SortOrder
+    email?: SortOrder
+    endereco?: SortOrder
     status?: SortOrder
     country?: SortOrder
     version?: SortOrder
@@ -35521,7 +41975,7 @@ export namespace Prisma {
 
   export type TenantAvgOrderByAggregateInput = {
     id?: SortOrder
-    ownerId?: SortOrder
+    ownerUserId?: SortOrder
     version?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -35530,10 +41984,12 @@ export namespace Prisma {
   export type TenantMaxOrderByAggregateInput = {
     id?: SortOrder
     uuid?: SortOrder
-    ownerId?: SortOrder
-    name?: SortOrder
-    companyName?: SortOrder
+    ownerUserId?: SortOrder
+    tenantKey?: SortOrder
+    tenantName?: SortOrder
     nuit?: SortOrder
+    email?: SortOrder
+    endereco?: SortOrder
     status?: SortOrder
     country?: SortOrder
     version?: SortOrder
@@ -35547,10 +42003,12 @@ export namespace Prisma {
   export type TenantMinOrderByAggregateInput = {
     id?: SortOrder
     uuid?: SortOrder
-    ownerId?: SortOrder
-    name?: SortOrder
-    companyName?: SortOrder
+    ownerUserId?: SortOrder
+    tenantKey?: SortOrder
+    tenantName?: SortOrder
     nuit?: SortOrder
+    email?: SortOrder
+    endereco?: SortOrder
     status?: SortOrder
     country?: SortOrder
     version?: SortOrder
@@ -35563,7 +42021,7 @@ export namespace Prisma {
 
   export type TenantSumOrderByAggregateInput = {
     id?: SortOrder
-    ownerId?: SortOrder
+    ownerUserId?: SortOrder
     version?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -35941,6 +42399,224 @@ export namespace Prisma {
     version?: SortOrder
   }
 
+  export type EnumPrinterTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterType | EnumPrinterTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterType[]
+    notIn?: $Enums.PrinterType[]
+    not?: NestedEnumPrinterTypeFilter<$PrismaModel> | $Enums.PrinterType
+  }
+
+  export type EnumPrinterConnectionFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterConnection | EnumPrinterConnectionFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterConnection[]
+    notIn?: $Enums.PrinterConnection[]
+    not?: NestedEnumPrinterConnectionFilter<$PrismaModel> | $Enums.PrinterConnection
+  }
+
+  export type DeviceNullableRelationFilter = {
+    is?: DeviceWhereInput | null
+    isNot?: DeviceWhereInput | null
+  }
+
+  export type PrinterTenantIdBranchIdNameCompoundUniqueInput = {
+    tenantId: bigint | number
+    branchId: bigint | number
+    name: string
+  }
+
+  export type PrinterCountOrderByAggregateInput = {
+    id?: SortOrder
+    uuid?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    connection?: SortOrder
+    ip?: SortOrder
+    port?: SortOrder
+    model?: SortOrder
+    manufacturer?: SortOrder
+    active?: SortOrder
+    version?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrinterAvgOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrder
+    port?: SortOrder
+    version?: SortOrder
+  }
+
+  export type PrinterMaxOrderByAggregateInput = {
+    id?: SortOrder
+    uuid?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    connection?: SortOrder
+    ip?: SortOrder
+    port?: SortOrder
+    model?: SortOrder
+    manufacturer?: SortOrder
+    active?: SortOrder
+    version?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrinterMinOrderByAggregateInput = {
+    id?: SortOrder
+    uuid?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    connection?: SortOrder
+    ip?: SortOrder
+    port?: SortOrder
+    model?: SortOrder
+    manufacturer?: SortOrder
+    active?: SortOrder
+    version?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrinterSumOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    deviceId?: SortOrder
+    port?: SortOrder
+    version?: SortOrder
+  }
+
+  export type EnumPrinterTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterType | EnumPrinterTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterType[]
+    notIn?: $Enums.PrinterType[]
+    not?: NestedEnumPrinterTypeWithAggregatesFilter<$PrismaModel> | $Enums.PrinterType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrinterTypeFilter<$PrismaModel>
+    _max?: NestedEnumPrinterTypeFilter<$PrismaModel>
+  }
+
+  export type EnumPrinterConnectionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterConnection | EnumPrinterConnectionFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterConnection[]
+    notIn?: $Enums.PrinterConnection[]
+    not?: NestedEnumPrinterConnectionWithAggregatesFilter<$PrismaModel> | $Enums.PrinterConnection
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrinterConnectionFilter<$PrismaModel>
+    _max?: NestedEnumPrinterConnectionFilter<$PrismaModel>
+  }
+
+  export type EnumPrintStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintStatus | EnumPrintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintStatus[]
+    notIn?: $Enums.PrintStatus[]
+    not?: NestedEnumPrintStatusFilter<$PrismaModel> | $Enums.PrintStatus
+  }
+
+  export type PrinterRelationFilter = {
+    is?: PrinterWhereInput
+    isNot?: PrinterWhereInput
+  }
+
+  export type PrintJobCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    document?: SortOrder
+    payload?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    errorMessage?: SortOrder
+    printedAt?: SortOrder
+    lockedAt?: SortOrder
+    lockedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrintJobAvgOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+  }
+
+  export type PrintJobMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    document?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    errorMessage?: SortOrder
+    printedAt?: SortOrder
+    lockedAt?: SortOrder
+    lockedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrintJobMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    document?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    errorMessage?: SortOrder
+    printedAt?: SortOrder
+    lockedAt?: SortOrder
+    lockedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type PrintJobSumOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    branchId?: SortOrder
+    printerId?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+  }
+
+  export type EnumPrintStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintStatus | EnumPrintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintStatus[]
+    notIn?: $Enums.PrintStatus[]
+    not?: NestedEnumPrintStatusWithAggregatesFilter<$PrismaModel> | $Enums.PrintStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrintStatusFilter<$PrismaModel>
+    _max?: NestedEnumPrintStatusFilter<$PrismaModel>
+  }
+
   export type EnumSyncOperationFilter<$PrismaModel = never> = {
     equals?: $Enums.SyncOperation | EnumSyncOperationFieldRefInput<$PrismaModel>
     in?: $Enums.SyncOperation[]
@@ -35975,11 +42651,6 @@ export namespace Prisma {
     in?: $Enums.SyncStatus[]
     notIn?: $Enums.SyncStatus[]
     not?: NestedEnumSyncStatusFilter<$PrismaModel> | $Enums.SyncStatus
-  }
-
-  export type DeviceNullableRelationFilter = {
-    is?: DeviceWhereInput | null
-    isNot?: DeviceWhereInput | null
   }
 
   export type SyncLogTenantIdBranchIdEntityEntityIdOperationSchemaVersionCompoundUniqueInput = {
@@ -36236,6 +42907,8 @@ export namespace Prisma {
     extraBranchPrice?: SortOrder
     isEnterprise?: SortOrder
     active?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -36246,6 +42919,8 @@ export namespace Prisma {
     monthlyPrice?: SortOrder
     includedBranches?: SortOrder
     extraBranchPrice?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
   }
 
   export type PlanMaxOrderByAggregateInput = {
@@ -36257,6 +42932,8 @@ export namespace Prisma {
     extraBranchPrice?: SortOrder
     isEnterprise?: SortOrder
     active?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -36271,6 +42948,8 @@ export namespace Prisma {
     extraBranchPrice?: SortOrder
     isEnterprise?: SortOrder
     active?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -36281,6 +42960,8 @@ export namespace Prisma {
     monthlyPrice?: SortOrder
     includedBranches?: SortOrder
     extraBranchPrice?: SortOrder
+    billingIntervalMonths?: SortOrder
+    trialDays?: SortOrder
   }
 
   export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -36322,6 +43003,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     lastBillingAt?: SortOrder
     nextBillingAt?: SortOrder
+    currentPeriodEnd?: SortOrder
+    autoRenew?: SortOrder
     version?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -36351,6 +43034,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     lastBillingAt?: SortOrder
     nextBillingAt?: SortOrder
+    currentPeriodEnd?: SortOrder
+    autoRenew?: SortOrder
     version?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -36370,6 +43055,8 @@ export namespace Prisma {
     trialEndsAt?: SortOrder
     lastBillingAt?: SortOrder
     nextBillingAt?: SortOrder
+    currentPeriodEnd?: SortOrder
+    autoRenew?: SortOrder
     version?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -36396,6 +43083,75 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumSubscriptionStatusFilter<$PrismaModel>
     _max?: NestedEnumSubscriptionStatusFilter<$PrismaModel>
+  }
+
+  export type EnumSubscriptionBranchActionFilter<$PrismaModel = never> = {
+    equals?: $Enums.SubscriptionBranchAction | EnumSubscriptionBranchActionFieldRefInput<$PrismaModel>
+    in?: $Enums.SubscriptionBranchAction[]
+    notIn?: $Enums.SubscriptionBranchAction[]
+    not?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel> | $Enums.SubscriptionBranchAction
+  }
+
+  export type SubscriptionRelationFilter = {
+    is?: SubscriptionWhereInput
+    isNot?: SubscriptionWhereInput
+  }
+
+  export type SubscriptionBranchHistoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    action?: SortOrder
+    effectiveDate?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SubscriptionBranchHistoryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type SubscriptionBranchHistoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    action?: SortOrder
+    effectiveDate?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SubscriptionBranchHistoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    action?: SortOrder
+    effectiveDate?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SubscriptionBranchHistorySumOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    branchId?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type EnumSubscriptionBranchActionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SubscriptionBranchAction | EnumSubscriptionBranchActionFieldRefInput<$PrismaModel>
+    in?: $Enums.SubscriptionBranchAction[]
+    notIn?: $Enums.SubscriptionBranchAction[]
+    not?: NestedEnumSubscriptionBranchActionWithAggregatesFilter<$PrismaModel> | $Enums.SubscriptionBranchAction
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel>
+    _max?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel>
   }
 
   export type InvoiceFiscalCounterTenantIdFiscalYearCompoundUniqueInput = {
@@ -36443,11 +43199,6 @@ export namespace Prisma {
     not?: NestedEnumInvoiceStatusFilter<$PrismaModel> | $Enums.InvoiceStatus
   }
 
-  export type SubscriptionRelationFilter = {
-    is?: SubscriptionWhereInput
-    isNot?: SubscriptionWhereInput
-  }
-
   export type BillingSnapshotNullableRelationFilter = {
     is?: BillingSnapshotWhereInput | null
     isNot?: BillingSnapshotWhereInput | null
@@ -36479,6 +43230,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     status?: SortOrder
@@ -36503,6 +43255,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     branchesUsed?: SortOrder
@@ -36520,6 +43273,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     status?: SortOrder
@@ -36546,6 +43300,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     status?: SortOrder
@@ -36570,6 +43325,7 @@ export namespace Prisma {
     subscriptionId?: SortOrder
     billingSnapshotId?: SortOrder
     amount?: SortOrder
+    discount?: SortOrder
     paidAmount?: SortOrder
     remainingAmount?: SortOrder
     branchesUsed?: SortOrder
@@ -36741,6 +43497,7 @@ export namespace Prisma {
     proofUrl?: SortOrder
     coversFrom?: SortOrder
     coversTo?: SortOrder
+    monthsCovered?: SortOrder
     confirmedAt?: SortOrder
     confirmedBy?: SortOrder
     createdBy?: SortOrder
@@ -36756,6 +43513,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     invoiceId?: SortOrder
     amount?: SortOrder
+    monthsCovered?: SortOrder
     confirmedBy?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -36772,6 +43530,7 @@ export namespace Prisma {
     proofUrl?: SortOrder
     coversFrom?: SortOrder
     coversTo?: SortOrder
+    monthsCovered?: SortOrder
     confirmedAt?: SortOrder
     confirmedBy?: SortOrder
     createdBy?: SortOrder
@@ -36793,6 +43552,7 @@ export namespace Prisma {
     proofUrl?: SortOrder
     coversFrom?: SortOrder
     coversTo?: SortOrder
+    monthsCovered?: SortOrder
     confirmedAt?: SortOrder
     confirmedBy?: SortOrder
     createdBy?: SortOrder
@@ -36808,6 +43568,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     invoiceId?: SortOrder
     amount?: SortOrder
+    monthsCovered?: SortOrder
     confirmedBy?: SortOrder
     createdBy?: SortOrder
     updatedBy?: SortOrder
@@ -37349,6 +44110,109 @@ export namespace Prisma {
     tenantId?: SortOrder
   }
 
+  export type CentralSettingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+    companyName?: SortOrder
+    companyNuit?: SortOrder
+    companyEmail?: SortOrder
+    companyPhone?: SortOrder
+    companyAddress?: SortOrder
+    companyCity?: SortOrder
+    companyProvince?: SortOrder
+    companyCountry?: SortOrder
+    companyLogo?: SortOrder
+    mpesaAccountName?: SortOrder
+    mpesaAccountNumber?: SortOrder
+    emolaAccountName?: SortOrder
+    emolaAccountNumber?: SortOrder
+    bankName?: SortOrder
+    bankAccountName?: SortOrder
+    bankAccountNumber?: SortOrder
+    bankAccountNib?: SortOrder
+    bankAccountSwift?: SortOrder
+    bankTransferInstructions?: SortOrder
+    invoiceFooter?: SortOrder
+    receiptFooter?: SortOrder
+    defaultMessage?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type CentralSettingsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+  }
+
+  export type CentralSettingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+    companyName?: SortOrder
+    companyNuit?: SortOrder
+    companyEmail?: SortOrder
+    companyPhone?: SortOrder
+    companyAddress?: SortOrder
+    companyCity?: SortOrder
+    companyProvince?: SortOrder
+    companyCountry?: SortOrder
+    companyLogo?: SortOrder
+    mpesaAccountName?: SortOrder
+    mpesaAccountNumber?: SortOrder
+    emolaAccountName?: SortOrder
+    emolaAccountNumber?: SortOrder
+    bankName?: SortOrder
+    bankAccountName?: SortOrder
+    bankAccountNumber?: SortOrder
+    bankAccountNib?: SortOrder
+    bankAccountSwift?: SortOrder
+    bankTransferInstructions?: SortOrder
+    invoiceFooter?: SortOrder
+    receiptFooter?: SortOrder
+    defaultMessage?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type CentralSettingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+    companyName?: SortOrder
+    companyNuit?: SortOrder
+    companyEmail?: SortOrder
+    companyPhone?: SortOrder
+    companyAddress?: SortOrder
+    companyCity?: SortOrder
+    companyProvince?: SortOrder
+    companyCountry?: SortOrder
+    companyLogo?: SortOrder
+    mpesaAccountName?: SortOrder
+    mpesaAccountNumber?: SortOrder
+    emolaAccountName?: SortOrder
+    emolaAccountNumber?: SortOrder
+    bankName?: SortOrder
+    bankAccountName?: SortOrder
+    bankAccountNumber?: SortOrder
+    bankAccountNib?: SortOrder
+    bankAccountSwift?: SortOrder
+    bankTransferInstructions?: SortOrder
+    invoiceFooter?: SortOrder
+    receiptFooter?: SortOrder
+    defaultMessage?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type CentralSettingsSumOrderByAggregateInput = {
+    id?: SortOrder
+    singletonKey?: SortOrder
+  }
+
   export type TenantCreateNestedManyWithoutOwnerInput = {
     create?: XOR<TenantCreateWithoutOwnerInput, TenantUncheckedCreateWithoutOwnerInput> | TenantCreateWithoutOwnerInput[] | TenantUncheckedCreateWithoutOwnerInput[]
     connectOrCreate?: TenantCreateOrConnectWithoutOwnerInput | TenantCreateOrConnectWithoutOwnerInput[]
@@ -37438,6 +44302,13 @@ export namespace Prisma {
     connectOrCreate?: SubscriptionCreateOrConnectWithoutUpdatedByUserInput | SubscriptionCreateOrConnectWithoutUpdatedByUserInput[]
     createMany?: SubscriptionCreateManyUpdatedByUserInputEnvelope
     connect?: SubscriptionWhereUniqueInput | SubscriptionWhereUniqueInput[]
+  }
+
+  export type SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput> | SubscriptionBranchHistoryCreateWithoutCreatedByUserInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput | SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyCreatedByUserInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
   }
 
   export type AuditLogCreateNestedManyWithoutUserInput = {
@@ -37543,6 +44414,13 @@ export namespace Prisma {
     connectOrCreate?: SubscriptionCreateOrConnectWithoutUpdatedByUserInput | SubscriptionCreateOrConnectWithoutUpdatedByUserInput[]
     createMany?: SubscriptionCreateManyUpdatedByUserInputEnvelope
     connect?: SubscriptionWhereUniqueInput | SubscriptionWhereUniqueInput[]
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput> | SubscriptionBranchHistoryCreateWithoutCreatedByUserInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput | SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyCreatedByUserInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
   }
 
   export type AuditLogUncheckedCreateNestedManyWithoutUserInput = {
@@ -37777,6 +44655,20 @@ export namespace Prisma {
     deleteMany?: SubscriptionScalarWhereInput | SubscriptionScalarWhereInput[]
   }
 
+  export type SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput> | SubscriptionBranchHistoryCreateWithoutCreatedByUserInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput | SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutCreatedByUserInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyCreatedByUserInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutCreatedByUserInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutCreatedByUserInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
   export type AuditLogUpdateManyWithoutUserNestedInput = {
     create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
@@ -37987,6 +44879,20 @@ export namespace Prisma {
     deleteMany?: SubscriptionScalarWhereInput | SubscriptionScalarWhereInput[]
   }
 
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput> | SubscriptionBranchHistoryCreateWithoutCreatedByUserInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput | SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutCreatedByUserInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyCreatedByUserInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutCreatedByUserInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutCreatedByUserInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
   export type AuditLogUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
@@ -38141,6 +45047,20 @@ export namespace Prisma {
     connect?: DeviceWhereUniqueInput | DeviceWhereUniqueInput[]
   }
 
+  export type PrinterCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput> | PrinterCreateWithoutTenantInput[] | PrinterUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutTenantInput | PrinterCreateOrConnectWithoutTenantInput[]
+    createMany?: PrinterCreateManyTenantInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput> | PrintJobCreateWithoutTenantInput[] | PrintJobUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutTenantInput | PrintJobCreateOrConnectWithoutTenantInput[]
+    createMany?: PrintJobCreateManyTenantInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
   export type SyncLogCreateNestedManyWithoutTenantInput = {
     create?: XOR<SyncLogCreateWithoutTenantInput, SyncLogUncheckedCreateWithoutTenantInput> | SyncLogCreateWithoutTenantInput[] | SyncLogUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutTenantInput | SyncLogCreateOrConnectWithoutTenantInput[]
@@ -38243,6 +45163,20 @@ export namespace Prisma {
     connectOrCreate?: DeviceCreateOrConnectWithoutTenantInput | DeviceCreateOrConnectWithoutTenantInput[]
     createMany?: DeviceCreateManyTenantInputEnvelope
     connect?: DeviceWhereUniqueInput | DeviceWhereUniqueInput[]
+  }
+
+  export type PrinterUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput> | PrinterCreateWithoutTenantInput[] | PrinterUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutTenantInput | PrinterCreateOrConnectWithoutTenantInput[]
+    createMany?: PrinterCreateManyTenantInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput> | PrintJobCreateWithoutTenantInput[] | PrintJobUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutTenantInput | PrintJobCreateOrConnectWithoutTenantInput[]
+    createMany?: PrintJobCreateManyTenantInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
   }
 
   export type SyncLogUncheckedCreateNestedManyWithoutTenantInput = {
@@ -38459,6 +45393,34 @@ export namespace Prisma {
     deleteMany?: DeviceScalarWhereInput | DeviceScalarWhereInput[]
   }
 
+  export type PrinterUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput> | PrinterCreateWithoutTenantInput[] | PrinterUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutTenantInput | PrinterCreateOrConnectWithoutTenantInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutTenantInput | PrinterUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrinterCreateManyTenantInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutTenantInput | PrinterUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutTenantInput | PrinterUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput> | PrintJobCreateWithoutTenantInput[] | PrintJobUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutTenantInput | PrintJobCreateOrConnectWithoutTenantInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutTenantInput | PrintJobUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrintJobCreateManyTenantInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutTenantInput | PrintJobUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutTenantInput | PrintJobUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
   export type SyncLogUpdateManyWithoutTenantNestedInput = {
     create?: XOR<SyncLogCreateWithoutTenantInput, SyncLogUncheckedCreateWithoutTenantInput> | SyncLogCreateWithoutTenantInput[] | SyncLogUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutTenantInput | SyncLogCreateOrConnectWithoutTenantInput[]
@@ -38673,6 +45635,34 @@ export namespace Prisma {
     deleteMany?: DeviceScalarWhereInput | DeviceScalarWhereInput[]
   }
 
+  export type PrinterUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput> | PrinterCreateWithoutTenantInput[] | PrinterUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutTenantInput | PrinterCreateOrConnectWithoutTenantInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutTenantInput | PrinterUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrinterCreateManyTenantInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutTenantInput | PrinterUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutTenantInput | PrinterUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput> | PrintJobCreateWithoutTenantInput[] | PrintJobUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutTenantInput | PrintJobCreateOrConnectWithoutTenantInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutTenantInput | PrintJobUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrintJobCreateManyTenantInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutTenantInput | PrintJobUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutTenantInput | PrintJobUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
   export type SyncLogUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<SyncLogCreateWithoutTenantInput, SyncLogUncheckedCreateWithoutTenantInput> | SyncLogCreateWithoutTenantInput[] | SyncLogUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutTenantInput | SyncLogCreateOrConnectWithoutTenantInput[]
@@ -38768,6 +45758,20 @@ export namespace Prisma {
     connect?: DeviceWhereUniqueInput | DeviceWhereUniqueInput[]
   }
 
+  export type PrinterCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput> | PrinterCreateWithoutBranchInput[] | PrinterUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutBranchInput | PrinterCreateOrConnectWithoutBranchInput[]
+    createMany?: PrinterCreateManyBranchInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput> | PrintJobCreateWithoutBranchInput[] | PrintJobUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutBranchInput | PrintJobCreateOrConnectWithoutBranchInput[]
+    createMany?: PrintJobCreateManyBranchInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
   export type SyncLogCreateNestedManyWithoutBranchInput = {
     create?: XOR<SyncLogCreateWithoutBranchInput, SyncLogUncheckedCreateWithoutBranchInput> | SyncLogCreateWithoutBranchInput[] | SyncLogUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutBranchInput | SyncLogCreateOrConnectWithoutBranchInput[]
@@ -38789,11 +45793,32 @@ export namespace Prisma {
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
   }
 
+  export type SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput> | SubscriptionBranchHistoryCreateWithoutBranchInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput | SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyBranchInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+  }
+
   export type DeviceUncheckedCreateNestedManyWithoutBranchInput = {
     create?: XOR<DeviceCreateWithoutBranchInput, DeviceUncheckedCreateWithoutBranchInput> | DeviceCreateWithoutBranchInput[] | DeviceUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: DeviceCreateOrConnectWithoutBranchInput | DeviceCreateOrConnectWithoutBranchInput[]
     createMany?: DeviceCreateManyBranchInputEnvelope
     connect?: DeviceWhereUniqueInput | DeviceWhereUniqueInput[]
+  }
+
+  export type PrinterUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput> | PrinterCreateWithoutBranchInput[] | PrinterUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutBranchInput | PrinterCreateOrConnectWithoutBranchInput[]
+    createMany?: PrinterCreateManyBranchInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput> | PrintJobCreateWithoutBranchInput[] | PrintJobUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutBranchInput | PrintJobCreateOrConnectWithoutBranchInput[]
+    createMany?: PrintJobCreateManyBranchInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
   }
 
   export type SyncLogUncheckedCreateNestedManyWithoutBranchInput = {
@@ -38815,6 +45840,13 @@ export namespace Prisma {
     connectOrCreate?: AuditLogCreateOrConnectWithoutBranchInput | AuditLogCreateOrConnectWithoutBranchInput[]
     createMany?: AuditLogCreateManyBranchInputEnvelope
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput> | SubscriptionBranchHistoryCreateWithoutBranchInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput | SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyBranchInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
   }
 
   export type EnumBranchConnectionStatusFieldUpdateOperationsInput = {
@@ -38871,6 +45903,34 @@ export namespace Prisma {
     deleteMany?: DeviceScalarWhereInput | DeviceScalarWhereInput[]
   }
 
+  export type PrinterUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput> | PrinterCreateWithoutBranchInput[] | PrinterUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutBranchInput | PrinterCreateOrConnectWithoutBranchInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutBranchInput | PrinterUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PrinterCreateManyBranchInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutBranchInput | PrinterUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutBranchInput | PrinterUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput> | PrintJobCreateWithoutBranchInput[] | PrintJobUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutBranchInput | PrintJobCreateOrConnectWithoutBranchInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutBranchInput | PrintJobUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PrintJobCreateManyBranchInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutBranchInput | PrintJobUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutBranchInput | PrintJobUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
   export type SyncLogUpdateManyWithoutBranchNestedInput = {
     create?: XOR<SyncLogCreateWithoutBranchInput, SyncLogUncheckedCreateWithoutBranchInput> | SyncLogCreateWithoutBranchInput[] | SyncLogUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutBranchInput | SyncLogCreateOrConnectWithoutBranchInput[]
@@ -38913,6 +45973,20 @@ export namespace Prisma {
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
   }
 
+  export type SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput> | SubscriptionBranchHistoryCreateWithoutBranchInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput | SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutBranchInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyBranchInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutBranchInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutBranchInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
   export type DeviceUncheckedUpdateManyWithoutBranchNestedInput = {
     create?: XOR<DeviceCreateWithoutBranchInput, DeviceUncheckedCreateWithoutBranchInput> | DeviceCreateWithoutBranchInput[] | DeviceUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: DeviceCreateOrConnectWithoutBranchInput | DeviceCreateOrConnectWithoutBranchInput[]
@@ -38925,6 +45999,34 @@ export namespace Prisma {
     update?: DeviceUpdateWithWhereUniqueWithoutBranchInput | DeviceUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: DeviceUpdateManyWithWhereWithoutBranchInput | DeviceUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: DeviceScalarWhereInput | DeviceScalarWhereInput[]
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput> | PrinterCreateWithoutBranchInput[] | PrinterUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutBranchInput | PrinterCreateOrConnectWithoutBranchInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutBranchInput | PrinterUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PrinterCreateManyBranchInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutBranchInput | PrinterUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutBranchInput | PrinterUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput> | PrintJobCreateWithoutBranchInput[] | PrintJobUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutBranchInput | PrintJobCreateOrConnectWithoutBranchInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutBranchInput | PrintJobUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PrintJobCreateManyBranchInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutBranchInput | PrintJobUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutBranchInput | PrintJobUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
   }
 
   export type SyncLogUncheckedUpdateManyWithoutBranchNestedInput = {
@@ -38969,6 +46071,20 @@ export namespace Prisma {
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
   }
 
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput> | SubscriptionBranchHistoryCreateWithoutBranchInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput | SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutBranchInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: SubscriptionBranchHistoryCreateManyBranchInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutBranchInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutBranchInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
   export type TenantCreateNestedOneWithoutDevicesInput = {
     create?: XOR<TenantCreateWithoutDevicesInput, TenantUncheckedCreateWithoutDevicesInput>
     connectOrCreate?: TenantCreateOrConnectWithoutDevicesInput
@@ -38979,6 +46095,13 @@ export namespace Prisma {
     create?: XOR<BranchCreateWithoutDevicesInput, BranchUncheckedCreateWithoutDevicesInput>
     connectOrCreate?: BranchCreateOrConnectWithoutDevicesInput
     connect?: BranchWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedManyWithoutDeviceInput = {
+    create?: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput> | PrinterCreateWithoutDeviceInput[] | PrinterUncheckedCreateWithoutDeviceInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutDeviceInput | PrinterCreateOrConnectWithoutDeviceInput[]
+    createMany?: PrinterCreateManyDeviceInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
   }
 
   export type SyncLogCreateNestedManyWithoutDeviceInput = {
@@ -39000,6 +46123,13 @@ export namespace Prisma {
     connectOrCreate?: UserSessionCreateOrConnectWithoutDeviceInput | UserSessionCreateOrConnectWithoutDeviceInput[]
     createMany?: UserSessionCreateManyDeviceInputEnvelope
     connect?: UserSessionWhereUniqueInput | UserSessionWhereUniqueInput[]
+  }
+
+  export type PrinterUncheckedCreateNestedManyWithoutDeviceInput = {
+    create?: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput> | PrinterCreateWithoutDeviceInput[] | PrinterUncheckedCreateWithoutDeviceInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutDeviceInput | PrinterCreateOrConnectWithoutDeviceInput[]
+    createMany?: PrinterCreateManyDeviceInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
   }
 
   export type SyncLogUncheckedCreateNestedManyWithoutDeviceInput = {
@@ -39037,6 +46167,20 @@ export namespace Prisma {
     upsert?: BranchUpsertWithoutDevicesInput
     connect?: BranchWhereUniqueInput
     update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutDevicesInput, BranchUpdateWithoutDevicesInput>, BranchUncheckedUpdateWithoutDevicesInput>
+  }
+
+  export type PrinterUpdateManyWithoutDeviceNestedInput = {
+    create?: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput> | PrinterCreateWithoutDeviceInput[] | PrinterUncheckedCreateWithoutDeviceInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutDeviceInput | PrinterCreateOrConnectWithoutDeviceInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutDeviceInput | PrinterUpsertWithWhereUniqueWithoutDeviceInput[]
+    createMany?: PrinterCreateManyDeviceInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutDeviceInput | PrinterUpdateWithWhereUniqueWithoutDeviceInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutDeviceInput | PrinterUpdateManyWithWhereWithoutDeviceInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
   }
 
   export type SyncLogUpdateManyWithoutDeviceNestedInput = {
@@ -39081,6 +46225,20 @@ export namespace Prisma {
     deleteMany?: UserSessionScalarWhereInput | UserSessionScalarWhereInput[]
   }
 
+  export type PrinterUncheckedUpdateManyWithoutDeviceNestedInput = {
+    create?: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput> | PrinterCreateWithoutDeviceInput[] | PrinterUncheckedCreateWithoutDeviceInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutDeviceInput | PrinterCreateOrConnectWithoutDeviceInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutDeviceInput | PrinterUpsertWithWhereUniqueWithoutDeviceInput[]
+    createMany?: PrinterCreateManyDeviceInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutDeviceInput | PrinterUpdateWithWhereUniqueWithoutDeviceInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutDeviceInput | PrinterUpdateManyWithWhereWithoutDeviceInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
   export type SyncLogUncheckedUpdateManyWithoutDeviceNestedInput = {
     create?: XOR<SyncLogCreateWithoutDeviceInput, SyncLogUncheckedCreateWithoutDeviceInput> | SyncLogCreateWithoutDeviceInput[] | SyncLogUncheckedCreateWithoutDeviceInput[]
     connectOrCreate?: SyncLogCreateOrConnectWithoutDeviceInput | SyncLogCreateOrConnectWithoutDeviceInput[]
@@ -39121,6 +46279,146 @@ export namespace Prisma {
     update?: UserSessionUpdateWithWhereUniqueWithoutDeviceInput | UserSessionUpdateWithWhereUniqueWithoutDeviceInput[]
     updateMany?: UserSessionUpdateManyWithWhereWithoutDeviceInput | UserSessionUpdateManyWithWhereWithoutDeviceInput[]
     deleteMany?: UserSessionScalarWhereInput | UserSessionScalarWhereInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutPrintersInput = {
+    create?: XOR<TenantCreateWithoutPrintersInput, TenantUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintersInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type BranchCreateNestedOneWithoutPrintersInput = {
+    create?: XOR<BranchCreateWithoutPrintersInput, BranchUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPrintersInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type DeviceCreateNestedOneWithoutPrintersInput = {
+    create?: XOR<DeviceCreateWithoutPrintersInput, DeviceUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: DeviceCreateOrConnectWithoutPrintersInput
+    connect?: DeviceWhereUniqueInput
+  }
+
+  export type PrintJobCreateNestedManyWithoutPrinterInput = {
+    create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
+    createMany?: PrintJobCreateManyPrinterInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type PrintJobUncheckedCreateNestedManyWithoutPrinterInput = {
+    create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
+    createMany?: PrintJobCreateManyPrinterInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type EnumPrinterTypeFieldUpdateOperationsInput = {
+    set?: $Enums.PrinterType
+  }
+
+  export type EnumPrinterConnectionFieldUpdateOperationsInput = {
+    set?: $Enums.PrinterConnection
+  }
+
+  export type TenantUpdateOneRequiredWithoutPrintersNestedInput = {
+    create?: XOR<TenantCreateWithoutPrintersInput, TenantUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintersInput
+    upsert?: TenantUpsertWithoutPrintersInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPrintersInput, TenantUpdateWithoutPrintersInput>, TenantUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type BranchUpdateOneRequiredWithoutPrintersNestedInput = {
+    create?: XOR<BranchCreateWithoutPrintersInput, BranchUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPrintersInput
+    upsert?: BranchUpsertWithoutPrintersInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutPrintersInput, BranchUpdateWithoutPrintersInput>, BranchUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type DeviceUpdateOneWithoutPrintersNestedInput = {
+    create?: XOR<DeviceCreateWithoutPrintersInput, DeviceUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: DeviceCreateOrConnectWithoutPrintersInput
+    upsert?: DeviceUpsertWithoutPrintersInput
+    disconnect?: DeviceWhereInput | boolean
+    delete?: DeviceWhereInput | boolean
+    connect?: DeviceWhereUniqueInput
+    update?: XOR<XOR<DeviceUpdateToOneWithWhereWithoutPrintersInput, DeviceUpdateWithoutPrintersInput>, DeviceUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type PrintJobUpdateManyWithoutPrinterNestedInput = {
+    create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutPrinterInput | PrintJobUpsertWithWhereUniqueWithoutPrinterInput[]
+    createMany?: PrintJobCreateManyPrinterInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutPrinterInput | PrintJobUpdateWithWhereUniqueWithoutPrinterInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutPrinterInput | PrintJobUpdateManyWithWhereWithoutPrinterInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutPrinterNestedInput = {
+    create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutPrinterInput | PrintJobUpsertWithWhereUniqueWithoutPrinterInput[]
+    createMany?: PrintJobCreateManyPrinterInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutPrinterInput | PrintJobUpdateWithWhereUniqueWithoutPrinterInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutPrinterInput | PrintJobUpdateManyWithWhereWithoutPrinterInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutPrintJobsInput = {
+    create?: XOR<TenantCreateWithoutPrintJobsInput, TenantUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintJobsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type BranchCreateNestedOneWithoutPrintJobsInput = {
+    create?: XOR<BranchCreateWithoutPrintJobsInput, BranchUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPrintJobsInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedOneWithoutPrintJobsInput = {
+    create?: XOR<PrinterCreateWithoutPrintJobsInput, PrinterUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutPrintJobsInput
+    connect?: PrinterWhereUniqueInput
+  }
+
+  export type EnumPrintStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PrintStatus
+  }
+
+  export type TenantUpdateOneRequiredWithoutPrintJobsNestedInput = {
+    create?: XOR<TenantCreateWithoutPrintJobsInput, TenantUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintJobsInput
+    upsert?: TenantUpsertWithoutPrintJobsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPrintJobsInput, TenantUpdateWithoutPrintJobsInput>, TenantUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type BranchUpdateOneRequiredWithoutPrintJobsNestedInput = {
+    create?: XOR<BranchCreateWithoutPrintJobsInput, BranchUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPrintJobsInput
+    upsert?: BranchUpsertWithoutPrintJobsInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutPrintJobsInput, BranchUpdateWithoutPrintJobsInput>, BranchUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type PrinterUpdateOneRequiredWithoutPrintJobsNestedInput = {
+    create?: XOR<PrinterCreateWithoutPrintJobsInput, PrinterUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutPrintJobsInput
+    upsert?: PrinterUpsertWithoutPrintJobsInput
+    connect?: PrinterWhereUniqueInput
+    update?: XOR<XOR<PrinterUpdateToOneWithWhereWithoutPrintJobsInput, PrinterUpdateWithoutPrintJobsInput>, PrinterUncheckedUpdateWithoutPrintJobsInput>
   }
 
   export type TenantCreateNestedOneWithoutSyncLogsInput = {
@@ -39311,6 +46609,13 @@ export namespace Prisma {
     connect?: InvoiceWhereUniqueInput | InvoiceWhereUniqueInput[]
   }
 
+  export type SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput> | SubscriptionBranchHistoryCreateWithoutSubscriptionInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput | SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput[]
+    createMany?: SubscriptionBranchHistoryCreateManySubscriptionInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+  }
+
   export type BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput = {
     create?: XOR<BillingSnapshotCreateWithoutSubscriptionInput, BillingSnapshotUncheckedCreateWithoutSubscriptionInput> | BillingSnapshotCreateWithoutSubscriptionInput[] | BillingSnapshotUncheckedCreateWithoutSubscriptionInput[]
     connectOrCreate?: BillingSnapshotCreateOrConnectWithoutSubscriptionInput | BillingSnapshotCreateOrConnectWithoutSubscriptionInput[]
@@ -39323,6 +46628,13 @@ export namespace Prisma {
     connectOrCreate?: InvoiceCreateOrConnectWithoutSubscriptionInput | InvoiceCreateOrConnectWithoutSubscriptionInput[]
     createMany?: InvoiceCreateManySubscriptionInputEnvelope
     connect?: InvoiceWhereUniqueInput | InvoiceWhereUniqueInput[]
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput> | SubscriptionBranchHistoryCreateWithoutSubscriptionInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput | SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput[]
+    createMany?: SubscriptionBranchHistoryCreateManySubscriptionInputEnvelope
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
   }
 
   export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
@@ -39393,6 +46705,20 @@ export namespace Prisma {
     deleteMany?: InvoiceScalarWhereInput | InvoiceScalarWhereInput[]
   }
 
+  export type SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput> | SubscriptionBranchHistoryCreateWithoutSubscriptionInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput | SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutSubscriptionInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutSubscriptionInput[]
+    createMany?: SubscriptionBranchHistoryCreateManySubscriptionInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutSubscriptionInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutSubscriptionInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutSubscriptionInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutSubscriptionInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
   export type BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput = {
     create?: XOR<BillingSnapshotCreateWithoutSubscriptionInput, BillingSnapshotUncheckedCreateWithoutSubscriptionInput> | BillingSnapshotCreateWithoutSubscriptionInput[] | BillingSnapshotUncheckedCreateWithoutSubscriptionInput[]
     connectOrCreate?: BillingSnapshotCreateOrConnectWithoutSubscriptionInput | BillingSnapshotCreateOrConnectWithoutSubscriptionInput[]
@@ -39419,6 +46745,68 @@ export namespace Prisma {
     update?: InvoiceUpdateWithWhereUniqueWithoutSubscriptionInput | InvoiceUpdateWithWhereUniqueWithoutSubscriptionInput[]
     updateMany?: InvoiceUpdateManyWithWhereWithoutSubscriptionInput | InvoiceUpdateManyWithWhereWithoutSubscriptionInput[]
     deleteMany?: InvoiceScalarWhereInput | InvoiceScalarWhereInput[]
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput = {
+    create?: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput> | SubscriptionBranchHistoryCreateWithoutSubscriptionInput[] | SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput | SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput[]
+    upsert?: SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutSubscriptionInput | SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutSubscriptionInput[]
+    createMany?: SubscriptionBranchHistoryCreateManySubscriptionInputEnvelope
+    set?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    disconnect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    delete?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    connect?: SubscriptionBranchHistoryWhereUniqueInput | SubscriptionBranchHistoryWhereUniqueInput[]
+    update?: SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutSubscriptionInput | SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutSubscriptionInput[]
+    updateMany?: SubscriptionBranchHistoryUpdateManyWithWhereWithoutSubscriptionInput | SubscriptionBranchHistoryUpdateManyWithWhereWithoutSubscriptionInput[]
+    deleteMany?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+  }
+
+  export type SubscriptionCreateNestedOneWithoutBranchHistoryInput = {
+    create?: XOR<SubscriptionCreateWithoutBranchHistoryInput, SubscriptionUncheckedCreateWithoutBranchHistoryInput>
+    connectOrCreate?: SubscriptionCreateOrConnectWithoutBranchHistoryInput
+    connect?: SubscriptionWhereUniqueInput
+  }
+
+  export type BranchCreateNestedOneWithoutSubscriptionBranchHistoryInput = {
+    create?: XOR<BranchCreateWithoutSubscriptionBranchHistoryInput, BranchUncheckedCreateWithoutSubscriptionBranchHistoryInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutSubscriptionBranchHistoryInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutSubscriptionBranchHistoryCreatedInput = {
+    create?: XOR<UserCreateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedCreateWithoutSubscriptionBranchHistoryCreatedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSubscriptionBranchHistoryCreatedInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumSubscriptionBranchActionFieldUpdateOperationsInput = {
+    set?: $Enums.SubscriptionBranchAction
+  }
+
+  export type SubscriptionUpdateOneRequiredWithoutBranchHistoryNestedInput = {
+    create?: XOR<SubscriptionCreateWithoutBranchHistoryInput, SubscriptionUncheckedCreateWithoutBranchHistoryInput>
+    connectOrCreate?: SubscriptionCreateOrConnectWithoutBranchHistoryInput
+    upsert?: SubscriptionUpsertWithoutBranchHistoryInput
+    connect?: SubscriptionWhereUniqueInput
+    update?: XOR<XOR<SubscriptionUpdateToOneWithWhereWithoutBranchHistoryInput, SubscriptionUpdateWithoutBranchHistoryInput>, SubscriptionUncheckedUpdateWithoutBranchHistoryInput>
+  }
+
+  export type BranchUpdateOneRequiredWithoutSubscriptionBranchHistoryNestedInput = {
+    create?: XOR<BranchCreateWithoutSubscriptionBranchHistoryInput, BranchUncheckedCreateWithoutSubscriptionBranchHistoryInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutSubscriptionBranchHistoryInput
+    upsert?: BranchUpsertWithoutSubscriptionBranchHistoryInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutSubscriptionBranchHistoryInput, BranchUpdateWithoutSubscriptionBranchHistoryInput>, BranchUncheckedUpdateWithoutSubscriptionBranchHistoryInput>
+  }
+
+  export type UserUpdateOneWithoutSubscriptionBranchHistoryCreatedNestedInput = {
+    create?: XOR<UserCreateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedCreateWithoutSubscriptionBranchHistoryCreatedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSubscriptionBranchHistoryCreatedInput
+    upsert?: UserUpsertWithoutSubscriptionBranchHistoryCreatedInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSubscriptionBranchHistoryCreatedInput, UserUpdateWithoutSubscriptionBranchHistoryCreatedInput>, UserUncheckedUpdateWithoutSubscriptionBranchHistoryCreatedInput>
   }
 
   export type TenantCreateNestedOneWithoutInvoiceFiscalCountersInput = {
@@ -40404,6 +47792,57 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumPrinterTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterType | EnumPrinterTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterType[]
+    notIn?: $Enums.PrinterType[]
+    not?: NestedEnumPrinterTypeFilter<$PrismaModel> | $Enums.PrinterType
+  }
+
+  export type NestedEnumPrinterConnectionFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterConnection | EnumPrinterConnectionFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterConnection[]
+    notIn?: $Enums.PrinterConnection[]
+    not?: NestedEnumPrinterConnectionFilter<$PrismaModel> | $Enums.PrinterConnection
+  }
+
+  export type NestedEnumPrinterTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterType | EnumPrinterTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterType[]
+    notIn?: $Enums.PrinterType[]
+    not?: NestedEnumPrinterTypeWithAggregatesFilter<$PrismaModel> | $Enums.PrinterType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrinterTypeFilter<$PrismaModel>
+    _max?: NestedEnumPrinterTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPrinterConnectionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterConnection | EnumPrinterConnectionFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterConnection[]
+    notIn?: $Enums.PrinterConnection[]
+    not?: NestedEnumPrinterConnectionWithAggregatesFilter<$PrismaModel> | $Enums.PrinterConnection
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrinterConnectionFilter<$PrismaModel>
+    _max?: NestedEnumPrinterConnectionFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPrintStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintStatus | EnumPrintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintStatus[]
+    notIn?: $Enums.PrintStatus[]
+    not?: NestedEnumPrintStatusFilter<$PrismaModel> | $Enums.PrintStatus
+  }
+
+  export type NestedEnumPrintStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintStatus | EnumPrintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintStatus[]
+    notIn?: $Enums.PrintStatus[]
+    not?: NestedEnumPrintStatusWithAggregatesFilter<$PrismaModel> | $Enums.PrintStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrintStatusFilter<$PrismaModel>
+    _max?: NestedEnumPrintStatusFilter<$PrismaModel>
+  }
+
   export type NestedEnumSyncOperationFilter<$PrismaModel = never> = {
     equals?: $Enums.SyncOperation | EnumSyncOperationFieldRefInput<$PrismaModel>
     in?: $Enums.SyncOperation[]
@@ -40521,6 +47960,23 @@ export namespace Prisma {
     _max?: NestedEnumSubscriptionStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumSubscriptionBranchActionFilter<$PrismaModel = never> = {
+    equals?: $Enums.SubscriptionBranchAction | EnumSubscriptionBranchActionFieldRefInput<$PrismaModel>
+    in?: $Enums.SubscriptionBranchAction[]
+    notIn?: $Enums.SubscriptionBranchAction[]
+    not?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel> | $Enums.SubscriptionBranchAction
+  }
+
+  export type NestedEnumSubscriptionBranchActionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SubscriptionBranchAction | EnumSubscriptionBranchActionFieldRefInput<$PrismaModel>
+    in?: $Enums.SubscriptionBranchAction[]
+    notIn?: $Enums.SubscriptionBranchAction[]
+    not?: NestedEnumSubscriptionBranchActionWithAggregatesFilter<$PrismaModel> | $Enums.SubscriptionBranchAction
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel>
+    _max?: NestedEnumSubscriptionBranchActionFilter<$PrismaModel>
+  }
+
   export type NestedEnumInvoiceStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.InvoiceStatus | EnumInvoiceStatusFieldRefInput<$PrismaModel>
     in?: $Enums.InvoiceStatus[]
@@ -40609,9 +48065,11 @@ export namespace Prisma {
   export type TenantCreateWithoutOwnerInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -40631,6 +48089,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -40640,9 +48100,11 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutOwnerInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -40662,6 +48124,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -40773,6 +48237,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -40796,6 +48261,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -40825,6 +48291,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -40848,6 +48315,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -40877,6 +48345,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -40900,6 +48369,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -40923,9 +48393,11 @@ export namespace Prisma {
   export type TenantCreateWithoutCreatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -40945,6 +48417,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -40954,10 +48428,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutCreatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -40976,6 +48452,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -40995,9 +48473,11 @@ export namespace Prisma {
   export type TenantCreateWithoutUpdatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -41017,6 +48497,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -41026,10 +48508,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutUpdatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -41048,6 +48532,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -41091,9 +48577,12 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBranchesInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutCreatedByUserInput = {
@@ -41123,9 +48612,12 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutCreatedByUserInput = {
@@ -41165,9 +48657,12 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBranchesInput
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutUpdatedByUserInput = {
@@ -41197,9 +48692,12 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutUpdatedByUserInput = {
@@ -41221,6 +48719,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -41230,6 +48730,7 @@ export namespace Prisma {
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutCreatedByUserInput = {
@@ -41243,6 +48744,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     updatedBy?: bigint | number | null
     createdAt?: Date | string
@@ -41250,6 +48753,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutCreatedByUserInput = {
@@ -41271,6 +48775,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -41280,6 +48786,7 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutSubscriptionsCreatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutUpdatedByUserInput = {
@@ -41293,6 +48800,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     createdAt?: Date | string
@@ -41300,6 +48809,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutUpdatedByUserInput = {
@@ -41309,6 +48819,36 @@ export namespace Prisma {
 
   export type SubscriptionCreateManyUpdatedByUserInputEnvelope = {
     data: SubscriptionCreateManyUpdatedByUserInput | SubscriptionCreateManyUpdatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SubscriptionBranchHistoryCreateWithoutCreatedByUserInput = {
+    id?: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+    subscription: SubscriptionCreateNestedOneWithoutBranchHistoryInput
+    branch: BranchCreateNestedOneWithoutSubscriptionBranchHistoryInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SubscriptionBranchHistoryCreateOrConnectWithoutCreatedByUserInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    create: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type SubscriptionBranchHistoryCreateManyCreatedByUserInputEnvelope = {
+    data: SubscriptionBranchHistoryCreateManyCreatedByUserInput | SubscriptionBranchHistoryCreateManyCreatedByUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -41420,10 +48960,12 @@ export namespace Prisma {
     NOT?: TenantScalarWhereInput | TenantScalarWhereInput[]
     id?: BigIntFilter<"Tenant"> | bigint | number
     uuid?: StringFilter<"Tenant"> | string
-    ownerId?: BigIntFilter<"Tenant"> | bigint | number
-    name?: StringFilter<"Tenant"> | string
-    companyName?: StringFilter<"Tenant"> | string
+    ownerUserId?: BigIntFilter<"Tenant"> | bigint | number
+    tenantKey?: StringFilter<"Tenant"> | string
+    tenantName?: StringFilter<"Tenant"> | string
     nuit?: StringNullableFilter<"Tenant"> | string | null
+    email?: StringNullableFilter<"Tenant"> | string | null
+    endereco?: StringNullableFilter<"Tenant"> | string | null
     status?: EnumTenantStatusFilter<"Tenant"> | $Enums.TenantStatus
     country?: StringFilter<"Tenant"> | string
     version?: IntFilter<"Tenant"> | number
@@ -41552,6 +49094,7 @@ export namespace Prisma {
     proofUrl?: StringNullableFilter<"Payment"> | string | null
     coversFrom?: DateTimeNullableFilter<"Payment"> | Date | string | null
     coversTo?: DateTimeNullableFilter<"Payment"> | Date | string | null
+    monthsCovered?: IntNullableFilter<"Payment"> | number | null
     confirmedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
     confirmedBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
     createdBy?: BigIntNullableFilter<"Payment"> | bigint | number | null
@@ -41720,6 +49263,8 @@ export namespace Prisma {
     trialEndsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     lastBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     nextBillingAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"Subscription"> | Date | string | null
+    autoRenew?: BoolFilter<"Subscription"> | boolean
     version?: IntFilter<"Subscription"> | number
     createdBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
     updatedBy?: BigIntNullableFilter<"Subscription"> | bigint | number | null
@@ -41742,6 +49287,36 @@ export namespace Prisma {
   export type SubscriptionUpdateManyWithWhereWithoutUpdatedByUserInput = {
     where: SubscriptionScalarWhereInput
     data: XOR<SubscriptionUpdateManyMutationInput, SubscriptionUncheckedUpdateManyWithoutUpdatedByUserInput>
+  }
+
+  export type SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    update: XOR<SubscriptionBranchHistoryUpdateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<SubscriptionBranchHistoryCreateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    data: XOR<SubscriptionBranchHistoryUpdateWithoutCreatedByUserInput, SubscriptionBranchHistoryUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: SubscriptionBranchHistoryScalarWhereInput
+    data: XOR<SubscriptionBranchHistoryUpdateManyMutationInput, SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type SubscriptionBranchHistoryScalarWhereInput = {
+    AND?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+    OR?: SubscriptionBranchHistoryScalarWhereInput[]
+    NOT?: SubscriptionBranchHistoryScalarWhereInput | SubscriptionBranchHistoryScalarWhereInput[]
+    id?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    subscriptionId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    branchId?: BigIntFilter<"SubscriptionBranchHistory"> | bigint | number
+    action?: EnumSubscriptionBranchActionFilter<"SubscriptionBranchHistory"> | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
+    reason?: StringNullableFilter<"SubscriptionBranchHistory"> | string | null
+    createdBy?: BigIntNullableFilter<"SubscriptionBranchHistory"> | bigint | number | null
+    createdAt?: DateTimeFilter<"SubscriptionBranchHistory"> | Date | string
   }
 
   export type AuditLogUpsertWithWhereUniqueWithoutUserInput = {
@@ -41844,6 +49419,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -41875,6 +49451,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -41887,9 +49464,11 @@ export namespace Prisma {
   export type TenantCreateWithoutUserTenantsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -41909,6 +49488,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterCreateNestedManyWithoutTenantInput
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -41918,10 +49499,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutUserTenantsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -41940,6 +49523,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedCreateNestedManyWithoutTenantInput
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -41989,6 +49574,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -42020,6 +49606,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -42038,9 +49625,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutUserTenantsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -42060,6 +49649,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUpdateManyWithoutTenantNestedInput
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -42069,10 +49660,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutUserTenantsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -42091,6 +49684,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedUpdateManyWithoutTenantNestedInput
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -42124,6 +49719,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -42155,6 +49751,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -42191,6 +49788,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -42222,6 +49820,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -42258,6 +49857,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -42289,6 +49889,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -42325,9 +49926,12 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutTenantInput = {
@@ -42357,9 +49961,12 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutTenantInput = {
@@ -42381,6 +49988,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42390,6 +49999,7 @@ export namespace Prisma {
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutTenantInput = {
@@ -42402,6 +50012,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -42410,6 +50022,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutTenantInput = {
@@ -42528,6 +50141,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -42550,6 +50164,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -42578,6 +50193,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -42607,6 +50223,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -42732,6 +50349,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     branch: BranchCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
@@ -42750,6 +50368,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
@@ -42762,6 +50381,102 @@ export namespace Prisma {
 
   export type DeviceCreateManyTenantInputEnvelope = {
     data: DeviceCreateManyTenantInput | DeviceCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrinterCreateWithoutTenantInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    branch: BranchCreateNestedOneWithoutPrintersInput
+    device?: DeviceCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutTenantInput = {
+    id?: bigint | number
+    uuid?: string
+    branchId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutTenantInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrinterCreateManyTenantInputEnvelope = {
+    data: PrinterCreateManyTenantInput | PrinterCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintJobCreateWithoutTenantInput = {
+    id?: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    branch: BranchCreateNestedOneWithoutPrintJobsInput
+    printer: PrinterCreateNestedOneWithoutPrintJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutTenantInput = {
+    id?: bigint | number
+    branchId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobCreateOrConnectWithoutTenantInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrintJobCreateManyTenantInputEnvelope = {
+    data: PrintJobCreateManyTenantInput | PrintJobCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -42995,6 +50710,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -43026,6 +50742,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -43068,6 +50785,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -43099,6 +50817,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -43141,6 +50860,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -43172,6 +50892,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -43347,6 +51068,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFilter<"Invoice"> | bigint | number
     billingSnapshotId?: BigIntNullableFilter<"Invoice"> | bigint | number | null
     amount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFilter<"Invoice"> | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
@@ -43468,6 +51190,83 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Device"> | Date | string
     updatedAt?: DateTimeFilter<"Device"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Device"> | Date | string | null
+  }
+
+  export type PrinterUpsertWithWhereUniqueWithoutTenantInput = {
+    where: PrinterWhereUniqueInput
+    update: XOR<PrinterUpdateWithoutTenantInput, PrinterUncheckedUpdateWithoutTenantInput>
+    create: XOR<PrinterCreateWithoutTenantInput, PrinterUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrinterUpdateWithWhereUniqueWithoutTenantInput = {
+    where: PrinterWhereUniqueInput
+    data: XOR<PrinterUpdateWithoutTenantInput, PrinterUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type PrinterUpdateManyWithWhereWithoutTenantInput = {
+    where: PrinterScalarWhereInput
+    data: XOR<PrinterUpdateManyMutationInput, PrinterUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type PrinterScalarWhereInput = {
+    AND?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+    OR?: PrinterScalarWhereInput[]
+    NOT?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+    id?: BigIntFilter<"Printer"> | bigint | number
+    uuid?: StringFilter<"Printer"> | string
+    tenantId?: BigIntFilter<"Printer"> | bigint | number
+    branchId?: BigIntFilter<"Printer"> | bigint | number
+    deviceId?: BigIntNullableFilter<"Printer"> | bigint | number | null
+    name?: StringFilter<"Printer"> | string
+    type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFilter<"Printer"> | $Enums.PrinterConnection
+    ip?: StringNullableFilter<"Printer"> | string | null
+    port?: IntNullableFilter<"Printer"> | number | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    manufacturer?: StringNullableFilter<"Printer"> | string | null
+    active?: BoolFilter<"Printer"> | boolean
+    version?: IntFilter<"Printer"> | number
+    createdAt?: DateTimeFilter<"Printer"> | Date | string
+    updatedAt?: DateTimeFilter<"Printer"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
+  }
+
+  export type PrintJobUpsertWithWhereUniqueWithoutTenantInput = {
+    where: PrintJobWhereUniqueInput
+    update: XOR<PrintJobUpdateWithoutTenantInput, PrintJobUncheckedUpdateWithoutTenantInput>
+    create: XOR<PrintJobCreateWithoutTenantInput, PrintJobUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrintJobUpdateWithWhereUniqueWithoutTenantInput = {
+    where: PrintJobWhereUniqueInput
+    data: XOR<PrintJobUpdateWithoutTenantInput, PrintJobUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type PrintJobUpdateManyWithWhereWithoutTenantInput = {
+    where: PrintJobScalarWhereInput
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type PrintJobScalarWhereInput = {
+    AND?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+    OR?: PrintJobScalarWhereInput[]
+    NOT?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+    id?: BigIntFilter<"PrintJob"> | bigint | number
+    tenantId?: BigIntFilter<"PrintJob"> | bigint | number
+    branchId?: BigIntFilter<"PrintJob"> | bigint | number
+    printerId?: BigIntFilter<"PrintJob"> | bigint | number
+    document?: StringFilter<"PrintJob"> | string
+    payload?: JsonFilter<"PrintJob">
+    status?: EnumPrintStatusFilter<"PrintJob"> | $Enums.PrintStatus
+    attempts?: IntFilter<"PrintJob"> | number
+    maxAttempts?: IntFilter<"PrintJob"> | number
+    errorMessage?: StringNullableFilter<"PrintJob"> | string | null
+    printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lockedBy?: StringNullableFilter<"PrintJob"> | string | null
+    createdAt?: DateTimeFilter<"PrintJob"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
   }
 
   export type SyncLogUpsertWithWhereUniqueWithoutTenantInput = {
@@ -43607,9 +51406,11 @@ export namespace Prisma {
   export type TenantCreateWithoutSettingsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -43629,6 +51430,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -43638,10 +51441,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutSettingsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -43660,6 +51465,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43685,9 +51492,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutSettingsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -43707,6 +51516,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -43716,10 +51527,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutSettingsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -43738,6 +51551,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43747,9 +51562,11 @@ export namespace Prisma {
   export type TenantCreateWithoutBranchesInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -43769,6 +51586,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -43778,10 +51597,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutBranchesInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -43800,6 +51621,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43838,6 +51661,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -43869,6 +51693,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -43905,6 +51730,7 @@ export namespace Prisma {
     branchesCreated?: BranchCreateNestedManyWithoutCreatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -43936,6 +51762,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -43958,6 +51785,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     tenant: TenantCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
@@ -43976,6 +51804,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
@@ -43988,6 +51817,102 @@ export namespace Prisma {
 
   export type DeviceCreateManyBranchInputEnvelope = {
     data: DeviceCreateManyBranchInput | DeviceCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrinterCreateWithoutBranchInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintersInput
+    device?: DeviceCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutBranchInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutBranchInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PrinterCreateManyBranchInputEnvelope = {
+    data: PrinterCreateManyBranchInput | PrinterCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintJobCreateWithoutBranchInput = {
+    id?: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    printer: PrinterCreateNestedOneWithoutPrintJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutBranchInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobCreateOrConnectWithoutBranchInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PrintJobCreateManyBranchInputEnvelope = {
+    data: PrintJobCreateManyBranchInput | PrintJobCreateManyBranchInput[]
     skipDuplicates?: boolean
   }
 
@@ -44135,6 +52060,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SubscriptionBranchHistoryCreateWithoutBranchInput = {
+    id?: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+    subscription: SubscriptionCreateNestedOneWithoutBranchHistoryInput
+    createdByUser?: UserCreateNestedOneWithoutSubscriptionBranchHistoryCreatedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
+  }
+
+  export type SubscriptionBranchHistoryCreateOrConnectWithoutBranchInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    create: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput>
+  }
+
+  export type SubscriptionBranchHistoryCreateManyBranchInputEnvelope = {
+    data: SubscriptionBranchHistoryCreateManyBranchInput | SubscriptionBranchHistoryCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutBranchesInput = {
     update: XOR<TenantUpdateWithoutBranchesInput, TenantUncheckedUpdateWithoutBranchesInput>
     create: XOR<TenantCreateWithoutBranchesInput, TenantUncheckedCreateWithoutBranchesInput>
@@ -44149,9 +52104,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutBranchesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -44171,6 +52128,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -44180,10 +52139,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutBranchesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -44202,6 +52163,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -44246,6 +52209,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -44277,6 +52241,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -44319,6 +52284,7 @@ export namespace Prisma {
     branchesCreated?: BranchUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -44350,6 +52316,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -44368,6 +52335,38 @@ export namespace Prisma {
   export type DeviceUpdateManyWithWhereWithoutBranchInput = {
     where: DeviceScalarWhereInput
     data: XOR<DeviceUpdateManyMutationInput, DeviceUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type PrinterUpsertWithWhereUniqueWithoutBranchInput = {
+    where: PrinterWhereUniqueInput
+    update: XOR<PrinterUpdateWithoutBranchInput, PrinterUncheckedUpdateWithoutBranchInput>
+    create: XOR<PrinterCreateWithoutBranchInput, PrinterUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PrinterUpdateWithWhereUniqueWithoutBranchInput = {
+    where: PrinterWhereUniqueInput
+    data: XOR<PrinterUpdateWithoutBranchInput, PrinterUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type PrinterUpdateManyWithWhereWithoutBranchInput = {
+    where: PrinterScalarWhereInput
+    data: XOR<PrinterUpdateManyMutationInput, PrinterUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type PrintJobUpsertWithWhereUniqueWithoutBranchInput = {
+    where: PrintJobWhereUniqueInput
+    update: XOR<PrintJobUpdateWithoutBranchInput, PrintJobUncheckedUpdateWithoutBranchInput>
+    create: XOR<PrintJobCreateWithoutBranchInput, PrintJobUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PrintJobUpdateWithWhereUniqueWithoutBranchInput = {
+    where: PrintJobWhereUniqueInput
+    data: XOR<PrintJobUpdateWithoutBranchInput, PrintJobUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type PrintJobUpdateManyWithWhereWithoutBranchInput = {
+    where: PrintJobScalarWhereInput
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutBranchInput>
   }
 
   export type SyncLogUpsertWithWhereUniqueWithoutBranchInput = {
@@ -44418,12 +52417,30 @@ export namespace Prisma {
     data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyWithoutBranchInput>
   }
 
+  export type SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutBranchInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    update: XOR<SubscriptionBranchHistoryUpdateWithoutBranchInput, SubscriptionBranchHistoryUncheckedUpdateWithoutBranchInput>
+    create: XOR<SubscriptionBranchHistoryCreateWithoutBranchInput, SubscriptionBranchHistoryUncheckedCreateWithoutBranchInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutBranchInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    data: XOR<SubscriptionBranchHistoryUpdateWithoutBranchInput, SubscriptionBranchHistoryUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateManyWithWhereWithoutBranchInput = {
+    where: SubscriptionBranchHistoryScalarWhereInput
+    data: XOR<SubscriptionBranchHistoryUpdateManyMutationInput, SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchInput>
+  }
+
   export type TenantCreateWithoutDevicesInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -44443,6 +52460,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterCreateNestedManyWithoutTenantInput
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -44452,10 +52471,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutDevicesInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -44474,6 +52495,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedCreateNestedManyWithoutTenantInput
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -44512,9 +52535,12 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBranchesInput
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutDevicesInput = {
@@ -44544,14 +52570,67 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutDevicesInput = {
     where: BranchWhereUniqueInput
     create: XOR<BranchCreateWithoutDevicesInput, BranchUncheckedCreateWithoutDevicesInput>
+  }
+
+  export type PrinterCreateWithoutDeviceInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintersInput
+    branch: BranchCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutDeviceInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutDeviceInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput>
+  }
+
+  export type PrinterCreateManyDeviceInputEnvelope = {
+    data: PrinterCreateManyDeviceInput | PrinterCreateManyDeviceInput[]
+    skipDuplicates?: boolean
   }
 
   export type SyncLogCreateWithoutDeviceInput = {
@@ -44706,9 +52785,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutDevicesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -44728,6 +52809,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUpdateManyWithoutTenantNestedInput
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -44737,10 +52820,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutDevicesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -44759,6 +52844,8 @@ export namespace Prisma {
     invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedUpdateManyWithoutTenantNestedInput
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -44803,9 +52890,12 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutDevicesInput = {
@@ -44835,9 +52925,28 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type PrinterUpsertWithWhereUniqueWithoutDeviceInput = {
+    where: PrinterWhereUniqueInput
+    update: XOR<PrinterUpdateWithoutDeviceInput, PrinterUncheckedUpdateWithoutDeviceInput>
+    create: XOR<PrinterCreateWithoutDeviceInput, PrinterUncheckedCreateWithoutDeviceInput>
+  }
+
+  export type PrinterUpdateWithWhereUniqueWithoutDeviceInput = {
+    where: PrinterWhereUniqueInput
+    data: XOR<PrinterUpdateWithoutDeviceInput, PrinterUncheckedUpdateWithoutDeviceInput>
+  }
+
+  export type PrinterUpdateManyWithWhereWithoutDeviceInput = {
+    where: PrinterScalarWhereInput
+    data: XOR<PrinterUpdateManyMutationInput, PrinterUncheckedUpdateManyWithoutDeviceInput>
   }
 
   export type SyncLogUpsertWithWhereUniqueWithoutDeviceInput = {
@@ -44888,12 +52997,14 @@ export namespace Prisma {
     data: XOR<UserSessionUpdateManyMutationInput, UserSessionUncheckedUpdateManyWithoutDeviceInput>
   }
 
-  export type TenantCreateWithoutSyncLogsInput = {
+  export type TenantCreateWithoutPrintersInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -44914,18 +53025,22 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueCreateNestedManyWithoutTenantInput
   }
 
-  export type TenantUncheckedCreateWithoutSyncLogsInput = {
+  export type TenantUncheckedCreateWithoutPrintersInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -44945,6 +53060,882 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    jobQueues?: JobQueueUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutPrintersInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutPrintersInput, TenantUncheckedCreateWithoutPrintersInput>
+  }
+
+  export type BranchCreateWithoutPrintersInput = {
+    id?: bigint | number
+    uuid?: string
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutBranchesInput
+    createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
+    devices?: DeviceCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutPrintersInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutPrintersInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutPrintersInput, BranchUncheckedCreateWithoutPrintersInput>
+  }
+
+  export type DeviceCreateWithoutPrintersInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    code: string
+    lastHeartbeatAt?: Date | string | null
+    apiKeyHash?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutDevicesInput
+    branch: BranchCreateNestedOneWithoutDevicesInput
+    syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
+    userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
+  }
+
+  export type DeviceUncheckedCreateWithoutPrintersInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    name: string
+    code: string
+    lastHeartbeatAt?: Date | string | null
+    apiKeyHash?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
+    userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
+  }
+
+  export type DeviceCreateOrConnectWithoutPrintersInput = {
+    where: DeviceWhereUniqueInput
+    create: XOR<DeviceCreateWithoutPrintersInput, DeviceUncheckedCreateWithoutPrintersInput>
+  }
+
+  export type PrintJobCreateWithoutPrinterInput = {
+    id?: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    branch: BranchCreateNestedOneWithoutPrintJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutPrinterInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    branchId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobCreateOrConnectWithoutPrinterInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput>
+  }
+
+  export type PrintJobCreateManyPrinterInputEnvelope = {
+    data: PrintJobCreateManyPrinterInput | PrintJobCreateManyPrinterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutPrintersInput = {
+    update: XOR<TenantUpdateWithoutPrintersInput, TenantUncheckedUpdateWithoutPrintersInput>
+    create: XOR<TenantCreateWithoutPrintersInput, TenantUncheckedCreateWithoutPrintersInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutPrintersInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutPrintersInput, TenantUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type TenantUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
+    nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    country?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    owner?: UserUpdateOneRequiredWithoutTenantsOwnedNestedInput
+    createdByUser?: UserUpdateOneWithoutTenantsCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutTenantsUpdatedNestedInput
+    branches?: BranchUpdateManyWithoutTenantNestedInput
+    subscriptions?: SubscriptionUpdateManyWithoutTenantNestedInput
+    billingSnapshots?: BillingSnapshotUpdateManyWithoutTenantNestedInput
+    wallet?: TenantWalletUpdateOneWithoutTenantNestedInput
+    walletTransactions?: WalletTransactionUpdateManyWithoutTenantNestedInput
+    payments?: PaymentUpdateManyWithoutTenantNestedInput
+    invoices?: InvoiceUpdateManyWithoutTenantNestedInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUpdateManyWithoutTenantNestedInput
+    settings?: TenantSettingUpdateManyWithoutTenantNestedInput
+    userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
+    devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    jobQueues?: JobQueueUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
+    nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    country?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    branches?: BranchUncheckedUpdateManyWithoutTenantNestedInput
+    subscriptions?: SubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+    billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: TenantWalletUncheckedUpdateOneWithoutTenantNestedInput
+    walletTransactions?: WalletTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutTenantNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutTenantNestedInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedUpdateManyWithoutTenantNestedInput
+    settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
+    userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
+    devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    jobQueues?: JobQueueUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type BranchUpsertWithoutPrintersInput = {
+    update: XOR<BranchUpdateWithoutPrintersInput, BranchUncheckedUpdateWithoutPrintersInput>
+    create: XOR<BranchCreateWithoutPrintersInput, BranchUncheckedCreateWithoutPrintersInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutPrintersInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutPrintersInput, BranchUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type BranchUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
+    createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
+    devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type DeviceUpsertWithoutPrintersInput = {
+    update: XOR<DeviceUpdateWithoutPrintersInput, DeviceUncheckedUpdateWithoutPrintersInput>
+    create: XOR<DeviceCreateWithoutPrintersInput, DeviceUncheckedCreateWithoutPrintersInput>
+    where?: DeviceWhereInput
+  }
+
+  export type DeviceUpdateToOneWithWhereWithoutPrintersInput = {
+    where?: DeviceWhereInput
+    data: XOR<DeviceUpdateWithoutPrintersInput, DeviceUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type DeviceUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    lastHeartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    apiKeyHash?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
+    branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
+    userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
+  }
+
+  export type DeviceUncheckedUpdateWithoutPrintersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    lastHeartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    apiKeyHash?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
+    userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
+  }
+
+  export type PrintJobUpsertWithWhereUniqueWithoutPrinterInput = {
+    where: PrintJobWhereUniqueInput
+    update: XOR<PrintJobUpdateWithoutPrinterInput, PrintJobUncheckedUpdateWithoutPrinterInput>
+    create: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput>
+  }
+
+  export type PrintJobUpdateWithWhereUniqueWithoutPrinterInput = {
+    where: PrintJobWhereUniqueInput
+    data: XOR<PrintJobUpdateWithoutPrinterInput, PrintJobUncheckedUpdateWithoutPrinterInput>
+  }
+
+  export type PrintJobUpdateManyWithWhereWithoutPrinterInput = {
+    where: PrintJobScalarWhereInput
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutPrinterInput>
+  }
+
+  export type TenantCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantKey: string
+    tenantName: string
+    nuit?: string | null
+    email?: string | null
+    endereco?: string | null
+    status?: $Enums.TenantStatus
+    country?: string
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    owner: UserCreateNestedOneWithoutTenantsOwnedInput
+    createdByUser?: UserCreateNestedOneWithoutTenantsCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutTenantsUpdatedInput
+    branches?: BranchCreateNestedManyWithoutTenantInput
+    subscriptions?: SubscriptionCreateNestedManyWithoutTenantInput
+    billingSnapshots?: BillingSnapshotCreateNestedManyWithoutTenantInput
+    wallet?: TenantWalletCreateNestedOneWithoutTenantInput
+    walletTransactions?: WalletTransactionCreateNestedManyWithoutTenantInput
+    payments?: PaymentCreateNestedManyWithoutTenantInput
+    invoices?: InvoiceCreateNestedManyWithoutTenantInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterCreateNestedManyWithoutTenantInput
+    settings?: TenantSettingCreateNestedManyWithoutTenantInput
+    userTenants?: UserTenantCreateNestedManyWithoutTenantInput
+    devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    jobQueues?: JobQueueCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
+    nuit?: string | null
+    email?: string | null
+    endereco?: string | null
+    status?: $Enums.TenantStatus
+    country?: string
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    branches?: BranchUncheckedCreateNestedManyWithoutTenantInput
+    subscriptions?: SubscriptionUncheckedCreateNestedManyWithoutTenantInput
+    billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: TenantWalletUncheckedCreateNestedOneWithoutTenantInput
+    walletTransactions?: WalletTransactionUncheckedCreateNestedManyWithoutTenantInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutTenantInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutTenantInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedCreateNestedManyWithoutTenantInput
+    settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
+    userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
+    devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    jobQueues?: JobQueueUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutPrintJobsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutPrintJobsInput, TenantUncheckedCreateWithoutPrintJobsInput>
+  }
+
+  export type BranchCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutBranchesInput
+    createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
+    devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutPrintJobsInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutPrintJobsInput, BranchUncheckedCreateWithoutPrintJobsInput>
+  }
+
+  export type PrinterCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutPrintersInput
+    branch: BranchCreateNestedOneWithoutPrintersInput
+    device?: DeviceCreateNestedOneWithoutPrintersInput
+  }
+
+  export type PrinterUncheckedCreateWithoutPrintJobsInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrinterCreateOrConnectWithoutPrintJobsInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutPrintJobsInput, PrinterUncheckedCreateWithoutPrintJobsInput>
+  }
+
+  export type TenantUpsertWithoutPrintJobsInput = {
+    update: XOR<TenantUpdateWithoutPrintJobsInput, TenantUncheckedUpdateWithoutPrintJobsInput>
+    create: XOR<TenantCreateWithoutPrintJobsInput, TenantUncheckedCreateWithoutPrintJobsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutPrintJobsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutPrintJobsInput, TenantUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type TenantUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
+    nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    country?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    owner?: UserUpdateOneRequiredWithoutTenantsOwnedNestedInput
+    createdByUser?: UserUpdateOneWithoutTenantsCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutTenantsUpdatedNestedInput
+    branches?: BranchUpdateManyWithoutTenantNestedInput
+    subscriptions?: SubscriptionUpdateManyWithoutTenantNestedInput
+    billingSnapshots?: BillingSnapshotUpdateManyWithoutTenantNestedInput
+    wallet?: TenantWalletUpdateOneWithoutTenantNestedInput
+    walletTransactions?: WalletTransactionUpdateManyWithoutTenantNestedInput
+    payments?: PaymentUpdateManyWithoutTenantNestedInput
+    invoices?: InvoiceUpdateManyWithoutTenantNestedInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUpdateManyWithoutTenantNestedInput
+    settings?: TenantSettingUpdateManyWithoutTenantNestedInput
+    userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
+    devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    jobQueues?: JobQueueUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
+    nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    country?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    branches?: BranchUncheckedUpdateManyWithoutTenantNestedInput
+    subscriptions?: SubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+    billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: TenantWalletUncheckedUpdateOneWithoutTenantNestedInput
+    walletTransactions?: WalletTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutTenantNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutTenantNestedInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedUpdateManyWithoutTenantNestedInput
+    settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
+    userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
+    devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    jobQueues?: JobQueueUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type BranchUpsertWithoutPrintJobsInput = {
+    update: XOR<BranchUpdateWithoutPrintJobsInput, BranchUncheckedUpdateWithoutPrintJobsInput>
+    create: XOR<BranchCreateWithoutPrintJobsInput, BranchUncheckedCreateWithoutPrintJobsInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutPrintJobsInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutPrintJobsInput, BranchUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type BranchUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
+    createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
+    devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type PrinterUpsertWithoutPrintJobsInput = {
+    update: XOR<PrinterUpdateWithoutPrintJobsInput, PrinterUncheckedUpdateWithoutPrintJobsInput>
+    create: XOR<PrinterCreateWithoutPrintJobsInput, PrinterUncheckedCreateWithoutPrintJobsInput>
+    where?: PrinterWhereInput
+  }
+
+  export type PrinterUpdateToOneWithWhereWithoutPrintJobsInput = {
+    where?: PrinterWhereInput
+    data: XOR<PrinterUpdateWithoutPrintJobsInput, PrinterUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type PrinterUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintersNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPrintersNestedInput
+    device?: DeviceUpdateOneWithoutPrintersNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutPrintJobsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TenantCreateWithoutSyncLogsInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantKey: string
+    tenantName: string
+    nuit?: string | null
+    email?: string | null
+    endereco?: string | null
+    status?: $Enums.TenantStatus
+    country?: string
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    owner: UserCreateNestedOneWithoutTenantsOwnedInput
+    createdByUser?: UserCreateNestedOneWithoutTenantsCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutTenantsUpdatedInput
+    branches?: BranchCreateNestedManyWithoutTenantInput
+    subscriptions?: SubscriptionCreateNestedManyWithoutTenantInput
+    billingSnapshots?: BillingSnapshotCreateNestedManyWithoutTenantInput
+    wallet?: TenantWalletCreateNestedOneWithoutTenantInput
+    walletTransactions?: WalletTransactionCreateNestedManyWithoutTenantInput
+    payments?: PaymentCreateNestedManyWithoutTenantInput
+    invoices?: InvoiceCreateNestedManyWithoutTenantInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterCreateNestedManyWithoutTenantInput
+    settings?: TenantSettingCreateNestedManyWithoutTenantInput
+    userTenants?: UserTenantCreateNestedManyWithoutTenantInput
+    devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    jobQueues?: JobQueueCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutSyncLogsInput = {
+    id?: bigint | number
+    uuid?: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
+    nuit?: string | null
+    email?: string | null
+    endereco?: string | null
+    status?: $Enums.TenantStatus
+    country?: string
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    branches?: BranchUncheckedCreateNestedManyWithoutTenantInput
+    subscriptions?: SubscriptionUncheckedCreateNestedManyWithoutTenantInput
+    billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: TenantWalletUncheckedCreateNestedOneWithoutTenantInput
+    walletTransactions?: WalletTransactionUncheckedCreateNestedManyWithoutTenantInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutTenantInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutTenantInput
+    invoiceFiscalCounters?: InvoiceFiscalCounterUncheckedCreateNestedManyWithoutTenantInput
+    settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
+    userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
+    devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueUncheckedCreateNestedManyWithoutTenantInput
@@ -44983,8 +53974,11 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutSyncLogsInput = {
@@ -45015,8 +54009,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutSyncLogsInput = {
@@ -45038,6 +54035,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     tenant: TenantCreateNestedOneWithoutDevicesInput
     branch: BranchCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
   }
@@ -45056,6 +54054,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
   }
@@ -45079,9 +54078,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutSyncLogsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -45102,6 +54103,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUpdateManyWithoutTenantNestedInput
@@ -45110,10 +54113,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutSyncLogsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -45133,6 +54138,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUncheckedUpdateManyWithoutTenantNestedInput
@@ -45177,8 +54184,11 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutSyncLogsInput = {
@@ -45209,8 +54219,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type DeviceUpsertWithoutSyncLogsInput = {
@@ -45238,6 +54251,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
     branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
   }
@@ -45256,6 +54270,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
   }
@@ -45263,9 +54278,11 @@ export namespace Prisma {
   export type TenantCreateWithoutSyncSessionsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -45286,6 +54303,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueCreateNestedManyWithoutTenantInput
@@ -45294,10 +54313,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutSyncSessionsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -45317,6 +54338,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueUncheckedCreateNestedManyWithoutTenantInput
@@ -45355,8 +54378,11 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutSyncSessionsInput = {
@@ -45387,8 +54413,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutSyncSessionsInput = {
@@ -45410,6 +54439,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     tenant: TenantCreateNestedOneWithoutDevicesInput
     branch: BranchCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionCreateNestedManyWithoutDeviceInput
   }
@@ -45428,6 +54458,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
     userSessions?: UserSessionUncheckedCreateNestedManyWithoutDeviceInput
   }
@@ -45451,9 +54482,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutSyncSessionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -45474,6 +54507,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUpdateManyWithoutTenantNestedInput
@@ -45482,10 +54517,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutSyncSessionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -45505,6 +54542,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUncheckedUpdateManyWithoutTenantNestedInput
@@ -45549,8 +54588,11 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutSyncSessionsInput = {
@@ -45581,8 +54623,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type DeviceUpsertWithoutSyncSessionsInput = {
@@ -45610,6 +54655,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
     branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
   }
@@ -45628,6 +54674,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
   }
@@ -45641,6 +54688,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -45650,6 +54699,7 @@ export namespace Prisma {
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutPlanInput = {
@@ -45662,6 +54712,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -45670,6 +54722,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutPlanInput = {
@@ -45701,9 +54754,11 @@ export namespace Prisma {
   export type TenantCreateWithoutSubscriptionsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -45723,6 +54778,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -45732,10 +54789,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutSubscriptionsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -45754,6 +54813,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45773,6 +54834,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | DecimalJsLike | number | string
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: number
+    trialDays?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -45787,6 +54850,8 @@ export namespace Prisma {
     extraBranchPrice: Decimal | DecimalJsLike | number | string
     isEnterprise?: boolean
     active?: boolean
+    billingIntervalMonths?: number
+    trialDays?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -45824,6 +54889,7 @@ export namespace Prisma {
     branchesCreated?: BranchCreateNestedManyWithoutCreatedByUserInput
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -45855,6 +54921,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedCreateNestedManyWithoutCreatedByUserInput
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -45891,6 +54958,7 @@ export namespace Prisma {
     branchesCreated?: BranchCreateNestedManyWithoutCreatedByUserInput
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -45922,6 +54990,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedCreateNestedManyWithoutCreatedByUserInput
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -45980,6 +55049,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -46009,6 +55079,7 @@ export namespace Prisma {
     sequence: number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -46037,6 +55108,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SubscriptionBranchHistoryCreateWithoutSubscriptionInput = {
+    id?: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+    branch: BranchCreateNestedOneWithoutSubscriptionBranchHistoryInput
+    createdByUser?: UserCreateNestedOneWithoutSubscriptionBranchHistoryCreatedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput = {
+    id?: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
+  }
+
+  export type SubscriptionBranchHistoryCreateOrConnectWithoutSubscriptionInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    create: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput>
+  }
+
+  export type SubscriptionBranchHistoryCreateManySubscriptionInputEnvelope = {
+    data: SubscriptionBranchHistoryCreateManySubscriptionInput | SubscriptionBranchHistoryCreateManySubscriptionInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutSubscriptionsInput = {
     update: XOR<TenantUpdateWithoutSubscriptionsInput, TenantUncheckedUpdateWithoutSubscriptionsInput>
     create: XOR<TenantCreateWithoutSubscriptionsInput, TenantUncheckedCreateWithoutSubscriptionsInput>
@@ -46051,9 +55152,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutSubscriptionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46073,6 +55176,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -46082,10 +55187,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutSubscriptionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46104,6 +55211,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46129,6 +55238,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -46143,6 +55254,8 @@ export namespace Prisma {
     extraBranchPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isEnterprise?: BoolFieldUpdateOperationsInput | boolean
     active?: BoolFieldUpdateOperationsInput | boolean
+    billingIntervalMonths?: IntFieldUpdateOperationsInput | number
+    trialDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -46186,6 +55299,7 @@ export namespace Prisma {
     branchesCreated?: BranchUpdateManyWithoutCreatedByUserNestedInput
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -46217,6 +55331,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedUpdateManyWithoutCreatedByUserNestedInput
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -46259,6 +55374,7 @@ export namespace Prisma {
     branchesCreated?: BranchUpdateManyWithoutCreatedByUserNestedInput
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -46290,6 +55406,7 @@ export namespace Prisma {
     branchesCreated?: BranchUncheckedUpdateManyWithoutCreatedByUserNestedInput
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -46326,12 +55443,438 @@ export namespace Prisma {
     data: XOR<InvoiceUpdateManyMutationInput, InvoiceUncheckedUpdateManyWithoutSubscriptionInput>
   }
 
-  export type TenantCreateWithoutInvoiceFiscalCountersInput = {
+  export type SubscriptionBranchHistoryUpsertWithWhereUniqueWithoutSubscriptionInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    update: XOR<SubscriptionBranchHistoryUpdateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedUpdateWithoutSubscriptionInput>
+    create: XOR<SubscriptionBranchHistoryCreateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedCreateWithoutSubscriptionInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateWithWhereUniqueWithoutSubscriptionInput = {
+    where: SubscriptionBranchHistoryWhereUniqueInput
+    data: XOR<SubscriptionBranchHistoryUpdateWithoutSubscriptionInput, SubscriptionBranchHistoryUncheckedUpdateWithoutSubscriptionInput>
+  }
+
+  export type SubscriptionBranchHistoryUpdateManyWithWhereWithoutSubscriptionInput = {
+    where: SubscriptionBranchHistoryScalarWhereInput
+    data: XOR<SubscriptionBranchHistoryUpdateManyMutationInput, SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionInput>
+  }
+
+  export type SubscriptionCreateWithoutBranchHistoryInput = {
+    id?: bigint | number
+    branchesUsed?: number
+    status?: $Enums.SubscriptionStatus
+    startDate: Date | string
+    endDate?: Date | string | null
+    trialEndsAt?: Date | string | null
+    lastBillingAt?: Date | string | null
+    nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutSubscriptionsInput
+    plan: PlanCreateNestedOneWithoutSubscriptionsInput
+    createdByUser?: UserCreateNestedOneWithoutSubscriptionsCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
+    billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
+    invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type SubscriptionUncheckedCreateWithoutBranchHistoryInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    planId: number
+    branchesUsed?: number
+    status?: $Enums.SubscriptionStatus
+    startDate: Date | string
+    endDate?: Date | string | null
+    trialEndsAt?: Date | string | null
+    lastBillingAt?: Date | string | null
+    nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type SubscriptionCreateOrConnectWithoutBranchHistoryInput = {
+    where: SubscriptionWhereUniqueInput
+    create: XOR<SubscriptionCreateWithoutBranchHistoryInput, SubscriptionUncheckedCreateWithoutBranchHistoryInput>
+  }
+
+  export type BranchCreateWithoutSubscriptionBranchHistoryInput = {
+    id?: bigint | number
+    uuid?: string
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutBranchesInput
+    createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
+    updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
+    devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutSubscriptionBranchHistoryInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    code: string
+    name: string
+    isHeadOffice?: boolean
+    active?: boolean
+    syncEnabled?: boolean
+    offlineEnabled?: boolean
+    connectionStatus?: $Enums.BranchConnectionStatus
+    lastSyncAt?: Date | string | null
+    syncVersion?: number | null
+    dbHost: string
+    dbPort?: number
+    dbName: string
+    dbUsername: string
+    dbPasswordCipherText: string
+    dbPasswordIv: string
+    dbPasswordTag?: string | null
+    dbSslEnabled?: boolean
+    version?: number
+    createdBy?: bigint | number | null
+    updatedBy?: bigint | number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
+    syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
+    syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutSubscriptionBranchHistoryInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutSubscriptionBranchHistoryInput, BranchUncheckedCreateWithoutSubscriptionBranchHistoryInput>
+  }
+
+  export type UserCreateWithoutSubscriptionBranchHistoryCreatedInput = {
     id?: bigint | number
     uuid?: string
     name: string
-    companyName: string
+    email: string
+    password: string
+    role?: $Enums.Role
+    active?: boolean
+    lastLoginAt?: Date | string | null
+    failedLoginCount?: number
+    lockedUntil?: Date | string | null
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenantsOwned?: TenantCreateNestedManyWithoutOwnerInput
+    userTenants?: UserTenantCreateNestedManyWithoutUserInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
+    loginAttempts?: LoginAttemptCreateNestedManyWithoutUserInput
+    paymentsConfirmed?: PaymentCreateNestedManyWithoutConfirmedByUserInput
+    paymentsCreated?: PaymentCreateNestedManyWithoutCreatedByUserInput
+    paymentsUpdated?: PaymentCreateNestedManyWithoutUpdatedByUserInput
+    tenantsCreated?: TenantCreateNestedManyWithoutCreatedByUserInput
+    tenantsUpdated?: TenantCreateNestedManyWithoutUpdatedByUserInput
+    branchesCreated?: BranchCreateNestedManyWithoutCreatedByUserInput
+    branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
+    subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    sessions?: UserSessionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutSubscriptionBranchHistoryCreatedInput = {
+    id?: bigint | number
+    uuid?: string
+    name: string
+    email: string
+    password: string
+    role?: $Enums.Role
+    active?: boolean
+    lastLoginAt?: Date | string | null
+    failedLoginCount?: number
+    lockedUntil?: Date | string | null
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenantsOwned?: TenantUncheckedCreateNestedManyWithoutOwnerInput
+    userTenants?: UserTenantUncheckedCreateNestedManyWithoutUserInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
+    loginAttempts?: LoginAttemptUncheckedCreateNestedManyWithoutUserInput
+    paymentsConfirmed?: PaymentUncheckedCreateNestedManyWithoutConfirmedByUserInput
+    paymentsCreated?: PaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+    paymentsUpdated?: PaymentUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    tenantsCreated?: TenantUncheckedCreateNestedManyWithoutCreatedByUserInput
+    tenantsUpdated?: TenantUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    branchesCreated?: BranchUncheckedCreateNestedManyWithoutCreatedByUserInput
+    branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSubscriptionBranchHistoryCreatedInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedCreateWithoutSubscriptionBranchHistoryCreatedInput>
+  }
+
+  export type SubscriptionUpsertWithoutBranchHistoryInput = {
+    update: XOR<SubscriptionUpdateWithoutBranchHistoryInput, SubscriptionUncheckedUpdateWithoutBranchHistoryInput>
+    create: XOR<SubscriptionCreateWithoutBranchHistoryInput, SubscriptionUncheckedCreateWithoutBranchHistoryInput>
+    where?: SubscriptionWhereInput
+  }
+
+  export type SubscriptionUpdateToOneWithWhereWithoutBranchHistoryInput = {
+    where?: SubscriptionWhereInput
+    data: XOR<SubscriptionUpdateWithoutBranchHistoryInput, SubscriptionUncheckedUpdateWithoutBranchHistoryInput>
+  }
+
+  export type SubscriptionUpdateWithoutBranchHistoryInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchesUsed?: IntFieldUpdateOperationsInput | number
+    status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutSubscriptionsNestedInput
+    plan?: PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
+    createdByUser?: UserUpdateOneWithoutSubscriptionsCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
+    billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
+    invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type SubscriptionUncheckedUpdateWithoutBranchHistoryInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    planId?: IntFieldUpdateOperationsInput | number
+    branchesUsed?: IntFieldUpdateOperationsInput | number
+    status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type BranchUpsertWithoutSubscriptionBranchHistoryInput = {
+    update: XOR<BranchUpdateWithoutSubscriptionBranchHistoryInput, BranchUncheckedUpdateWithoutSubscriptionBranchHistoryInput>
+    create: XOR<BranchCreateWithoutSubscriptionBranchHistoryInput, BranchUncheckedCreateWithoutSubscriptionBranchHistoryInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutSubscriptionBranchHistoryInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutSubscriptionBranchHistoryInput, BranchUncheckedUpdateWithoutSubscriptionBranchHistoryInput>
+  }
+
+  export type BranchUpdateWithoutSubscriptionBranchHistoryInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
+    createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
+    updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
+    devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutSubscriptionBranchHistoryInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isHeadOffice?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    syncEnabled?: BoolFieldUpdateOperationsInput | boolean
+    offlineEnabled?: BoolFieldUpdateOperationsInput | boolean
+    connectionStatus?: EnumBranchConnectionStatusFieldUpdateOperationsInput | $Enums.BranchConnectionStatus
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    dbHost?: StringFieldUpdateOperationsInput | string
+    dbPort?: IntFieldUpdateOperationsInput | number
+    dbName?: StringFieldUpdateOperationsInput | string
+    dbUsername?: StringFieldUpdateOperationsInput | string
+    dbPasswordCipherText?: StringFieldUpdateOperationsInput | string
+    dbPasswordIv?: StringFieldUpdateOperationsInput | string
+    dbPasswordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    dbSslEnabled?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
+    syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
+    syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type UserUpsertWithoutSubscriptionBranchHistoryCreatedInput = {
+    update: XOR<UserUpdateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedUpdateWithoutSubscriptionBranchHistoryCreatedInput>
+    create: XOR<UserCreateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedCreateWithoutSubscriptionBranchHistoryCreatedInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSubscriptionBranchHistoryCreatedInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSubscriptionBranchHistoryCreatedInput, UserUncheckedUpdateWithoutSubscriptionBranchHistoryCreatedInput>
+  }
+
+  export type UserUpdateWithoutSubscriptionBranchHistoryCreatedInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failedLoginCount?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantsOwned?: TenantUpdateManyWithoutOwnerNestedInput
+    userTenants?: UserTenantUpdateManyWithoutUserNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
+    loginAttempts?: LoginAttemptUpdateManyWithoutUserNestedInput
+    paymentsConfirmed?: PaymentUpdateManyWithoutConfirmedByUserNestedInput
+    paymentsCreated?: PaymentUpdateManyWithoutCreatedByUserNestedInput
+    paymentsUpdated?: PaymentUpdateManyWithoutUpdatedByUserNestedInput
+    tenantsCreated?: TenantUpdateManyWithoutCreatedByUserNestedInput
+    tenantsUpdated?: TenantUpdateManyWithoutUpdatedByUserNestedInput
+    branchesCreated?: BranchUpdateManyWithoutCreatedByUserNestedInput
+    branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
+    subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    sessions?: UserSessionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSubscriptionBranchHistoryCreatedInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failedLoginCount?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantsOwned?: TenantUncheckedUpdateManyWithoutOwnerNestedInput
+    userTenants?: UserTenantUncheckedUpdateManyWithoutUserNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
+    loginAttempts?: LoginAttemptUncheckedUpdateManyWithoutUserNestedInput
+    paymentsConfirmed?: PaymentUncheckedUpdateManyWithoutConfirmedByUserNestedInput
+    paymentsCreated?: PaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    paymentsUpdated?: PaymentUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    tenantsCreated?: TenantUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    tenantsUpdated?: TenantUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    branchesCreated?: BranchUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TenantCreateWithoutInvoiceFiscalCountersInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46351,6 +55894,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -46360,10 +55905,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutInvoiceFiscalCountersInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46382,6 +55929,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46407,9 +55956,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutInvoiceFiscalCountersInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46429,6 +55980,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -46438,10 +55991,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutInvoiceFiscalCountersInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46460,6 +56015,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46469,9 +56026,11 @@ export namespace Prisma {
   export type TenantCreateWithoutInvoicesInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46491,6 +56050,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -46500,10 +56061,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutInvoicesInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46522,6 +56085,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46542,6 +56107,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -46551,6 +56118,7 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutSubscriptionsCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     billingSnapshots?: BillingSnapshotCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutInvoicesInput = {
@@ -46564,6 +56132,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -46571,6 +56141,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutInvoicesInput = {
@@ -46624,6 +56195,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -46646,6 +56218,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -46715,9 +56288,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutInvoicesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46737,6 +56312,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -46746,10 +56323,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutInvoicesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -46768,6 +56347,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46794,6 +56375,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46803,6 +56386,7 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutSubscriptionsCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutInvoicesInput = {
@@ -46816,6 +56400,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -46823,6 +56409,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type BillingSnapshotUpsertWithoutInvoiceInput = {
@@ -46903,9 +56490,11 @@ export namespace Prisma {
   export type TenantCreateWithoutBillingSnapshotsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46925,6 +56514,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -46934,10 +56525,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutBillingSnapshotsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -46956,6 +56549,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46976,6 +56571,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -46985,6 +56582,7 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutSubscriptionsCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutSubscriptionsUpdatedInput
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionUncheckedCreateWithoutBillingSnapshotsInput = {
@@ -46998,6 +56596,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -47005,6 +56605,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutSubscriptionInput
   }
 
   export type SubscriptionCreateOrConnectWithoutBillingSnapshotsInput = {
@@ -47019,6 +56620,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -47048,6 +56650,7 @@ export namespace Prisma {
     sequence: number
     subscriptionId: bigint | number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -47085,9 +56688,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutBillingSnapshotsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47107,6 +56712,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -47116,10 +56723,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutBillingSnapshotsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47138,6 +56747,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -47164,6 +56775,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47173,6 +56786,7 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutSubscriptionsCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutBillingSnapshotsInput = {
@@ -47186,6 +56800,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -47193,6 +56809,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type InvoiceUpsertWithoutBillingSnapshotInput = {
@@ -47213,6 +56830,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -47242,6 +56860,7 @@ export namespace Prisma {
     sequence?: IntFieldUpdateOperationsInput | number
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -47263,9 +56882,11 @@ export namespace Prisma {
   export type TenantCreateWithoutWalletInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -47285,6 +56906,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -47294,10 +56917,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutWalletInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -47316,6 +56941,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -47341,9 +56968,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutWalletInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47363,6 +56992,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -47372,10 +57003,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutWalletInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47394,6 +57027,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -47403,9 +57038,11 @@ export namespace Prisma {
   export type TenantCreateWithoutPaymentsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -47425,6 +57062,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -47434,10 +57073,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutPaymentsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -47456,6 +57097,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -47474,6 +57117,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -47504,6 +57148,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -47553,6 +57198,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -47584,6 +57230,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -47620,6 +57267,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -47651,6 +57299,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -47687,6 +57336,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -47718,6 +57368,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -47775,9 +57426,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutPaymentsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47797,6 +57450,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -47806,10 +57461,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutPaymentsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -47828,6 +57485,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -47852,6 +57511,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -47882,6 +57542,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -47937,6 +57598,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -47968,6 +57630,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -48010,6 +57673,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -48041,6 +57705,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -48083,6 +57748,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -48114,6 +57780,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -48137,9 +57804,11 @@ export namespace Prisma {
   export type TenantCreateWithoutJobQueuesInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48160,6 +57829,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -48168,10 +57839,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutJobQueuesInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48191,6 +57864,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -48215,9 +57890,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutJobQueuesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48238,6 +57915,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -48246,10 +57925,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutJobQueuesInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48269,6 +57950,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -48277,9 +57960,11 @@ export namespace Prisma {
   export type TenantCreateWithoutWalletTransactionsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48299,6 +57984,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
@@ -48308,10 +57995,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutWalletTransactionsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48330,6 +58019,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -48348,6 +58039,7 @@ export namespace Prisma {
     fiscalYear: number
     sequence: number
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -48378,6 +58070,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -48409,6 +58102,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     notes?: string | null
     createdAt?: Date | string
@@ -48432,6 +58126,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -48461,9 +58156,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutWalletTransactionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48483,6 +58180,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -48492,10 +58191,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutWalletTransactionsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48514,6 +58215,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -48538,6 +58241,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -48568,6 +58272,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -48605,6 +58310,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48628,6 +58334,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -48641,9 +58348,11 @@ export namespace Prisma {
   export type TenantCreateWithoutAuditLogsInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48664,6 +58373,8 @@ export namespace Prisma {
     settings?: TenantSettingCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantCreateNestedManyWithoutTenantInput
     devices?: DeviceCreateNestedManyWithoutTenantInput
+    printers?: PrinterCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueCreateNestedManyWithoutTenantInput
@@ -48672,10 +58383,12 @@ export namespace Prisma {
   export type TenantUncheckedCreateWithoutAuditLogsInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -48695,6 +58408,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedCreateNestedManyWithoutTenantInput
     userTenants?: UserTenantUncheckedCreateNestedManyWithoutTenantInput
     devices?: DeviceUncheckedCreateNestedManyWithoutTenantInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutTenantInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutTenantInput
     jobQueues?: JobQueueUncheckedCreateNestedManyWithoutTenantInput
@@ -48733,8 +58448,11 @@ export namespace Prisma {
     createdByUser?: UserCreateNestedOneWithoutBranchesCreatedInput
     updatedByUser?: UserCreateNestedOneWithoutBranchesUpdatedInput
     devices?: DeviceCreateNestedManyWithoutBranchInput
+    printers?: PrinterCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutAuditLogsInput = {
@@ -48765,8 +58483,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutBranchInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutBranchInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutBranchInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutBranchInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutBranchInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutAuditLogsInput = {
@@ -48802,6 +58523,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
 
@@ -48833,6 +58555,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -48855,9 +58578,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutAuditLogsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48878,6 +58603,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUpdateManyWithoutTenantNestedInput
@@ -48886,10 +58613,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutAuditLogsInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -48909,6 +58638,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     jobQueues?: JobQueueUncheckedUpdateManyWithoutTenantNestedInput
@@ -48953,8 +58684,11 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutAuditLogsInput = {
@@ -48985,8 +58719,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -49028,6 +58765,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
 
@@ -49059,6 +58797,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -49090,6 +58829,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
   }
 
@@ -49121,6 +58861,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -49143,6 +58884,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     tenant: TenantCreateNestedOneWithoutDevicesInput
     branch: BranchCreateNestedOneWithoutDevicesInput
+    printers?: PrinterCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionCreateNestedManyWithoutDeviceInput
   }
@@ -49161,6 +58903,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    printers?: PrinterUncheckedCreateNestedManyWithoutDeviceInput
     syncLogs?: SyncLogUncheckedCreateNestedManyWithoutDeviceInput
     syncSessions?: SyncSessionUncheckedCreateNestedManyWithoutDeviceInput
   }
@@ -49209,6 +58952,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
   }
 
@@ -49240,6 +58984,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -49268,6 +59013,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
     branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
   }
@@ -49286,6 +59032,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
   }
@@ -49317,6 +59064,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -49348,6 +59096,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -49395,6 +59144,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -49426,6 +59176,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -49590,6 +59341,7 @@ export namespace Prisma {
     branchesUpdated?: BranchCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     sessions?: UserSessionCreateNestedManyWithoutUserInput
   }
@@ -49621,6 +59373,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedCreateNestedManyWithoutUpdatedByUserInput
     subscriptionsCreated?: SubscriptionUncheckedCreateNestedManyWithoutCreatedByUserInput
     subscriptionsUpdated?: SubscriptionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -49688,6 +59441,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
   }
@@ -49719,6 +59473,7 @@ export namespace Prisma {
     branchesUpdated?: BranchUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     subscriptionsCreated?: SubscriptionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     subscriptionsUpdated?: SubscriptionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    subscriptionBranchHistoryCreated?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -49752,9 +59507,11 @@ export namespace Prisma {
   export type TenantCreateManyOwnerInput = {
     id?: bigint | number
     uuid?: string
-    name: string
-    companyName: string
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -49804,6 +59561,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -49824,6 +59582,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -49844,6 +59603,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -49856,10 +59616,12 @@ export namespace Prisma {
   export type TenantCreateManyCreatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -49872,10 +59634,12 @@ export namespace Prisma {
   export type TenantCreateManyUpdatedByUserInput = {
     id?: bigint | number
     uuid?: string
-    ownerId: bigint | number
-    name: string
-    companyName: string
+    ownerUserId: bigint | number
+    tenantKey: string
+    tenantName: string
     nuit?: string | null
+    email?: string | null
+    endereco?: string | null
     status?: $Enums.TenantStatus
     country?: string
     version?: number
@@ -49952,6 +59716,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     updatedBy?: bigint | number | null
     createdAt?: Date | string
@@ -49970,11 +59736,23 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+  }
+
+  export type SubscriptionBranchHistoryCreateManyCreatedByUserInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdAt?: Date | string
   }
 
   export type AuditLogCreateManyUserInput = {
@@ -50013,9 +59791,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutOwnerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50035,6 +59815,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -50044,9 +59826,11 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutOwnerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50066,6 +59850,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -50075,9 +59861,11 @@ export namespace Prisma {
   export type TenantUncheckedUpdateManyWithoutOwnerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50181,6 +59969,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50204,6 +59993,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50225,6 +60015,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50243,6 +60034,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50266,6 +60058,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50287,6 +60080,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50305,6 +60099,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50328,6 +60123,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50349,6 +60145,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -50361,9 +60158,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutCreatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50383,6 +60182,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -50392,10 +60193,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutCreatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50414,6 +60217,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -50423,10 +60228,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateManyWithoutCreatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50439,9 +60246,11 @@ export namespace Prisma {
   export type TenantUpdateWithoutUpdatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50461,6 +60270,8 @@ export namespace Prisma {
     settings?: TenantSettingUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUpdateManyWithoutTenantNestedInput
     devices?: DeviceUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
@@ -50470,10 +60281,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateWithoutUpdatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50492,6 +60305,8 @@ export namespace Prisma {
     settings?: TenantSettingUncheckedUpdateManyWithoutTenantNestedInput
     userTenants?: UserTenantUncheckedUpdateManyWithoutTenantNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutTenantNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutTenantNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutTenantNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -50501,10 +60316,12 @@ export namespace Prisma {
   export type TenantUncheckedUpdateManyWithoutUpdatedByUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
-    ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    companyName?: StringFieldUpdateOperationsInput | string
+    ownerUserId?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantKey?: StringFieldUpdateOperationsInput | string
+    tenantName?: StringFieldUpdateOperationsInput | string
     nuit?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    endereco?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     country?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -50541,9 +60358,12 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutCreatedByUserInput = {
@@ -50573,9 +60393,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -50633,9 +60456,12 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBranchesNestedInput
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -50665,9 +60491,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -50707,6 +60536,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50716,6 +60547,7 @@ export namespace Prisma {
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutCreatedByUserInput = {
@@ -50729,6 +60561,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50736,6 +60570,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -50749,6 +60584,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50765,6 +60602,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50774,6 +60613,7 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutSubscriptionsCreatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -50787,6 +60627,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50794,6 +60636,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -50807,11 +60650,43 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type SubscriptionBranchHistoryUpdateWithoutCreatedByUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription?: SubscriptionUpdateOneRequiredWithoutBranchHistoryNestedInput
+    branch?: BranchUpdateOneRequiredWithoutSubscriptionBranchHistoryNestedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AuditLogUpdateWithoutUserInput = {
@@ -50951,6 +60826,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -50996,6 +60873,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -51015,6 +60893,7 @@ export namespace Prisma {
     subscriptionId: bigint | number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -51068,6 +60947,43 @@ export namespace Prisma {
     apiKeyHash?: string | null
     active?: boolean
     version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrinterCreateManyTenantInput = {
+    id?: bigint | number
+    uuid?: string
+    branchId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobCreateManyTenantInput = {
+    id?: bigint | number
+    branchId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -51176,9 +61092,12 @@ export namespace Prisma {
     createdByUser?: UserUpdateOneWithoutBranchesCreatedNestedInput
     updatedByUser?: UserUpdateOneWithoutBranchesUpdatedNestedInput
     devices?: DeviceUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutTenantInput = {
@@ -51208,9 +61127,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: DeviceUncheckedUpdateManyWithoutBranchNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutBranchNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutBranchNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutBranchNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutBranchNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutBranchNestedInput
+    subscriptionBranchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateManyWithoutTenantInput = {
@@ -51250,6 +61172,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51259,6 +61183,7 @@ export namespace Prisma {
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutTenantInput = {
@@ -51271,6 +61196,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -51279,6 +61206,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateManyWithoutTenantInput = {
@@ -51291,6 +61219,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -51391,6 +61321,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51413,6 +61344,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -51434,6 +61366,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -51451,6 +61384,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -51480,6 +61414,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -51507,6 +61442,7 @@ export namespace Prisma {
     subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -51617,6 +61553,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     branch?: BranchUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
@@ -51635,6 +61572,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
@@ -51650,6 +61588,119 @@ export namespace Prisma {
     apiKeyHash?: NullableStringFieldUpdateOperationsInput | string | null
     active?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrinterUpdateWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    branch?: BranchUpdateOneRequiredWithoutPrintersNestedInput
+    device?: DeviceUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUpdateWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    branch?: BranchUpdateOneRequiredWithoutPrintJobsNestedInput
+    printer?: PrinterUpdateOneRequiredWithoutPrintJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutTenantInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51898,6 +61949,43 @@ export namespace Prisma {
     deletedAt?: Date | string | null
   }
 
+  export type PrinterCreateManyBranchInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    deviceId?: bigint | number | null
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobCreateManyBranchInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    printerId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
   export type SyncLogCreateManyBranchInput = {
     id?: bigint | number
     tenantId: bigint | number
@@ -51955,6 +62043,16 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type SubscriptionBranchHistoryCreateManyBranchInput = {
+    id?: bigint | number
+    subscriptionId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
+  }
+
   export type DeviceUpdateWithoutBranchInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     uuid?: StringFieldUpdateOperationsInput | string
@@ -51968,6 +62066,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tenant?: TenantUpdateOneRequiredWithoutDevicesNestedInput
+    printers?: PrinterUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUpdateManyWithoutDeviceNestedInput
@@ -51986,6 +62085,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printers?: PrinterUncheckedUpdateManyWithoutDeviceNestedInput
     syncLogs?: SyncLogUncheckedUpdateManyWithoutDeviceNestedInput
     syncSessions?: SyncSessionUncheckedUpdateManyWithoutDeviceNestedInput
     userSessions?: UserSessionUncheckedUpdateManyWithoutDeviceNestedInput
@@ -52001,6 +62101,119 @@ export namespace Prisma {
     apiKeyHash?: NullableStringFieldUpdateOperationsInput | string | null
     active?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrinterUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintersNestedInput
+    device?: DeviceUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
+    printer?: PrinterUpdateOneRequiredWithoutPrintJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    printerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52177,6 +62390,55 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SubscriptionBranchHistoryUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription?: SubscriptionUpdateOneRequiredWithoutBranchHistoryNestedInput
+    createdByUser?: UserUpdateOneWithoutSubscriptionBranchHistoryCreatedNestedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutBranchInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    subscriptionId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterCreateManyDeviceInput = {
+    id?: bigint | number
+    uuid?: string
+    tenantId: bigint | number
+    branchId: bigint | number
+    name: string
+    type: $Enums.PrinterType
+    connection: $Enums.PrinterConnection
+    ip?: string | null
+    port?: number | null
+    model?: string | null
+    manufacturer?: string | null
+    active?: boolean
+    version?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
   export type SyncLogCreateManyDeviceInput = {
     id?: bigint | number
     tenantId: bigint | number
@@ -52229,6 +62491,65 @@ export namespace Prisma {
     userAgent?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
+  }
+
+  export type PrinterUpdateWithoutDeviceInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintersNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutDeviceInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutDeviceInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    uuid?: StringFieldUpdateOperationsInput | string
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connection?: EnumPrinterConnectionFieldUpdateOperationsInput | $Enums.PrinterConnection
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturer?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    version?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SyncLogUpdateWithoutDeviceInput = {
@@ -52393,6 +62714,78 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type PrintJobCreateManyPrinterInput = {
+    id?: bigint | number
+    tenantId: bigint | number
+    branchId: bigint | number
+    document: string
+    payload: JsonNullValueInput | InputJsonValue
+    status?: $Enums.PrintStatus
+    attempts?: number
+    maxAttempts?: number
+    errorMessage?: string | null
+    printedAt?: Date | string | null
+    lockedAt?: Date | string | null
+    lockedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type PrintJobUpdateWithoutPrinterInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPrintJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateWithoutPrinterInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutPrinterInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    tenantId?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    document?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    status?: EnumPrintStatusFieldUpdateOperationsInput | $Enums.PrintStatus
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type SubscriptionCreateManyPlanInput = {
     id?: bigint | number
     tenantId: bigint | number
@@ -52403,6 +62796,8 @@ export namespace Prisma {
     trialEndsAt?: Date | string | null
     lastBillingAt?: Date | string | null
     nextBillingAt?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    autoRenew?: boolean
     version?: number
     createdBy?: bigint | number | null
     updatedBy?: bigint | number | null
@@ -52420,6 +62815,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52429,6 +62826,7 @@ export namespace Prisma {
     updatedByUser?: UserUpdateOneWithoutSubscriptionsUpdatedNestedInput
     billingSnapshots?: BillingSnapshotUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateWithoutPlanInput = {
@@ -52441,6 +62839,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -52449,6 +62849,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     billingSnapshots?: BillingSnapshotUncheckedUpdateManyWithoutSubscriptionNestedInput
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+    branchHistory?: SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
   export type SubscriptionUncheckedUpdateManyWithoutPlanInput = {
@@ -52461,6 +62862,8 @@ export namespace Prisma {
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextBillingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
     version?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     updatedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -52493,6 +62896,7 @@ export namespace Prisma {
     sequence: number
     billingSnapshotId?: bigint | number | null
     amount: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
     paidAmount?: Decimal | DecimalJsLike | number | string
     remainingAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.InvoiceStatus
@@ -52507,6 +62911,16 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+  }
+
+  export type SubscriptionBranchHistoryCreateManySubscriptionInput = {
+    id?: bigint | number
+    branchId: bigint | number
+    action: $Enums.SubscriptionBranchAction
+    effectiveDate?: Date | string
+    reason?: string | null
+    createdBy?: bigint | number | null
+    createdAt?: Date | string
   }
 
   export type BillingSnapshotUpdateWithoutSubscriptionInput = {
@@ -52563,6 +62977,7 @@ export namespace Prisma {
     fiscalYear?: IntFieldUpdateOperationsInput | number
     sequence?: IntFieldUpdateOperationsInput | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -52592,6 +63007,7 @@ export namespace Prisma {
     sequence?: IntFieldUpdateOperationsInput | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -52619,6 +63035,7 @@ export namespace Prisma {
     sequence?: IntFieldUpdateOperationsInput | number
     billingSnapshotId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     remainingAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
@@ -52635,6 +63052,36 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type SubscriptionBranchHistoryUpdateWithoutSubscriptionInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutSubscriptionBranchHistoryNestedInput
+    createdByUser?: UserUpdateOneWithoutSubscriptionBranchHistoryCreatedNestedInput
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateWithoutSubscriptionInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionBranchHistoryUncheckedUpdateManyWithoutSubscriptionInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    branchId?: BigIntFieldUpdateOperationsInput | bigint | number
+    action?: EnumSubscriptionBranchActionFieldUpdateOperationsInput | $Enums.SubscriptionBranchAction
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PaymentCreateManyInvoiceInput = {
     id?: bigint | number
     tenantId: bigint | number
@@ -52645,6 +63092,7 @@ export namespace Prisma {
     proofUrl?: string | null
     coversFrom?: Date | string | null
     coversTo?: Date | string | null
+    monthsCovered?: number | null
     confirmedAt?: Date | string | null
     confirmedBy?: bigint | number | null
     createdBy?: bigint | number | null
@@ -52676,6 +63124,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52698,6 +63147,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -52719,6 +63169,7 @@ export namespace Prisma {
     proofUrl?: NullableStringFieldUpdateOperationsInput | string | null
     coversFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     coversTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    monthsCovered?: NullableIntFieldUpdateOperationsInput | number | null
     confirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     confirmedBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     createdBy?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -52887,6 +63338,10 @@ export namespace Prisma {
      */
     export type DeviceCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DeviceCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use PrinterCountOutputTypeDefaultArgs instead
+     */
+    export type PrinterCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use PlanCountOutputTypeDefaultArgs instead
      */
     export type PlanCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PlanCountOutputTypeDefaultArgs<ExtArgs>
@@ -52931,6 +63386,14 @@ export namespace Prisma {
      */
     export type DeviceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DeviceDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use PrinterDefaultArgs instead
+     */
+    export type PrinterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PrintJobDefaultArgs instead
+     */
+    export type PrintJobArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintJobDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use SyncLogDefaultArgs instead
      */
     export type SyncLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SyncLogDefaultArgs<ExtArgs>
@@ -52946,6 +63409,10 @@ export namespace Prisma {
      * @deprecated Use SubscriptionDefaultArgs instead
      */
     export type SubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SubscriptionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SubscriptionBranchHistoryDefaultArgs instead
+     */
+    export type SubscriptionBranchHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SubscriptionBranchHistoryDefaultArgs<ExtArgs>
     /**
      * @deprecated Use InvoiceFiscalCounterDefaultArgs instead
      */
@@ -53002,6 +63469,10 @@ export namespace Prisma {
      * @deprecated Use UserPermissionDefaultArgs instead
      */
     export type UserPermissionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserPermissionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CentralSettingsDefaultArgs instead
+     */
+    export type CentralSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CentralSettingsDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

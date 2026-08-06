@@ -19,6 +19,8 @@ export interface CreateTrialInvoiceInput {
   startDate: Date;
   trialEndsAt: Date;
   branchesUsed?: number;
+  /** Meses cobertos pela fatura inicial (1, 3, 6 ou 12). */
+  periodMonths?: number;
 }
 
 export interface CreateTrialInvoiceResult {
@@ -32,14 +34,17 @@ export interface CreateTrialInvoiceResult {
 
 /**
  * Fatura inicial do trial — delega em SubscriptionBillingService.
- * Vencimento = fim do trial; período = primeiro mês após o trial.
+ * Vencimento = fim do trial; período = N meses após o trial (default 1).
  */
 export async function createTrialInvoice(
   input: CreateTrialInvoiceInput,
 ): Promise<CreateTrialInvoiceResult | null> {
   const branchesUsed = Math.max(1, input.branchesUsed ?? 1);
+  const periodMonths = Math.max(1, Math.floor(Number(input.periodMonths ?? 1)));
   const periodStart = new Date(input.trialEndsAt);
-  const periodEnd = new Date(addMonthsUTC(periodStart, 1).getTime() - 1);
+  const periodEnd = new Date(
+    addMonthsUTC(periodStart, periodMonths).getTime() - 1,
+  );
   const dueDate = new Date(input.trialEndsAt);
 
   const totals = SubscriptionBillingService.calculateTotals(input.plan, branchesUsed);
@@ -71,6 +76,7 @@ export async function createTrialInvoice(
     branchesUsedOverride: branchesUsed,
     fiscalReferenceDate: input.startDate,
     upsertSnapshot: false,
+    periodMonths,
     // Datas do trial já foram definidas no CreateTenant.
     skipSubscriptionDateUpdate: true,
   });

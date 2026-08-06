@@ -49,7 +49,7 @@ class PlatformTenantDetailPage extends ConsumerWidget {
         final nextAmount =
             sub?.estimatedMonthlyTotal ?? sub?.monthlyPrice ?? t.monthlyValue ?? 0;
         return EnterpriseModuleHub(
-          title: t.companyName,
+          title: t.tenantName,
           subtitle: '${t.tenantName} • ${_statusLabel(t.status)}',
           tag: 'Plataforma',
           actions: [
@@ -130,7 +130,7 @@ class PlatformTenantDetailPage extends ConsumerWidget {
                       body: _InvoicesTab(
                         tenantId: tenantId,
                         tenantName: t.tenantName,
-                        companyName: t.companyName,
+                        tenantKey: t.tenantKey,
                         currency: currency,
                         dateFmt: dateFmt,
                       ),
@@ -313,13 +313,13 @@ class _SummaryTab extends StatelessWidget {
     return ListView(
       children: [
         EnterpriseListCard(
-          title: 'Empresa',
-          subtitle: t.companyName,
+          title: 'Nome do Tenant',
+          subtitle: t.tenantName,
           leading: Icons.business_outlined,
         ),
         EnterpriseListCard(
-          title: 'Tenant',
-          subtitle: t.tenantName,
+          title: 'Identificador',
+          subtitle: t.tenantKey,
           leading: Icons.dns_outlined,
         ),
         EnterpriseListCard(
@@ -629,14 +629,14 @@ class _InvoicesTab extends ConsumerWidget {
   const _InvoicesTab({
     required this.tenantId,
     required this.tenantName,
-    required this.companyName,
+    required this.tenantKey,
     required this.currency,
     required this.dateFmt,
   });
 
   final String tenantId;
   final String tenantName;
-  final String companyName;
+  final String tenantKey;
   final NumberFormat currency;
   final DateFormat dateFmt;
 
@@ -675,7 +675,7 @@ class _InvoicesTab extends ConsumerWidget {
               tenantId: tenantId,
               number: i.number,
               tenantName: tenantName,
-              companyName: companyName,
+              tenantKey: tenantKey,
               planName: i.planName,
               period: i.period,
               total: i.total,

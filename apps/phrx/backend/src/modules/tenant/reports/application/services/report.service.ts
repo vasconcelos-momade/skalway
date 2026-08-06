@@ -80,7 +80,7 @@ export class ReportService {
         include: {
           tenant: {
             select: {
-              companyName: true,
+              tenantName: true,
               nuit: true,
               email: true,
               endereco: true,
@@ -101,7 +101,7 @@ export class ReportService {
       .join(" | ");
 
     return {
-      pharmacyName: toText(tenant?.companyName, "Farmacia"),
+      pharmacyName: toText(tenant?.tenantName, "Farmacia"),
       branchName: toText(branch?.name),
       address: toText(tenant?.endereco),
       nuit: toText(tenant?.nuit),

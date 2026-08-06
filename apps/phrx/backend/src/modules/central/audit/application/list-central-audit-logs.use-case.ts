@@ -16,8 +16,8 @@ export type CentralAuditLogItem = {
   entity: string;
   entityId: string | null;
   tenantId: string | null;
+  tenantKey: string | null;
   tenantName: string | null;
-  companyName: string | null;
   before: unknown;
   after: unknown;
   ip: string | null;
@@ -70,7 +70,7 @@ export class ListCentralAuditLogsUseCase {
         where,
         include: {
           user: { select: { id: true, name: true, email: true } },
-          tenant: { select: { id: true, name: true, companyName: true } },
+          tenant: { select: { id: true, tenantKey: true, tenantName: true } },
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         skip: (page - 1) * pageSize,
@@ -84,8 +84,8 @@ export class ListCentralAuditLogsUseCase {
       entity: row.entity,
       entityId: row.entityId?.toString() ?? null,
       tenantId: row.tenantId?.toString() ?? null,
-      tenantName: row.tenant?.name ?? null,
-      companyName: row.tenant?.companyName ?? null,
+      tenantKey: row.tenant?.tenantKey ?? null,
+      tenantName: row.tenant?.tenantName ?? null,
       before: row.oldData ?? null,
       after: row.newData ?? null,
       ip: row.ip ?? null,

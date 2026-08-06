@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
+import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
 import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
@@ -19,7 +20,7 @@ class UserCard extends StatelessWidget {
   final VoidCallback onTap;
   final void Function(String action) onAction;
 
-  static final _dateFmt = DateFormat('dd/MM/yyyy');
+  static final _dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +37,10 @@ class UserCard extends StatelessWidget {
       ),
       metadata: [
         EnterpriseListCardMeta(label: _roleLabel(user.role), color: t.brandBlue),
-        EnterpriseListCardMeta(label: 'Registo: ${_dateFmt.format(user.createdAt)}'),
       ],
+      trailingMeta: EnterpriseListCardMeta(
+        label: 'Registo: ${_dateFmt.format(user.createdAt)}',
+      ),
       onTap: null,
       actions: EnterpriseActionsMenuButton<String>(
         compact: true,

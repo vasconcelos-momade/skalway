@@ -46,7 +46,7 @@ class SettingsPage extends ConsumerWidget {
             subtitle: Text(
               tenant == null
                   ? 'Nenhuma entidade seleccionada'
-                  : '${tenant.companyName} • ${branch?.name ?? '—'}',
+                  : '${tenant.tenantName} • ${branch?.name ?? '—'}',
               style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
             ),
             trailing: TextButton(

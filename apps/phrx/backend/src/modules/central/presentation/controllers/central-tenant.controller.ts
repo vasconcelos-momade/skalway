@@ -20,21 +20,34 @@ const ownerUserSchema = z.object({
   role: z.enum(["superadmin", "admin", "usuario"]).optional(),
 });
 
+const branchInputSchema = z.object({
+  name: z.string().trim().min(1),
+});
+
 const registerTenantSchema = z
   .object({
     tenantName: z.string().trim().min(1, "Nome do tenant é obrigatório"),
     adminName: z.string().trim().min(1),
     adminEmail: z.string().trim().pipe(z.email()),
-    adminPassword: z.string().min(1).optional(),
+    adminPassword: z.string().min(6),
     userId: z.string().trim().min(1).optional(),
     ownerUser: ownerUserSchema.optional(),
     email: z.string().trim().pipe(z.email()).optional().nullable(),
     endereco: z.string().trim().min(1).optional().nullable(),
     nuit: z.string().trim().min(1).optional().nullable(),
     telefone: z.string().trim().min(1).optional().nullable(),
-    planSlug: z.enum(["starter", "enterprise"]).optional().nullable(),
+    planSlug: z.string().trim().min(1).optional().nullable(),
     status: z.enum(["trial", "ativo"]).optional().nullable(),
+    billingPeriodMonths: z.coerce
+      .number()
+      .int()
+      .refine((v) => [1, 3, 6, 12].includes(v), {
+        message: "Período de faturação inválido (1, 3, 6 ou 12).",
+      })
+      .optional()
+      .nullable(),
     branchName: z.string().trim().min(1).optional().nullable(),
+    branches: z.array(branchInputSchema).min(1).optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (!value.userId && !value.ownerUser) {
@@ -60,6 +73,17 @@ const registerTenantSchema = z
         code: "custom",
         message: "NUIT inválido. Deve conter exactamente 9 dígitos.",
         path: ["nuit"],
+      });
+    }
+
+    const hasBranches =
+      (value.branches && value.branches.length > 0) ||
+      Boolean(value.branchName?.trim());
+    if (!hasBranches) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Informe pelo menos uma Branch.",
+        path: ["branches"],
       });
     }
   });
@@ -266,6 +290,11 @@ export class CentralTenantController {
     const body = await parseJsonBody(req, registerTenantSchema);
     const tenantName = body.tenantName.trim();
     const tenantKey = normalizeTenantSlug(tenantName);
+    const adminEmail = body.adminEmail.trim().toLowerCase();
+    const ownerEmail =
+      body.ownerUser?.email.trim().toLowerCase() ??
+      body.email?.trim().toLowerCase() ??
+      null;
 
     let ownerUserId = body.userId;
     if (!ownerUserId) {
@@ -288,7 +317,7 @@ export class CentralTenantController {
       const hashedPassword = await bcrypt.hash(ownerUser.password, 10);
       const createdUser = await prismaCentral.user.create({
         data: {
-          name: ownerUser.name,
+          name: ownerUser.name.trim() || tenantName,
           email: ownerUser.email.trim().toLowerCase(),
           password: hashedPassword,
           role: parseCentralRole(ownerUser.role, Role.admin),
@@ -297,20 +326,56 @@ export class CentralTenantController {
       ownerUserId = createdUser.id.toString();
     }
 
+    let adminUserId: string | null = null;
+    if (ownerEmail && ownerEmail === adminEmail) {
+      adminUserId = ownerUserId;
+    } else {
+      const existingAdmin = await prismaCentral.user.findUnique({
+        where: { email: adminEmail },
+      });
+      if (existingAdmin) {
+        return Response.json(
+          {
+            error: {
+              message: `Já existe um utilizador central com o e-mail ${body.adminEmail}.`,
+            },
+          },
+          { status: 409 },
+        );
+      }
+      const hashedAdminPassword = await bcrypt.hash(body.adminPassword, 10);
+      const createdAdmin = await prismaCentral.user.create({
+        data: {
+          name: body.adminName.trim(),
+          email: adminEmail,
+          password: hashedAdminPassword,
+          role: Role.admin,
+        },
+      });
+      adminUserId = createdAdmin.id.toString();
+    }
+
+    const branches =
+      body.branches && body.branches.length > 0
+        ? body.branches.map((b) => ({ name: b.name.trim() }))
+        : [{ name: body.branchName?.trim() || tenantName }];
+
     const tenantRegistrationPayload = {
       tenantName,
       tenantKey,
       adminName: body.adminName,
       adminEmail: body.adminEmail,
-      adminPassword: body.adminPassword ?? "",
+      adminPassword: body.adminPassword,
       userId: ownerUserId,
-      email: body.email ?? null,
+      adminUserId,
+      email: body.email ?? body.ownerUser?.email ?? null,
       endereco: body.endereco ?? null,
       nuit: body.nuit ?? null,
       telefone: body.telefone ?? null,
       planSlug: body.planSlug ?? "starter",
       status: body.status ?? "trial",
-      branchName: body.branchName?.trim() || tenantName,
+      billingPeriodMonths: body.billingPeriodMonths ?? 1,
+      branches,
     };
 
     const { async: runAsync = false } = parseSearchParams(url, registerTenantQuerySchema);

@@ -68,8 +68,8 @@ export class CentralBranchController {
             OR: [
               { name: { contains: search } },
               { code: { contains: search } },
-              { tenant: { name: { contains: search } } },
-              { tenant: { companyName: { contains: search } } },
+              { tenant: { tenantKey: { contains: search } } },
+              { tenant: { tenantName: { contains: search } } },
             ],
           }
         : {}),
@@ -89,8 +89,8 @@ export class CentralBranchController {
           tenant: {
             select: {
               id: true,
-              name: true,
-              companyName: true,
+              tenantKey: true,
+              tenantName: true,
             },
           },
         },
@@ -103,8 +103,8 @@ export class CentralBranchController {
     const { items, hasMore } = slicePage(rows, page, pageSize);
     const mapped = items.map((row: any) => ({
       tenantId: row.tenant.id.toString(),
-      tenantName: row.tenant.name,
-      companyName: row.tenant.companyName,
+      tenantKey: row.tenant.tenantKey,
+      tenantName: row.tenant.tenantName,
       branch: {
         id: row.id.toString(),
         code: row.code,

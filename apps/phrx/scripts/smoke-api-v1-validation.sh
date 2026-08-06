@@ -59,7 +59,7 @@ expect_json_field "$BODY" '.error.code == "VALIDATION_ERROR"' "login VALIDATION_
 echo "==> 3. Body inválido (registo tenant incompleto)"
 RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
-  -d '{"nomeEmpresa":"X"}')
+  -d '{"tenantName":"X"}')
 HTTP=$(echo "$RESP" | tail -n1)
 BODY=$(echo "$RESP" | sed '$d')
 expect_http "register tenant body" "400" "$HTTP"

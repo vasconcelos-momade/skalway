@@ -67,13 +67,13 @@ RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${SUPER_TOKEN}" \
   -d "{
-    \"nomeEmpresa\": \"Farmacia Demo ${TS}\",
-    \"nomeTenant\": \"${TENANT_SLUG}\",
+    \"tenantName\": \"${TENANT_SLUG}\",
+    \"branches\": [{ \"name\": \"${TENANT_SLUG}\" }],
     \"adminName\": \"Admin Tenant\",
     \"adminEmail\": \"admin.${TS}@demo.com\",
     \"adminPassword\": \"${OWNER_PASSWORD}\",
     \"ownerUser\": {
-      \"name\": \"Dono Central\",
+      \"name\": \"${TENANT_SLUG}\",
       \"email\": \"${OWNER_EMAIL}\",
       \"password\": \"${OWNER_PASSWORD}\",
       \"role\": \"admin\"

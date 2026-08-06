@@ -67,13 +67,13 @@ else
   BODY=$(curl -s -X POST "${BASE_URL}/central/tenants" \
     -H "Content-Type: application/json" \
     -d "{
-      \"nomeEmpresa\": \"Billing Demo ${TS}\",
-      \"nomeTenant\": \"${TENANT_SLUG}\",
+      \"tenantName\": \"${TENANT_SLUG}\",
+    \"branches\": [{ \"name\": \"${TENANT_SLUG}\" }],
       \"adminName\": \"Admin\",
       \"adminEmail\": \"admin.${TS}@demo.com\",
       \"adminPassword\": \"${OWNER_PASSWORD}\",
       \"ownerUser\": {
-        \"name\": \"Dono\",
+        \"name\": \"${TENANT_SLUG}\",
         \"email\": \"${OWNER_EMAIL}\",
         \"password\": \"${OWNER_PASSWORD}\",
         \"role\": \"admin\"

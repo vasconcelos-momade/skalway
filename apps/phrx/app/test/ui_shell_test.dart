@@ -36,8 +36,8 @@ class _IdleMasterProductList extends MasterProductListController {
 AuthSessionState _authenticatedState() {
   const tenant = TenantAccess(
     id: '1',
-    companyName: 'Demo',
-    name: 'demo',
+    tenantKey: 'demo',
+    tenantName: 'Demo',
     branches: [
       BranchAccess(id: '1', code: 'HQ', name: 'Matriz'),
     ],

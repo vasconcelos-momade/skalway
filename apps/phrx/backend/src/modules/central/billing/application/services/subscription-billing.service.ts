@@ -38,6 +38,8 @@ export interface BillSubscriptionPeriodInput {
   fiscalReferenceDate?: Date;
   /** Se false, cria snapshot sem upsert (trial). Default true. */
   upsertSnapshot?: boolean;
+  /** Multiplicador do valor mensal (ex.: faturação trimestral = 3). Default 1. */
+  periodMonths?: number;
 }
 
 export interface BillSubscriptionPeriodResult {
@@ -141,7 +143,9 @@ export class SubscriptionBillingService {
           );
 
     const totals = this.calculateTotals(input.subscription.plan, branchesUsed);
-    const amountStr = fromCents(totals.totalCents);
+    const periodMonths = Math.max(1, Math.floor(Number(input.periodMonths ?? 1)));
+    const scaledTotalCents = Math.round(totals.totalCents * periodMonths);
+    const amountStr = fromCents(scaledTotalCents);
 
     await tx.subscription.update({
       where: { id: subscriptionId },

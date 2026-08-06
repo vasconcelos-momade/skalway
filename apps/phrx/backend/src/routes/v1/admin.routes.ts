@@ -236,6 +236,23 @@ export function registerAdminRoutes(router: Router, prefix: string): void {
     },
   );
 
+  router.post(
+    `${prefix}/central/tenants/:tenantId/invoices/:invoiceId/discount`,
+    centralAuthMiddleware(),
+    tenantAccessMiddleware("tenantId"),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId, invoiceId } = parseRouteParams(context.params, tenantInvoiceParamSchema);
+      return billingController.applyInvoiceDiscount(
+        tenantId,
+        invoiceId,
+        context.req,
+        getCentralAuth(context).userId,
+      );
+    },
+  );
+
   router.get(
     `${prefix}/central/tenants/:tenantId/payments`,
     centralAuthMiddleware(),

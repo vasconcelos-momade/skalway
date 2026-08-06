@@ -52,21 +52,22 @@ model User {
   updatedAt DateTime  @updatedAt @db.DateTime(0)
   deletedAt DateTime? @db.DateTime(0)
 
-  tenantsOwned         Tenant[]         @relation("TenantOwner")
-  userTenants          UserTenant[]
-  permissions          UserPermission[]
-  loginAttempts        LoginAttempt[]
-  paymentsConfirmed    Payment[]        @relation("PaymentConfirmedBy")
-  paymentsCreated      Payment[]        @relation("PaymentCreatedBy")
-  paymentsUpdated      Payment[]        @relation("PaymentUpdatedBy")
-  tenantsCreated       Tenant[]         @relation("TenantCreatedBy")
-  tenantsUpdated       Tenant[]         @relation("TenantUpdatedBy")
-  branchesCreated      Branch[]         @relation("BranchCreatedBy")
-  branchesUpdated      Branch[]         @relation("BranchUpdatedBy")
-  subscriptionsCreated Subscription[]   @relation("SubscriptionCreatedBy")
-  subscriptionsUpdated Subscription[]   @relation("SubscriptionUpdatedBy")
-  auditLogs            AuditLog[]
-  sessions             UserSession[]
+  tenantsOwned                     Tenant[]                    @relation("TenantOwner")
+  userTenants                      UserTenant[]
+  permissions                      UserPermission[]
+  loginAttempts                    LoginAttempt[]
+  paymentsConfirmed                Payment[]                   @relation("PaymentConfirmedBy")
+  paymentsCreated                  Payment[]                   @relation("PaymentCreatedBy")
+  paymentsUpdated                  Payment[]                   @relation("PaymentUpdatedBy")
+  tenantsCreated                   Tenant[]                    @relation("TenantCreatedBy")
+  tenantsUpdated                   Tenant[]                    @relation("TenantUpdatedBy")
+  branchesCreated                  Branch[]                    @relation("BranchCreatedBy")
+  branchesUpdated                  Branch[]                    @relation("BranchUpdatedBy")
+  subscriptionsCreated             Subscription[]              @relation("SubscriptionCreatedBy")
+  subscriptionsUpdated             Subscription[]              @relation("SubscriptionUpdatedBy")
+  subscriptionBranchHistoryCreated SubscriptionBranchHistory[] @relation("SubscriptionBranchHistoryCreatedBy")
+  auditLogs                        AuditLog[]
+  sessions                         UserSession[]
 
   @@index([role])
   @@index([lockedUntil])
@@ -105,11 +106,16 @@ model Tenant {
   id   BigInt @id @default(autoincrement()) @db.UnsignedBigInt
   uuid String @unique @default(uuid())
 
-  ownerId BigInt @map("userId") @db.UnsignedBigInt
+  /// Utilizador dono do tenant na Central.
+  ownerUserId BigInt @db.UnsignedBigInt
 
-  name        String  @unique @map("nomeTenant")
-  companyName String  @map("nomeEmpresa")
-  nuit        String?
+  /// Identificador técnico único, imutável (URLs, APIs, DB).
+  tenantKey  String  @unique @db.VarChar(191)
+  /// Nome visível do tenant na UI.
+  tenantName String  @db.VarChar(191)
+  nuit       String?
+  email      String? @db.VarChar(191)
+  endereco   String? @db.Text
 
   status  TenantStatus @default(ativo)
   country String       @default("MZ") @db.VarChar(2)
@@ -123,7 +129,7 @@ model Tenant {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  owner         User  @relation("TenantOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  owner         User  @relation("TenantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   createdByUser User? @relation("TenantCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   updatedByUser User? @relation("TenantUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
 
@@ -138,6 +144,8 @@ model Tenant {
   settings              TenantSetting[]
   userTenants           UserTenant[]
   devices               Device[]
+  printers              Printer[]
+  printJobs             PrintJob[]
   syncLogs              SyncLog[]
   syncSessions          SyncSession[]
   auditLogs             AuditLog[]
@@ -145,7 +153,7 @@ model Tenant {
 
   @@index([status])
   @@index([country])
-  @@index([ownerId])
+  @@index([ownerUserId])
   @@index([deletedAt])
   @@map("tenants")
 }
@@ -215,10 +223,13 @@ model Branch {
   createdByUser User?  @relation("BranchCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   updatedByUser User?  @relation("BranchUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  devices      Device[]
-  syncLogs     SyncLog[]
-  syncSessions SyncSession[]
-  auditLogs    AuditLog[]
+  devices                   Device[]
+  printers                  Printer[]
+  printJobs                 PrintJob[]
+  syncLogs                  SyncLog[]
+  syncSessions              SyncSession[]
+  auditLogs                 AuditLog[]
+  subscriptionBranchHistory SubscriptionBranchHistory[]
 
   @@unique([tenantId, code])
   @@unique([tenantId, name])
@@ -255,6 +266,7 @@ model Device {
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch       Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  printers     Printer[]
   syncLogs     SyncLog[]
   syncSessions SyncSession[]
   userSessions UserSession[]
@@ -264,6 +276,87 @@ model Device {
   @@index([apiKeyHash])
   @@index([deletedAt])
   @@map("devices")
+}
+
+//
+// 4b. CORE — PRINTERS / PRINT JOBS (infraestrutura SaaS)
+//
+
+model Printer {
+  id   BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid String @unique @default(uuid())
+
+  tenantId BigInt  @db.UnsignedBigInt
+  branchId BigInt  @db.UnsignedBigInt
+  deviceId BigInt? @db.UnsignedBigInt
+
+  name String @map("nome") @db.VarChar(191)
+
+  type       PrinterType       @map("tipo")
+  connection PrinterConnection @map("conexao")
+
+  ip   String? @db.VarChar(45)
+  port Int?    @default(9100) @map("porta")
+
+  model        String? @map("modelo") @db.VarChar(128)
+  manufacturer String? @map("fabricante") @db.VarChar(128)
+
+  active Boolean @default(true) @map("ativo")
+
+  version Int @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch    Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  device    Device?    @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  printJobs PrintJob[]
+
+  @@unique([tenantId, branchId, name])
+  @@index([tenantId, branchId])
+  @@index([tenantId, branchId, active])
+  @@index([deviceId])
+  @@index([type, connection])
+  @@index([deletedAt])
+  @@map("printers")
+}
+
+model PrintJob {
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+
+  tenantId  BigInt @db.UnsignedBigInt
+  branchId  BigInt @db.UnsignedBigInt
+  printerId BigInt @db.UnsignedBigInt
+
+  document String @map("documento") @db.VarChar(128)
+  payload  Json
+
+  status PrintStatus @default(PENDING)
+
+  attempts     Int     @default(0) @map("tentativas")
+  maxAttempts  Int     @default(3)
+  errorMessage String? @map("erro") @db.Text
+
+  printedAt DateTime?
+  lockedAt  DateTime?
+  lockedBy  String?   @db.VarChar(64)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch  Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  printer Printer @relation(fields: [printerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, branchId, status])
+  @@index([printerId, status])
+  @@index([status, createdAt])
+  @@index([status, lockedAt])
+  @@index([deletedAt])
+  @@map("print_jobs")
 }
 
 //
@@ -353,14 +446,18 @@ model SyncSession {
 //
 
 model Plan {
-  id               Int     @id @default(autoincrement())
-  name             String
-  slug             String  @unique
-  monthlyPrice     Decimal @db.Decimal(10, 2)
-  includedBranches Int     @default(1)
-  extraBranchPrice Decimal @db.Decimal(10, 2)
-  isEnterprise     Boolean @default(false)
-  active           Boolean @default(true)
+  id                    Int     @id @default(autoincrement())
+  name                  String
+  slug                  String  @unique
+  monthlyPrice          Decimal @db.Decimal(10, 2)
+  includedBranches      Int     @default(1)
+  extraBranchPrice      Decimal @db.Decimal(10, 2)
+  isEnterprise          Boolean @default(false)
+  active                Boolean @default(true)
+  /// Intervalo de facturação do plano em meses (1=mensal, 12=anual).
+  billingIntervalMonths Int     @default(1)
+  /// Dias de trial ao criar tenant (ex: 14 ou 30).
+  trialDays             Int     @default(14)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -380,12 +477,16 @@ model Subscription {
   /// Cache denormalizado; fonte de verdade em runtime: COUNT(branches WHERE active=true).
   branchesUsed Int @default(1)
 
-  status        SubscriptionStatus @default(trial)
-  startDate     DateTime
-  endDate       DateTime?
-  trialEndsAt   DateTime?
-  lastBillingAt DateTime?
-  nextBillingAt DateTime?
+  status           SubscriptionStatus @default(trial)
+  startDate        DateTime
+  endDate          DateTime?
+  trialEndsAt      DateTime?
+  lastBillingAt    DateTime?
+  nextBillingAt    DateTime?
+  /// Último dia coberto por pagamentos confirmados (suporta pagamento antecipado).
+  currentPeriodEnd DateTime?
+  /// Renovação automática via job mensal; se false, só gera fatura sob pedido.
+  autoRenew        Boolean            @default(true)
 
   version Int @default(0)
 
@@ -403,10 +504,31 @@ model Subscription {
 
   billingSnapshots BillingSnapshot[]
   invoices         Invoice[]
+  branchHistory    SubscriptionBranchHistory[]
 
   @@index([tenantId, status])
   @@index([deletedAt])
   @@map("subscriptions")
+}
+
+/// Histórico de alterações de filiais na subscrição (auditoria / futura pró-rata).
+model SubscriptionBranchHistory {
+  id             BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  subscriptionId BigInt                   @db.UnsignedBigInt
+  branchId       BigInt                   @db.UnsignedBigInt
+  action         SubscriptionBranchAction
+  effectiveDate  DateTime                 @default(now())
+  reason         String?                  @db.Text
+  createdBy      BigInt?                  @db.UnsignedBigInt
+  createdAt      DateTime                 @default(now())
+
+  subscription  Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  branch        Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdByUser User?        @relation("SubscriptionBranchHistoryCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId, effectiveDate])
+  @@index([branchId, effectiveDate])
+  @@map("subscription_branch_history")
 }
 
 model InvoiceFiscalCounter {
@@ -434,6 +556,8 @@ model Invoice {
   billingSnapshotId BigInt? @unique @db.UnsignedBigInt
 
   amount          Decimal       @db.Decimal(10, 2)
+  /// Desconto comercial aplicado à factura (valor absoluto em MZN).
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
   paidAmount      Decimal       @default(0) @db.Decimal(10, 2)
   remainingAmount Decimal       @db.Decimal(10, 2)
   status          InvoiceStatus @default(pendente)
@@ -518,21 +642,23 @@ model TenantWallet {
 }
 
 model Payment {
-  id          BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  tenantId    BigInt        @db.UnsignedBigInt
-  invoiceId   BigInt?       @db.UnsignedBigInt
-  amount      Decimal       @db.Decimal(10, 2)
-  method      PaymentMethod
-  status      PaymentStatus @default(pendente)
-  reference   String        @db.VarChar(191)
-  proofUrl    String?       @db.Text
-  coversFrom  DateTime?
-  coversTo    DateTime?
-  confirmedAt DateTime?
-  confirmedBy BigInt?       @db.UnsignedBigInt
-  createdBy   BigInt?       @db.UnsignedBigInt
-  updatedBy   BigInt?       @db.UnsignedBigInt
-  notes       String?       @db.Text
+  id            BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  tenantId      BigInt        @db.UnsignedBigInt
+  invoiceId     BigInt?       @db.UnsignedBigInt
+  amount        Decimal       @db.Decimal(10, 2)
+  method        PaymentMethod
+  status        PaymentStatus @default(pendente)
+  reference     String        @db.VarChar(191)
+  proofUrl      String?       @db.Text
+  coversFrom    DateTime?
+  coversTo      DateTime?
+  /// Número de meses cobertos (1=mensal; 6/12=pagamento antecipado).
+  monthsCovered Int?
+  confirmedAt   DateTime?
+  confirmedBy   BigInt?       @db.UnsignedBigInt
+  createdBy     BigInt?       @db.UnsignedBigInt
+  updatedBy     BigInt?       @db.UnsignedBigInt
+  notes         String?       @db.Text
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -765,6 +891,50 @@ model UserPermission {
   @@map("user_permissions")
 }
 
+/// Configuração institucional singleton da Central (empresa proprietária do PhRx).
+model CentralSettings {
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+
+  /// Garante um único registo activo (singleton).
+  singletonKey Int @unique @default(1)
+
+  companyName     String  @db.VarChar(191)
+  companyNuit     String  @db.VarChar(32)
+  companyEmail    String  @db.VarChar(191)
+  companyPhone    String  @db.VarChar(64)
+  companyAddress  String  @db.Text
+  companyCity     String? @db.VarChar(128)
+  companyProvince String? @db.VarChar(128)
+  companyCountry  String  @default("MZ") @db.VarChar(2)
+  companyLogo     String? @db.Text
+
+  mpesaAccountName   String? @db.VarChar(191)
+  mpesaAccountNumber String? @db.VarChar(64)
+
+  emolaAccountName   String? @db.VarChar(191)
+  emolaAccountNumber String? @db.VarChar(64)
+
+  bankName                 String? @db.VarChar(191)
+  bankAccountName          String? @db.VarChar(191)
+  bankAccountNumber        String? @db.VarChar(64)
+  bankAccountNib           String? @db.VarChar(64)
+  bankAccountSwift         String? @db.VarChar(32)
+  bankTransferInstructions String? @db.Text
+
+  invoiceFooter  String? @db.Text
+  receiptFooter  String? @db.Text
+  defaultMessage String? @db.Text
+
+  active Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+  @@map("central_settings")
+}
+
 //
 // ENUMS
 //
@@ -832,6 +1002,11 @@ enum SubscriptionStatus {
   expirado
 }
 
+enum SubscriptionBranchAction {
+  ADD
+  REMOVE
+}
+
 enum InvoiceStatus {
   pendente
   parcial
@@ -859,4 +1034,25 @@ enum PaymentStatus {
   confirmado
   falhado
   cancelado
+}
+
+enum PrinterType {
+  ESC_POS
+  A4
+  LABEL
+}
+
+enum PrinterConnection {
+  NETWORK
+  USB
+  BLUETOOTH
+  PDF
+}
+
+enum PrintStatus {
+  PENDING
+  PROCESSING
+  PRINTED
+  FAILED
+  CANCELLED
 }

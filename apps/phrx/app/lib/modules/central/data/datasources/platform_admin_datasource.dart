@@ -85,10 +85,10 @@ class PlatformAdminDataSource {
     final alerts = <String>[];
     for (final t in tenants) {
       if (t.status == 'grace') {
-        alerts.add('${t.companyName} em período de graça');
+        alerts.add('${t.tenantName} em período de graça');
       }
       if (t.status == 'trial' && t.nextBillingAt != null) {
-        alerts.add('Trial de ${t.companyName} expira em breve');
+        alerts.add('Trial de ${t.tenantName} expira em breve');
       }
     }
 
@@ -272,8 +272,8 @@ class PlatformAdminDataSource {
       final branch = body['branch'];
       return RegisterTenantResult(
         id: '${body['id']}',
-        companyName: body['companyName'] as String? ?? payload.nomeEmpresa,
-        tenantName: body['name'] as String? ?? payload.nomeTenant,
+        tenantName: body['tenantName'] as String? ?? payload.tenantName,
+        tenantKey: body['tenantKey'] as String?,
         branchCode: branch is Map ? branch['code'] as String? : null,
       );
     } on DioException catch (e) {
@@ -434,6 +434,33 @@ class PlatformAdminDataSource {
       final response = await _dio.post<Map<String, dynamic>>(
         '${ApiConstants.centralTenants}/$tenantId/wallet/credit',
         data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return ApiEnvelope.unwrapMap(data);
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> applyInvoiceDiscount({
+    required String tenantId,
+    required String invoiceId,
+    required double discount,
+    String? reason,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '${ApiConstants.centralTenants}/$tenantId/invoices/$invoiceId/discount',
+        data: {
+          'discount': discount,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        },
       );
       final data = response.data;
       if (data == null) {
@@ -830,11 +857,8 @@ class PlatformAdminDataSource {
 
     return PlatformTenantSummary(
       id: '${json['id']}',
-      companyName: json['companyName'] as String? ??
-          json['nomeEmpresa'] as String? ??
-          '',
-      tenantName:
-          json['name'] as String? ?? json['nomeTenant'] as String? ?? '',
+      tenantKey: json['tenantKey'] as String? ?? '',
+      tenantName: json['tenantName'] as String? ?? '',
       status: json['status'] as String? ?? 'ativo',
       country: json['country'] as String? ?? 'MZ',
       branchCount: branchCount,
@@ -863,8 +887,8 @@ class PlatformAdminDataSource {
         : json;
     return PlatformBranchListItem(
       tenantId: json['tenantId']?.toString() ?? '',
+      tenantKey: json['tenantKey'] as String? ?? '',
       tenantName: json['tenantName'] as String? ?? '—',
-      companyName: json['companyName'] as String? ?? '',
       branch: _mapBranch(branchMap),
     );
   }
@@ -995,7 +1019,7 @@ class PlatformAdminDataSource {
       number:
           json['number'] as String? ?? json['invoiceNumber'] as String? ?? '—',
       tenantName: json['tenantName'] as String? ?? tenantId ?? '—',
-      companyName: json['companyName'] as String?,
+      tenantKey: json['tenantKey'] as String?,
       planName: json['planName'] as String? ?? '—',
       period: period,
       total: amount,

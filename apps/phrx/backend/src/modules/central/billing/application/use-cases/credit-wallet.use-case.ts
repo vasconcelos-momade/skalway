@@ -60,7 +60,7 @@ export class CreditWalletUseCase {
       return prisma.$transaction(async (tx: any) => {
         const tenant = await tx.tenant.findFirst({
           where: { id: tenantId, deletedAt: null },
-          select: { id: true, companyName: true, name: true },
+          select: { id: true, tenantKey: true, tenantName: true },
         });
         if (!tenant) {
           throw new Error("Tenant não encontrado.");
