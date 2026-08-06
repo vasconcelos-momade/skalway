@@ -7,6 +7,7 @@
 export {
   assertInvoiceAmounts,
   computeRemainingAmount,
+  computePayableAmount,
   deriveInvoiceStatus,
 } from "./invoice-financial-integrity";
 

@@ -85,7 +85,7 @@ const List<AppNavSection> kPlatformNavSections = <AppNavSection>[
         icon: Icons.layers_rounded,
       ),
       AppNavItem(
-        label: 'Empresa',
+        label: 'Configurações',
         path: AppRoutePaths.platformCompany,
         icon: Icons.business_center_rounded,
       ),

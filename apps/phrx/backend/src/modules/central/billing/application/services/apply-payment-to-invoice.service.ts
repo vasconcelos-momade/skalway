@@ -65,12 +65,18 @@ export async function applyPaymentToInvoice(
 
   const invoice = payment.invoice;
   const amount = Number(invoice.amount);
+  const discount = Number(invoice.discount ?? 0);
   const paidBefore = Number(invoice.paidAmount);
   const paymentAmount = Number(payment.amount);
   const paidAfter = Math.round((paidBefore + paymentAmount) * 100) / 100;
 
-  assertInvoiceAmounts(amount, paidAfter);
-  const status = deriveInvoiceStatus(amount, paidAfter, String(invoice.status));
+  assertInvoiceAmounts(amount, paidAfter, discount);
+  const status = deriveInvoiceStatus(
+    amount,
+    paidAfter,
+    String(invoice.status),
+    discount,
+  );
   const confirmedAt = new Date();
 
   const coversFrom = invoice.periodStart ?? payment.coversFrom ?? null;
@@ -103,7 +109,7 @@ export async function applyPaymentToInvoice(
     where: { id: invoice.id },
     data: {
       paidAmount: paidAfter,
-      remainingAmount: computeRemainingAmount(Number(invoice.amount), paidAfter),
+      remainingAmount: computeRemainingAmount(amount, paidAfter, discount),
       status,
       paidAt: status === "pago" ? confirmedAt : invoice.paidAt,
     },
@@ -111,6 +117,7 @@ export async function applyPaymentToInvoice(
       id: true,
       number: true,
       amount: true,
+      discount: true,
       paidAmount: true,
       status: true,
       paidAt: true,

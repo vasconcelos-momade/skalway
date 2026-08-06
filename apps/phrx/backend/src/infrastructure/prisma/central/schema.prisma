@@ -107,16 +107,19 @@ model Tenant {
   id   BigInt @id @default(autoincrement()) @db.UnsignedBigInt
   uuid String @unique @default(uuid())
 
-  ownerId BigInt @map("userId") @db.UnsignedBigInt
+  /// Utilizador dono do tenant na Central.
+  ownerUserId BigInt @db.UnsignedBigInt
 
-  name        String @unique @map("nomeTenant")
-  companyName String @map("nomeEmpresa")
-  nuit        String?
-  email       String? @db.VarChar(191)
-  endereco    String? @db.Text
+  /// Identificador técnico único, imutável (URLs, APIs, DB).
+  tenantKey String @unique @db.VarChar(191)
+  /// Nome visível do tenant na UI.
+  tenantName String @db.VarChar(191)
+  nuit       String?
+  email      String? @db.VarChar(191)
+  endereco   String? @db.Text
 
-  status TenantStatus @default(ativo)
-  country String @default("MZ") @db.VarChar(2)
+  status  TenantStatus @default(ativo)
+  country String       @default("MZ") @db.VarChar(2)
 
   version Int @default(0)
 
@@ -127,31 +130,31 @@ model Tenant {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  owner       User  @relation("TenantOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  owner         User  @relation("TenantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   createdByUser User? @relation("TenantCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   updatedByUser User? @relation("TenantUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  branches      Branch[]
-  subscriptions Subscription[]
-  billingSnapshots BillingSnapshot[]
-  wallet        TenantWallet?
-  walletTransactions WalletTransaction[]
-  payments      Payment[]
-  invoices            Invoice[]
-  invoiceFiscalCounters InvoiceFiscalCounter[]
-  settings      TenantSetting[]
-  userTenants   UserTenant[]
-  devices       Device[]
-  printers      Printer[]
-  printJobs     PrintJob[]
-  syncLogs      SyncLog[]
-  syncSessions  SyncSession[]
-  auditLogs     AuditLog[]
-  jobQueues     JobQueue[]
+  branches               Branch[]
+  subscriptions          Subscription[]
+  billingSnapshots       BillingSnapshot[]
+  wallet                 TenantWallet?
+  walletTransactions     WalletTransaction[]
+  payments               Payment[]
+  invoices               Invoice[]
+  invoiceFiscalCounters  InvoiceFiscalCounter[]
+  settings               TenantSetting[]
+  userTenants            UserTenant[]
+  devices                Device[]
+  printers               Printer[]
+  printJobs              PrintJob[]
+  syncLogs               SyncLog[]
+  syncSessions           SyncSession[]
+  auditLogs              AuditLog[]
+  jobQueues              JobQueue[]
 
   @@index([status])
   @@index([country])
-  @@index([ownerId])
+  @@index([ownerUserId])
   @@index([deletedAt])
   @@map("tenants")
 }
@@ -554,6 +557,8 @@ model Invoice {
   billingSnapshotId BigInt? @unique @db.UnsignedBigInt
 
   amount          Decimal       @db.Decimal(10, 2)
+  /// Desconto comercial aplicado à factura (valor absoluto em MZN).
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
   paidAmount      Decimal       @default(0) @db.Decimal(10, 2)
   remainingAmount Decimal       @db.Decimal(10, 2)
   status          InvoiceStatus @default(pendente)
@@ -885,6 +890,50 @@ model UserPermission {
   @@unique([userId, permissionId, tenantId])
   @@index([deletedAt])
   @@map("user_permissions")
+}
+
+/// Configuração institucional singleton da Central (empresa proprietária do PhRx).
+model CentralSettings {
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+
+  /// Garante um único registo activo (singleton).
+  singletonKey Int @unique @default(1)
+
+  companyName     String  @db.VarChar(191)
+  companyNuit     String  @db.VarChar(32)
+  companyEmail    String  @db.VarChar(191)
+  companyPhone    String  @db.VarChar(64)
+  companyAddress  String  @db.Text
+  companyCity     String? @db.VarChar(128)
+  companyProvince String? @db.VarChar(128)
+  companyCountry  String  @default("MZ") @db.VarChar(2)
+  companyLogo     String? @db.Text
+
+  mpesaAccountName   String? @db.VarChar(191)
+  mpesaAccountNumber String? @db.VarChar(64)
+
+  emolaAccountName   String? @db.VarChar(191)
+  emolaAccountNumber String? @db.VarChar(64)
+
+  bankName                 String? @db.VarChar(191)
+  bankAccountName          String? @db.VarChar(191)
+  bankAccountNumber        String? @db.VarChar(64)
+  bankAccountNib           String? @db.VarChar(64)
+  bankAccountSwift         String? @db.VarChar(32)
+  bankTransferInstructions String? @db.Text
+
+  invoiceFooter   String? @db.Text
+  receiptFooter   String? @db.Text
+  defaultMessage  String? @db.Text
+
+  active Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+  @@map("central_settings")
 }
 
 //

@@ -4,6 +4,19 @@ abstract final class ApiConstants {
   static const centralAuthLogin = '/central/auth/login';
   static const centralAuthForgotPassword = '/central/auth/forgot-password';
   static const centralTenants = '/central/tenants';
+  static const centralSettings = '/central/settings';
+  static const centralInvoices = '/central/invoices';
+  static const centralBranches = '/central/branches';
+  static const centralPayments = '/central/payments';
+  static const centralAuditLogs = '/central/audit/logs';
+  static const centralPlans = '/central/plans';
+  static String centralPlan(String planId) => '/central/plans/$planId';
+  static String centralPlanDeactivate(String planId) =>
+      '/central/plans/$planId/deactivate';
+  static const centralUsers = '/central/users';
+  static String centralUser(String userId) => '/central/users/$userId';
+  static String centralUserDeactivate(String userId) =>
+      '/central/users/$userId/deactivate';
 
   static const tenantProdutos = '/tenant/produtos';
   static String tenantProduto(String productId) => '/tenant/produtos/$productId';

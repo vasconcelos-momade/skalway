@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { CentralBranchController } from "../../modules/central/presentation/controllers/central-branch.controller";
 import { CentralBillingController } from "../../modules/central/presentation/controllers/central-billing.controller";
+import { CentralAuditController } from "../../modules/central/presentation/controllers/central-audit.controller";
 import { CentralPlanController } from "../../modules/central/presentation/controllers/central-plan.controller";
+import { CentralSettingsController } from "../../modules/central/presentation/controllers/central-settings.controller";
 import { CentralTenantController } from "../../modules/central/presentation/controllers/central-tenant.controller";
 import { CentralUserController } from "../../modules/central/presentation/controllers/central-user.controller";
 import { CentralWebhookController } from "../../modules/central/presentation/controllers/central-webhook.controller";
@@ -21,7 +23,9 @@ import type { Router } from "../../shared/http/router";
 
 const branchController = new CentralBranchController();
 const billingController = new CentralBillingController();
+const auditController = new CentralAuditController();
 const planController = new CentralPlanController();
+const settingsController = new CentralSettingsController();
 const tenantController = new CentralTenantController();
 const userController = new CentralUserController();
 const webhookController = new CentralWebhookController();
@@ -60,9 +64,49 @@ const webhookProcessParamSchema = z.object({
 
 export function registerAdminRoutes(router: Router, prefix: string): void {
   router.get(
+    `${prefix}/central/settings`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    async () => settingsController.get(),
+  );
+
+  router.put(
+    `${prefix}/central/settings`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => settingsController.update(context.req),
+  );
+
+  router.get(
     `${prefix}/central/tenants`,
     centralAuthMiddleware(),
-    async (context) => tenantController.list(getCentralAuth(context)),
+    async (context) => tenantController.list(getCentralAuth(context), context.url),
+  );
+
+  router.get(
+    `${prefix}/central/invoices`,
+    centralAuthMiddleware(),
+    async (context) => billingController.listAllInvoices(getCentralAuth(context), context.url),
+  );
+
+  router.get(
+    `${prefix}/central/payments`,
+    centralAuthMiddleware(),
+    async (context) => billingController.listAllPayments(getCentralAuth(context), context.url),
+  );
+
+  router.get(
+    `${prefix}/central/branches`,
+    centralAuthMiddleware(),
+    async (context) => branchController.listAll(getCentralAuth(context), context.url),
+  );
+
+  router.get(
+    `${prefix}/central/audit/logs`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    async (context) => auditController.listLogs(context.url),
   );
 
   router.post(

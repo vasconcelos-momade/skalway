@@ -3,85 +3,255 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../shared/refresh/page_refresh.dart';
+import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
+import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
 import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 
-class PlatformBranchesPage extends ConsumerWidget {
+class PlatformBranchesPage extends ConsumerStatefulWidget {
   const PlatformBranchesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(platformBranchesProvider);
+  ConsumerState<PlatformBranchesPage> createState() =>
+      _PlatformBranchesPageState();
+}
 
-    return PageRefreshBinder(
-      onRefresh: () async => ref.invalidate(platformBranchesProvider),
-      child: EnterpriseModuleHub(
-        title: 'Branches / Filiais',
-        subtitle: 'Lista global de filiais de todos os tenants.',
-        tag: 'Plataforma',
-        child: async.when(
-          loading: () => const ModuleLoadingState(),
-          error: (e, _) => ModuleErrorState(
-            title: 'Erro ao carregar filiais',
-            message: e.toString(),
-            onRetry: () => ref.invalidate(platformBranchesProvider),
+class _PlatformBranchesPageState extends ConsumerState<PlatformBranchesPage> {
+  final _searchCtrl = TextEditingController();
+  final List<PlatformBranchListItem> _accumulated = [];
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(platformBranchesProvider);
+    final notifier = ref.read(platformBranchesProvider.notifier);
+
+    if (_searchCtrl.text != notifier.search) {
+      _searchCtrl.value = TextEditingValue(
+        text: notifier.search,
+        selection: TextSelection.collapsed(offset: notifier.search.length),
+      );
+    }
+
+    ref.listen(platformBranchesProvider, (previous, next) {
+      final data = next.asData?.value;
+      if (data == null) return;
+      final prevData = previous?.asData?.value;
+      if (data.page == 1) {
+        _accumulated
+          ..clear()
+          ..addAll(data.items);
+      } else if (prevData?.page != data.page) {
+        _accumulated.addAll(
+          data.items.where(
+            (e) => !_accumulated.any(
+              (a) => a.branch.id == e.branch.id && a.tenantId == e.tenantId,
+            ),
           ),
-          data: (items) {
-            if (items.isEmpty) {
-              return const ModuleEmptyState(title: 'Nenhuma filial encontrada.');
-            }
-            return EnterpriseDataTable(
-              columns: const [
-                DataColumn(label: Text('Tenant')),
-                DataColumn(label: Text('Branch / Filial')),
-                DataColumn(label: Text('Estado')),
-                DataColumn(label: Text('Acções')),
-              ],
-              rowCount: items.length,
-              rowBuilder: (context, index) {
-                final item = items[index];
-                final branch = item.branch;
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      _BranchTenantCell(
-                        title: item.tenantName,
-                        subtitle: item.companyName,
-                      ),
+        );
+      }
+    });
+
+    final pageData = async.asData?.value;
+    if (pageData != null &&
+        pageData.page == 1 &&
+        _accumulated.isEmpty &&
+        pageData.items.isNotEmpty) {
+      _accumulated.addAll(pageData.items);
+    }
+
+    return ResponsiveBuilder(
+      builder: (context, constraints) {
+        final isMobile = !constraints.isTabletOrWider;
+
+        return PageRefreshBinder(
+          onRefresh: () => notifier.refresh(),
+          child: EnterpriseModuleHub(
+            title: 'Branches / Filiais',
+            subtitle: 'Lista global de filiais de todos os tenants.',
+            tag: 'Plataforma',
+            child: async.when(
+              loading: () => _accumulated.isEmpty
+                  ? const ModuleLoadingState()
+                  : _buildBody(
+                      context,
+                      isMobile: isMobile,
+                      items: _accumulated,
+                      page: pageData?.page ?? notifier.page,
+                      pageSize: pageData?.pageSize ?? notifier.pageSize,
+                      hasMore: pageData?.hasMore ?? false,
+                      totalCount: pageData?.totalCount,
+                      isLoading: true,
+                      notifier: notifier,
                     ),
-                    DataCell(
-                      _BranchNameCell(
-                        name: branch.name,
-                        code: branch.code,
-                        isHeadOffice: branch.isHeadOffice,
-                      ),
+              error: (e, _) => _accumulated.isEmpty
+                  ? ModuleErrorState(
+                      title: 'Erro ao carregar filiais',
+                      message: e.toString(),
+                      onRetry: () => notifier.refresh(),
+                    )
+                  : _buildBody(
+                      context,
+                      isMobile: isMobile,
+                      items: _accumulated,
+                      page: notifier.page,
+                      pageSize: notifier.pageSize,
+                      hasMore: false,
+                      totalCount: null,
+                      isLoading: false,
+                      errorText: e.toString(),
+                      notifier: notifier,
                     ),
-                    DataCell(
-                      EnterpriseStatusChip(
-                        label: branch.active ? 'Activa' : 'Inactiva',
-                        color: branch.active
-                            ? context.pharmaTokens.posSuccess
-                            : context.pharmaTokens.posDanger,
-                      ),
-                    ),
-                    DataCell(
-                      _BranchActionsMenu(
-                        item: item,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+              data: (page) => _buildBody(
+                context,
+                isMobile: isMobile,
+                items: isMobile ? _accumulated : page.items,
+                page: page.page,
+                pageSize: page.pageSize,
+                hasMore: page.hasMore,
+                totalCount: page.totalCount,
+                isLoading: false,
+                notifier: notifier,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context, {
+    required bool isMobile,
+    required List<PlatformBranchListItem> items,
+    required int page,
+    required int pageSize,
+    required bool hasMore,
+    required int? totalCount,
+    required bool isLoading,
+    required PlatformBranchesNotifier notifier,
+    String? errorText,
+  }) {
+    return EnterpriseAdaptiveListBody(
+      isMobile: isMobile,
+      isLoading: isLoading,
+      errorText: errorText,
+      desktopContent: EnterpriseDataTable(
+        adaptive: false,
+        showCheckboxColumn: false,
+        searchController: _searchCtrl,
+        searchHint: 'Pesquisar filial, código ou tenant…',
+        onSearchChanged: notifier.setSearch,
+        isLoading: isLoading,
+        errorMessage: errorText,
+        errorTitle: 'Erro ao carregar filiais',
+        onRetry: () => notifier.refresh(),
+        emptyTitle: 'Nenhuma filial encontrada.',
+        columns: const [
+          DataColumn(label: Text('Tenant')),
+          DataColumn(label: Text('Branch / Filial')),
+          DataColumn(label: Text('Estado')),
+          DataColumn(label: Text('Acções')),
+        ],
+        rowCount: items.length,
+        rowBuilder: (context, index) {
+          final item = items[index];
+          final branch = item.branch;
+          return DataRow(
+            cells: [
+              DataCell(
+                _BranchTenantCell(
+                  title: item.tenantName,
+                  subtitle: item.companyName,
+                ),
+              ),
+              DataCell(
+                _BranchNameCell(
+                  name: branch.name,
+                  code: branch.code,
+                  isHeadOffice: branch.isHeadOffice,
+                ),
+              ),
+              DataCell(
+                EnterpriseStatusChip(
+                  label: branch.active ? 'Activa' : 'Inactiva',
+                  color: branch.active
+                      ? context.pharmaTokens.posSuccess
+                      : context.pharmaTokens.posDanger,
+                ),
+              ),
+              DataCell(_BranchActionsMenu(item: item)),
+            ],
+          );
+        },
+        pagination: totalCount != null
+            ? EnterprisePagination(
+                page: page,
+                pageSize: pageSize,
+                totalCount: totalCount,
+                isBusy: isLoading,
+                itemLabel: 'filiais',
+                onPageChanged: notifier.goToPage,
+                onPageSizeChanged: notifier.setPageSize,
+              )
+            : null,
+      ),
+      mobileList: EnterpriseMobileScrollList(
+        stickyHeader: EnterpriseMobileToolbar(
+          searchController: _searchCtrl,
+          searchHint: 'Pesquisar filial, código ou tenant…',
+          enabled: !isLoading,
+          isLoading: isLoading,
+          hasFilters: false,
+          showFiltersButton: false,
+          onSearchSubmitted: notifier.setSearch,
+          onOpenFilters: () {},
         ),
+        itemCount: items.length,
+        hasMore: hasMore,
+        isLoading: isLoading,
+        emptyMessage: 'Nenhuma filial encontrada.',
+        onLoadMore:
+            hasMore && !isLoading ? () => notifier.goToPage(page + 1) : null,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final branch = item.branch;
+          return Column(
+            children: [
+              if (index > 0) const EnterpriseListDivider(),
+              EnterpriseListCard(
+                title: branch.name,
+                subtitle: '${item.tenantName}\n${item.companyName}',
+                chip: EnterpriseStatusChip(
+                  label: branch.active ? 'Activa' : 'Inactiva',
+                  color: branch.active
+                      ? context.pharmaTokens.posSuccess
+                      : context.pharmaTokens.posDanger,
+                ),
+                actions: _BranchActionsMenu(item: item),
+                metadata: [
+                  EnterpriseListCardMeta(label: 'Código: ${branch.code}'),
+                  if (branch.isHeadOffice)
+                    const EnterpriseListCardMeta(label: 'Matriz'),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

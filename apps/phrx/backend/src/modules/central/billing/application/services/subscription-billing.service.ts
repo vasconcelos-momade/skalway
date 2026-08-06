@@ -246,8 +246,14 @@ export class SubscriptionBillingService {
     } else if (existingInvoice) {
       const paid = Number(existingInvoice.paidAmount);
       const amount = Number(amountStr);
-      assertInvoiceAmounts(amount, paid);
-      const status = deriveInvoiceStatus(amount, paid, String(existingInvoice.status));
+      const discount = Number(existingInvoice.discount ?? 0);
+      assertInvoiceAmounts(amount, paid, discount);
+      const status = deriveInvoiceStatus(
+        amount,
+        paid,
+        String(existingInvoice.status),
+        discount,
+      );
 
       const updatedInvoice = await tx.invoice.update({
         where: { id: existingInvoice.id },
@@ -255,7 +261,7 @@ export class SubscriptionBillingService {
           tenantId,
           subscriptionId,
           amount: amountStr,
-          remainingAmount: computeRemainingAmount(amount, paid),
+          remainingAmount: computeRemainingAmount(amount, paid, discount),
           status,
           dueDate: input.dueDate,
           periodStart: input.periodStart,
@@ -284,6 +290,7 @@ export class SubscriptionBillingService {
           billingSnapshotId: snapshot.id,
           number: fiscal.number,
           amount: amountStr,
+          discount: 0,
           paidAmount: 0,
           remainingAmount: amountStr,
           status: "pendente",

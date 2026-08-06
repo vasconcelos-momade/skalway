@@ -107,10 +107,19 @@ export class GetTenantSubscriptionUseCase {
             })
           : null;
 
+      const wallet = await prisma.tenantWallet.findFirst({
+        where: {
+          tenantId: BigInt(data.tenantId),
+          deletedAt: null,
+        },
+        select: { balance: true },
+      });
+
       return {
         id: subscription.id.toString(),
         tenantId: subscription.tenantId.toString(),
         status: subscription.status,
+        walletBalance: wallet != null ? Number(wallet.balance) : 0,
         planName: String(subscription.plan.name),
         planSlug: String(subscription.plan.slug),
         isEnterprise: Boolean(subscription.plan.isEnterprise),

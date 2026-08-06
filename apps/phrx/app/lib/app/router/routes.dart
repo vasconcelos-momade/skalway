@@ -167,8 +167,8 @@ abstract final class AppRouteTitles {
       AppRoutePaths.platformPlans => 'Planos',
       AppRoutePaths.platformUsers => 'Utilizadores',
       AppRoutePaths.platformAudit => 'Auditoria',
-      AppRoutePaths.platformCompany => 'Empresa',
-      AppRoutePaths.platformSettings => 'Empresa',
+      AppRoutePaths.platformCompany => 'Configurações',
+      AppRoutePaths.platformSettings => 'Configurações',
       _ => path.replaceAll('/', ' ').trim(),
     };
   }

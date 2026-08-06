@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { GetTenantSubscriptionUseCase } from "../../billing/application/use-cases/get-tenant-subscription.use-case";
 import { ListTenantInvoicesUseCase } from "../../billing/application/use-cases/list-tenant-invoices.use-case";
+import { ListCentralInvoicesUseCase } from "../../billing/application/use-cases/list-central-invoices.use-case";
 import { ListSubscriptionBranchHistoryUseCase } from "../../billing/application/use-cases/list-subscription-branch-history.use-case";
 import { GetInvoiceUseCase } from "../../billing/application/use-cases/get-invoice.use-case";
 import { ListTenantPaymentsUseCase } from "../../billing/application/use-cases/list-tenant-payments.use-case";
@@ -11,25 +12,51 @@ import { GenerateMonthlyBillingService } from "../../billing/application/service
 import { generateCentralInvoicePdf } from "../../billing/application/services/generate-invoice-pdf.service";
 import { ProcessSubscriptionLifecycleService } from "../../billing/application/services/process-subscription-lifecycle.service";
 import { JobQueueService } from "../../../../infrastructure/queue/job-queue.service";
+import { prismaCentralUnscoped } from "../../../../infrastructure/prisma/prisma-central.service";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
+import { success } from "../../../../shared/http/api-response";
 import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
+import type { CentralAuthContext } from "../../../../shared/http/central-auth";
+import { Role } from "../../../../infrastructure/prisma/central/generated/central";
 
-const submitPaymentSchema = z.object({
-  invoiceId: z.string().trim().min(1),
-  amount: z.coerce.number().positive(),
-  method: z.string().trim().min(1),
-  reference: z.string().trim().min(1),
-  proofUrl: z.string().trim().min(1).optional(),
-  notes: z.string().trim().min(1).optional(),
-});
+const submitPaymentSchema = z
+  .object({
+    invoiceId: z.string().trim().min(1),
+    amount: z.coerce.number().positive(),
+    method: z.string().trim().min(1),
+    reference: z.string().trim().optional().nullable(),
+    proofUrl: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional(),
+  })
+  .superRefine((value, ctx) => {
+    const method = value.method.trim().toUpperCase();
+    if (method !== "CASH" && !value.reference?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Referência da transacção é obrigatória excepto para CASH.",
+        path: ["reference"],
+      });
+    }
+  });
 
-const creditWalletSchema = z.object({
-  amount: z.coerce.number().positive(),
-  months: z.coerce.number().int().min(1).max(36),
-  method: z.string().trim().min(1),
-  reference: z.string().trim().min(1),
-  notes: z.string().trim().min(1).optional().nullable(),
-});
+const creditWalletSchema = z
+  .object({
+    amount: z.coerce.number().positive(),
+    months: z.coerce.number().int().min(1).max(36),
+    method: z.string().trim().min(1),
+    reference: z.string().trim().optional().nullable(),
+    notes: z.string().trim().min(1).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    const method = value.method.trim().toUpperCase();
+    if (method !== "CASH" && !value.reference?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Referência da transacção é obrigatória excepto para CASH.",
+        path: ["reference"],
+      });
+    }
+  });
 
 const lifecycleSchema = z.object({
   referenceDate: z.string().trim().min(1).optional(),
@@ -47,6 +74,20 @@ const generateMonthlySchema = z.object({
 const listInvoicesQuerySchema = z.object({
   status: z.string().trim().min(1).optional(),
   limit: z.coerce.number().int().positive().optional(),
+});
+
+const listCentralInvoicesQuerySchema = z.object({
+  status: z.string().trim().min(1).optional(),
+  q: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
+});
+
+const listCentralPaymentsQuerySchema = z.object({
+  status: z.string().trim().min(1).optional(),
+  q: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
 });
 
 const listPaymentsQuerySchema = z.object({
@@ -100,6 +141,105 @@ export class CentralBillingController {
     return Response.json(serializeForJson(invoices));
   }
 
+  async listAllInvoices(auth: CentralAuthContext, url: URL): Promise<Response> {
+    const query = parseSearchParams(url, listCentralInvoicesQuerySchema);
+    const tenantIds =
+      auth.role === Role.superadmin
+        ? undefined
+        : auth.payload.tenants.map((tenant) => tenant.id);
+
+    const useCase = new ListCentralInvoicesUseCase();
+    const result = await useCase.execute({
+      ...query,
+      tenantIds,
+    });
+
+    return success(result.items, 200, {
+      page: result.page,
+      pageSize: result.pageSize,
+      hasMore: result.hasMore,
+      totalCount: result.totalCount,
+    });
+  }
+
+  async listAllPayments(auth: CentralAuthContext, url: URL): Promise<Response> {
+    const query = parseSearchParams(url, listCentralPaymentsQuerySchema);
+    const prisma = prismaCentralUnscoped as any;
+    const page = Math.max(1, query.page ?? 1);
+    const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20));
+    const search = query.q?.trim();
+
+    const tenantFilter =
+      auth.role === Role.superadmin
+        ? undefined
+        : {
+            tenantId: {
+              in: auth.payload.tenants.map((tenant) => BigInt(tenant.id)),
+            },
+          };
+
+    const where = {
+      deletedAt: null,
+      ...tenantFilter,
+      ...(query.status ? { status: query.status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { reference: { contains: search } },
+              { tenant: { name: { contains: search } } },
+              { tenant: { companyName: { contains: search } } },
+              { invoice: { number: { contains: search } } },
+            ],
+          }
+        : {}),
+    };
+
+    const [totalCount, rows] = await prisma.$transaction([
+      prisma.payment.count({ where }),
+      prisma.payment.findMany({
+        where,
+        select: {
+          id: true,
+          tenantId: true,
+          invoiceId: true,
+          amount: true,
+          method: true,
+          status: true,
+          reference: true,
+          confirmedAt: true,
+          createdAt: true,
+          tenant: { select: { name: true, companyName: true } },
+          invoice: { select: { number: true } },
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1,
+      }),
+    ]);
+
+    const items = rows.slice(0, pageSize).map((payment: any) => ({
+      id: payment.id.toString(),
+      tenantId: payment.tenantId.toString(),
+      tenantName: payment.tenant?.name ?? null,
+      companyName: payment.tenant?.companyName ?? null,
+      invoiceId: payment.invoiceId?.toString() ?? null,
+      invoiceNumber: payment.invoice?.number ?? null,
+      amount: Number(payment.amount),
+      method: payment.method,
+      status: payment.status,
+      reference: payment.reference,
+      confirmedAt: payment.confirmedAt,
+      createdAt: payment.createdAt,
+    }));
+
+    return success(items, 200, {
+      page,
+      pageSize,
+      hasMore: rows.length > pageSize,
+      totalCount,
+    });
+  }
+
   async getInvoice(tenantId: string, invoiceId: string): Promise<Response> {
     const useCase = new GetInvoiceUseCase();
     const invoice = await useCase.execute({ tenantId, invoiceId });
@@ -134,7 +274,7 @@ export class CentralBillingController {
       invoiceId: body.invoiceId,
       amount: body.amount,
       method: body.method,
-      reference: body.reference,
+      reference: body.reference?.trim() || undefined,
       proofUrl: body.proofUrl,
       notes: body.notes,
       createdByUserId: userId,
@@ -169,7 +309,7 @@ export class CentralBillingController {
       amount: body.amount,
       months: body.months,
       method: body.method,
-      reference: body.reference,
+      reference: body.reference?.trim() || undefined,
       notes: body.notes ?? null,
       userId,
     });

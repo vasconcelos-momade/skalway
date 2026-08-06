@@ -1,7 +1,14 @@
 import { z } from "zod";
 import { prismaCentral } from "../../../../infrastructure/prisma/prisma-central.service";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
-import { parseJsonBody } from "../../../../shared/http/request-validation";
+import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
+import {
+  listSuccess,
+  pagedSuccess,
+  resolvePage,
+  resolvePageSize,
+  slicePage,
+} from "../helpers/paged-response";
 
 const createPlanSchema = z.object({
   name: z.string().trim().min(1),
@@ -28,6 +35,16 @@ const updatePlanSchema = createPlanSchema.partial().extend({
     .optional(),
 });
 
+const listPlansQuerySchema = z.object({
+  q: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
+  includeInactive: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .optional(),
+});
+
 function mapPlan(plan: any) {
   return {
     id: plan.id,
@@ -47,16 +64,50 @@ function mapPlan(plan: any) {
 
 export class CentralPlanController {
   async list(url: URL): Promise<Response> {
-    const includeInactive = url.searchParams.get("includeInactive") === "true";
+    const query = parseSearchParams(url, listPlansQuerySchema);
+    const includeInactive = query.includeInactive === true;
+    const search = query.q?.trim();
     const prisma = prismaCentral as any;
-    const plans = await prisma.plan.findMany({
-      where: {
-        deletedAt: null,
-        ...(includeInactive ? {} : { active: true }),
-      },
-      orderBy: [{ isEnterprise: "asc" }, { monthlyPrice: "asc" }],
+
+    const where = {
+      deletedAt: null,
+      ...(includeInactive ? {} : { active: true }),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search } },
+              { slug: { contains: search } },
+            ],
+          }
+        : {}),
+    };
+
+    if (query.page == null) {
+      const plans = await prisma.plan.findMany({
+        where,
+        orderBy: [{ isEnterprise: "asc" }, { monthlyPrice: "asc" }],
+      });
+      return listSuccess(plans.map(mapPlan));
+    }
+
+    const page = resolvePage(query.page);
+    const pageSize = resolvePageSize(query.pageSize);
+    const [totalCount, rows] = await prisma.$transaction([
+      prisma.plan.count({ where }),
+      prisma.plan.findMany({
+        where,
+        orderBy: [{ isEnterprise: "asc" }, { monthlyPrice: "asc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1,
+      }),
+    ]);
+    const { items, hasMore } = slicePage(rows, page, pageSize);
+    return pagedSuccess(items.map(mapPlan), {
+      page,
+      pageSize,
+      hasMore,
+      totalCount,
     });
-    return Response.json(serializeForJson(plans.map(mapPlan)));
   }
 
   async getById(planId: string): Promise<Response> {

@@ -1,0 +1,36 @@
+-- Configuração institucional singleton da Central SaaS.
+
+CREATE TABLE `central_settings` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `singletonKey` INT NOT NULL DEFAULT 1,
+    `companyName` VARCHAR(191) NOT NULL,
+    `companyNuit` VARCHAR(32) NOT NULL,
+    `companyEmail` VARCHAR(191) NOT NULL,
+    `companyPhone` VARCHAR(64) NOT NULL,
+    `companyAddress` TEXT NOT NULL,
+    `companyCity` VARCHAR(128) NULL,
+    `companyProvince` VARCHAR(128) NULL,
+    `companyCountry` VARCHAR(2) NOT NULL DEFAULT 'MZ',
+    `companyLogo` TEXT NULL,
+    `mpesaAccountName` VARCHAR(191) NULL,
+    `mpesaAccountNumber` VARCHAR(64) NULL,
+    `emolaAccountName` VARCHAR(191) NULL,
+    `emolaAccountNumber` VARCHAR(64) NULL,
+    `bankName` VARCHAR(191) NULL,
+    `bankAccountName` VARCHAR(191) NULL,
+    `bankAccountNumber` VARCHAR(64) NULL,
+    `bankAccountNib` VARCHAR(64) NULL,
+    `bankAccountSwift` VARCHAR(32) NULL,
+    `bankTransferInstructions` TEXT NULL,
+    `invoiceFooter` TEXT NULL,
+    `receiptFooter` TEXT NULL,
+    `defaultMessage` TEXT NULL,
+    `active` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `deletedAt` DATETIME(3) NULL,
+
+    UNIQUE INDEX `central_settings_singletonKey_key`(`singletonKey`),
+    INDEX `central_settings_deletedAt_idx`(`deletedAt`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

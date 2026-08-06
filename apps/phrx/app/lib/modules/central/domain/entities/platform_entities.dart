@@ -121,6 +121,7 @@ class PlatformSubscription {
     this.monthlyPrice,
     this.extraBranchPrice,
     this.estimatedMonthlyTotal,
+    this.walletBalance,
     this.isEnterprise = false,
     this.trialDays,
     this.estimatedNextInvoice,
@@ -149,6 +150,7 @@ class PlatformSubscription {
   final double? monthlyPrice;
   final double? extraBranchPrice;
   final double? estimatedMonthlyTotal;
+  final double? walletBalance;
   final bool isEnterprise;
   final int? trialDays;
   final PlatformEstimatedNextInvoice? estimatedNextInvoice;
@@ -199,6 +201,7 @@ class PlatformInvoice {
     required this.paid,
     required this.balance,
     required this.status,
+    this.companyName,
     this.dueDate,
     this.paidAt,
     this.branchesUsed,
@@ -206,13 +209,17 @@ class PlatformInvoice {
     this.planMonthlyPrice,
     this.includedBranches,
     this.extraBranchPrice,
+    this.extrasAmount,
     this.subtotal,
+    this.discount = 0,
+    this.payableAmount,
   });
 
   final String id;
   final String tenantId;
   final String number;
   final String tenantName;
+  final String? companyName;
   final String planName;
   final String period;
   final double total;
@@ -226,7 +233,61 @@ class PlatformInvoice {
   final double? planMonthlyPrice;
   final int? includedBranches;
   final double? extraBranchPrice;
+  final double? extrasAmount;
   final double? subtotal;
+  /// Desconto comercial absoluto (MZN) — valor da API.
+  final double discount;
+  /// Valor a pagar após desconto — valor da API.
+  final double? payableAmount;
+
+  bool get canConfirmPayment {
+    switch (status.toLowerCase()) {
+      case 'pendente':
+      case 'parcial':
+      case 'vencido':
+      case 'vencida':
+        return true;
+      default:
+        return false;
+    }
+  }
+}
+
+/// Métodos de pagamento suportados pela API Central.
+abstract final class PlatformPaymentMethods {
+  PlatformPaymentMethods._();
+
+  static const cash = 'CASH';
+  static const bankTransfer = 'BANK_TRANSFER';
+  static const mpesa = 'MPESA';
+  static const emola = 'EMOLA';
+
+  static const all = <String>[cash, bankTransfer, mpesa, emola];
+
+  static String label(String method) {
+    switch (method.toUpperCase()) {
+      case cash:
+        return 'Cash';
+      case bankTransfer:
+        return 'Transferência Bancária';
+      case mpesa:
+        return 'M-Pesa';
+      case emola:
+        return 'E-Mola';
+      default:
+        return method;
+    }
+  }
+
+  static bool requiresReference(String method) =>
+      method.toUpperCase() != cash;
+}
+
+/// Meses de pagamento antecipado suportados pela API Wallet.
+abstract final class PlatformPrepaidMonths {
+  PlatformPrepaidMonths._();
+
+  static const options = <int>[1, 3, 6, 12];
 }
 
 class PlatformPayment {
@@ -357,4 +418,349 @@ class PlatformDashboardStats {
   final List<PlatformTenantSummary> recentTenants;
   final List<PlatformPayment> recentPayments;
   final List<String> alerts;
+}
+
+class PlatformPlan {
+  const PlatformPlan({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.monthlyPrice,
+    required this.includedBranches,
+    required this.extraBranchPrice,
+    required this.billingIntervalMonths,
+    required this.trialDays,
+    required this.active,
+    required this.isEnterprise,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  final String id;
+  final String name;
+  final String slug;
+  final double monthlyPrice;
+  final int includedBranches;
+  final double extraBranchPrice;
+  final int billingIntervalMonths;
+  final int trialDays;
+  final bool active;
+  final bool isEnterprise;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+}
+
+class PlatformPlanPayload {
+  const PlatformPlanPayload({
+    required this.name,
+    required this.slug,
+    required this.monthlyPrice,
+    required this.includedBranches,
+    required this.extraBranchPrice,
+    required this.billingIntervalMonths,
+    required this.trialDays,
+    required this.active,
+    required this.isEnterprise,
+  });
+
+  final String name;
+  final String slug;
+  final double monthlyPrice;
+  final int includedBranches;
+  final double extraBranchPrice;
+  final int billingIntervalMonths;
+  final int trialDays;
+  final bool active;
+  final bool isEnterprise;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'slug': slug,
+        'monthlyPrice': monthlyPrice,
+        'includedBranches': includedBranches,
+        'extraBranchPrice': extraBranchPrice,
+        'billingIntervalMonths': billingIntervalMonths,
+        'trialDays': trialDays,
+        'active': active,
+        'isEnterprise': isEnterprise,
+      };
+}
+
+class PlatformUser {
+  const PlatformUser({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+    required this.active,
+    this.lastLoginAt,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  final String id;
+  final String name;
+  final String email;
+  final String role;
+  final bool active;
+  final DateTime? lastLoginAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+}
+
+class PlatformUserPayload {
+  const PlatformUserPayload({
+    required this.name,
+    required this.email,
+    required this.role,
+    this.password,
+    this.active = true,
+  });
+
+  final String name;
+  final String email;
+  final String role;
+  final String? password;
+  final bool active;
+
+  Map<String, dynamic> toJson({bool includePassword = true}) => {
+        'name': name,
+        'email': email,
+        'role': role,
+        'active': active,
+        if (includePassword && password != null && password!.isNotEmpty)
+          'password': password,
+      };
+}
+
+class ConfirmInvoicePaymentPayload {
+  const ConfirmInvoicePaymentPayload({
+    required this.invoiceId,
+    required this.amount,
+    required this.method,
+    this.reference,
+    this.notes,
+  });
+
+  final String invoiceId;
+  final double amount;
+  final String method;
+  final String? reference;
+  final String? notes;
+
+  Map<String, dynamic> toJson() => {
+        'invoiceId': invoiceId,
+        'amount': amount,
+        'method': method,
+        if (reference != null && reference!.trim().isNotEmpty)
+          'reference': reference!.trim(),
+        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+      };
+}
+
+class CreditWalletPayload {
+  const CreditWalletPayload({
+    required this.amount,
+    required this.months,
+    required this.method,
+    this.reference,
+    this.notes,
+  });
+
+  final double amount;
+  final int months;
+  final String method;
+  final String? reference;
+  final String? notes;
+
+  Map<String, dynamic> toJson() => {
+        'amount': amount,
+        'months': months,
+        'method': method,
+        if (reference != null && reference!.trim().isNotEmpty)
+          'reference': reference!.trim(),
+        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+      };
+}
+
+/// Configuração institucional singleton da Central.
+class PlatformCentralSettings {
+  const PlatformCentralSettings({
+    required this.id,
+    required this.companyName,
+    required this.companyNuit,
+    required this.companyEmail,
+    required this.companyPhone,
+    required this.companyAddress,
+    this.companyCity,
+    this.companyProvince,
+    this.companyCountry = 'MZ',
+    this.companyLogo,
+    this.mpesaAccountName,
+    this.mpesaAccountNumber,
+    this.emolaAccountName,
+    this.emolaAccountNumber,
+    this.bankName,
+    this.bankAccountName,
+    this.bankAccountNumber,
+    this.bankAccountNib,
+    this.bankAccountSwift,
+    this.bankTransferInstructions,
+    this.invoiceFooter,
+    this.receiptFooter,
+    this.defaultMessage,
+    this.active = true,
+  });
+
+  final String id;
+  final String companyName;
+  final String companyNuit;
+  final String companyEmail;
+  final String companyPhone;
+  final String companyAddress;
+  final String? companyCity;
+  final String? companyProvince;
+  final String companyCountry;
+  final String? companyLogo;
+  final String? mpesaAccountName;
+  final String? mpesaAccountNumber;
+  final String? emolaAccountName;
+  final String? emolaAccountNumber;
+  final String? bankName;
+  final String? bankAccountName;
+  final String? bankAccountNumber;
+  final String? bankAccountNib;
+  final String? bankAccountSwift;
+  final String? bankTransferInstructions;
+  final String? invoiceFooter;
+  final String? receiptFooter;
+  final String? defaultMessage;
+  final bool active;
+}
+
+class PlatformCentralSettingsPayload {
+  const PlatformCentralSettingsPayload({
+    required this.companyName,
+    required this.companyNuit,
+    required this.companyEmail,
+    required this.companyPhone,
+    required this.companyAddress,
+    this.companyCity,
+    this.companyProvince,
+    this.companyCountry = 'MZ',
+    this.companyLogo,
+    this.mpesaAccountName,
+    this.mpesaAccountNumber,
+    this.emolaAccountName,
+    this.emolaAccountNumber,
+    this.bankName,
+    this.bankAccountName,
+    this.bankAccountNumber,
+    this.bankAccountNib,
+    this.bankAccountSwift,
+    this.bankTransferInstructions,
+    this.invoiceFooter,
+    this.receiptFooter,
+    this.defaultMessage,
+    this.active = true,
+  });
+
+  final String companyName;
+  final String companyNuit;
+  final String companyEmail;
+  final String companyPhone;
+  final String companyAddress;
+  final String? companyCity;
+  final String? companyProvince;
+  final String companyCountry;
+  final String? companyLogo;
+  final String? mpesaAccountName;
+  final String? mpesaAccountNumber;
+  final String? emolaAccountName;
+  final String? emolaAccountNumber;
+  final String? bankName;
+  final String? bankAccountName;
+  final String? bankAccountNumber;
+  final String? bankAccountNib;
+  final String? bankAccountSwift;
+  final String? bankTransferInstructions;
+  final String? invoiceFooter;
+  final String? receiptFooter;
+  final String? defaultMessage;
+  final bool active;
+
+  Map<String, dynamic> toJson() => {
+        'companyName': companyName,
+        'companyNuit': companyNuit,
+        'companyEmail': companyEmail,
+        'companyPhone': companyPhone,
+        'companyAddress': companyAddress,
+        'companyCity': companyCity,
+        'companyProvince': companyProvince,
+        'companyCountry': companyCountry,
+        'companyLogo': companyLogo,
+        'mpesaAccountName': mpesaAccountName,
+        'mpesaAccountNumber': mpesaAccountNumber,
+        'emolaAccountName': emolaAccountName,
+        'emolaAccountNumber': emolaAccountNumber,
+        'bankName': bankName,
+        'bankAccountName': bankAccountName,
+        'bankAccountNumber': bankAccountNumber,
+        'bankAccountNib': bankAccountNib,
+        'bankAccountSwift': bankAccountSwift,
+        'bankTransferInstructions': bankTransferInstructions,
+        'invoiceFooter': invoiceFooter,
+        'receiptFooter': receiptFooter,
+        'defaultMessage': defaultMessage,
+        'active': active,
+      };
+}
+
+/// Entrada do AuditLog Central (API `/central/audit/logs`).
+class PlatformAuditLogEntry {
+  const PlatformAuditLogEntry({
+    required this.id,
+    required this.action,
+    required this.entity,
+    required this.createdAt,
+    this.entityId,
+    this.tenantId,
+    this.tenantName,
+    this.companyName,
+    this.userName,
+    this.ip,
+    this.path,
+  });
+
+  final String id;
+  final String action;
+  final String entity;
+  final DateTime createdAt;
+  final String? entityId;
+  final String? tenantId;
+  final String? tenantName;
+  final String? companyName;
+  final String? userName;
+  final String? ip;
+  final String? path;
+
+  factory PlatformAuditLogEntry.fromJson(Map<String, dynamic> json) {
+    final user = json['user'];
+    return PlatformAuditLogEntry(
+      id: json['id']?.toString() ?? '',
+      action: json['action']?.toString() ?? '',
+      entity: json['entity']?.toString() ?? '',
+      entityId: json['entityId']?.toString(),
+      tenantId: json['tenantId']?.toString(),
+      tenantName: json['tenantName']?.toString(),
+      companyName: json['companyName']?.toString(),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      userName: user is Map<String, dynamic>
+          ? (user['nome'] ?? user['name'])?.toString()
+          : null,
+      ip: json['ip']?.toString(),
+      path: json['path']?.toString(),
+    );
+  }
 }

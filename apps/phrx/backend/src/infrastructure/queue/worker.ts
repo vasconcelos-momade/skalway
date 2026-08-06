@@ -41,7 +41,7 @@ async function handleTenantRegisterJob(job: QueueJob<"tenant.register">) {
   console.log("[worker] tenant.register concluido:", {
     jobId: job.id,
     tenantId: result.id,
-    tenantName: result.name,
+    tenantName: result.tenantName,
     branchId: result.branch.id,
   });
 }

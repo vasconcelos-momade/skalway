@@ -9,7 +9,7 @@ export interface CreditWalletDTO {
   amount: number;
   months: number;
   method: PaymentMethod | string;
-  reference: string;
+  reference?: string;
   notes?: string | null;
   userId?: string | null;
 }
@@ -42,15 +42,20 @@ export class CreditWalletUseCase {
     if (!Number.isInteger(data.months) || data.months < 1 || data.months > 36) {
       throw new Error("months deve ser um inteiro entre 1 e 36.");
     }
-    if (!data.reference?.trim()) {
-      throw new Error("reference é obrigatório.");
-    }
 
     return runWithCentralTenant(data.tenantId, async () => {
       const prisma = prismaCentralUnscoped as any;
       const tenantId = BigInt(data.tenantId);
       const method = parsePaymentMethod(String(data.method));
       const userId = data.userId ? BigInt(data.userId) : null;
+      const reference =
+        data.reference?.trim() ||
+        (method === PaymentMethod.CASH
+          ? `CASH-WALLET-${data.tenantId}-${Date.now()}`
+          : "");
+      if (!reference) {
+        throw new Error("reference é obrigatório excepto para CASH.");
+      }
 
       return prisma.$transaction(async (tx: any) => {
         const tenant = await tx.tenant.findFirst({
@@ -64,7 +69,7 @@ export class CreditWalletUseCase {
         const existingPayment = await tx.payment.findFirst({
           where: {
             tenantId,
-            reference: data.reference.trim(),
+            reference,
             deletedAt: null,
           },
         });
@@ -102,7 +107,7 @@ export class CreditWalletUseCase {
             invoiceId: null,
             amount: data.amount,
             method,
-            reference: data.reference.trim(),
+            reference,
             notes:
               data.notes?.trim() ||
               `Crédito antecipado — ${data.months} mês(es)`,
@@ -140,7 +145,7 @@ export class CreditWalletUseCase {
             balanceAfter,
             description:
               data.notes?.trim() ||
-              `Crédito antecipado (${data.months} mês(es)) — ${data.reference.trim()}`,
+              `Crédito antecipado (${data.months} mês(es)) — ${reference}`,
           },
         });
 
@@ -179,7 +184,7 @@ export class CreditWalletUseCase {
               months: data.months,
               balanceAfter,
               paymentId: payment.id.toString(),
-              reference: data.reference.trim(),
+              reference,
               coversFrom: coverageStart.toISOString(),
               coversTo: coversTo.toISOString(),
             },
@@ -196,7 +201,7 @@ export class CreditWalletUseCase {
             id: payment.id.toString(),
             amount: data.amount,
             method,
-            reference: data.reference.trim(),
+            reference,
             monthsCovered: data.months,
             coversFrom: coverageStart,
             coversTo,

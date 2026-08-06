@@ -3,18 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/dialogs/enterprise_overlays.dart';
 import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
 import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
-import '../../../../shared/widgets/inputs/enterprise_search_field.dart';
+import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
+import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
+import '../../../../shared/widgets/tables/enterprise_pagination.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
+import '../../../../core/theme/elevation_tokens.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 import '../widgets/create_branch_form_dialog.dart';
+import '../widgets/credit_wallet_side_sheet.dart';
 import '../widgets/register_tenant_form_dialog.dart';
 import '../../../../shared/refresh/page_refresh.dart';
 
@@ -28,6 +33,7 @@ class PlatformTenantsPage extends ConsumerStatefulWidget {
 
 class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
   final _searchCtrl = TextEditingController();
+  final List<PlatformTenantSummary> _accumulated = [];
 
   @override
   void dispose() {
@@ -42,37 +48,268 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
     final currency = NumberFormat.currency(symbol: 'MT ', decimalDigits: 0);
     final dateFmt = DateFormat('dd/MM/yyyy');
 
-    return PageRefreshBinder(
-      onRefresh: () => notifier.refresh(),
-      child: EnterpriseModuleHub(
-        title: 'Subscrição de tenantes',
-        subtitle: 'Gestão das subscrições, filiais e histórico operacional dos tenants.',
-        tag: 'Plataforma',
-        actions: [
-          FilledButton.icon(
-            onPressed: () => _createTenant(context, ref),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Novo tenant'),
+    if (_searchCtrl.text != notifier.search) {
+      _searchCtrl.value = TextEditingValue(
+        text: notifier.search,
+        selection: TextSelection.collapsed(offset: notifier.search.length),
+      );
+    }
+
+    ref.listen(platformTenantsProvider, (previous, next) {
+      final data = next.asData?.value;
+      if (data == null) return;
+      final prevData = previous?.asData?.value;
+      if (data.page == 1) {
+        _accumulated
+          ..clear()
+          ..addAll(data.items);
+      } else if (prevData?.page != data.page) {
+        _accumulated.addAll(
+          data.items.where((e) => !_accumulated.any((a) => a.id == e.id)),
+        );
+      }
+    });
+
+    final pageData = async.asData?.value;
+    if (pageData != null &&
+        pageData.page == 1 &&
+        _accumulated.isEmpty &&
+        pageData.items.isNotEmpty) {
+      _accumulated.addAll(pageData.items);
+    }
+
+    return ResponsiveBuilder(
+      builder: (context, constraints) {
+        final isMobile = !constraints.isTabletOrWider;
+
+        return PageRefreshBinder(
+          onRefresh: () => notifier.refresh(),
+          child: Scaffold(
+            backgroundColor: context.pharmaTokens.bgPrimary,
+            floatingActionButton: isMobile
+                ? FloatingActionButton(
+                    onPressed: () => _createTenant(context, ref),
+                    backgroundColor: context.pharmaTokens.brandBlue,
+                    foregroundColor: Colors.white,
+                    elevation: Theme.of(context).extension<ElevationTokens>()?.level3 ?? 3.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(context.pharmaTokens.radiusLg),
+                    ),
+                    child: const Icon(Icons.add_rounded),
+                  )
+                : null,
+            body: EnterpriseModuleHub(
+              title: 'Subscrição de tenantes',
+              subtitle:
+                  'Gestão das subscrições, filiais e histórico operacional dos tenants.',
+              tag: 'Plataforma',
+              actions: isMobile
+                  ? null
+                  : [
+                      FilledButton.icon(
+                        onPressed: () => _createTenant(context, ref),
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Novo tenant'),
+                      ),
+                    ],
+              filters: null,
+              child: async.when(
+              loading: () => _accumulated.isEmpty
+                  ? const ModuleLoadingState()
+                  : _buildBody(
+                      context,
+                      isMobile: isMobile,
+                      tenants: _accumulated,
+                      page: pageData?.page ?? notifier.page,
+                      pageSize: pageData?.pageSize ?? notifier.pageSize,
+                      hasMore: pageData?.hasMore ?? false,
+                      totalCount: pageData?.totalCount,
+                      isLoading: true,
+                      currency: currency,
+                      dateFmt: dateFmt,
+                      notifier: notifier,
+                    ),
+              error: (e, _) => _accumulated.isEmpty
+                  ? ModuleErrorState(
+                      title: 'Erro ao carregar subscrição de tenantes',
+                      message: e.toString(),
+                      onRetry: () => notifier.refresh(),
+                    )
+                  : _buildBody(
+                      context,
+                      isMobile: isMobile,
+                      tenants: _accumulated,
+                      page: notifier.page,
+                      pageSize: notifier.pageSize,
+                      hasMore: false,
+                      totalCount: null,
+                      isLoading: false,
+                      errorText: e.toString(),
+                      currency: currency,
+                      dateFmt: dateFmt,
+                      notifier: notifier,
+                    ),
+              data: (page) => _buildBody(
+                context,
+                isMobile: isMobile,
+                tenants: isMobile ? _accumulated : page.items,
+                page: page.page,
+                pageSize: page.pageSize,
+                hasMore: page.hasMore,
+                totalCount: page.totalCount,
+                isLoading: false,
+                currency: currency,
+                dateFmt: dateFmt,
+                notifier: notifier,
+              ),
+            ),
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context, {
+    required bool isMobile,
+    required List<PlatformTenantSummary> tenants,
+    required int page,
+    required int pageSize,
+    required bool hasMore,
+    required int? totalCount,
+    required bool isLoading,
+    required NumberFormat currency,
+    required DateFormat dateFmt,
+    required PlatformTenantsNotifier notifier,
+    String? errorText,
+  }) {
+    return EnterpriseAdaptiveListBody(
+      isMobile: isMobile,
+      isLoading: isLoading,
+      errorText: errorText,
+      desktopToolbar: null,
+      desktopContent: EnterpriseDataTable(
+        adaptive: false,
+        showCheckboxColumn: false,
+        searchController: _searchCtrl,
+        searchHint: 'Pesquisar tenant ou empresa…',
+        onSearchChanged: notifier.setSearch,
+        isLoading: isLoading,
+        errorMessage: errorText,
+        errorTitle: 'Erro ao carregar tenants',
+        onRetry: () => notifier.refresh(),
+        emptyTitle: 'Nenhum tenant encontrado.',
+        columns: const [
+          DataColumn(label: Text('Tenant')),
+          DataColumn(label: Text('Plano')),
+          DataColumn(label: Text('Preço Base')),
+          DataColumn(label: Text('Filiais / Branches')),
+          DataColumn(label: Text('Estado')),
+          DataColumn(label: Text('Acções')),
         ],
-        filters: EnterpriseSearchField(
-          controller: _searchCtrl,
-          hintText: 'Pesquisar tenant ou empresa…',
-          onChanged: notifier.setSearch,
+        rowCount: tenants.length,
+        rowBuilder: (context, index) {
+          final t = tenants[index];
+          return DataRow(
+            cells: [
+              DataCell(
+                _TenantCell(
+                  title: t.tenantName,
+                  subtitle: t.companyName,
+                ),
+              ),
+              DataCell(
+                _PlanCell(
+                  planName: t.planName,
+                  monthlyValue: t.monthlyValue,
+                  currency: currency,
+                ),
+              ),
+              DataCell(
+                Text(
+                  t.monthlyValue == null
+                      ? '—'
+                      : currency.format(t.monthlyValue),
+                ),
+              ),
+              DataCell(Text('${t.branchCount}')),
+              DataCell(
+                EnterpriseStatusChip(
+                  label: _tenantStatusLabel(t.status),
+                  color: _tenantStatusColor(context, t.status),
+                ),
+              ),
+              DataCell(
+                _TenantActionsMenuButton(
+                  tenant: t,
+                  currency: currency,
+                  dateFmt: dateFmt,
+                ),
+              ),
+            ],
+          );
+        },
+        pagination: totalCount != null
+            ? EnterprisePagination(
+                page: page,
+                pageSize: pageSize,
+                totalCount: totalCount,
+                isBusy: isLoading,
+                itemLabel: 'tenants',
+                onPageChanged: notifier.goToPage,
+                onPageSizeChanged: notifier.setPageSize,
+              )
+            : null,
+      ),
+      desktopPagination: null,
+      mobileList: EnterpriseMobileScrollList(
+        stickyHeader: EnterpriseMobileToolbar(
+          searchController: _searchCtrl,
+          searchHint: 'Pesquisar tenant ou empresa…',
+          enabled: !isLoading,
+          isLoading: isLoading,
+          hasFilters: false,
+          showFiltersButton: false,
+          onSearchSubmitted: notifier.setSearch,
+          onOpenFilters: () {},
         ),
-        child: async.when(
-          loading: () => const ModuleLoadingState(),
-          error: (e, _) => ModuleErrorState(
-            title: 'Erro ao carregar subscrição de tenantes',
-            message: e.toString(),
-            onRetry: () => ref.invalidate(platformTenantsProvider),
-          ),
-          data: (tenants) => _TenantsTable(
-            tenants: tenants,
-            currency: currency,
-            dateFmt: dateFmt,
-          ),
-        ),
+        itemCount: tenants.length,
+        hasMore: hasMore,
+        isLoading: isLoading,
+        emptyMessage: 'Nenhum tenant encontrado.',
+        onLoadMore: hasMore && !isLoading
+            ? () => notifier.goToPage(page + 1)
+            : null,
+        itemBuilder: (context, index) {
+          final t = tenants[index];
+          return EnterpriseListCard(
+            title: t.tenantName,
+            subtitle: t.companyName,
+            chip: EnterpriseStatusChip(
+              label: _tenantStatusLabel(t.status),
+              color: _tenantStatusColor(context, t.status),
+            ),
+            actions: _TenantActionsMenuButton(
+              tenant: t,
+              currency: currency,
+              dateFmt: dateFmt,
+            ),
+            trailingMeta: EnterpriseListCardMeta(
+              label: '🏢 ${t.branchCount} ${t.branchCount == 1 ? 'filial' : 'filiais'}',
+              alignEnd: true,
+            ),
+            metadata: [
+              EnterpriseListCardMeta(label: t.planName ?? '—'),
+              EnterpriseListCardMeta(
+                label: t.monthlyValue == null
+                    ? '—'
+                    : currency.format(t.monthlyValue),
+                emphasized: true,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -81,83 +318,10 @@ class _PlatformTenantsPageState extends ConsumerState<PlatformTenantsPage> {
     final result = await showRegisterTenantFormDialog(context);
     if (result == null || !context.mounted) return;
 
-    // Sucesso: o dialog só fecha após a API concluir.
     if (result.created != null) {
       PharmaFeedback.success(context, 'Tenant criado com sucesso.');
       ref.read(platformTenantsProvider.notifier).refresh();
     }
-  }
-}
-
-class _TenantsTable extends StatelessWidget {
-  const _TenantsTable({
-    required this.tenants,
-    required this.currency,
-    required this.dateFmt,
-  });
-
-  final List<PlatformTenantSummary> tenants;
-  final NumberFormat currency;
-  final DateFormat dateFmt;
-
-  @override
-  Widget build(BuildContext context) {
-    if (tenants.isEmpty) {
-      return const ModuleEmptyState(title: 'Nenhum tenant encontrado.');
-    }
-
-    return EnterpriseDataTable(
-      columns: const [
-        DataColumn(label: Text('Tenant')),
-        DataColumn(label: Text('Plano')),
-        DataColumn(label: Text('Preço Base')),
-        DataColumn(label: Text('Filiais / Branches')),
-        DataColumn(label: Text('Estado')),
-        DataColumn(label: Text('Acções')),
-      ],
-      rowCount: tenants.length,
-      rowBuilder: (context, index) {
-        final t = tenants[index];
-        return DataRow(
-          cells: [
-            DataCell(
-              _TenantCell(
-                title: t.tenantName,
-                subtitle: t.companyName,
-              ),
-            ),
-            DataCell(
-              _PlanCell(
-                planName: t.planName,
-                monthlyValue: t.monthlyValue,
-                currency: currency,
-              ),
-            ),
-            DataCell(
-              Text(
-                t.monthlyValue == null
-                    ? '—'
-                    : currency.format(t.monthlyValue),
-              ),
-            ),
-            DataCell(Text('${t.branchCount}')),
-            DataCell(
-              EnterpriseStatusChip(
-                label: _tenantStatusLabel(t.status),
-                color: _tenantStatusColor(context, t.status),
-              ),
-            ),
-            DataCell(
-              _TenantActionsMenuButton(
-                tenant: t,
-                currency: currency,
-                dateFmt: dateFmt,
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
 
@@ -183,9 +347,11 @@ class _TenantCell extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleSmall,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: tokens.textPrimary,
+          ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: context.spacing.xxs),
         Text(
           subtitle,
           maxLines: 1,
@@ -223,11 +389,13 @@ class _PlanCell extends StatelessWidget {
             planName ?? '—',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleSmall,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: tokens.textPrimary,
+            ),
           ),
         ),
         if (monthlyValue != null) ...[
-          const SizedBox(width: 8),
+          SizedBox(width: context.spacing.xs),
           EnterpriseStatusChip(
             label: currency.format(monthlyValue),
             color: tokens.posInfo,
@@ -242,6 +410,7 @@ enum _TenantAction {
   moreInfo,
   history,
   addBranch,
+  addCredits,
 }
 
 class _TenantActionsMenuButton extends StatelessWidget {
@@ -274,6 +443,11 @@ class _TenantActionsMenuButton extends StatelessWidget {
           value: _TenantAction.addBranch,
           label: '+ Branch / Filial',
           icon: Icons.add_business_outlined,
+        ),
+        EnterpriseDropdownItem<_TenantAction>(
+          value: _TenantAction.addCredits,
+          label: 'Adicionar Créditos',
+          icon: Icons.account_balance_wallet_outlined,
         ),
       ],
       onSelected: (action) async {
@@ -313,6 +487,16 @@ class _TenantActionsMenuButton extends StatelessWidget {
               context,
               'Filial ${created.code} criada. Extras serão cobrados na próxima renovação.',
             );
+          case _TenantAction.addCredits:
+            final ok = await showCreditWalletSideSheet(
+              context,
+              tenantId: tenant.id,
+              tenantName: tenant.tenantName,
+              companyName: tenant.companyName,
+            );
+            if (ok && context.mounted) {
+              PharmaFeedback.success(context, 'Créditos adicionados.');
+            }
         }
       },
     );
@@ -456,7 +640,8 @@ class _TenantHistorySheet extends ConsumerWidget {
             for (final item in items)
               EnterpriseListCard(
                 title: item.branchName ?? 'Filial sem identificação',
-                subtitle: '${item.action} • ${dateFmt.format(item.effectiveDate.toLocal())}',
+                subtitle:
+                    '${item.action} • ${dateFmt.format(item.effectiveDate.toLocal())}',
                 leading: item.action == 'ADD'
                     ? Icons.add_business_outlined
                     : Icons.history_toggle_off_rounded,
@@ -470,7 +655,8 @@ class _TenantHistorySheet extends ConsumerWidget {
                   if (item.branchCode != null)
                     EnterpriseListCardMeta(label: 'Código: ${item.branchCode}'),
                   EnterpriseListCardMeta(
-                    label: 'Utilizador: ${item.createdByName ?? item.createdByEmail ?? '—'}',
+                    label:
+                        'Utilizador: ${item.createdByName ?? item.createdByEmail ?? '—'}',
                   ),
                   EnterpriseListCardMeta(
                     label: 'Motivo: ${item.reason ?? '—'}',

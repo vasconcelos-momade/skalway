@@ -9,9 +9,12 @@ import '../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
 import '../../../../shared/widgets/layout/enterprise_tab_hub.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
+import '../widgets/confirm_payment_side_sheet.dart';
 import '../widgets/create_branch_form_dialog.dart';
 
 class PlatformTenantDetailPage extends ConsumerWidget {
@@ -126,6 +129,8 @@ class PlatformTenantDetailPage extends ConsumerWidget {
                       icon: Icons.receipt_long_outlined,
                       body: _InvoicesTab(
                         tenantId: tenantId,
+                        tenantName: t.tenantName,
+                        companyName: t.companyName,
                         currency: currency,
                         dateFmt: dateFmt,
                       ),
@@ -623,11 +628,15 @@ class _BranchHistoryTab extends ConsumerWidget {
 class _InvoicesTab extends ConsumerWidget {
   const _InvoicesTab({
     required this.tenantId,
+    required this.tenantName,
+    required this.companyName,
     required this.currency,
     required this.dateFmt,
   });
 
   final String tenantId;
+  final String tenantName;
+  final String companyName;
   final NumberFormat currency;
   final DateFormat dateFmt;
 
@@ -656,11 +665,32 @@ class _InvoicesTab extends ConsumerWidget {
             DataColumn(label: Text('Total')),
             DataColumn(label: Text('Estado')),
             DataColumn(label: Text('Vencimento')),
-            DataColumn(label: Text('')),
+            DataColumn(label: Text('Acções')),
           ],
           rowCount: invoices.length,
           rowBuilder: (context, index) {
             final i = invoices[index];
+            final invoice = PlatformInvoice(
+              id: i.id,
+              tenantId: tenantId,
+              number: i.number,
+              tenantName: tenantName,
+              companyName: companyName,
+              planName: i.planName,
+              period: i.period,
+              total: i.total,
+              paid: i.paid,
+              balance: i.balance,
+              status: i.status,
+              dueDate: i.dueDate,
+              paidAt: i.paidAt,
+              branchesUsed: i.branchesUsed,
+              extraBranches: i.extraBranches,
+              planMonthlyPrice: i.planMonthlyPrice,
+              includedBranches: i.includedBranches,
+              extraBranchPrice: i.extraBranchPrice,
+              subtotal: i.subtotal,
+            );
             return DataRow(
               cells: [
                 DataCell(Text(i.number)),
@@ -673,12 +703,12 @@ class _InvoicesTab extends ConsumerWidget {
                         : currency.format(i.planMonthlyPrice),
                   ),
                 ),
-                    DataCell(
-                      Text(
-                        '${i.extraBranches ?? 0} × '
-                        '${i.extraBranchPrice == null ? '—' : currency.format(i.extraBranchPrice)}',
-                      ),
-                    ),
+                DataCell(
+                  Text(
+                    '${i.extraBranches ?? 0} × '
+                    '${i.extraBranchPrice == null ? '—' : currency.format(i.extraBranchPrice)}',
+                  ),
+                ),
                 DataCell(Text(currency.format(i.total))),
                 DataCell(
                   EnterpriseStatusChip(
@@ -694,18 +724,42 @@ class _InvoicesTab extends ConsumerWidget {
                   ),
                 ),
                 DataCell(
-                  IconButton(
-                    tooltip: 'PDF',
-                    onPressed: busy
-                        ? null
-                        : () => ref
+                  EnterpriseActionsMenuButton<String>(
+                    enabled: !busy,
+                    items: [
+                      if (invoice.canConfirmPayment)
+                        const EnterpriseDropdownItem(
+                          value: 'confirm',
+                          label: 'Confirmar Pagamento',
+                          icon: Icons.verified_outlined,
+                        ),
+                      const EnterpriseDropdownItem(
+                        value: 'pdf',
+                        label: 'Descarregar PDF',
+                        icon: Icons.picture_as_pdf_outlined,
+                      ),
+                    ],
+                    onSelected: (action) async {
+                      if (action == 'confirm') {
+                        await showConfirmPaymentSideSheet(
+                          context,
+                          invoice: invoice,
+                        );
+                        return;
+                      }
+                      try {
+                        await ref
                             .read(platformBillingActionsProvider.notifier)
                             .downloadInvoicePdf(
                               tenantId: tenantId,
                               invoiceId: i.id,
                               fileName: 'fatura-${i.number}.pdf',
-                            ),
-                    icon: const Icon(Icons.picture_as_pdf_outlined),
+                            );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        PharmaFeedback.error(context, 'Erro: $e');
+                      }
+                    },
                   ),
                 ),
               ],

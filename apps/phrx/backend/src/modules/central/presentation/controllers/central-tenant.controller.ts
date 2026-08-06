@@ -10,6 +10,7 @@ import {
 } from "../../tenants/application/use-cases/create-tenant.use-case";
 import type { CentralAuthContext } from "../../../../shared/http/central-auth";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
+import { success } from "../../../../shared/http/api-response";
 import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
 
 const ownerUserSchema = z.object({
@@ -21,9 +22,7 @@ const ownerUserSchema = z.object({
 
 const registerTenantSchema = z
   .object({
-    nomeEmpresa: z.string().trim().min(1, "Nome da empresa é obrigatório"),
-    nomeTenant: z.string().trim().min(1, "Slug / identificador do tenant é obrigatório"),
-    slug: z.string().trim().min(1).optional(),
+    tenantName: z.string().trim().min(1, "Nome do tenant é obrigatório"),
     adminName: z.string().trim().min(1),
     adminEmail: z.string().trim().pipe(z.email()),
     adminPassword: z.string().min(1).optional(),
@@ -36,8 +35,6 @@ const registerTenantSchema = z
     planSlug: z.enum(["starter", "enterprise"]).optional().nullable(),
     status: z.enum(["trial", "ativo"]).optional().nullable(),
     branchName: z.string().trim().min(1).optional().nullable(),
-    branchEndereco: z.string().trim().min(1).optional().nullable(),
-    branchContacto: z.string().trim().min(1).optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (!value.userId && !value.ownerUser) {
@@ -48,13 +45,13 @@ const registerTenantSchema = z
       });
     }
 
-    const slugSource = value.slug?.trim() || value.nomeTenant;
-    const slug = normalizeTenantSlug(slugSource);
-    if (!slug || slug.length < 2) {
+    const key = normalizeTenantSlug(value.tenantName);
+    if (!key || key.length < 2) {
       ctx.addIssue({
         code: "custom",
-        message: "Slug inválido. Use letras, números ou underscore (mín. 2).",
-        path: ["nomeTenant"],
+        message:
+          "Não foi possível gerar o identificador a partir do nome do tenant.",
+        path: ["tenantName"],
       });
     }
 
@@ -72,6 +69,12 @@ const registerTenantQuerySchema = z.object({
     .enum(["true", "false"])
     .transform((value) => value === "true")
     .optional(),
+});
+
+const listTenantsQuerySchema = z.object({
+  q: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
 });
 
 function parseCentralRole(input: unknown, fallback: Role): Role {
@@ -93,13 +96,14 @@ function isPublicRegistrationAllowed(): boolean {
 
 const tenantListSelect = {
   id: true,
-  ownerId: true,
-  companyName: true,
-  name: true,
+  ownerUserId: true,
+  tenantName: true,
+  tenantKey: true,
   nuit: true,
   email: true,
   endereco: true,
   status: true,
+  country: true,
   createdAt: true,
   branches: {
     select: {
@@ -139,7 +143,9 @@ function mapTenantRecord(tenant: any) {
   return {
     ...rest,
     id: tenant.id.toString(),
-    ownerId: tenant.ownerId.toString(),
+    ownerUserId: tenant.ownerUserId.toString(),
+    tenantKey: tenant.tenantKey,
+    tenantName: tenant.tenantName,
     branches: tenant.branches.map((branch: any) => ({
       ...branch,
       id: branch.id.toString(),
@@ -159,10 +165,12 @@ function mapTenantRecord(tenant: any) {
 }
 
 export class CentralTenantController {
-  async list(auth: CentralAuthContext): Promise<Response> {
+  async list(auth: CentralAuthContext, url: URL): Promise<Response> {
     const prisma = prismaCentral as any;
+    const query = parseSearchParams(url, listTenantsQuerySchema);
+    const search = query.q?.trim();
 
-    const where =
+    const accessWhere =
       auth.role === Role.superadmin
         ? { deletedAt: null }
         : {
@@ -172,13 +180,51 @@ export class CentralTenantController {
             },
           };
 
-    const tenants = await prisma.tenant.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      select: tenantListSelect,
-    });
+    const where = {
+      ...accessWhere,
+      ...(search
+        ? {
+            OR: [
+              { tenantKey: { contains: search } },
+              { tenantName: { contains: search } },
+              { email: { contains: search } },
+              { nuit: { contains: search } },
+            ],
+          }
+        : {}),
+    };
 
-    return Response.json(serializeForJson(tenants.map(mapTenantRecord)));
+    // Sem page → lista completa (dashboard / agregações).
+    if (query.page == null) {
+      const tenants = await prisma.tenant.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        select: tenantListSelect,
+      });
+      return Response.json(serializeForJson(tenants.map(mapTenantRecord)));
+    }
+
+    const page = Math.max(1, query.page);
+    const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20));
+
+    const [totalCount, rows] = await prisma.$transaction([
+      prisma.tenant.count({ where }),
+      prisma.tenant.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        select: tenantListSelect,
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1,
+      }),
+    ]);
+
+    const items = rows.slice(0, pageSize).map(mapTenantRecord);
+    return success(items, 200, {
+      page,
+      pageSize,
+      hasMore: rows.length > pageSize,
+      totalCount,
+    });
   }
 
   async getById(_auth: CentralAuthContext, tenantId: string): Promise<Response> {
@@ -218,7 +264,8 @@ export class CentralTenantController {
     }
 
     const body = await parseJsonBody(req, registerTenantSchema);
-    const slug = normalizeTenantSlug(body.slug?.trim() || body.nomeTenant);
+    const tenantName = body.tenantName.trim();
+    const tenantKey = normalizeTenantSlug(tenantName);
 
     let ownerUserId = body.userId;
     if (!ownerUserId) {
@@ -251,8 +298,8 @@ export class CentralTenantController {
     }
 
     const tenantRegistrationPayload = {
-      nomeEmpresa: body.nomeEmpresa,
-      nomeTenant: slug,
+      tenantName,
+      tenantKey,
       adminName: body.adminName,
       adminEmail: body.adminEmail,
       adminPassword: body.adminPassword ?? "",
@@ -263,9 +310,7 @@ export class CentralTenantController {
       telefone: body.telefone ?? null,
       planSlug: body.planSlug ?? "starter",
       status: body.status ?? "trial",
-      branchName: body.branchName ?? null,
-      branchEndereco: body.branchEndereco ?? null,
-      branchContacto: body.branchContacto ?? null,
+      branchName: body.branchName?.trim() || tenantName,
     };
 
     const { async: runAsync = false } = parseSearchParams(url, registerTenantQuerySchema);

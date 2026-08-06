@@ -138,11 +138,53 @@ async function seedPermissions() {
   console.log(`   ✅ ${permissions.length} permissões upserted.`);
 }
 
+async function seedCentralSettings() {
+  console.log("🏢 [central] Configurações institucionais...");
+  const existing = await (prisma as any).centralSettings.findFirst({
+    where: { singletonKey: 1, deletedAt: null },
+  });
+  if (existing) {
+    console.log("   ⏭  CentralSettings já existe — a saltar.");
+    return;
+  }
+
+  await (prisma as any).centralSettings.create({
+    data: {
+      singletonKey: 1,
+      companyName: "Skalway Technologies, Lda.",
+      companyNuit: "400000000",
+      companyEmail: "contacto@skalway.com",
+      companyPhone: "+258 84 000 0000",
+      companyAddress: "Maputo, Moçambique",
+      companyCity: "Maputo",
+      companyProvince: "Maputo",
+      companyCountry: "MZ",
+      mpesaAccountName: "Skalway Technologies, Lda.",
+      mpesaAccountNumber: "+258 84 000 0000",
+      emolaAccountName: "Skalway Technologies, Lda.",
+      emolaAccountNumber: "+258 86 000 0000",
+      bankName: "Millennium BIM",
+      bankAccountName: "Skalway Technologies, Lda.",
+      bankAccountNumber: "123456789",
+      bankAccountNib: "00000000000000000000000",
+      bankAccountSwift: "BIMOMZMXXXX",
+      bankTransferInstructions:
+        "Indique o número da factura na descrição da transferência.",
+      invoiceFooter: "Obrigado pela confiança na Skalway Technologies.",
+      receiptFooter: "Comprovativo emitido pela Central PhRx.",
+      defaultMessage: "Documento oficial emitido pela Central PhRx.",
+      active: true,
+    },
+  });
+  console.log("   ✅ CentralSettings criada (Skalway Technologies).");
+}
+
 async function main() {
   console.log("🚀 [central] Iniciando seeders (idempotente)...");
   await seedSuperAdmin();
   await seedPlans();
   await seedPermissions();
+  await seedCentralSettings();
   console.log("🎉 [central] Seeders concluídos.");
 }
 

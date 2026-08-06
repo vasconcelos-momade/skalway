@@ -4,8 +4,8 @@ import { randomUUID } from "crypto";
 export const DEFAULT_QUEUE_NAME = process.env.JOB_QUEUE_NAME || "skalway:jobs";
 
 export interface TenantRegisterJobPayload {
-  nomeEmpresa: string;
-  nomeTenant: string;
+  tenantName: string;
+  tenantKey?: string | null;
   adminName: string;
   adminEmail: string;
   adminPassword: string;
@@ -17,8 +17,6 @@ export interface TenantRegisterJobPayload {
   planSlug?: string | null;
   status?: "trial" | "ativo" | null;
   branchName?: string | null;
-  branchEndereco?: string | null;
-  branchContacto?: string | null;
 }
 
 export interface MonthlyBillingJobPayload {

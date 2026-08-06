@@ -27,6 +27,7 @@ export class ListTenantInvoicesUseCase {
           id: true,
           number: true,
           amount: true,
+          discount: true,
           paidAmount: true,
           remainingAmount: true,
           status: true,

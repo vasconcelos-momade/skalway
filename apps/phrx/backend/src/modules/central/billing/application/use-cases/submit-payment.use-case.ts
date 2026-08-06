@@ -8,7 +8,7 @@ export interface SubmitPaymentDTO {
   invoiceId: string;
   amount: number;
   method: PaymentMethod | string;
-  reference: string;
+  reference?: string;
   proofUrl?: string;
   notes?: string;
   createdByUserId?: string;
@@ -28,9 +28,6 @@ export class SubmitPaymentUseCase {
   async execute(data: SubmitPaymentDTO) {
     if (!Number.isFinite(data.amount) || data.amount <= 0) {
       throw new Error("amount deve ser um valor positivo.");
-    }
-    if (!data.reference?.trim()) {
-      throw new Error("reference é obrigatório.");
     }
 
     return runWithCentralTenant(data.tenantId, async () => {
@@ -53,6 +50,14 @@ export class SubmitPaymentUseCase {
       }
 
       const method = parsePaymentMethod(String(data.method));
+      const reference =
+        data.reference?.trim() ||
+        (method === PaymentMethod.CASH
+          ? `CASH-${invoice.number ?? data.invoiceId}-${Date.now()}`
+          : "");
+      if (!reference) {
+        throw new Error("reference é obrigatório excepto para CASH.");
+      }
 
       const payment = await prisma.payment.create({
         data: {
@@ -60,7 +65,7 @@ export class SubmitPaymentUseCase {
           invoiceId: BigInt(data.invoiceId),
           amount: data.amount,
           method,
-          reference: data.reference.trim(),
+          reference,
           proofUrl: data.proofUrl?.trim() || null,
           notes: data.notes?.trim() || null,
           status: "pendente",

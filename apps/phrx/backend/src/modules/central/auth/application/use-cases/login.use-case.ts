@@ -15,8 +15,8 @@ const INVALID_CREDENTIALS_MESSAGE = 'Email ou palavra-passe incorretos.';
 interface UserTenantWithTenant {
   tenant: {
     id: bigint;
-    companyName: string;
-    name: string;
+    tenantKey: string;
+    tenantName: string;
     branches: {
       id: bigint;
       code: string;
@@ -144,8 +144,8 @@ export class LoginUseCase {
 
     const mappedTenants = ((user as any).userTenants as UserTenantWithTenant[]).map((ut) => ({
       id: ut.tenant.id.toString(),
-      companyName: ut.tenant.companyName,
-      name: ut.tenant.name,
+      tenantKey: ut.tenant.tenantKey,
+      tenantName: ut.tenant.tenantName,
       branches: ut.tenant.branches.map((branch) => ({
         id: branch.id.toString(),
         code: branch.code,

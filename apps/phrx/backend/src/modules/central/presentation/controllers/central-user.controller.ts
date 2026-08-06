@@ -4,6 +4,13 @@ import { Role } from "../../../../infrastructure/prisma/central/generated/centra
 import { prismaCentral } from "../../../../infrastructure/prisma/prisma-central.service";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
 import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
+import {
+  listSuccess,
+  pagedSuccess,
+  resolvePage,
+  resolvePageSize,
+  slicePage,
+} from "../helpers/paged-response";
 
 const createUserSchema = z.object({
   name: z.string().trim().min(1),
@@ -23,6 +30,9 @@ const updateUserSchema = z.object({
 
 const listUsersQuerySchema = z.object({
   role: z.enum(["superadmin", "admin", "usuario"]).optional(),
+  q: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
   includeInactive: z
     .enum(["true", "false"])
     .transform((value) => value === "true")
@@ -51,29 +61,71 @@ function parseRole(input: string | undefined, fallback: Role): Role {
 
 export class CentralUserController {
   async list(url: URL): Promise<Response> {
-    const { role, includeInactive = false } = parseSearchParams(url, listUsersQuerySchema);
+    const query = parseSearchParams(url, listUsersQuerySchema);
+    const { role, includeInactive = false, q } = query;
     const prisma = prismaCentral as any;
+    const search = q?.trim();
 
-    const users = await prisma.user.findMany({
-      where: {
-        deletedAt: null,
-        ...(includeInactive ? {} : { active: true }),
-        ...(role ? { role } : { role: Role.superadmin }),
-      },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        active: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const where = {
+      deletedAt: null,
+      ...(includeInactive ? {} : { active: true }),
+      ...(role ? { role } : { role: Role.superadmin }),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search } },
+              { email: { contains: search } },
+            ],
+          }
+        : {}),
+    };
+
+    if (query.page == null) {
+      const users = await prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          active: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return listSuccess(users.map(mapUser));
+    }
+
+    const page = resolvePage(query.page);
+    const pageSize = resolvePageSize(query.pageSize);
+    const [totalCount, rows] = await prisma.$transaction([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          active: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1,
+      }),
+    ]);
+    const { items, hasMore } = slicePage(rows, page, pageSize);
+    return pagedSuccess(items.map(mapUser), {
+      page,
+      pageSize,
+      hasMore,
+      totalCount,
     });
-
-    return Response.json(serializeForJson(users.map(mapUser)));
   }
 
   async create(req: Request): Promise<Response> {

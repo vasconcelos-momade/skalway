@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/contracts/api_envelope.dart';
+import '../../../../core/contracts/pagination_response.dart';
 import '../../../../core/errors/api_failure.dart';
 import '../../../../core/network/dio/dio_provider.dart';
+import '../../../../core/utils/api_list_response.dart';
 import '../../domain/entities/platform_entities.dart';
 
 class PlatformAdminDataSource {
@@ -28,6 +30,7 @@ class PlatformAdminDataSource {
       summary: _mapTenantSummary(data),
       branches: branches,
       subscription: subscription,
+      walletBalance: subscription?.walletBalance,
     );
   }
 
@@ -102,73 +105,149 @@ class PlatformAdminDataSource {
   }
 
   Future<List<PlatformInvoice>> fetchAllInvoices() async {
-    final tenants = await fetchTenants();
-    final all = <PlatformInvoice>[];
-    for (final tenant in tenants.take(20)) {
-      try {
-        final invoices = await fetchInvoices(tenant.id);
-        all.addAll(
-          invoices.map(
-            (invoice) => PlatformInvoice(
-              id: invoice.id,
-              tenantId: tenant.id,
-              number: invoice.number,
-              tenantName: tenant.tenantName.isNotEmpty
-                  ? tenant.tenantName
-                  : tenant.companyName,
-              planName: invoice.planName,
-              period: invoice.period,
-              total: invoice.total,
-              paid: invoice.paid,
-              balance: invoice.balance,
-              status: invoice.status,
-              dueDate: invoice.dueDate,
-              paidAt: invoice.paidAt,
-              branchesUsed: invoice.branchesUsed,
-              extraBranches: invoice.extraBranches,
-              planMonthlyPrice: invoice.planMonthlyPrice,
-              includedBranches: invoice.includedBranches,
-              extraBranchPrice: invoice.extraBranchPrice,
-              subtotal: invoice.subtotal,
-            ),
-          ),
-        );
-      } catch (_) {}
+    final page = await fetchInvoicesPage(page: 1, pageSize: 100);
+    return page.items;
+  }
+
+  Future<PaginationResponse<PlatformInvoice>> fetchInvoicesPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+    String? status,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralInvoices,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+          if (status != null && status.trim().isNotEmpty) 'status': status.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: (row) => _mapInvoice(row),
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
     }
-    return all;
+  }
+
+  Future<PaginationResponse<PlatformTenantSummary>> fetchTenantsPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralTenants,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: _mapTenantSummary,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PaginationResponse<PlatformAuditLogEntry>> fetchAuditLogs({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralAuditLogs,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: PlatformAuditLogEntry.fromJson,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
   }
 
   Future<List<PlatformBranchListItem>> fetchAllBranches() async {
-    final tenants = await fetchTenants();
-    final all = <PlatformBranchListItem>[];
-    for (final tenant in tenants) {
-      try {
-        final branches = await fetchBranches(tenant.id, includeInactive: true);
-        for (final branch in branches) {
-          all.add(
-            PlatformBranchListItem(
-              tenantId: tenant.id,
-              tenantName: tenant.tenantName,
-              companyName: tenant.companyName,
-              branch: branch,
-            ),
-          );
-        }
-      } catch (_) {}
+    final page = await fetchBranchesPage(page: 1, pageSize: 100);
+    return page.items;
+  }
+
+  Future<PaginationResponse<PlatformBranchListItem>> fetchBranchesPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+    bool includeInactive = true,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralBranches,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          'includeInactive': includeInactive ? 'true' : 'false',
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: _mapBranchListItem,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
     }
-    return all;
   }
 
   Future<List<PlatformPayment>> fetchAllPayments() async {
-    final tenants = await fetchTenants();
-    final all = <PlatformPayment>[];
-    for (final tenant in tenants.take(20)) {
-      try {
-        final payments = await fetchPayments(tenant.id);
-        all.addAll(payments);
-      } catch (_) {}
+    final page = await fetchPaymentsPage(page: 1, pageSize: 100);
+    return page.items;
+  }
+
+  Future<PaginationResponse<PlatformPayment>> fetchPaymentsPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+    String? status,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralPayments,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+          if (status != null && status.trim().isNotEmpty) 'status': status.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: _mapPayment,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
     }
-    return all;
   }
 
   Future<RegisterTenantResult> registerTenant(RegisterTenantPayload payload) async {
@@ -319,6 +398,346 @@ class PlatformAdminDataSource {
     }
   }
 
+  /// Submete e confirma pagamento de fatura (fluxo SuperAdmin).
+  Future<void> confirmInvoicePayment({
+    required String tenantId,
+    required ConfirmInvoicePaymentPayload payload,
+  }) async {
+    try {
+      final submitResponse = await _dio.post<Map<String, dynamic>>(
+        '${ApiConstants.centralTenants}/$tenantId/payments',
+        data: payload.toJson(),
+      );
+      final submitData = submitResponse.data;
+      if (submitData == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (submitData['success'] == false) {
+        throw ApiFailure(_errorMessage(submitData));
+      }
+      final body = ApiEnvelope.unwrapMap(submitData);
+      final paymentId = '${body['id'] ?? ''}';
+      if (paymentId.isEmpty) {
+        throw const ApiFailure('Pagamento criado sem identificador.');
+      }
+      await confirmPayment(tenantId: tenantId, paymentId: paymentId);
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> creditWallet({
+    required String tenantId,
+    required CreditWalletPayload payload,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '${ApiConstants.centralTenants}/$tenantId/wallet/credit',
+        data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return ApiEnvelope.unwrapMap(data);
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<List<PlatformPlan>> fetchPlans({bool includeInactive = true}) async {
+    final page = await fetchPlansPage(
+      page: 1,
+      pageSize: 100,
+      includeInactive: includeInactive,
+    );
+    return page.items;
+  }
+
+  Future<PaginationResponse<PlatformPlan>> fetchPlansPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+    bool includeInactive = true,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralPlans,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          'includeInactive': includeInactive ? 'true' : 'false',
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: _mapPlan,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformPlan> createPlan(PlatformPlanPayload payload) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.centralPlans,
+        data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapPlan(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformPlan> updatePlan({
+    required String planId,
+    required PlatformPlanPayload payload,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.centralPlan(planId),
+        data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapPlan(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformPlan> deactivatePlan(String planId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.centralPlanDeactivate(planId),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapPlan(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformPlan> setPlanActive({
+    required String planId,
+    required bool active,
+  }) async {
+    if (!active) return deactivatePlan(planId);
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.centralPlan(planId),
+        data: {'active': true},
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapPlan(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<List<PlatformUser>> fetchUsers({
+    bool includeInactive = true,
+    String role = 'superadmin',
+  }) async {
+    final page = await fetchUsersPage(
+      page: 1,
+      pageSize: 100,
+      includeInactive: includeInactive,
+      role: role,
+    );
+    return page.items;
+  }
+
+  Future<PaginationResponse<PlatformUser>> fetchUsersPage({
+    int page = 1,
+    int pageSize = 20,
+    String? q,
+    bool includeInactive = true,
+    String role = 'superadmin',
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.centralUsers,
+        queryParameters: <String, dynamic>{
+          'page': page,
+          'pageSize': pageSize,
+          'includeInactive': includeInactive ? 'true' : 'false',
+          'role': role,
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseApiListResponse(
+        data: response.data,
+        itemMapper: _mapUser,
+        fallbackPage: page,
+        fallbackPageSize: pageSize,
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformUser> createUser(PlatformUserPayload payload) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.centralUsers,
+        data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapUser(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformUser> updateUser({
+    required String userId,
+    required PlatformUserPayload payload,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.centralUser(userId),
+        data: payload.toJson(includePassword: payload.password != null),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapUser(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformUser> deactivateUser(String userId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.centralUserDeactivate(userId),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapUser(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformUser> setUserActive({
+    required String userId,
+    required bool active,
+  }) async {
+    if (!active) return deactivateUser(userId);
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.centralUser(userId),
+        data: {'active': true},
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapUser(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformUser> resetUserPassword({
+    required String userId,
+    required String password,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.centralUser(userId),
+        data: {'password': password},
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapUser(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PlatformCentralSettings> fetchCentralSettings() async {
+    final data = await _getMap(ApiConstants.centralSettings);
+    return _mapCentralSettings(data);
+  }
+
+  Future<PlatformCentralSettings> updateCentralSettings(
+    PlatformCentralSettingsPayload payload,
+  ) async {
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        ApiConstants.centralSettings,
+        data: payload.toJson(),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiFailure('Resposta inválida.');
+      }
+      if (data['success'] == false) {
+        throw ApiFailure(_errorMessage(data));
+      }
+      return _mapCentralSettings(ApiEnvelope.unwrapMap(data));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   Future<Uint8List> downloadInvoicePdf({
     required String tenantId,
     required String invoiceId,
@@ -437,6 +856,19 @@ class PlatformAdminDataSource {
         connectionStatus: json['connectionStatus'] as String?,
       );
 
+  PlatformBranchListItem _mapBranchListItem(Map<String, dynamic> json) {
+    final branchRaw = json['branch'];
+    final branchMap = branchRaw is Map<String, dynamic>
+        ? branchRaw
+        : json;
+    return PlatformBranchListItem(
+      tenantId: json['tenantId']?.toString() ?? '',
+      tenantName: json['tenantName'] as String? ?? '—',
+      companyName: json['companyName'] as String? ?? '',
+      branch: _mapBranch(branchMap),
+    );
+  }
+
   PlatformBranchHistoryItem _mapBranchHistory(Map<String, dynamic> json) =>
       PlatformBranchHistoryItem(
         id: '${json['id']}',
@@ -505,6 +937,7 @@ class PlatformAdminDataSource {
       monthlyPrice: basePrice,
       extraBranchPrice: extraPrice,
       estimatedMonthlyTotal: estimatedTotal,
+      walletBalance: _toDouble(json['walletBalance']),
       isEnterprise: json['isEnterprise'] as bool? ??
           planMap?['isEnterprise'] as bool? ??
           false,
@@ -543,23 +976,29 @@ class PlatformAdminDataSource {
     );
   }
 
-  PlatformInvoice _mapInvoice(Map<String, dynamic> json, String tenantId) {
+  PlatformInvoice _mapInvoice(Map<String, dynamic> json, [String? tenantId]) {
     final periodStart = _toDate(json['periodStart']);
     final periodEnd = _toDate(json['periodEnd']);
     final period = json['period'] as String? ??
         (periodStart != null && periodEnd != null
             ? '${periodStart.toIso8601String().substring(0, 10)} a ${periodEnd.toIso8601String().substring(0, 10)}'
             : '—');
+    final discount = _toDouble(json['discount']) ?? 0;
+    final amount = _toDouble(json['amount'] ?? json['total']) ?? 0;
+    final payable = _toDouble(json['payableAmount']);
 
     return PlatformInvoice(
       id: '${json['id']}',
-      tenantId: tenantId,
+      tenantId: tenantId ??
+          json['tenantId']?.toString() ??
+          '',
       number:
           json['number'] as String? ?? json['invoiceNumber'] as String? ?? '—',
-      tenantName: json['tenantName'] as String? ?? tenantId,
+      tenantName: json['tenantName'] as String? ?? tenantId ?? '—',
+      companyName: json['companyName'] as String?,
       planName: json['planName'] as String? ?? '—',
       period: period,
-      total: _toDouble(json['total'] ?? json['amount']) ?? 0,
+      total: amount,
       paid: _toDouble(json['paid'] ?? json['paidAmount']) ?? 0,
       balance: _toDouble(
             json['balance'] ?? json['remaining'] ?? json['remainingAmount'],
@@ -575,7 +1014,10 @@ class PlatformAdminDataSource {
       planMonthlyPrice: _toDouble(json['planMonthlyPrice']),
       includedBranches: json['includedBranches'] as int?,
       extraBranchPrice: _toDouble(json['extraBranchPrice']),
+      extrasAmount: _toDouble(json['extrasAmount']),
       subtotal: _toDouble(json['subtotal']),
+      discount: discount,
+      payableAmount: payable,
     );
   }
 
@@ -590,6 +1032,60 @@ class PlatformAdminDataSource {
         reference: json['reference'] as String? ?? '—',
         status: json['status'] as String? ?? 'pendente',
         confirmedAt: _toDate(json['confirmedAt']),
+      );
+
+  PlatformPlan _mapPlan(Map<String, dynamic> json) => PlatformPlan(
+        id: '${json['id']}',
+        name: json['name'] as String? ?? '—',
+        slug: json['slug'] as String? ?? '',
+        monthlyPrice: _toDouble(json['monthlyPrice']) ?? 0,
+        includedBranches: json['includedBranches'] as int? ?? 1,
+        extraBranchPrice: _toDouble(json['extraBranchPrice']) ?? 0,
+        billingIntervalMonths: json['billingIntervalMonths'] as int? ?? 1,
+        trialDays: json['trialDays'] as int? ?? 0,
+        active: json['active'] as bool? ?? true,
+        isEnterprise: json['isEnterprise'] as bool? ?? false,
+        createdAt: _toDate(json['createdAt']),
+        updatedAt: _toDate(json['updatedAt']),
+      );
+
+  PlatformUser _mapUser(Map<String, dynamic> json) => PlatformUser(
+        id: '${json['id']}',
+        name: json['name'] as String? ?? '—',
+        email: json['email'] as String? ?? '',
+        role: json['role'] as String? ?? 'superadmin',
+        active: json['active'] as bool? ?? true,
+        lastLoginAt: _toDate(json['lastLoginAt']),
+        createdAt: _toDate(json['createdAt']),
+        updatedAt: _toDate(json['updatedAt']),
+      );
+
+  PlatformCentralSettings _mapCentralSettings(Map<String, dynamic> json) =>
+      PlatformCentralSettings(
+        id: '${json['id']}',
+        companyName: json['companyName'] as String? ?? '',
+        companyNuit: json['companyNuit'] as String? ?? '',
+        companyEmail: json['companyEmail'] as String? ?? '',
+        companyPhone: json['companyPhone'] as String? ?? '',
+        companyAddress: json['companyAddress'] as String? ?? '',
+        companyCity: json['companyCity'] as String?,
+        companyProvince: json['companyProvince'] as String?,
+        companyCountry: json['companyCountry'] as String? ?? 'MZ',
+        companyLogo: json['companyLogo'] as String?,
+        mpesaAccountName: json['mpesaAccountName'] as String?,
+        mpesaAccountNumber: json['mpesaAccountNumber'] as String?,
+        emolaAccountName: json['emolaAccountName'] as String?,
+        emolaAccountNumber: json['emolaAccountNumber'] as String?,
+        bankName: json['bankName'] as String?,
+        bankAccountName: json['bankAccountName'] as String?,
+        bankAccountNumber: json['bankAccountNumber'] as String?,
+        bankAccountNib: json['bankAccountNib'] as String?,
+        bankAccountSwift: json['bankAccountSwift'] as String?,
+        bankTransferInstructions: json['bankTransferInstructions'] as String?,
+        invoiceFooter: json['invoiceFooter'] as String?,
+        receiptFooter: json['receiptFooter'] as String?,
+        defaultMessage: json['defaultMessage'] as String?,
+        active: json['active'] as bool? ?? true,
       );
 
   double? _toDouble(Object? value) {

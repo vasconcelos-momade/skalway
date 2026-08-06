@@ -11,9 +11,13 @@ import { SubscriptionBranchHistoryService } from "../../../billing/application/s
 import { addDaysUTC } from "@skalway/billing";
 
 export interface CreateTenantDTO {
-  nomeEmpresa: string;
-  /** Slug único do tenant (nomeTenant na BD). */
-  nomeTenant: string;
+  /** Nome visível do tenant. */
+  tenantName: string;
+  /**
+   * Identificador técnico. Se omitido, é gerado a partir de tenantName.
+   * A UI não envia este campo — apenas o backend gera.
+   */
+  tenantKey?: string | null;
   adminName: string;
   adminEmail: string;
   adminPassword: string;
@@ -24,9 +28,8 @@ export interface CreateTenantDTO {
   telefone?: string | null;
   planSlug?: string | null;
   status?: "trial" | "ativo" | null;
+  /** Nome da branch inicial (default = tenantName). */
   branchName?: string | null;
-  branchEndereco?: string | null;
-  branchContacto?: string | null;
 }
 
 /** @deprecated Use CreateTenantDTO */
@@ -60,9 +63,16 @@ export function isValidNuit(nuit: string): boolean {
 export class CreateTenantUseCase {
   async execute(data: CreateTenantDTO) {
     const prisma = prismaCentralUnscoped as any;
-    const slug = normalizeTenantSlug(data.nomeTenant);
+    const tenantName = data.tenantName.trim();
+    if (!tenantName) {
+      throw new Error("Nome do tenant é obrigatório.");
+    }
+
+    const slug = normalizeTenantSlug(data.tenantKey?.trim() || tenantName);
     if (!slug || slug.length < 2) {
-      throw new Error("Slug do tenant inválido. Use letras, números ou underscore.");
+      throw new Error(
+        "Não foi possível gerar tenantKey a partir do nome. Use letras e números.",
+      );
     }
 
     const nuitRaw = data.nuit?.trim() || null;
@@ -84,20 +94,21 @@ export class CreateTenantUseCase {
     const planSlug = (data.planSlug?.trim() || "starter").toLowerCase();
     const tenantStatus = data.status === "ativo" ? "ativo" : "trial";
     const branchCode = generateBranchCode();
-    const branchName =
-      data.branchName?.trim() || `${data.nomeEmpresa.trim()} - Matriz`;
+    const branchName = data.branchName?.trim() || tenantName;
 
     runtimeGlobals.console?.log(`🚀 [CreateTenant] Iniciando: ${slug}`);
 
-    // Libertar slug se existir apenas soft-deleted (@@unique global).
-    const existingByName = await prisma.tenant.findUnique({ where: { name: slug } });
-    if (existingByName && !existingByName.deletedAt) {
-      throw new Error(`Já existe um tenant com o slug "${slug}".`);
+    // Libertar tenantKey se existir apenas soft-deleted (@@unique global).
+    const existingByKey = await prisma.tenant.findUnique({
+      where: { tenantKey: slug },
+    });
+    if (existingByKey && !existingByKey.deletedAt) {
+      throw new Error(`Já existe um tenant com o identificador "${slug}".`);
     }
-    if (existingByName?.deletedAt) {
+    if (existingByKey?.deletedAt) {
       await prisma.tenant.update({
-        where: { id: existingByName.id },
-        data: { name: `${slug}_deleted_${existingByName.id}` },
+        where: { id: existingByKey.id },
+        data: { tenantKey: `${slug}_deleted_${existingByKey.id}` },
       });
     }
 
@@ -125,9 +136,9 @@ export class CreateTenantUseCase {
     const { tenant, branch, subscription } = await prisma.$transaction(async (tx: any) => {
       const tenant = await tx.tenant.create({
         data: {
-          companyName: data.nomeEmpresa.trim(),
-          name: slug,
-          ownerId: BigInt(data.userId),
+          tenantName,
+          tenantKey: slug,
+          ownerUserId: BigInt(data.userId),
           status: tenantStatus,
           email: data.email?.trim() || null,
           endereco: data.endereco?.trim() || null,
@@ -143,20 +154,6 @@ export class CreateTenantUseCase {
       ];
       if (data.telefone?.trim()) {
         settings.push({ tenantId: tenant.id, key: "telefone", value: data.telefone.trim() });
-      }
-      if (data.branchEndereco?.trim()) {
-        settings.push({
-          tenantId: tenant.id,
-          key: "hq_endereco",
-          value: data.branchEndereco.trim(),
-        });
-      }
-      if (data.branchContacto?.trim()) {
-        settings.push({
-          tenantId: tenant.id,
-          key: "hq_contacto",
-          value: data.branchContacto.trim(),
-        });
       }
       await tx.tenantSetting.createMany({ data: settings });
 
@@ -306,10 +303,10 @@ export class CreateTenantUseCase {
       try {
         await EmailService.send({
           to: notificationEmail,
-          subject: `Cliente criado: ${data.nomeEmpresa}`,
+          subject: `Cliente criado: ${tenantName}`,
           text: [
-            `O tenant ${data.nomeEmpresa} foi criado com sucesso.`,
-            `Slug: ${slug}.`,
+            `O tenant ${tenantName} foi criado com sucesso.`,
+            `Identificador: ${slug}.`,
             `Plano: ${plan.name}.`,
             `Estado: ${tenantStatus}.`,
             subscriptionStatus === "trial"
@@ -330,8 +327,8 @@ export class CreateTenantUseCase {
 
       return {
         id: tenant.id.toString(),
-        companyName: tenant.companyName,
-        name: tenant.name,
+        tenantName: tenant.tenantName,
+        tenantKey: tenant.tenantKey,
         status: tenantStatus,
         plan: { slug: plan.slug, name: plan.name },
         branch: {
