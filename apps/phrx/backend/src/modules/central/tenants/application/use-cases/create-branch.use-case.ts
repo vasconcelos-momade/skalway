@@ -7,6 +7,8 @@ import { runWithCentralTenant } from "../../../../../shared/context/central-tena
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
 import { generateBranchCode } from "../../domain/generate-branch-code";
 import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
+import { PrinterService } from "../../../printer/application/services/printer.service";
+import { BranchSettingService } from "../../../branch-settings/application/services/branch-setting.service";
 
 export interface CreateBranchDTO {
   tenantId: string;
@@ -200,6 +202,9 @@ export class CreateBranchUseCase {
           where: { id: tenantId },
           select: {
             tenantName: true,
+            nuit: true,
+            email: true,
+            endereco: true,
             owner: {
               select: {
                 name: true,
@@ -243,6 +248,24 @@ export class CreateBranchUseCase {
             dbPasswordCipherText: setup.dbPasswordCipherText,
             dbPasswordIv: setup.dbPasswordIv,
             dbPasswordTag: setup.dbPasswordTag,
+          },
+        });
+
+        await new PrinterService().createDefaultPrinter({
+          tx,
+          tenantId,
+          branchId: createdBranch.id,
+        });
+
+        await new BranchSettingService().seedDefaults({
+          tx,
+          tenantId,
+          branchId: createdBranch.id,
+          defaults: {
+            branchName: createdBranch.name,
+            branchCode: createdBranch.code,
+            // Só nome/código da branch — contacto/NUIT ficam null até o admin configurar.
+            nomeLegal: createdBranch.name,
           },
         });
 

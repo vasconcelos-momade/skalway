@@ -9,6 +9,7 @@ build/
 !.env.example
 .DS_Store
 *.log
+.devtools/
 apps/phrx/backend/src/infrastructure/prisma/tenant/generated/
 apps/phrx/app/analyze_output.txt
 apps/phrx/prompt.txt

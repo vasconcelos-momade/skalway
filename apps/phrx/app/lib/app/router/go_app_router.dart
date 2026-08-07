@@ -41,6 +41,7 @@ import '../../modules/stock/presentation/pages/fornecedores_page.dart';
 import '../../modules/stock/presentation/pages/inventory_hub_page.dart';
 import '../../modules/stock/presentation/pages/purchase_suggestions_page.dart';
 import '../../modules/stock/presentation/pages/movimentacoes_hub_page.dart';
+import '../../modules/settings/presentation/pages/branch_settings_page.dart';
 import '../../modules/settings/presentation/pages/printers_page.dart';
 import '../../modules/settings/presentation/pages/settings_hub_page.dart';
 import '../../modules/settings/presentation/pages/terminals_page.dart';
@@ -489,6 +490,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutePaths.settings,
             redirect: (context, state) => AppRoutePaths.settingsHub,
+          ),
+          GoRoute(
+            path: AppRoutePaths.settingsBranch,
+            name: 'settings-branch',
+            builder: (context, state) => const BranchSettingsPage(),
           ),
           GoRoute(
             path: AppRoutePaths.settingsPrinters,

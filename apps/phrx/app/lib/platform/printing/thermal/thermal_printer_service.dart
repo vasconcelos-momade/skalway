@@ -14,7 +14,7 @@ abstract final class ThermalPrinterService {
   ThermalPrinterService._();
 
   static const MethodChannel _channel = MethodChannel(
-    'pharma_erp/thermal_printer',
+    'skalway_phrx/thermal_printer',
   );
 
   static Future<void> printReceipt({

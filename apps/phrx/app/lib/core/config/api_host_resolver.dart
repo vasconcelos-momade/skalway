@@ -44,15 +44,20 @@ abstract final class ApiHostResolver {
   }
 
   /// Dica curta para o ecrã de login quando a ligação falha.
+  /// Usa o host efectivo (dart-define ou fallback por plataforma).
   static String connectionHintForPlatform() {
+    final host = defaultHost;
+    final cloud = defaultCloudHost;
     if (kIsWeb) {
-      return 'Web: a API deve estar acessível no mesmo host (porta 4001). Se estiver a abrir o web app a partir de outra máquina, use o IP do servidor ou passe --dart-define=API_BASE_URL=...';
+      return 'Web: API em $host. Ajuste com --dart-define=API_BASE_URL=... se necessário.';
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'Android: emulador usa 10.0.2.2:4001; dispositivo físico precisa do IP da máquina na LAN.';
+        return 'Android: API em $host'
+            '${cloud != host ? ' (nuvem: $cloud)' : ''}.';
       default:
-        return 'Desktop: API em 127.0.0.1:4001 (docker compose up na pasta do backend).';
+        return 'Desktop: API em $host'
+            '${cloud != host ? ' (nuvem: $cloud)' : ''}.';
     }
   }
 }

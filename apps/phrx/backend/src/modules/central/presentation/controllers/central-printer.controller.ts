@@ -133,7 +133,8 @@ export class CentralPrinterController {
         userId: this.auditUserId(auth),
         data,
       });
-      return Response.json(serializeForJson(result), { status: 202 });
+      // 200 com printed/failed no body — a UI mostra a mensagem real (ex.: timeout IP).
+      return Response.json(serializeForJson(result), { status: 200 });
     } catch (error: unknown) {
       return controllerErrorResponse(error);
     }

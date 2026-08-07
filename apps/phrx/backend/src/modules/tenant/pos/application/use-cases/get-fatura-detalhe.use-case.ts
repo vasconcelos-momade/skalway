@@ -148,7 +148,27 @@ export class GetFaturaDetalheUseCase {
       );
     }
 
-    const empresa = await resolveTenantEmpresaProfile();
+    const liveEmpresa = await resolveTenantEmpresaProfile();
+    const hasSnapshot =
+      fatura.branchNome ||
+      fatura.branchNuit ||
+      fatura.branchEmail ||
+      fatura.branchEndereco ||
+      fatura.branchCidade ||
+      fatura.branchProvincia;
+    const empresa = hasSnapshot
+      ? {
+          nome: fatura.branchNome ?? liveEmpresa.nome,
+          nuit: fatura.branchNuit ?? liveEmpresa.nuit,
+          endereco: fatura.branchEndereco ?? liveEmpresa.endereco,
+          email: fatura.branchEmail ?? liveEmpresa.email,
+          telefone: fatura.branchTelefone ?? liveEmpresa.telefone,
+          cidade: fatura.branchCidade ?? liveEmpresa.cidade,
+          provincia: fatura.branchProvincia ?? liveEmpresa.provincia,
+          logo: fatura.branchLogo ?? liveEmpresa.logo,
+          branchId: fatura.branchId?.toString() ?? liveEmpresa.branchId,
+        }
+      : liveEmpresa;
 
     return {
       id: fatura.id,
@@ -169,8 +189,16 @@ export class GetFaturaDetalheUseCase {
       tipoPagamento: fatura.tipoPagamento,
       tipoOperacao: fatura.tipoOperacao,
       qrCode: fatura.qrCode,
-      empresa,
-      cliente: fatura.cliente,
+      branchId: fatura.branchId?.toString() ?? null,
+      branchNome: fatura.branchNome ?? null,
+      branchNuit: fatura.branchNuit ?? null,
+      branchEmail: fatura.branchEmail ?? null,
+      branchTelefone: fatura.branchTelefone ?? null,
+      branchEndereco: fatura.branchEndereco ?? null,
+      branchCidade: fatura.branchCidade ?? null,
+      branchProvincia: fatura.branchProvincia ?? null,
+      branchLogo: fatura.branchLogo ?? null,
+      empresa,      cliente: fatura.cliente,
       terminal: fatura.terminal,
       user: fatura.user,
       cancelledBy: fatura.cancelledBy,

@@ -52,6 +52,8 @@ export {
   enqueuePrintProcessJob,
 } from "./application/use-cases/drain-print-jobs.use-case";
 export { PrinterDriverRegistry } from "./application/services/printer-driver.registry";
+export { PrinterService } from "./application/services/printer.service";
+export { DEFAULT_PRINTER_CONFIG } from "./domain/default-printer.config";
 export { EscPosNetworkDriver } from "./infrastructure/drivers/escpos-network.driver";
 export { PdfDriver } from "./infrastructure/drivers/pdf.driver";
 export { EscPosEncoder, buildEscPosBytes } from "./infrastructure/drivers/escpos-encoder";

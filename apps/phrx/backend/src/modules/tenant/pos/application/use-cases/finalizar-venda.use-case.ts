@@ -15,6 +15,7 @@ import { consumeStockFefo } from "../../../stock/domain/fefo-allocation.service"
 import { getSellableQuantityFromLoteMovements } from "../../../stock/domain/lote-stock.service";
 import { resolveLotePrecoVenda } from "../../../stock/domain/fefo-lote.service";
 import { replaceItemLoteAllocations } from "../../../sales/domain/fatura-item-lote.service";
+import { resolveFaturaBranchSnapshot } from "../services/tenant-empresa-profile.service";
 
 export interface FinalizarVendaDTO {
   clienteId?: string;
@@ -494,6 +495,7 @@ export class FinalizarVendaUseCase {
 
         // 3. Criar Fatura com Itens e incluir itens no retorno para pegar IDs
         const tipoOperacao = this.resolveTipoOperacaoFiscal(faturaItemsFiscais);
+        const branchSnapshot = await resolveFaturaBranchSnapshot();
         const fatura = await tx.fatura.create({
           data: {
             numero: faturaNumero,
@@ -513,6 +515,15 @@ export class FinalizarVendaUseCase {
             tipoPagamento: data.metodoPagamento as any,
             estado: "PAGA",
             qrCode: mockQrCode,
+            branchId: branchSnapshot.branchId,
+            branchNome: branchSnapshot.branchNome,
+            branchNuit: branchSnapshot.branchNuit,
+            branchEmail: branchSnapshot.branchEmail,
+            branchTelefone: branchSnapshot.branchTelefone,
+            branchEndereco: branchSnapshot.branchEndereco,
+            branchCidade: branchSnapshot.branchCidade,
+            branchProvincia: branchSnapshot.branchProvincia,
+            branchLogo: branchSnapshot.branchLogo,
             pagamentos: {
               create: {
                 caixaId: caixa.id,

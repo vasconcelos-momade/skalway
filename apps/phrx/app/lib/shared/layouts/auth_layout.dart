@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers/app_theme_mode_provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
+import '../../platform/desktop/desktop_title_bar.dart';
 import '../responsive/pharma_screen_layout.dart';
 import '../widgets/menus/enterprise_dropdown_menu.dart';
 import '../widgets/sync/offline_mode_banner.dart';
@@ -53,24 +54,35 @@ class AuthLayout extends StatelessWidget {
                           padding: EdgeInsets.only(bottom: s.md),
                           child: Row(
                             children: [
-                              SizedBox(
-                                width: t.minTouchTarget,
-                                height: t.minTouchTarget,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(t.radiusMd),
-                                  child: Image.asset(
-                                    'assets/logos/logo_512.png',
-                                    fit: BoxFit.cover,
-                                  ),
+                              DesktopWindowDragArea(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: t.minTouchTarget,
+                                      height: t.minTouchTarget,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(t.radiusMd),
+                                        child: Image.asset(
+                                          'assets/logos/logo_512.png',
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: s.md),
+                                    Text(
+                                      'PhRx',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .erpAppName,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(width: s.md),
-                              Text(
-                                'PhRx',
-                                style: Theme.of(context).textTheme.erpAppName,
                               ),
                               const Spacer(),
                               const _ThemeModeMenuButton(),
+                              const DesktopWindowControls(),
                             ],
                           ),
                         ),

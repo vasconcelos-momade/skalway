@@ -69,6 +69,7 @@ abstract final class AppRoutePaths {
   static const String userPermissions = '/app/users/permissions';
 
   static const String settings = '/app/settings';
+  static const String settingsBranch = '/app/settings/branch';
   static const String settingsPrinters = '/app/settings/printers';
   static const String settingsTerminals = '/app/settings/terminals';
   static const String settingsSync = '/app/settings/sync';
@@ -155,6 +156,7 @@ abstract final class AppRouteTitles {
       AppRoutePaths.userProfiles => 'Perfis',
       AppRoutePaths.userPermissions => 'Permissões',
       AppRoutePaths.settings => 'Definições',
+      AppRoutePaths.settingsBranch => 'Filial',
       AppRoutePaths.settingsPrinters => 'Impressoras',
       AppRoutePaths.settingsTerminals => 'Terminais',
       AppRoutePaths.settingsSync => 'Sincronização',
@@ -198,6 +200,9 @@ abstract final class AppRouteTitles {
     }
     if (path.startsWith('/app/users')) {
       return 'Administração';
+    }
+    if (path == AppRoutePaths.settingsBranch) {
+      return 'Filial';
     }
     if (path.startsWith('/app/settings')) {
       return 'Sistema';

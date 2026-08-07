@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 
-const backgroundSyncTaskName = 'pharmaErpBackgroundSync';
+const backgroundSyncTaskName = 'skalwayPhRxBackgroundSync';
 
 /// Ponto de entrada para tarefas em background (Workmanager).
 @pragma('vm:entry-point')

@@ -54,7 +54,7 @@ class PrinterDiscoveryService {
   }
 }
 
-const String _thermalPrinterChannelName = 'pharma_erp/thermal_printer';
+const String _thermalPrinterChannelName = 'skalway_phrx/thermal_printer';
 
 final printerDiscoveryProvider = Provider<PrinterDiscoveryService>(
   (ref) => PrinterDiscoveryService(),

@@ -56,6 +56,19 @@ class SettingsPage extends ConsumerWidget {
           ),
           Divider(color: t.border.withValues(alpha: 0.35)),
           ListTile(
+            leading: Icon(Icons.storefront_outlined, color: t.brandBlue),
+            title: Text(
+              'Filial',
+              style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
+            ),
+            subtitle: Text(
+              'Identidade, contacto e dados fiscais da filial activa',
+              style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutePaths.settingsBranch),
+          ),
+          ListTile(
             leading: Icon(Icons.print_outlined, color: t.brandGreen),
             title: Text(
               'Impressoras',

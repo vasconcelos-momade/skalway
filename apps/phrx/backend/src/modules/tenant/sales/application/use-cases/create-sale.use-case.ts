@@ -6,6 +6,7 @@ import {
 import { consumeStockFefo } from "../../../stock/domain/fefo-allocation.service";
 import { replaceItemLoteAllocations } from "../../../sales/domain/fatura-item-lote.service";
 import { resolveVendaClienteId } from "../../../clients/domain/default-cliente";
+import { resolveFaturaBranchSnapshot } from "../../../pos/application/services/tenant-empresa-profile.service";
 
 export interface CreateSaleDTO {
   clienteId?: string | null;
@@ -119,6 +120,7 @@ export class CreateSaleUseCase {
         });
       }
 
+      const branchSnapshot = await resolveFaturaBranchSnapshot();
       const fatura = await tx.fatura.create({
         data: {
           numero: `FT-${Date.now()}`,
@@ -129,6 +131,15 @@ export class CreateSaleUseCase {
           ivaTotal: totalGeral * 0.16,
           total: totalGeral * 1.16,
           estado: "EMITIDA",
+          branchId: branchSnapshot.branchId,
+          branchNome: branchSnapshot.branchNome,
+          branchNuit: branchSnapshot.branchNuit,
+          branchEmail: branchSnapshot.branchEmail,
+          branchTelefone: branchSnapshot.branchTelefone,
+          branchEndereco: branchSnapshot.branchEndereco,
+          branchCidade: branchSnapshot.branchCidade,
+          branchProvincia: branchSnapshot.branchProvincia,
+          branchLogo: branchSnapshot.branchLogo,
           items: {
             create: results.map((r) => ({
               produtoId: BigInt(r.produtoId),

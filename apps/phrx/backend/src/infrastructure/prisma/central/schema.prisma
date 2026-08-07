@@ -143,6 +143,7 @@ model Tenant {
   invoices               Invoice[]
   invoiceFiscalCounters  InvoiceFiscalCounter[]
   settings               TenantSetting[]
+  branchSettings         BranchSetting[]
   userTenants            UserTenant[]
   devices                Device[]
   printers               Printer[]
@@ -227,6 +228,7 @@ model Branch {
   devices       Device[]
   printers      Printer[]
   printJobs     PrintJob[]
+  settings      BranchSetting[]
   syncLogs      SyncLog[]
   syncSessions  SyncSession[]
   auditLogs     AuditLog[]
@@ -238,6 +240,42 @@ model Branch {
   @@index([active])
   @@index([deletedAt])
   @@map("branches")
+}
+
+/// Configurações por filial (fiscais, documento, impressão, contacto).
+/// Isoladas por tenantId+branchId — nunca partilhadas entre filiais.
+model BranchSetting {
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+
+  tenantId BigInt @db.UnsignedBigInt
+  branchId BigInt @db.UnsignedBigInt
+
+  key String @db.VarChar(191)
+
+  value Json
+
+  category BranchSettingCategory
+
+  description String? @db.Text
+
+  schemaVersion Int @default(1)
+
+  version Int @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, key])
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([tenantId, branchId])
+  @@index([category])
+  @@index([deletedAt])
+  @@map("branch_settings")
 }
 
 //
@@ -1056,4 +1094,12 @@ enum PrintStatus {
   PRINTED
   FAILED
   CANCELLED
+}
+
+enum BranchSettingCategory {
+  IDENTIDADE
+  CONTACTO
+  FISCAL
+  DOCUMENTO
+  IMPRESSAO
 }

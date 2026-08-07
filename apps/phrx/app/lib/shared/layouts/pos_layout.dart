@@ -7,6 +7,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/extensions.dart';
 import '../../modules/sales/pdv/presentation/providers/caixa_sessao_provider.dart';
 import '../../modules/sales/pdv/presentation/widgets/abrir_caixa_dialog.dart';
+import '../../platform/desktop/desktop_title_bar.dart';
 import '../responsive/pharma_screen_layout.dart';
 import '../widgets/buttons/pharma_button_loader.dart';
 import '../widgets/sync/sync_status_strip.dart';
@@ -77,27 +78,29 @@ class PosLayout extends ConsumerWidget {
                     ),
                     SizedBox(width: narrow ? s.sm : s.md),
                     Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'PhRx — PDV',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.erpAppName,
-                          ),
-                          if (!narrow)
+                      child: DesktopWindowDragArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              subtitle,
+                              'PhRx — PDV',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .erpOverline
-                                  .copyWith(color: t.textMuted),
+                              style: Theme.of(context).textTheme.erpAppName,
                             ),
-                        ],
+                            if (!narrow)
+                              Text(
+                                subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .erpOverline
+                                    .copyWith(color: t.textMuted),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     if (!narrow && caixaState.isLoading)
@@ -181,6 +184,7 @@ class PosLayout extends ConsumerWidget {
                               .copyWith(color: t.textSecondary),
                         ),
                       ),
+                    const DesktopWindowControls(),
                   ],
                 );
               },

@@ -1,12 +1,12 @@
-# pharma_erp
+# Skalway PhRx
 
-ERP para farmácia em **Flutter** — arranque modular (auth, farmácia, vendas/PDV, stock, finanças, auditoria, etc.).
+ERP farmacêutico **Flutter** — arranque modular (auth, farmácia, vendas/PDV, stock, finanças, auditoria, etc.).
 
 ## Documentação da estrutura
 
 - **Português:** [docs/estrutura_do_projecto.md](docs/estrutura_do_projecto.md) — guia completo, diagrama de dependências e **índice em árvore** de `lib/`.
 - **English:** [docs/project_structure.md](docs/project_structure.md) — same guide in English (including the tree).
-- **UI React → Flutter:** [docs/ui_react_para_flutter.md](docs/ui_react_para_flutter.md) — design system, responsividade, mapeamento do protótipo `pharmaerp-moçambique (2)/`.
+- **UI React → Flutter:** [docs/ui_react_para_flutter.md](docs/ui_react_para_flutter.md) — design system, responsividade, mapeamento do protótipo React.
 - **Feedback do utilizador:** [docs/pharma_feedback.md](docs/pharma_feedback.md) — `PharmaFeedback` (SnackBar, QuickAlert, Dialog Material); API única para notificações e confirmações.
 
 ## Arranque rápido
@@ -30,19 +30,20 @@ bash scripts/dev_web.sh --deps
 bash scripts/analyze.sh
 ```
 
-Variáveis locais: copie ou crie um ficheiro **`.env`** na raiz (não é versionado; ver `.gitignore`). Os valores podem ser lidos em `lib/core/config/env.dart` à medida que configurar o projecto.
-
-## Testes
+## Instaladores (padrão Scalway Gastro)
 
 ```bash
-flutter test
-flutter test integration_test/
+# APK Release (split por ABI)
+./build_apk.sh
+
+# Pacote Debian (.deb)
+./build_deb.sh
+
+# AppImage (opcional)
+./build_appimage.sh
 ```
 
-`test/ui_shell_test.dart` cobre o fluxo de **login → dashboard** e **navegação para inventário** (GoRouter + Riverpod).
-
-## Recursos Flutter
-
-- [Documentação Flutter](https://docs.flutter.dev/)
-- [Codelab inicial](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook](https://docs.flutter.dev/cookbook)
+Saídas:
+- APKs: `build/app/outputs/flutter-apk/SkalwayPhRx-v1.0.0-*.apk`
+- Deb: `skalway-phrx_1.0.0_amd64.deb` (na raiz do app)
+- AppImage: `SkalwayPhRx-1.0.0-x86_64.AppImage`

@@ -332,12 +332,31 @@ class _PrintersPageState extends ConsumerState<PrintersPage> {
 
   Future<void> _testPrinter(BuildContext context, PrinterDetalhe item) async {
     try {
-      await ref.read(printerListProvider.notifier).testPrinter(
+      final result = await ref.read(printerListProvider.notifier).testPrinter(
             item.id,
             message: 'Teste Skalway Health — ${item.name}',
           );
-      if (context.mounted) {
-        PharmaFeedback.success(context, 'Teste enfileirado');
+      if (!context.mounted) return;
+      final printed = result['printed'] == true;
+      final failed = result['failed'] == true;
+      final message = result['message']?.toString();
+      if (printed) {
+        PharmaFeedback.success(
+          context,
+          message?.isNotEmpty == true ? message! : 'Teste impresso com sucesso',
+        );
+      } else if (failed) {
+        PharmaFeedback.error(
+          context,
+          message?.isNotEmpty == true
+              ? message!
+              : 'Falha ao contactar a impressora. Verifique IP/porta.',
+        );
+      } else {
+        PharmaFeedback.success(
+          context,
+          message?.isNotEmpty == true ? message! : 'Teste enfileirado',
+        );
       }
     } on ApiFailure catch (e) {
       if (context.mounted) PharmaFeedback.error(context, e.message);

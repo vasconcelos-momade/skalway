@@ -52,5 +52,6 @@ app.*.map.json
 *.AppDir/
 appimagetool
 appimagetool-*.AppImage
+*.apk
 *.deb
 pkg_deb/

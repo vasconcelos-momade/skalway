@@ -1,17 +1,19 @@
+import { hostname } from "os";
 import { PrintJobRepository } from "../../infrastructure/repositories/print-job.repository";
 import { PrinterRepository } from "../../infrastructure/repositories/printer.repository";
 import { writeCentralAuditLog } from "../../infrastructure/central-audit.helper";
 import type { TestPrinterDTO } from "../dto/printer.dto";
-import { enqueuePrintProcessJob } from "./drain-print-jobs.use-case";
+import { ProcessPrintJobUseCase } from "./process-print-job.use-case";
 
 /**
- * Enfileira um PrintJob de teste (documento TEST).
- * A execução ESC/POS/PDF é feita pelo print-job.worker.
+ * Cria um PrintJob de teste e processa-o de imediato (TCP ESC/POS / PDF).
+ * Assim "Testar impressora" não depende do print-job.worker estar a correr.
  */
 export class TestPrinterUseCase {
   constructor(
     private readonly printers = new PrinterRepository(),
     private readonly jobs = new PrintJobRepository(),
+    private readonly processJob = new ProcessPrintJobUseCase(),
   ) {}
 
   async execute(input: {
@@ -66,15 +68,34 @@ export class TestPrinterUseCase {
       data: { printJobId: job.id, message },
     });
 
-    await enqueuePrintProcessJob({
-      printJobId: job.id,
+    const workerId = `test-sync:${hostname()}`;
+    const outcome = await this.processJob.execute({
+      jobId: job.id,
       tenantId: input.tenantId,
+      workerId,
     });
+
+    const finalJob = outcome.job;
+    const status = String(finalJob.status ?? "").toUpperCase();
+    const printed = status === "PRINTED";
+    const failed = status === "FAILED";
+
+    let resultMessage = "Trabalho de teste processado";
+    if (printed) {
+      resultMessage = "Teste impresso com sucesso";
+    } else if (failed) {
+      const err =
+        (finalJob as { errorMessage?: string | null }).errorMessage?.trim() ||
+        "Falha ao contactar a impressora";
+      resultMessage = `Falha no teste: ${err}`;
+    }
 
     return {
       printer,
-      job,
-      message: "Trabalho de teste enfileirado",
+      job: finalJob,
+      printed,
+      failed,
+      message: resultMessage,
     };
   }
 }

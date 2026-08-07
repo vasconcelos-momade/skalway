@@ -8,6 +8,8 @@ import { EmailService } from "../../../../../infrastructure/notifications/email.
 import { generateBranchCode } from "../../domain/generate-branch-code";
 import { createTrialInvoice } from "../../../billing/application/services/create-trial-invoice.service";
 import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
+import { PrinterService } from "../../../printer/application/services/printer.service";
+import { BranchSettingService } from "../../../branch-settings/application/services/branch-setting.service";
 import { addDaysUTC, addMonthsUTC } from "@skalway/billing";
 
 export interface CreateTenantBranchInput {
@@ -313,6 +315,29 @@ export class CreateTenantUseCase {
               dbPasswordTag: tag,
               createdBy: BigInt(data.userId),
               updatedBy: BigInt(data.userId),
+            },
+          });
+
+          await new PrinterService().createDefaultPrinter({
+            tx,
+            tenantId: tenant.id,
+            branchId: branch.id,
+            userId: BigInt(data.userId),
+          });
+
+          await new BranchSettingService().seedDefaults({
+            tx,
+            tenantId: tenant.id,
+            branchId: branch.id,
+            defaults: {
+              branchName: branch.name,
+              branchCode: branch.code,
+              // Nome legal = filial; NUIT/contacto só se enviados no formulário da unidade.
+              nomeLegal: branch.name,
+              nuit: data.nuit ?? null,
+              email: null,
+              endereco: data.endereco ?? null,
+              telefone: data.telefone ?? null,
             },
           });
 

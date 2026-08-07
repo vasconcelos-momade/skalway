@@ -35,6 +35,8 @@ final dioProvider = Provider<Dio>((ref) {
       dio: dio,
       onCloudFallback: () =>
           ref.read(connectionNotifierProvider.notifier).switchToCloud(),
+      onLocalFallback: () =>
+          ref.read(connectionNotifierProvider.notifier).switchToLocal(),
       onOnline: (mode) =>
           ref.read(connectionNotifierProvider.notifier).setOnline(mode),
       onOffline: () => ref.read(connectionNotifierProvider.notifier).setOffline(),

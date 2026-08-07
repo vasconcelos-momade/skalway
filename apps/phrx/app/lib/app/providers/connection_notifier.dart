@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/env.dart';
@@ -35,21 +36,73 @@ class ConnectionState {
 class ConnectionNotifier extends Notifier<ConnectionState> {
   @override
   ConnectionState build() {
-    Future.microtask(_restoreMode);
+    Future.microtask(_bootstrapConnectivity);
     return ConnectionState();
   }
 
-  Future<void> _restoreMode() async {
+  /// Preferir o endpoint local quando estiver acessível (Docker local em DEV).
+  /// Evita ficar preso em "modo nuvem" gravado após um fallback antigo.
+  Future<void> _bootstrapConnectivity() async {
     final storedMode =
         await ref.read(secureStorageProvider).readConnectionMode();
-    if (storedMode == null) return;
 
+    final localOk = await _pingHealth(Env.apiBaseUrlLocal);
+    if (localOk) {
+      state = state.copyWith(
+        mode: ConnectionMode.local,
+        status: ConnectionStatus.online,
+        activeBaseUrl: Env.apiBaseUrlLocal,
+      );
+      _persistMode(ConnectionMode.local);
+      return;
+    }
+
+    final cloudDistinct = Env.apiBaseUrlCloud != Env.apiBaseUrlLocal;
+    if (cloudDistinct) {
+      final cloudOk = await _pingHealth(Env.apiBaseUrlCloud);
+      if (cloudOk) {
+        state = state.copyWith(
+          mode: ConnectionMode.cloud,
+          status: ConnectionStatus.online,
+          activeBaseUrl: Env.apiBaseUrlCloud,
+        );
+        _persistMode(ConnectionMode.cloud);
+        return;
+      }
+    }
+
+    final mode = storedMode ?? ConnectionMode.local;
     state = state.copyWith(
-      mode: storedMode,
-      activeBaseUrl: storedMode == ConnectionMode.cloud
+      mode: mode,
+      status: ConnectionStatus.offline,
+      activeBaseUrl: mode == ConnectionMode.cloud
           ? Env.apiBaseUrlCloud
           : Env.apiBaseUrlLocal,
     );
+  }
+
+  Future<bool> _pingHealth(String baseUrl) async {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 3),
+        headers: const <String, dynamic>{'Accept': 'application/json'},
+      ),
+    );
+    try {
+      final response = await dio.get<dynamic>('/health');
+      return response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 500;
+    } on DioException catch (e) {
+      // Qualquer resposta HTTP prova que o host está acessível.
+      return e.response != null;
+    } catch (_) {
+      return false;
+    } finally {
+      dio.close();
+    }
   }
 
   void setOnline(ConnectionMode mode) {

@@ -37,16 +37,9 @@ android {
         }
     }
 
-    applicationVariants.all {
-        val variant = this
-        outputs.all {
-            val appName = "SkalwayPhRx"
-            val versionName = variant.versionName ?: "0.0.0"
-            val buildType = variant.buildType.name
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "${appName}-v${versionName}-${buildType}.apk"
-        }
-    }
+    // Renomeação final dos APKs é feita pelos scripts (build-dev/prod-apk.sh).
+    // Não definir outputFileName aqui: com --split-per-abi vários ABIs
+    // colidiriam no mesmo nome e falhariam em :app:packageRelease.
 }
 
 flutter {

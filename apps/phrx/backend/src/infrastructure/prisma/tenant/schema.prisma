@@ -480,6 +480,18 @@ model Fatura {
   moeda              String              @default("MZN")
   estado             EstadoFatura        @default(EMITIDA)
   qrCode             String?
+
+  /// Snapshot fiscal da filial no momento da emissão (imutável).
+  branchId         BigInt?  @db.UnsignedBigInt
+  branchNome       String?  @db.VarChar(191)
+  branchNuit       String?  @db.VarChar(64)
+  branchEmail      String?  @db.VarChar(191)
+  branchTelefone   String?  @db.VarChar(64)
+  branchEndereco   String?  @db.Text
+  branchCidade     String?  @db.VarChar(191)
+  branchProvincia  String?  @db.VarChar(191)
+  branchLogo       String?  @db.Text
+
   deletedAt          DateTime?
   version            Int                 @default(0)
   authorizedById     BigInt?             @db.UnsignedBigInt
@@ -503,6 +515,7 @@ model Fatura {
   @@index([tipoPagamento])
   @@index([createdAt])
   @@index([estado])
+  @@index([branchId])
   @@map("faturas")
 }
 

@@ -265,6 +265,12 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
     title: AppNavSections.system,
     items: <AppNavItem>[
       AppNavItem(
+        label: 'Filial',
+        path: AppRoutePaths.settingsBranch,
+        icon: Icons.storefront_outlined,
+        permissionModule: 'CONFIGURACOES',
+      ),
+      AppNavItem(
         label: 'Terminais',
         path: AppRoutePaths.settingsTerminals,
         icon: Icons.computer_outlined,

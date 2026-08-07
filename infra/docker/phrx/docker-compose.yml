@@ -62,6 +62,32 @@ services:
     networks:
       - phrx_net
 
+  phrx-backend-print-worker:
+    build:
+      context: ../../..
+      dockerfile: apps/phrx/backend/Dockerfile.dev
+    container_name: phrx_backend_print_worker
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "worker:print"]
+    volumes:
+      - ../../../apps/phrx/backend:/usr/src/app
+      - ../../../services/identity:/services/identity
+      - ../../../services/billing:/services/billing
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - phrx_net
+
   nginx:
     image: nginx:alpine
     container_name: phrx_nginx

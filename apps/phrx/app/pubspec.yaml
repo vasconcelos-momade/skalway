@@ -50,6 +50,7 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.5
   flutter_typeahead: ^6.0.0
+  window_manager: ^0.4.3
 
 dev_dependencies:
   flutter_test:

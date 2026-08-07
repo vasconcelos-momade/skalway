@@ -212,6 +212,13 @@ abstract final class ApiConstants {
   static String centralPrintJobCancel(String id) =>
       '/central/print-jobs/$id/cancel';
 
+  /// Configurações da filial activa (BranchSetting).
+  static const branchSettings = '/branch-settings';
+  static String branchSettingsById(String branchId) =>
+      '/branches/$branchId/settings';
+  static String branchInvoiceProfile(String branchId) =>
+      '/branches/$branchId/settings/invoice-profile';
+
   static const headerAuthorization = 'Authorization';
   static const headerTenantId = 'x-tenant-id';
   static const headerBranchId = 'x-branch-id';

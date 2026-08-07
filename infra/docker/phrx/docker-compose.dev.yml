@@ -70,6 +70,38 @@ services:
     networks:
       - phrx_net
 
+  # Processa PrintJobs (TEST, recibos, etc.) — fila skalway:print-jobs
+  phrx-backend-print-worker:
+    build:
+      context: ../../..
+      dockerfile: apps/phrx/backend/Dockerfile.dev
+    container_name: phrx_backend_print_worker
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "worker:print"]
+    volumes:
+      - ../../../apps/phrx/backend:/usr/src/app
+      - ../../../services/identity:/services/identity
+      - ../../../services/billing:/services/billing
+      - phrx_node_modules:/usr/src/app/node_modules
+      - phrx_prisma_central_generated:/usr/src/app/src/infrastructure/prisma/central/generated
+      - phrx_prisma_tenant_generated:/usr/src/app/src/infrastructure/prisma/tenant/generated
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      phrx-backend:
+        condition: service_started
+    networks:
+      - phrx_net
+
   nginx:
     image: nginx:alpine
     container_name: phrx_nginx

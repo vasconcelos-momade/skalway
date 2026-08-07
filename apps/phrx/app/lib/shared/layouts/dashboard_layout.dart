@@ -11,6 +11,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/dimensions.dart';
 import '../../core/theme/extensions.dart';
 import '../../core/theme/pharma_surface.dart';
+import '../../platform/desktop/desktop_title_bar.dart';
 import '../responsive/pharma_screen_layout.dart';
 import '../widgets/menus/enterprise_dropdown_menu.dart';
 import '../widgets/navigation/app_nav_config.dart';
@@ -365,7 +366,8 @@ class _EnterpriseTopBar extends ConsumerWidget {
               SizedBox(width: s.md),
             ],
             Expanded(
-              child: Column(
+              child: DesktopWindowDragArea(
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -422,6 +424,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
                     ),
                 ],
               ),
+              ),
             ),
             SizedBox(width: isMobile ? s.sm : s.lg),
             Flexible(
@@ -437,6 +440,7 @@ class _EnterpriseTopBar extends ConsumerWidget {
                       const _PageRefreshAction(),
                       SizedBox(width: actionSpacing),
                       _ThemeModeMenuButton(themeMode: themeMode),
+                      const DesktopWindowControls(),
                     ],
                   ),
                 ),
