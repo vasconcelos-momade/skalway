@@ -6,6 +6,10 @@ import { branchContext } from "../../../../../shared/context/branch-context";
 import { runWithCentralTenant } from "../../../../../shared/context/central-tenant-context";
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
 import { generateBranchCode } from "../../domain/generate-branch-code";
+import {
+  BRANCH_DB_NAME_PENDING,
+  buildBranchDbName,
+} from "../../domain/branch-db-name";
 import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
 import { PrinterService } from "../../../printer/application/services/printer.service";
 import { BranchSettingService } from "../../../branch-settings/application/services/branch-setting.service";
@@ -13,19 +17,6 @@ import { BranchSettingService } from "../../../branch-settings/application/servi
 export interface CreateBranchDTO {
   tenantId: string;
   name: string;
-}
-
-function normalizeDbIdentifier(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function buildBranchDbName(tenantId: string, branchCode: string) {
-  const normalizedCode = normalizeDbIdentifier(branchCode);
-  return `tenant_${tenantId}_branch_${normalizedCode}`.slice(0, 64);
 }
 
 async function cloneHqUsersToBranch(params: {
@@ -136,7 +127,9 @@ async function cloneHqUsersToBranch(params: {
           (user.centralUserId !== null && user.centralUserId !== undefined
             ? branchUserByCentralId.get(String(user.centralUserId))
             : undefined) ??
-          (user.email ? branchUserByEmail.get(String(user.email).toLowerCase()) : undefined);
+          (user.email
+            ? branchUserByEmail.get(String(user.email).toLowerCase())
+            : undefined);
 
         if (!targetUser || !user.userPermissions?.length) {
           return [];
@@ -170,7 +163,6 @@ export class CreateBranchUseCase {
       const prisma = prismaCentralUnscoped as any;
       const tenantId = BigInt(data.tenantId);
       const branchCode = generateBranchCode();
-      const dbName = buildBranchDbName(data.tenantId, branchCode);
 
       const setup = await prisma.$transaction(async (tx: any) => {
         const subscription = await tx.subscription.findFirst({
@@ -214,7 +206,60 @@ export class CreateBranchUseCase {
           },
         });
 
+        const createdBranch = await tx.branch.create({
+          data: {
+            tenantId,
+            code: branchCode,
+            name: data.name,
+            isHeadOffice: false,
+            active: true,
+            dbHost: hqBranch.dbHost,
+            dbPort: hqBranch.dbPort,
+            dbName: BRANCH_DB_NAME_PENDING,
+            dbUsername: hqBranch.dbUsername,
+            dbPasswordCipherText: hqBranch.dbPasswordCipherText,
+            dbPasswordIv: hqBranch.dbPasswordIv,
+            dbPasswordTag: hqBranch.dbPasswordTag,
+          },
+        });
+
+        const dbName = buildBranchDbName(tenantId, createdBranch.id);
+        const branch = await tx.branch.update({
+          where: { id: createdBranch.id },
+          data: { dbName },
+        });
+
+        await new PrinterService().createDefaultPrinter({
+          tx,
+          tenantId,
+          branchId: branch.id,
+        });
+
+        await new BranchSettingService().seedDefaults({
+          tx,
+          tenantId,
+          branchId: branch.id,
+          defaults: {
+            branchName: branch.name,
+            branchCode: branch.code,
+            nomeLegal: branch.name,
+          },
+        });
+
+        const history = await SubscriptionBranchHistoryService.recordBranchAdd({
+          tx,
+          tenantId,
+          subscriptionId: subscription.id,
+          branchId: branch.id,
+          includedBranches: Number(subscription.plan?.includedBranches ?? 1),
+          branchCode: branch.code,
+          branchName: branch.name,
+          reason: "Criação de filial adicional — cobrança no próximo ciclo",
+        });
+
         return {
+          branch,
+          dbName,
           hqBranchId: hqBranch.id,
           dbHost: hqBranch.dbHost,
           dbPort: hqBranch.dbPort,
@@ -224,70 +269,15 @@ export class CreateBranchUseCase {
           dbPasswordIv: hqBranch.dbPasswordIv,
           dbPasswordTag: hqBranch.dbPasswordTag,
           includedBranches: Number(subscription.plan?.includedBranches ?? 1),
-          subscriptionId: subscription.id,
+          branchesUsed: history.branchesUsed,
+          extraBranches: history.extraBranches,
           tenant,
         };
       });
 
-      await MySqlManagementService.createDatabase(dbName);
-      MySqlManagementService.runMigrations(dbName);
-      MySqlManagementService.runStructuralSeed(dbName);
-
-      const result = await prisma.$transaction(async (tx: any) => {
-        const createdBranch = await tx.branch.create({
-          data: {
-            tenantId,
-            code: branchCode,
-            name: data.name,
-            isHeadOffice: false,
-            active: true,
-            dbHost: setup.dbHost,
-            dbPort: setup.dbPort,
-            dbName,
-            dbUsername: setup.dbUsername,
-            dbPasswordCipherText: setup.dbPasswordCipherText,
-            dbPasswordIv: setup.dbPasswordIv,
-            dbPasswordTag: setup.dbPasswordTag,
-          },
-        });
-
-        await new PrinterService().createDefaultPrinter({
-          tx,
-          tenantId,
-          branchId: createdBranch.id,
-        });
-
-        await new BranchSettingService().seedDefaults({
-          tx,
-          tenantId,
-          branchId: createdBranch.id,
-          defaults: {
-            branchName: createdBranch.name,
-            branchCode: createdBranch.code,
-            // Só nome/código da branch — contacto/NUIT ficam null até o admin configurar.
-            nomeLegal: createdBranch.name,
-          },
-        });
-
-        const history = await SubscriptionBranchHistoryService.recordBranchAdd({
-          tx,
-          tenantId,
-          subscriptionId: setup.subscriptionId,
-          branchId: createdBranch.id,
-          includedBranches: setup.includedBranches,
-          branchCode: createdBranch.code,
-          branchName: createdBranch.name,
-          reason: "Criação de filial adicional — cobrança no próximo ciclo",
-        });
-
-        return {
-          branch: createdBranch,
-          branchesUsed: history.branchesUsed,
-          extraBranches: history.extraBranches,
-          includedBranches: history.includedBranches,
-          tenant: setup.tenant,
-        };
-      });
+      await MySqlManagementService.createDatabase(setup.dbName);
+      MySqlManagementService.runMigrations(setup.dbName);
+      MySqlManagementService.runStructuralSeed(setup.dbName);
 
       const copiedUsers = await cloneHqUsersToBranch({
         tenantId: data.tenantId,
@@ -299,8 +289,8 @@ export class CreateBranchUseCase {
         hqDbPasswordCipherText: setup.dbPasswordCipherText,
         hqDbPasswordIv: setup.dbPasswordIv,
         hqDbPasswordTag: setup.dbPasswordTag,
-        branchId: result.branch.id.toString(),
-        branchDbName: dbName,
+        branchId: setup.branch.id.toString(),
+        branchDbName: setup.dbName,
         branchDbHost: setup.dbHost,
         branchDbPort: setup.dbPort,
         branchDbUsername: setup.dbUsername,
@@ -309,21 +299,21 @@ export class CreateBranchUseCase {
         branchDbPasswordTag: setup.dbPasswordTag,
       });
 
-      const ownerEmail = result.tenant?.owner?.email;
+      const ownerEmail = setup.tenant?.owner?.email;
       if (ownerEmail) {
         const extrasNote =
-          result.extraBranches > 0
-            ? `Filiais extras a cobrar no proximo ciclo: ${result.extraBranches} (${result.extraBranches} x preco extra do plano).`
+          setup.extraBranches > 0
+            ? `Filiais extras a cobrar no proximo ciclo: ${setup.extraBranches} (${setup.extraBranches} x preco extra do plano).`
             : "Ainda dentro do limite de filiais incluidas no plano.";
         await EmailService.send({
           to: ownerEmail,
-          subject: `Nova branch criada para ${result.tenant.tenantName}`,
+          subject: `Nova branch criada para ${setup.tenant.tenantName}`,
           text: [
-            `A branch ${result.branch.name} (${result.branch.code}) foi criada com sucesso.`,
-            `Base de dados dedicada: ${dbName}.`,
+            `A branch ${setup.branch.name} (${setup.branch.code}) foi criada com sucesso.`,
+            `Base de dados dedicada: ${setup.dbName}.`,
             `Utilizadores copiados da matriz: ${copiedUsers}.`,
-            `Branches activas actuais: ${result.branchesUsed}.`,
-            `Incluidas no plano actual: ${result.includedBranches}.`,
+            `Branches activas actuais: ${setup.branchesUsed}.`,
+            `Incluidas no plano actual: ${setup.includedBranches}.`,
             extrasNote,
             "Nao ha cobranca imediata — o valor sera reflectido na proxima factura.",
           ].join("\n"),
@@ -331,13 +321,13 @@ export class CreateBranchUseCase {
       }
 
       return {
-        id: result.branch.id.toString(),
-        code: result.branch.code,
-        name: result.branch.name,
-        dbName,
-        branchesUsed: result.branchesUsed,
-        extraBranches: result.extraBranches,
-        includedBranches: result.includedBranches,
+        id: setup.branch.id.toString(),
+        code: setup.branch.code,
+        name: setup.branch.name,
+        dbName: setup.dbName,
+        branchesUsed: setup.branchesUsed,
+        extraBranches: setup.extraBranches,
+        includedBranches: setup.includedBranches,
       };
     });
   }

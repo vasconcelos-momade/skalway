@@ -1,14 +1,19 @@
-# Funções MySQL para bases tenant_* (evita pipes diretos do cliente mysql, que podem segfault).
+# Funções MySQL para bases de filial (phrx_tenant_* e legado tenant_*).
 # Uso: source após definir MYSQL_CONTAINER e MYSQL_ROOT_PASSWORD.
+
+list_tenant_database_names() {
+  command docker exec "${MYSQL_CONTAINER}" mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" \
+    --batch --skip-column-names -e \
+    "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
+     WHERE SCHEMA_NAME LIKE 'phrx_tenant_%'
+        OR SCHEMA_NAME LIKE 'tenant_%'
+     ORDER BY 1;" \
+    2>/dev/null || true
+}
 
 drop_all_tenant_databases() {
   local dbs db
-  dbs="$(
-    command docker exec "${MYSQL_CONTAINER}" mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" \
-      --batch --skip-column-names -e \
-      "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'tenant_%';" \
-      2>/dev/null || true
-  )"
+  dbs="$(list_tenant_database_names)"
   while IFS= read -r db; do
     [[ -z "${db:-}" ]] && continue
     echo "    DROP $db"

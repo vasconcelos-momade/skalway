@@ -28,9 +28,11 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-phrx_backend}"
 
 if ! tenant_database_exists "$DB_NAME"; then
   echo "❌ A base '${DB_NAME}' não existe no MySQL."
-  echo "   Bases tenant_* disponíveis:"
+  echo "   Bases de filial disponíveis:"
   docker exec "$MYSQL_CONTAINER" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" --batch --skip-column-names \
-    -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'tenant_%' ORDER BY 1;"
+    -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
+        WHERE SCHEMA_NAME LIKE 'phrx_tenant_%' OR SCHEMA_NAME LIKE 'tenant_%'
+        ORDER BY 1;"
   exit 1
 fi
 

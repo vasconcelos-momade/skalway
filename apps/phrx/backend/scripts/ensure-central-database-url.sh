@@ -16,7 +16,7 @@ if [ -z "$db_name" ]; then
 fi
 
 case "$db_name" in
-  tenant_*)
+  phrx_tenant_*|tenant_*)
     echo "❌ DATABASE_URL aponta para a base tenant '${db_name}'."
     echo "   O comando 'prisma:deploy:central' só pode correr em '${expected}'."
     echo "   Corrija .env (DATABASE_URL) antes de reiniciar o backend."
@@ -26,5 +26,5 @@ esac
 
 if [ "$db_name" != "$expected" ]; then
   echo "⚠️  DATABASE_URL usa '${db_name}' (esperado: '${expected}')."
-  echo "   Continuando porque não é uma base tenant_*."
+  echo "   Continuando porque não é uma base de filial."
 fi

@@ -6,6 +6,10 @@ import { branchContext } from "../../../../../shared/context/branch-context";
 import { encryptTenantDbPassword } from "../../../../../infrastructure/security/tenant-db-credentials";
 import { EmailService } from "../../../../../infrastructure/notifications/email.service";
 import { generateBranchCode } from "../../domain/generate-branch-code";
+import {
+  BRANCH_DB_NAME_PENDING,
+  buildBranchDbName,
+} from "../../domain/branch-db-name";
 import { createTrialInvoice } from "../../../billing/application/services/create-trial-invoice.service";
 import { SubscriptionBranchHistoryService } from "../../../billing/application/services/subscription-branch-history.service";
 import { PrinterService } from "../../../printer/application/services/printer.service";
@@ -73,19 +77,6 @@ export function isValidNuit(nuit: string): boolean {
   return /^\d{9}$/.test(nuit.replace(/\s+/g, ""));
 }
 
-function normalizeDbIdentifier(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function buildBranchDbName(tenantId: string, branchCode: string) {
-  const normalizedCode = normalizeDbIdentifier(branchCode);
-  return `tenant_${tenantId}_branch_${normalizedCode}`.slice(0, 64);
-}
-
 function resolveBranchNames(data: CreateTenantDTO, tenantName: string): string[] {
   const fromList = (data.branches ?? [])
     .map((b) => b.name?.trim())
@@ -121,7 +112,6 @@ export class CreateTenantUseCase {
       throw new Error("É necessário informar pelo menos uma Branch.");
     }
 
-    const hqDbName = `tenant_${slug}`;
     const adminEmail = data.adminEmail.trim().toLowerCase();
     const dbPasswordPlain = runtimeGlobals.process?.env?.MYSQL_ROOT_PASSWORD;
     if (!dbPasswordPlain) {
@@ -295,9 +285,6 @@ export class CreateTenantUseCase {
         for (let i = 0; i < branchNames.length; i++) {
           const isHeadOffice = i === 0;
           const code = generateBranchCode();
-          const dbName = isHeadOffice
-            ? hqDbName
-            : buildBranchDbName(tenant.id.toString(), code);
 
           const branch = await tx.branch.create({
             data: {
@@ -308,7 +295,7 @@ export class CreateTenantUseCase {
               active: true,
               dbHost,
               dbPort,
-              dbName,
+              dbName: BRANCH_DB_NAME_PENDING,
               dbUsername: "root",
               dbPasswordCipherText: cipherText,
               dbPasswordIv: iv,
@@ -316,6 +303,12 @@ export class CreateTenantUseCase {
               createdBy: BigInt(data.userId),
               updatedBy: BigInt(data.userId),
             },
+          });
+
+          const dbName = buildBranchDbName(tenant.id, branch.id);
+          const updatedBranch = await tx.branch.update({
+            where: { id: branch.id },
+            data: { dbName },
           });
 
           await new PrinterService().createDefaultPrinter({
@@ -355,7 +348,7 @@ export class CreateTenantUseCase {
               : "Filial adicional criada com o tenant",
           });
 
-          createdBranches.push(branch);
+          createdBranches.push(updatedBranch);
         }
 
         return { tenant, branches: createdBranches, subscription };
@@ -363,6 +356,7 @@ export class CreateTenantUseCase {
     );
 
     const hqBranch = branches[0];
+    const hqDbName = hqBranch.dbName as string;
 
     try {
       runtimeGlobals.console?.log(`🛠  [CreateTenant] 3/6 Criar base de dados ${hqDbName}...`);

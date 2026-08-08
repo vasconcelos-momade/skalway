@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Aplica migrations Prisma em todas as bases tenant_* (preserva dados).
+# Aplica migrations Prisma em todas as bases de filial (preserva dados).
 # Uso: bash scripts/migrate-all-tenants.sh [--baseline-all]
 set -euo pipefail
 
@@ -11,12 +11,15 @@ MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password}"
 
 dbs="$(
   docker exec "$MYSQL_CONTAINER" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" --batch --skip-column-names \
-    -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'tenant_%' ORDER BY 1;" \
+    -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
+        WHERE SCHEMA_NAME LIKE 'phrx_tenant_%'
+           OR SCHEMA_NAME LIKE 'tenant_%'
+        ORDER BY 1;" \
     2>/dev/null
 )"
 
 if [[ -z "${dbs// }" ]]; then
-  echo "Nenhuma base tenant_* encontrada."
+  echo "Nenhuma base phrx_tenant_* / tenant_* encontrada."
   exit 1
 fi
 
@@ -56,4 +59,4 @@ if [[ "$failed" -gt 0 ]]; then
 fi
 
 echo ""
-echo "✅ Todas as bases tenant_* migradas e validadas."
+echo "✅ Todas as bases de filial migradas e validadas."

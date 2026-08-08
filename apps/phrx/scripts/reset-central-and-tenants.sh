@@ -20,7 +20,7 @@ MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password}"
 CENTRAL_DB="${MYSQL_DATABASE:-skalway_central}"
 MYSQL_APP_USER="${MYSQL_USER:-admin}"
 
-echo "==> Apagando bases tenant_* ..."
+echo "==> Apagando bases phrx_tenant_* / tenant_* ..."
 drop_all_tenant_databases
 
 echo "==> Recriando base central: $CENTRAL_DB ..."

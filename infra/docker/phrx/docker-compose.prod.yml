@@ -1,0 +1,184 @@
+# PhRx — produção (referência; NÃO aplicar automaticamente)
+#
+# Uso futuro (na VPS, após preparação manual):
+#   cd /opt/skalway/infra/docker/phrx
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Diferenças vs DEV:
+# - imagem apps/phrx/backend/Dockerfile (sem bind-mount de código)
+# - MySQL/Redis NÃO publicados na Internet
+# - API só em 127.0.0.1:4001 (Nginx do host faz TLS)
+# - sem Adminer/phpMyAdmin
+# - Redis com volume persistente
+# - NODE_ENV=production
+
+services:
+  phrx-backend:
+    build:
+      context: ../../..
+      dockerfile: apps/phrx/backend/Dockerfile
+    image: skalway-phrx-backend:prod
+    container_name: phrx_backend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      NODE_ENV: production
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      TENANT_DB_HOST: ${TENANT_DB_HOST:-phrx-db}
+      TENANT_DB_PORT: ${TENANT_DB_PORT:-3306}
+      TENANT_DB_USERNAME: ${TENANT_DB_USERNAME}
+      TENANT_DB_PASSWORD: ${TENANT_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_HOST: phrx-db
+      MYSQL_PORT: "3306"
+      REDIS_URL: redis://redis:6379
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://phrx.skalway.com}
+    ports:
+      # Apenas loopback do host — Cloudflare → Nginx → aqui
+      - "127.0.0.1:${BACKEND_PORT:-4001}:3300"
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - phrx_net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://127.0.0.1:3300/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  phrx-backend-worker:
+    image: skalway-phrx-backend:prod
+    container_name: phrx_backend_worker
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      NODE_ENV: production
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "worker"]
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      phrx-backend:
+        condition: service_started
+    networks:
+      - phrx_net
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  phrx-backend-print-worker:
+    image: skalway-phrx-backend:prod
+    container_name: phrx_backend_print_worker
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      NODE_ENV: production
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "worker:print"]
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      phrx-backend:
+        condition: service_started
+    networks:
+      - phrx_net
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  phrx-db:
+    image: mysql:8.0
+    container_name: phrx_mysql
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-skalway_central}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Africa/Maputo
+    command: --default-time-zone="Africa/Maputo"
+    # SEM ports: — MySQL só na rede Docker
+    volumes:
+      - phrx_mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - phrx_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  redis:
+    image: redis:7-alpine
+    container_name: phrx_redis
+    restart: unless-stopped
+    # SEM ports: — Redis só na rede Docker
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - phrx_redis_data:/data
+    networks:
+      - phrx_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  phrx_net:
+    name: phrx_net
+    driver: bridge
+
+volumes:
+  phrx_mysql_data:
+    name: phrx_mysql_data
+  phrx_redis_data:
+    name: phrx_redis_data
