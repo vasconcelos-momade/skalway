@@ -23,8 +23,12 @@ Docker network phrx_net
   └── phrx_redis      (sem ports públicos)
 ```
 
-Fonte Compose: `infra/docker/phrx/docker-compose.prod.yml`
+Compose oficial (por produto, no monorepo):  
+`infra/docker/phrx/docker-compose.prod.yml`  
 Nginx ref: `infra/nginx/skalway.conf`
+
+**Multi-app:** cada produto (phrx, gastro, …) tem o seu compose sob `infra/docker/<produto>/`.  
+Não há um único `docker-compose` na raiz de `/opt/skalway`.
 
 ## 1. Requisitos da VPS
 
@@ -48,46 +52,58 @@ Pacotes típicos (instalação **manual** na VPS, fora deste script):
 
 ## 2. Estrutura de directórios (oficial)
 
-```
-/opt/skalway/
-├── .env                      # secrets — chmod 600, NÃO no Git
-├── docker-compose.prod.yml   # cópia do compose prod
-├── backups/mysql/            # dumps (BACKUP_DIR)
-├── logs/                     # logs operacionais do host (opcional)
-└── apps/phrx/                # artefactos app (web build, etc.)
+### Repositório (código + compose)
 
-/var/www/phrx/                # Flutter Web publicado (root Nginx)
+```
+/opt/skalway-repo/                          # REPO_ROOT — clone do monorepo
+├── apps/phrx/
+├── infra/
+│   ├── docker/phrx/
+│   │   ├── docker-compose.prod.yml         # Compose PROD oficial PhRx
+│   │   ├── docker-compose.dev.yml
+│   │   └── .env                            # secrets PhRx — chmod 600
+│   ├── nginx/skalway.conf
+│   └── scripts/vps-preflight.sh
+└── …
+```
+
+### Runtime (dados / artefactos — sem compose)
+
+```
+/opt/skalway/                               # SKALWAY_ROOT
+├── backups/mysql/                          # dumps (BACKUP_DIR)
+└── logs/                                   # logs operacionais do host (opcional)
+
+/var/www/phrx/                              # Flutter Web publicado (root Nginx)
 
 /etc/nginx/sites-available/skalway.conf
-/etc/nginx/sites-enabled/skalway.conf   # symlink
+/etc/nginx/sites-enabled/skalway.conf       # symlink
 
 /etc/ssl/cloudflare/
-├── origin.crt                # 644
-└── origin.key                # 600
+├── origin.crt                              # 644
+└── origin.key                              # 600
 ```
 
-### Relação com o monorepo
+**Não** copiar nem mover o compose para `/opt/skalway/`.  
+O ficheiro oficial permanece em  
+`/opt/skalway-repo/infra/docker/phrx/docker-compose.prod.yml`.
 
-No Git a fonte da verdade continua em:
+### Variáveis de ambiente dos scripts
 
-- `infra/docker/phrx/docker-compose.prod.yml`
-- `infra/docker/phrx/.env.example`
-- `infra/nginx/skalway.conf`
-- `apps/phrx/`
-
-Na VPS, o layout `/opt/skalway/` é o **runtime deploy** (ficheiros necessários apenas). Pode ser:
-
-1. Clone completo do monorepo em `/opt/skalway` com symlink/cópia do compose para a raiz, **ou**
-2. Pacote mínimo: compose + `.env` + imagem Docker + `build/web` → `/var/www/phrx`.
-
-Ambos são válidos; o pre-flight assume o layout oficial acima.
+| Variável | Default | Função |
+|----------|---------|--------|
+| `REPO_ROOT` | `/opt/skalway-repo` | Clone do monorepo |
+| `SKALWAY_ROOT` | `/opt/skalway` | Backups / logs |
+| `COMPOSE_FILE` | `$REPO_ROOT/infra/docker/phrx/docker-compose.prod.yml` | Compose PhRx |
+| `ENV_FILE` | `$REPO_ROOT/infra/docker/phrx/.env` | Secrets PhRx |
 
 ## 3. Permissões e ownership
 
 | Path | Owner sugerido | Modo |
 |------|----------------|------|
-| `/opt/skalway` | `deploy:deploy` (ou user de ops) | `750` |
-| `/opt/skalway/.env` | mesmo user (ou root) | **`600`** |
+| `/opt/skalway-repo` | `deploy:deploy` (ou user de ops) | `750` |
+| `…/infra/docker/phrx/.env` | mesmo user | **`600`** |
+| `/opt/skalway` | mesmo user | `750` |
 | `/opt/skalway/backups` | mesmo user | `750` |
 | `/var/www/phrx` | `www-data:www-data` (ou deploy + ACL) | `755` |
 | `/etc/ssl/cloudflare/origin.crt` | `root:root` | **`644`** |
@@ -99,8 +115,8 @@ Utilizador Docker: o user de deploy deve pertencer ao grupo `docker` **ou** usar
 ## 4. `.env`
 
 - Copiar de `infra/docker/phrx/.env.example`
-- Colocar em `/opt/skalway/.env`
-- `chmod 600 /opt/skalway/.env`
+- Colocar em `/opt/skalway-repo/infra/docker/phrx/.env` (junto ao compose)
+- `chmod 600` nesse ficheiro
 - **Nunca** versionar no Git
 - Gerar secrets reais **fora** do repositório
 
@@ -145,7 +161,7 @@ Placeholders de DEV (`password`, `sua-secret-…`, `ENCRYPTION_KEY` a zeros) **n
 Validar ficheiro (sem up):
 
 ```bash
-cd /opt/skalway
+cd /opt/skalway-repo/infra/docker/phrx
 docker compose -f docker-compose.prod.yml --env-file .env config
 ```
 
@@ -181,12 +197,13 @@ Default: deny incoming / allow outgoing.
 ## 8. Backups
 
 - Directório: `/opt/skalway/backups/mysql`
-- Script: `infra/scripts/backup-mysql.sh`
+- Script: `/opt/skalway-repo/infra/scripts/backup-mysql.sh`
 - Descobre automaticamente `skalway_central` + `phrx_tenant_*_branch_*`
 - Na VPS: `BACKUP_DIR=/opt/skalway/backups/mysql`
 
 ```bash
-BACKUP_DIR=/opt/skalway/backups/mysql ./infra/scripts/backup-mysql.sh --dry-run
+BACKUP_DIR=/opt/skalway/backups/mysql \
+  /opt/skalway-repo/infra/scripts/backup-mysql.sh --dry-run
 # futuro, após go-live: … --apply  (+ cron diário)
 ```
 
@@ -195,13 +212,16 @@ Ver: [docs/database/backups.md](../database/backups.md).
 ## 9. Pre-flight (script)
 
 ```bash
-# A partir do repo (ou cópia dos scripts na VPS):
+# A partir do repo:
 ./infra/scripts/vps-preflight.sh --dry-run
 
 # Na VPS (próxima etapa):
-SKALWAY_ROOT=/opt/skalway ENV_FILE=/opt/skalway/.env \
+REPO_ROOT=/opt/skalway-repo SKALWAY_ROOT=/opt/skalway \
   ./infra/scripts/vps-preflight.sh
 ```
+
+Valida o compose em:  
+`$REPO_ROOT/infra/docker/phrx/docker-compose.prod.yml`
 
 Verifica apenas: Docker, Compose, Nginx, certificados, portas, UFW, directórios, DNS, disco, memória, variáveis obrigatórias.
 
@@ -213,9 +233,9 @@ Relacionado: `check-stack.sh` (estado do stack em execução) e `healthcheck.sh`
 
 1. [ ] VPS Ubuntu com recursos mínimos
 2. [ ] Docker + Compose instalados
-3. [ ] Directórios `/opt/skalway/...` e `/var/www/phrx` criados
-4. [ ] `.env` com secrets reais, `chmod 600`
-5. [ ] `docker-compose.prod.yml` no sítio
+3. [ ] Clone em `/opt/skalway-repo` + runtime `/opt/skalway/{backups,logs}` + `/var/www/phrx`
+4. [ ] `.env` em `infra/docker/phrx/.env` com secrets reais, `chmod 600`
+5. [ ] Compose em `infra/docker/phrx/docker-compose.prod.yml` (não copiado para `/opt/skalway`)
 6. [ ] Nginx + Origin CA (ficheiros presentes)
 7. [ ] UFW 22/80/443
 8. [ ] DNS Cloudflare `phrx` + `api.phrx` (Proxied) — processo manual

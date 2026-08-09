@@ -1,9 +1,9 @@
 # PhRx — produção (referência; NÃO aplicar automaticamente)
 #
 # Uso futuro (na VPS, após preparação manual):
-#   cd /opt/skalway/infra/docker/phrx
+#   cd /opt/skalway-repo/infra/docker/phrx
 #   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-#
+# Runtime (backups/logs): /opt/skalway/  — não copiar este compose para lá.#
 # Diferenças vs DEV:
 # - imagem apps/phrx/backend/Dockerfile (sem bind-mount de código)
 # - MySQL/Redis NÃO publicados na Internet

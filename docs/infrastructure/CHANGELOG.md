@@ -2,6 +2,11 @@
 
 Registo de decisões e mudanças de ops (não changelog de produto).
 
+### 2026-08 — Pre-flight multi-app (REPO_ROOT)
+
+- `vps-preflight.sh`: `REPO_ROOT=/opt/skalway-repo` (compose em `infra/docker/phrx/`); `SKALWAY_ROOT=/opt/skalway` só para backups/logs.
+- Docs VPS/produção alinhados: não copiar compose para `/opt/skalway`.
+
 ### 2026-08 — Preparação VPS (docs + pre-flight, sem deploy)
 
 - Layout oficial `/opt/skalway`, `/var/www/phrx`, Nginx + Origin CA documentado em `docs/deployment/vps-preparation.md`.

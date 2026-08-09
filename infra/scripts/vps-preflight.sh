@@ -4,10 +4,14 @@
 # NÃO instala pacotes, NÃO altera firewall/Nginx/DNS,
 # NÃO inicia containers, NÃO faz deploy.
 #
+# Arquitectura multi-app:
+#   REPO_ROOT     = clone do monorepo (compose por produto)
+#   SKALWAY_ROOT  = dados/artefactos de runtime (backups, logs)
+#
 # Uso (na VPS, na próxima etapa):
 #   ./vps-preflight.sh
 #   ./vps-preflight.sh --dry-run
-#   SKALWAY_ROOT=/opt/skalway ENV_FILE=/opt/skalway/.env ./vps-preflight.sh
+#   REPO_ROOT=/opt/skalway-repo SKALWAY_ROOT=/opt/skalway ./vps-preflight.sh
 #
 # Exit: 0 se checks críticos OK; 1 se algum crítico falhar.
 set -euo pipefail
@@ -15,9 +19,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=_lib.sh
 source "${SCRIPT_DIR}/_lib.sh"
 
+REPO_ROOT="${REPO_ROOT:-/opt/skalway-repo}"
 SKALWAY_ROOT="${SKALWAY_ROOT:-/opt/skalway}"
-ENV_FILE="${ENV_FILE:-${SKALWAY_ROOT}/.env}"
-COMPOSE_FILE="${COMPOSE_FILE:-${SKALWAY_ROOT}/docker-compose.prod.yml}"
+# Compose oficial PhRx no monorepo (não usar PHRX_COMPOSE_DIR do _lib — esse aponta ao clone local do script)
+# NÃO copiar compose para /opt/skalway/
+PHRX_COMPOSE_DIR="${REPO_ROOT}/infra/docker/phrx"
+COMPOSE_FILE="${COMPOSE_FILE:-${PHRX_COMPOSE_DIR}/docker-compose.prod.yml}"
+ENV_FILE="${ENV_FILE:-${PHRX_COMPOSE_DIR}/.env}"
 WWW_ROOT="${WWW_ROOT:-/var/www/phrx}"
 NGINX_AVAILABLE="${NGINX_AVAILABLE:-/etc/nginx/sites-available/skalway.conf}"
 NGINX_ENABLED="${NGINX_ENABLED:-/etc/nginx/sites-enabled/skalway.conf}"
@@ -99,7 +107,9 @@ check_perms() {
 section() { printf '\n## %s\n' "$1"; }
 
 log "PhRx VPS pre-flight (report-only)"
-log "SKALWAY_ROOT=$SKALWAY_ROOT"
+log "REPO_ROOT=$REPO_ROOT"
+log "SKALWAY_ROOT=$SKALWAY_ROOT (runtime: backups/logs)"
+log "COMPOSE_FILE=$COMPOSE_FILE"
 log "ENV_FILE=$ENV_FILE"
 [[ "$DRY_RUN" -eq 1 ]] && log "Modo dry-run: nenhum check real."
 
@@ -155,12 +165,21 @@ else
 fi
 
 section "Directórios oficiais"
-check_path "deploy root" "$SKALWAY_ROOT" dir
+check_path "repo root" "$REPO_ROOT" dir
+check_path "PhRx compose dir" "$PHRX_COMPOSE_DIR" dir
+check_path "runtime root" "$SKALWAY_ROOT" dir
 check_path "backups mysql" "${SKALWAY_ROOT}/backups/mysql" dir
 check_path "logs" "${SKALWAY_ROOT}/logs" dir
-check_path "apps/phrx" "${SKALWAY_ROOT}/apps/phrx" dir
 check_path "Flutter web" "$WWW_ROOT" dir
 check_path "ssl dir" "/etc/ssl/cloudflare" dir
+# Código do produto vive no monorepo (multi-app), não copiado para SKALWAY_ROOT
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  printf '  [dry-run] path %s/apps/phrx (código no repo)\n' "$REPO_ROOT"
+elif [[ -d "${REPO_ROOT}/apps/phrx" ]]; then
+  pass "apps/phrx no repo: ${REPO_ROOT}/apps/phrx"
+else
+  soft "apps/phrx em falta em ${REPO_ROOT}/apps/phrx"
+fi
 
 section "Ficheiros de configuração"
 check_path "compose prod" "$COMPOSE_FILE" file
@@ -317,12 +336,12 @@ else
   for host in "$DOMAIN_WEB" "$DOMAIN_API"; do
     ips=""
     if command -v getent >/dev/null 2>&1; then
-      ips="$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ')"
+      ips="$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ' || true)"
     fi
-    if [[ -z "$ips" ]] && command -v dig >/dev/null 2>&1; then
-      ips="$(dig +short "$host" A 2>/dev/null | tr '\n' ' ')"
+    if [[ -z "${ips// /}" ]] && command -v dig >/dev/null 2>&1; then
+      ips="$(dig +short "$host" A 2>/dev/null | tr '\n' ' ' || true)"
     fi
-    if [[ -n "$ips" ]]; then
+    if [[ -n "${ips// /}" ]]; then
       pass "$host → $ips"
     else
       soft "$host sem resolução A (DNS ainda não configurado ou sem dig/getent)"
