@@ -39,14 +39,13 @@ if [[ "$DO_WEB" -eq 1 ]]; then
   if ! command -v flutter >/dev/null 2>&1; then
     warn "flutter não encontrado — skip web"
   else
-    log "Flutter web release → apps/phrx/app/build/web"
-    log "API_BASE_URL=$API_BASE_URL API_CLOUD_URL=$API_CLOUD_URL"
-    (
-      cd "${ROOT}/apps/phrx/app"
-      run flutter build web --release \
-        --dart-define="API_BASE_URL=${API_BASE_URL}" \
-        --dart-define="API_CLOUD_URL=${API_CLOUD_URL}"
-    )
+    log "Flutter web via build-web.sh (API_BASE_URL=$API_BASE_URL)"
+    # Delega ao script dedicado (validação de artefactos)
+    EXTRA=()
+    [[ "$DRY_RUN" -eq 1 ]] && EXTRA+=(--dry-run)
+    API_BASE_URL="$API_BASE_URL" API_CLOUD_URL="$API_CLOUD_URL" \
+      ENVIRONMENT="${ENVIRONMENT:-prod}" \
+      "${SCRIPT_DIR}/build-web.sh" "${EXTRA[@]+"${EXTRA[@]}"}"
   fi
 fi
 

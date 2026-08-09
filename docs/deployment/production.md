@@ -5,6 +5,50 @@
 Preparação da VPS (directórios, secrets, pre-flight):
 → **[vps-preparation.md](./vps-preparation.md)**
 
+## Flutter Web (build local → VPS)
+
+O Flutter **não** corre na VPS. Build na máquina de desenvolvimento; a VPS só recebe estáticos em `/var/www/phrx`.
+
+```
+Local apps/phrx/app
+        ↓  ./infra/scripts/build-web.sh
+build/web
+        ↓  rsync/SSH (deploy-web.sh)
+VPS /var/www/phrx
+        ↓  Nginx
+https://phrx.skalway.com
+```
+
+API: `https://api.phrx.skalway.com` → `127.0.0.1:4001` (Docker; fluxo separado).
+
+### Comandos
+
+```bash
+# Build local (sem flutter clean / pub get)
+./infra/scripts/build-web.sh
+# opcional: ./infra/scripts/build-web.sh --clean
+
+# Deploy para VPS (requer SSH + rsync)
+VPS_HOST=SEU_HOST \
+VPS_USER=vasco \
+./infra/scripts/deploy-web.sh
+
+# Testes HTTPS
+./infra/scripts/test-web.sh
+
+# Fluxo completo (build + deploy + testes)
+VPS_HOST=SEU_HOST VPS_USER=vasco \
+  ./infra/scripts/deploy-web-production.sh
+
+# Com commit/push explícito antes do deploy
+VPS_HOST=SEU_HOST VPS_USER=vasco \
+  ./infra/scripts/deploy-web-production.sh --commit
+```
+
+`dart-define` de produção: `ENVIRONMENT=prod`, `API_BASE_URL` / `API_CLOUD_URL` = `https://api.phrx.skalway.com`.
+
+O deploy Web **não** executa `docker compose`, Prisma, npm nem Flutter na VPS.
+
 ## Artefactos PROD BUILD (sem deploy)
 
 | Artefacto | Local / tag |
@@ -58,8 +102,8 @@ Não copiar o compose para `/opt/skalway/`. Cada app tem o seu compose sob `infr
 9. `cd /opt/skalway-repo/infra/docker/phrx && docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
    (`phrx-migrate` aplica `prisma migrate deploy` no Central antes do backend)
 10. Migrations tenant (filiais), se necessário — Central já via `phrx-migrate`
-11. Publicar Flutter Web → `/var/www/phrx`
-12. `healthcheck.sh` / `check-stack.sh --full`
+11. Publicar Flutter Web → `/var/www/phrx` (`./infra/scripts/deploy-web.sh`)
+12. `./infra/scripts/test-web.sh` + `healthcheck.sh` / `check-stack.sh --full`
 13. Agendar `BACKUP_DIR=/opt/skalway/backups/mysql backup-mysql.sh`
 14. Monitorização
 
@@ -76,7 +120,11 @@ docker compose -f docker-compose.prod.yml --env-file .env config
 | Script | Uso |
 |--------|-----|
 | `vps-preflight.sh` | Verificar VPS **antes** do deploy (report-only) |
-| `deploy.sh` | Dry-run por omissão; `--apply` só com confirmação |
+| `build-web.sh` | Flutter Web release (local) |
+| `deploy-web.sh` | rsync build/web → `/var/www/phrx` |
+| `test-web.sh` | HTTPS frontend + API health |
+| `deploy-web-production.sh` | Orquestra build → (commit?) → deploy → testes |
+| `deploy.sh` | Compose prod backend (dry-run por omissão) |
 | `healthcheck.sh` | Após containers up |
 | `backup-mysql.sh` | Backups Central + `phrx_tenant_*` |
 
