@@ -4,7 +4,8 @@ Documento canónico curto: [infra/cloudflare/README.md](../../infra/cloudflare/R
 
 ## Resumo
 
-- DNS A `phrx` e `api.phrx` → IP da VPS, **Proxied**
+- DNS A `phrx` e `api-phrx` → IP da VPS, **Proxied**
+- Hostname API: `api-phrx.skalway.com` (não criar `api.phrx.skalway.com`)
 - SSL/TLS: **Full (Strict)**
 - Origin CA no Nginx do host
 - API: bypass cache; frontend: cache de assets OK

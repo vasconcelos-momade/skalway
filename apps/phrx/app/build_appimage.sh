@@ -4,7 +4,7 @@ set -e
 
 APP_NAME="SkalwayPhRx"
 VERSION="1.0.0"
-API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
+API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
 DISPLAY_NAME="Skalway PhRx"
 APPDIR="${APP_NAME}.AppDir"
 APPIMAGETOOL="appimagetool-x86_64.AppImage"

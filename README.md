@@ -38,7 +38,7 @@ docker compose -f docker-compose.dev.yml up --build
 | Host | Destino |
 |------|---------|
 | `phrx.skalway.com` | Flutter Web → `/var/www/phrx` |
-| `api.phrx.skalway.com` | Nginx → `127.0.0.1:4001` → container |
+| `api-phrx.skalway.com` | Nginx → `127.0.0.1:4001` → container |
 
 Produção está **preparada** no repo (compose prod, nginx ref, scripts dry-run) — **não** aplicar na VPS automaticamente. Ver [docs/deployment/production.md](./docs/deployment/production.md).
 

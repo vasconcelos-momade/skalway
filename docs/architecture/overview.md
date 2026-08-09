@@ -30,7 +30,7 @@ services/            → identity, billing, …
 | Função | Hostname |
 |--------|----------|
 | Frontend | `https://phrx.skalway.com` |
-| API | `https://api.phrx.skalway.com` |
+| API | `https://api-phrx.skalway.com` |
 
 Nomes antigos (`pharm.skalway.com`, `api.skalway.com`) são legado — não usar em docs novas.
 

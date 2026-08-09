@@ -45677,8 +45677,8 @@ break
 case 6:return A.h(null,r)
 case 1:return A.f(p.at(-1),r)}})
 return A.i($async$ae9,r)},
-rl(){return"https://api.phrx.skalway.com"},
-rk(){return"https://api.phrx.skalway.com"},
+rl(){return"https://api-phrx.skalway.com"},
+rk(){return"https://api-phrx.skalway.com"},
 c05(){var s=A.rl()
 A.rk()
 return"Web: API em "+s+". Ajuste com --dart-define=API_BASE_URL=... se necess\xe1rio."},

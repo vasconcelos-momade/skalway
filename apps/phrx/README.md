@@ -65,8 +65,8 @@ Build web (futuro prod):
 
 ```bash
 flutter build web --release \
-  --dart-define=API_BASE_URL=https://api.phrx.skalway.com \
-  --dart-define=API_CLOUD_URL=https://api.phrx.skalway.com
+  --dart-define=API_BASE_URL=https://api-phrx.skalway.com \
+  --dart-define=API_CLOUD_URL=https://api-phrx.skalway.com
 ```
 
 ## Banco / Redis
@@ -77,7 +77,7 @@ flutter build web --release \
 
 ## Futura produção
 
-Domínios: `phrx.skalway.com` + `api.phrx.skalway.com`.
+Domínios: `phrx.skalway.com` + `api-phrx.skalway.com`.
 Compose: `infra/docker/phrx/docker-compose.prod.yml`.
 **Não fazer deploy agora** — ver [docs/deployment/production.md](../../docs/deployment/production.md).
 

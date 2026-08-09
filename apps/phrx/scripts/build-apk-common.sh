@@ -4,8 +4,8 @@
 
 set -e
 
-API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
-API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
+API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
+API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
 DISPLAY_NAME="${DISPLAY_NAME:-Skalway PhRx}"
 VERSION="${VERSION:-1.0.0}"
 

@@ -3,7 +3,7 @@
 ## Artefactos
 
 1. Imagem `skalway-phrx-backend:prod` (`./infra/scripts/build.sh --backend-only`)
-2. Flutter Web (`./infra/scripts/build.sh --web-only` com `API_BASE_URL=https://api.phrx.skalway.com`)
+2. Flutter Web (`./infra/scripts/build.sh --web-only` com `API_BASE_URL=https://api-phrx.skalway.com`)
 3. Notas de migrations Central + Tenant
 
 ## Sequência sugerida

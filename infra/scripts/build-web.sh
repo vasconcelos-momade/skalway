@@ -18,8 +18,8 @@ ROOT="$(repo_root)"
 APP_DIR="${ROOT}/apps/phrx/app"
 WEB_OUT="${APP_DIR}/build/web"
 ENVIRONMENT="${ENVIRONMENT:-prod}"
-API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
-API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
+API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
+API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
 DO_CLEAN=0
 
 for arg in "$@"; do

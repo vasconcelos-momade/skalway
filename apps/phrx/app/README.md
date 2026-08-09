@@ -33,8 +33,14 @@ bash scripts/analyze.sh
 ## Instaladores (padrão Scalway Gastro)
 
 ```bash
-# APK Release (split por ABI)
-./build_apk.sh
+# APK Release (split por ABI) — em apps/phrx/app
+./build-apk.sh
+# produção:
+ENVIRONMENT=prod ./build-apk.sh
+
+# Ou a partir de apps/phrx (clean + split + validação):
+./build-prod-apk.sh
+./build-dev-apk.sh
 
 # Pacote Debian (.deb)
 ./build_deb.sh

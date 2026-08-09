@@ -21,7 +21,7 @@ apps/phrx/app/build/web/   (commit + push)
 https://phrx.skalway.com
 ```
 
-API: `https://api.phrx.skalway.com` → `127.0.0.1:4001` (Docker; fluxo separado).
+API: `https://api-phrx.skalway.com` → `127.0.0.1:4001` (Docker; fluxo separado).
 
 ### Comandos (local)
 
@@ -48,7 +48,7 @@ git pull origin main
 ./infra/scripts/test-web.sh
 ```
 
-`dart-define` de produção: `ENVIRONMENT=prod`, `API_BASE_URL` / `API_CLOUD_URL` = `https://api.phrx.skalway.com`.
+`dart-define` de produção: `ENVIRONMENT=prod`, `API_BASE_URL` / `API_CLOUD_URL` = `https://api-phrx.skalway.com`.
 
 O deploy Web **não** executa `docker compose`, Prisma, npm, Flutter nem rsync remoto na publicação.
 
@@ -66,7 +66,7 @@ O deploy Web **não** executa `docker compose`, Prisma, npm, Flutter nem rsync r
 
 ```bash
 ./infra/scripts/build.sh --backend-only
-API_BASE_URL=https://api.phrx.skalway.com ./infra/scripts/build.sh --web-only
+API_BASE_URL=https://api-phrx.skalway.com ./infra/scripts/build.sh --web-only
 ```
 
 ## Layout na VPS (multi-app)
@@ -96,7 +96,7 @@ Não copiar o compose para `/opt/skalway/`. Cada app tem o seu compose sob `infr
 3. Clone em `/opt/skalway-repo` + dirs runtime ([vps-preparation.md](./vps-preparation.md))
 4. `.env` em `infra/docker/phrx/` (`chmod 600`) + Origin CA
 5. Configurar Nginx (ficheiros) — **sem** tráfego real ainda se DNS não estiver pronto
-6. DNS Cloudflare `phrx` + `api.phrx` Proxied + SSL Full Strict (manual)
+6. DNS Cloudflare `phrx` + `api-phrx` Proxied + SSL Full Strict (manual)
 7. Correr **`./infra/scripts/vps-preflight.sh`** na VPS — zero `[FAIL]`
 
 ### B — Deploy (etapa seguinte — NÃO agora)
@@ -140,4 +140,4 @@ REPO_ROOT=/opt/skalway-repo SKALWAY_ROOT=/opt/skalway ./infra/scripts/vps-prefli
 ## Domínios
 
 - Frontend: `https://phrx.skalway.com` → `/var/www/phrx`
-- API: `https://api.phrx.skalway.com` → `127.0.0.1:4001`
+- API: `https://api-phrx.skalway.com` → `127.0.0.1:4001`

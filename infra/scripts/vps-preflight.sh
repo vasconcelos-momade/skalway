@@ -32,7 +32,7 @@ NGINX_ENABLED="${NGINX_ENABLED:-/etc/nginx/sites-enabled/skalway.conf}"
 SSL_CERT="${SSL_CERT:-/etc/ssl/cloudflare/origin.crt}"
 SSL_KEY="${SSL_KEY:-/etc/ssl/cloudflare/origin.key}"
 DOMAIN_WEB="${DOMAIN_WEB:-phrx.skalway.com}"
-DOMAIN_API="${DOMAIN_API:-api.phrx.skalway.com}"
+DOMAIN_API="${DOMAIN_API:-api-phrx.skalway.com}"
 
 # Variáveis obrigatórias no .env de produção
 REQUIRED_ENV_VARS=(

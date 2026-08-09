@@ -91,7 +91,7 @@ report "/var/www/phrx" bash -c 'test -d /var/www/phrx && ls /var/www/phrx | head
 
 if [[ "$FULL" -eq 1 ]]; then
   section "DNS (read-only)"
-  for host in phrx.skalway.com api.phrx.skalway.com; do
+  for host in phrx.skalway.com api-phrx.skalway.com; do
     report "$host" bash -c "getent hosts $host || dig +short $host A || true"
   done
 fi

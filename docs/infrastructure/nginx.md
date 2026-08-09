@@ -13,7 +13,7 @@
 | `server_name` | Destino |
 |---------------|---------|
 | `phrx.skalway.com` | `root /var/www/phrx` (Flutter Web SPA) |
-| `api.phrx.skalway.com` | `proxy_pass` → `127.0.0.1:4001` |
+| `api-phrx.skalway.com` | `proxy_pass` → `127.0.0.1:4001` |
 
 TLS (Cloudflare Origin CA):
 

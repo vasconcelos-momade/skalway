@@ -7,7 +7,7 @@
 #   ./build.sh
 #   ./build.sh --backend-only
 #   ./build.sh --web-only
-#   API_BASE_URL=https://api.phrx.skalway.com ./build.sh --web-only
+#   API_BASE_URL=https://api-phrx.skalway.com ./build.sh --web-only
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=_lib.sh
@@ -16,7 +16,7 @@ source "${SCRIPT_DIR}/_lib.sh"
 ROOT="$(repo_root)"
 DO_BACKEND=1
 DO_WEB=1
-API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
+API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
 API_CLOUD_URL="${API_CLOUD_URL:-$API_BASE_URL}"
 
 for arg in "$@"; do

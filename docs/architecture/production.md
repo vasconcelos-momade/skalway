@@ -19,7 +19,7 @@
              └──────┬──────┘
           ┌─────────┴─────────┐
           ▼                   ▼
-   phrx.skalway.com    api.phrx.skalway.com
+   phrx.skalway.com    api-phrx.skalway.com
           │                   │
           ▼                   ▼
    /var/www/phrx         127.0.0.1:4001

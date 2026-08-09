@@ -7,9 +7,9 @@
 # Uso (na VPS):
 #   cd /opt/skalway-repo
 #   git pull origin main
-#   ./infra/scripts/deploy-web.sh
-#   ./infra/scripts/deploy-web.sh --dry-run
-#   WEB_ROOT=/var/www/phrx ./infra/scripts/deploy-web.sh
+#   sudo ./infra/scripts/deploy-web.sh
+#   sudo ./infra/scripts/deploy-web.sh --dry-run
+#   WEB_ROOT=/var/www/phrx sudo ./infra/scripts/deploy-web.sh
 #
 # Fluxo: validar build/web → staging → swap atómico → /var/www/phrx → nginx -t/reload
 set -Eeuo pipefail
@@ -41,9 +41,29 @@ if [[ ! -f "${WEB_SRC}/main.dart.js" && ! -f "${WEB_SRC}/flutter.js" ]]; then
   die "Artefactos Flutter em falta em $WEB_SRC (main.dart.js / flutter.js)"
 fi
 
+# Staging junto ao destino (mesmo FS) — evita /tmp e permite sudo em /var/www
+WEB_PARENT="$(dirname "$WEB_ROOT")"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 NEXT="${WEB_ROOT}.next-${STAMP}"
 PREV="${WEB_ROOT}.prev"
+NGINX_LOG="$(mktemp "${TMPDIR:-/tmp}/phrx-nginx-t.XXXXXX" 2>/dev/null \
+  || mktemp "${WEB_PARENT}/.phrx-nginx-t.XXXXXX" 2>/dev/null \
+  || echo "${WEB_PARENT}/.phrx-nginx-t.${STAMP}")"
+
+cleanup_staging_on_fail() {
+  local ec=$?
+  if [[ "$ec" -ne 0 && -d "$NEXT" && ! -e "$WEB_ROOT" ]]; then
+    # Se o swap falhou a meio e WEB_ROOT sumiu, tentar restaurar PREV
+    if [[ -d "$PREV" ]]; then
+      mv "$PREV" "$WEB_ROOT" 2>/dev/null || true
+    fi
+  fi
+  if [[ "$ec" -ne 0 && -d "$NEXT" ]]; then
+    rm -rf "$NEXT" 2>/dev/null || true
+  fi
+  rm -f "$NGINX_LOG" 2>/dev/null || true
+}
+trap cleanup_staging_on_fail EXIT
 
 log "Origem:  $WEB_SRC"
 log "Destino: $WEB_ROOT"
@@ -59,12 +79,11 @@ fi
 
 # Nunca apagar WEB_ROOT antes de ter staging válido
 rm -rf "$NEXT"
-mkdir -p "$NEXT"
+mkdir -p "$NEXT" || die "Sem permissão para criar staging $NEXT (use sudo)"
 
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete "${WEB_SRC}/" "${NEXT}/"
 else
-  # Fallback local (mesma máquina): cp -a
   (
     cd "$WEB_SRC"
     tar cf - .
@@ -76,7 +95,7 @@ fi
 
 [[ -f "${NEXT}/index.html" ]] || die "Staging inválido (sem index.html) — $WEB_ROOT intacto"
 
-mkdir -p "$(dirname "$WEB_ROOT")"
+mkdir -p "$WEB_PARENT"
 if [[ -d "$WEB_ROOT" ]]; then
   rm -rf "$PREV"
   mv "$WEB_ROOT" "$PREV"
@@ -85,9 +104,9 @@ mv "$NEXT" "$WEB_ROOT"
 
 # Permissões para Nginx (best-effort)
 chmod -R a+rX "$WEB_ROOT" 2>/dev/null || true
-if command -v sudo >/dev/null 2>&1; then
-  sudo chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null \
-    || sudo chown -R nginx:nginx "$WEB_ROOT" 2>/dev/null \
+if command -v chown >/dev/null 2>&1; then
+  chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null \
+    || chown -R nginx:nginx "$WEB_ROOT" 2>/dev/null \
     || true
 fi
 
@@ -96,18 +115,23 @@ fi
 log "Publicado: ${WEB_ROOT}/index.html"
 
 if [[ "$RELOAD_NGINX" -eq 1 ]]; then
-  if command -v nginx >/dev/null 2>&1 || command -v sudo >/dev/null 2>&1; then
-    if sudo nginx -t 2>/tmp/phrx-nginx-t.txt; then
+  if command -v nginx >/dev/null 2>&1; then
+    if nginx -t >"$NGINX_LOG" 2>&1; then
       log "nginx -t OK"
-      sudo systemctl reload nginx
-      log "nginx reloaded"
+      if command -v systemctl >/dev/null 2>&1; then
+        systemctl reload nginx
+        log "nginx reloaded"
+      else
+        nginx -s reload
+        log "nginx reloaded (-s reload)"
+      fi
     else
       warn "nginx -t falhou — site publicado mas reload não feito"
-      head -20 /tmp/phrx-nginx-t.txt 2>/dev/null || true
+      head -20 "$NGINX_LOG" 2>/dev/null || true
       exit 1
     fi
   else
-    warn "nginx/sudo indisponível — skip reload"
+    warn "nginx indisponível — skip reload (correu sem privilégios? use sudo)"
   fi
 fi
 

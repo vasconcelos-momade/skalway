@@ -13,7 +13,7 @@ Cloudflare (Full Strict, Proxied)
 Nginx (host Ubuntu :80 / :443)
   ↓
 phrx.skalway.com      → /var/www/phrx          (Flutter Web)
-api.phrx.skalway.com  → 127.0.0.1:4001         (API)
+api-phrx.skalway.com  → 127.0.0.1:4001         (API)
   ↓
 Docker network phrx_net
   ├── phrx_backend
@@ -178,7 +178,7 @@ docker compose -f docker-compose.prod.yml --env-file .env config
 Rotas:
 
 - `phrx.skalway.com` → `root /var/www/phrx` (SPA)
-- `api.phrx.skalway.com` → `proxy_pass http://127.0.0.1:4001`
+- `api-phrx.skalway.com` → `proxy_pass http://127.0.0.1:4001`
 - HTTP :80 → redirect HTTPS
 
 ## 7. Firewall (UFW)
@@ -238,7 +238,7 @@ Relacionado: `check-stack.sh` (estado do stack em execução) e `healthcheck.sh`
 5. [ ] Compose em `infra/docker/phrx/docker-compose.prod.yml` (não copiado para `/opt/skalway`)
 6. [ ] Nginx + Origin CA (ficheiros presentes)
 7. [ ] UFW 22/80/443
-8. [ ] DNS Cloudflare `phrx` + `api.phrx` (Proxied) — processo manual
+8. [ ] DNS Cloudflare `phrx` + `api-phrx` (Proxied) — processo manual
 9. [ ] `./vps-preflight.sh` sem `[FAIL]`
 10. [ ] Só então seguir [production.md](./production.md) para deploy
 
