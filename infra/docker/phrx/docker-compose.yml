@@ -1,4 +1,11 @@
-# Ops PhRx (produção / start)
+# LEGACY / DEPRECATED — não usar para DEV nem para produção.
+#
+# Compose oficiais:
+#   docker-compose.dev.yml   → desenvolvimento local
+#   docker-compose.prod.yml  → produção (preparada)
+#
+# Este ficheiro mantém-se só por compatibilidade com comandos antigos.
+# Prefira sempre .dev.yml ou .prod.yml.
 version: '3.8'
 
 services:

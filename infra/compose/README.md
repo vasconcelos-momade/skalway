@@ -4,10 +4,13 @@ Os ficheiros canónicos de Compose vivem em:
 
 ```
 infra/docker/phrx/
-├── docker-compose.dev.yml    # desenvolvimento local (fonte da verdade DEV)
-├── docker-compose.yml        # legado / start com bind-mount (evitar em prod real)
-└── docker-compose.prod.yml   # produção preparada (sem bind-mount, sem expor MySQL/Redis)
+├── docker-compose.dev.yml    # OFICIAL — desenvolvimento local
+├── docker-compose.prod.yml   # OFICIAL — produção preparada
+└── docker-compose.yml        # LEGACY / DEPRECATED — não usar
 ```
+
+**Compose oficiais:** apenas `.dev.yml` e `.prod.yml`.
+`docker-compose.yml` está marcado como LEGACY/DEPRECATED (compatibilidade apenas).
 
 Esta pasta (`infra/compose/`) existe para alinhar com a estrutura documental
 pedida (`compose/dev` + `compose/prod`) **sem duplicar** YAML.

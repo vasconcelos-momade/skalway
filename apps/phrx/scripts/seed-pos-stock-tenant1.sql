@@ -1,8 +1,8 @@
 -- Stock PDV: sincroniza projeções stock_balances + lote_stock_balances.
--- Uso: docker exec -i skalway_pharm_mysql mysql -uroot -proot_password tenant_farmacia_1783200600 < scripts/seed-pos-stock-tenant1.sql
--- Altere o nome da base no comando acima conforme o tenant.
+-- Uso: docker exec -i phrx_mysql mysql -uroot -proot_password phrx_tenant_1_branch_1 < scripts/seed-pos-stock-tenant1.sql
+-- Altere o nome da base no comando acima conforme a filial (padrão: phrx_tenant_{tenantId}_branch_{branchId}).
 
-USE tenant_farmacia_1783200600;
+USE phrx_tenant_1_branch_1;
 
 -- Sincronizar read model de disponibilidade para produtos activos (mínimo 50 un.)
 INSERT INTO stock_balances (

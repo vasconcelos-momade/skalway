@@ -9,7 +9,7 @@ import { PrismaClient } from "../src/infrastructure/prisma/tenant/generated/tena
 
 const TENANT_DB_URL =
   process.env.DATABASE_URL_TENANT ??
-  "mysql://root:root_password@phrx-db:3306/tenant_farmacia_1780931448";
+  "mysql://root:root_password@phrx-db:3306/phrx_tenant_1_branch_1";
 
 type Issue = { area: string; message: string };
 

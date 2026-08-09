@@ -36,14 +36,14 @@ case "$ENVIRONMENT" in
     # Teste local do .deb: backend no mesmo host (docker compose → :4001).
     # LAN / outro host: API_BASE_URL=http://<IP>:4001 ./build_deb.sh
     API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:4001}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api.skalway.com}"
+    API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
 
     ;;
 
   prod)
 
-    API_BASE_URL="${API_BASE_URL:-https://api.skalway.com}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api.skalway.com}"
+    API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
+    API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
 
     ;;
 

@@ -25,13 +25,13 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     # Emulador Android: 10.0.2.2 → localhost do host (docker → :4001).
     # Dispositivo físico: API_BASE_URL=http://<IP-da-máquina>:4001 ./build-apk.sh
     API_BASE_URL="${API_BASE_URL:-http://10.0.2.2:4001}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api.skalway.com}"
+    API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
 
 
 elif [ "$ENVIRONMENT" = "prod" ]; then
 
-    API_BASE_URL="${API_BASE_URL:-https://api.skalway.com}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api.skalway.com}"
+    API_BASE_URL="${API_BASE_URL:-https://api.phrx.skalway.com}"
+    API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
 
 
 else

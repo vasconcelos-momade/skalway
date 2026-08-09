@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Emulador Android: 10.0.2.2 → localhost do host.
 # Dispositivo físico: API_BASE_URL=http://<IP-da-máquina>:4001 ./build-dev-apk.sh
 export API_BASE_URL="${API_BASE_URL:-http://10.0.2.2:4001}"
-export API_CLOUD_URL="${API_CLOUD_URL:-https://api.skalway.com}"
+export API_CLOUD_URL="${API_CLOUD_URL:-https://api.phrx.skalway.com}"
 
 # shellcheck source=scripts/build-apk-common.sh
 source "${SCRIPT_DIR}/scripts/build-apk-common.sh"

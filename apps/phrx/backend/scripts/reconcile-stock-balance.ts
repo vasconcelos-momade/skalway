@@ -2,7 +2,7 @@
  * Reconcilia StockBalance (cache) com EstoqueMovimento (fonte de verdade).
  * Uso:
  *   bun scripts/reconcile-stock-balance.ts                    # todos os tenants (central)
- *   bun scripts/reconcile-stock-balance.ts tenant_farmacia_X  # um tenant
+ *   bun scripts/reconcile-stock-balance.ts phrx_tenant_1_branch_1  # um tenant
  */
 import { PrismaClient as PrismaCentralClient } from "../src/infrastructure/prisma/central/generated/central";
 import { PrismaClient as PrismaTenantClient } from "../src/infrastructure/prisma/tenant/generated/tenant";

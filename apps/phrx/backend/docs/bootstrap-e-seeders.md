@@ -94,10 +94,10 @@ Exemplos:
 
 ```bash
 # Só estrutural (já feito pelo CreateTenantUseCase)
-docker exec phrx_backend bun run seed:tenant tenant_farmacia_xxx
+docker exec phrx_backend bun run seed:tenant phrx_tenant_1_branch_1
 
 # Demo (pode demorar 20–30 min)
-docker exec phrx_backend bun run seed:demo tenant_farmacia_xxx
+docker exec phrx_backend bun run seed:demo phrx_tenant_1_branch_1
 ```
 
 ## Scripts de desenvolvimento

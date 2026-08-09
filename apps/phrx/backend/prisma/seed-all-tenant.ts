@@ -33,7 +33,7 @@ async function main() {
   if (!dbName) {
     console.error("❌ Por favor, forneça o nome do banco de dados do tenant.");
     console.error("Uso: bun prisma/seed-all-tenant.ts <nome-do-banco>");
-    console.error("Exemplo: bun prisma/seed-all-tenant.ts tenant_farmacia_1779294744");
+    console.error("Exemplo: bun prisma/seed-all-tenant.ts phrx_tenant_1_branch_1");
     process.exit(1);
   }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sincroniza schema tenant e recria vínculos users (centralUserId) a partir da central.
-# Uso: bash scripts/repair-tenant-database.sh tenant_farmacia_1779410837
+# Uso: bash scripts/repair-tenant-database.sh phrx_tenant_1_branch_1
 
 set -euo pipefail
 
@@ -17,7 +17,7 @@ cd "$ROOT"
 DB_NAME="${1:-}"
 if [[ -z "$DB_NAME" ]]; then
   echo "Uso: bash scripts/repair-tenant-database.sh <tenant_db_name>"
-  echo "Exemplo: bash scripts/repair-tenant-database.sh tenant_farmacia_1779410837"
+  echo "Exemplo: bash scripts/repair-tenant-database.sh phrx_tenant_1_branch_1"
   exit 1
 fi
 

@@ -11,7 +11,7 @@ source "${SCRIPT_DIR}/lib/docker.sh"
 BASE_URL="${BASE_URL:-http://localhost:4001/api/v1}"
 LOGIN_EMAIL="${LOGIN_EMAIL:-dono.1784935275@demo.com}"
 LOGIN_PASSWORD="${LOGIN_PASSWORD:-123456}"
-DB_NAME="${TENANT_DB:-tenant_farmacia_1784935275}"
+DB_NAME="${TENANT_DB:-phrx_tenant_1_branch_1}"
 
 echo "==> Login central"
 LOGIN=$(curl -s -X POST "${BASE_URL}/central/auth/login" \
@@ -58,7 +58,7 @@ assert_status "GET POS faturas" 200 GET "/tenant/pos/faturas"
 echo "==> CAIXA (matriz role_permissions): permitido vs negado"
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-phrx_mysql}"
 MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root_password}"
-DB_NAME="${TENANT_DB:-tenant_farmacia_1784935275}"
+DB_NAME="${TENANT_DB:-phrx_tenant_1_branch_1}"
 
 docker exec "$MYSQL_CONTAINER" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e \
   "UPDATE \`${DB_NAME}\`.users SET role='CAIXA' WHERE centralUserId=2;" >/dev/null

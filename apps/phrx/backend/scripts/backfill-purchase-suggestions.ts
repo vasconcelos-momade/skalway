@@ -7,7 +7,7 @@ import { syncStockBalanceCache } from "../src/modules/tenant/stock/domain/produt
 
 const dbUrl =
   process.env.DATABASE_URL_TENANT ??
-  "mysql://root:root_password@phrx-db:3306/tenant_farmacia_1783798850";
+  "mysql://root:root_password@phrx-db:3306/phrx_tenant_1_branch_1";
 
 const prisma = new PrismaClient({
   datasources: { db: { url: dbUrl } },

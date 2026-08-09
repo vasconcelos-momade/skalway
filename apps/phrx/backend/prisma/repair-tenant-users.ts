@@ -9,7 +9,7 @@ const dbPort = process.env.TENANT_DB_PORT ?? process.env.MYSQL_PORT ?? "3306";
 
 if (!dbName) {
   console.error("Uso: bun prisma/repair-tenant-users.ts <tenant_db_name>");
-  console.error("Exemplo: bun prisma/repair-tenant-users.ts tenant_farmacia_1779410837");
+  console.error("Exemplo: bun prisma/repair-tenant-users.ts phrx_tenant_1_branch_1");
   process.exit(1);
 }
 

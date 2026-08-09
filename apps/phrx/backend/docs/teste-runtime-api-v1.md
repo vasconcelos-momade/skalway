@@ -20,7 +20,7 @@ Conta criada via registo de tenant (`POST /api/v1/central/tenants`). Usar para t
 | Role | `admin` |
 | `tenantId` | `1` |
 | Empresa | Farmacia Teste 1779294744 |
-| `nomeTenant` / base MySQL | `farmacia_1779294744` → `tenant_farmacia_1779294744` |
+| `nomeTenant` / base MySQL | padrão oficial `phrx_tenant_{tenantId}_branch_{branchId}` (ex.: `phrx_tenant_1_branch_1`) |
 | `branchId` | `1` |
 | Branch | `HQ` — Farmacia Teste 1779294744 - Matriz |
 

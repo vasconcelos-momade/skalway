@@ -3,8 +3,8 @@
 # Usa `prisma migrate deploy` (SQL incremental). Não usa `db push --accept-data-loss`.
 #
 # Uso:
-#   bash scripts/migrate-tenant-deploy.sh tenant_farmacia_123
-#   bash scripts/migrate-tenant-deploy.sh tenant_farmacia_123 --baseline-all
+#   bash scripts/migrate-tenant-deploy.sh phrx_tenant_1_branch_1
+#   bash scripts/migrate-tenant-deploy.sh phrx_tenant_1_branch_1 --baseline-all
 #
 # --baseline-all  Marca todas as migrations existentes como aplicadas (só para bases
 #                 que já tinham o schema sincronizado via db push e ainda não têm
@@ -17,7 +17,7 @@ BASELINE_ALL="${2:-}"
 
 if [[ -z "$DB_NAME" ]]; then
   echo "Uso: bash scripts/migrate-tenant-deploy.sh <tenant_db_name> [--baseline-all]"
-  echo "Exemplo: bash scripts/migrate-tenant-deploy.sh tenant_farmacia_1780931448"
+  echo "Exemplo: bash scripts/migrate-tenant-deploy.sh phrx_tenant_1_branch_1"
   exit 1
 fi
 

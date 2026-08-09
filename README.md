@@ -7,45 +7,40 @@ skalway/
 ├── apps/                     # produtos (código de negócio)
 │   ├── website/              # landing / marketing
 │   ├── phrx/
-│   │   ├── backend/          # servidor do produto
-│   │   └── app/              # cliente (UI)
+│   │   ├── backend/          # Bun + Prisma
+│   │   └── app/              # Flutter
 │   ├── gastro/
-│   │   ├── backend/
-│   │   └── app/
 │   └── retail/
-│       ├── backend/
-│       └── app/
-├── services/                 # capacidades partilhadas
-│   ├── identity/
-│   ├── billing/
-│   ├── notifications/
-│   └── audit/
-└── infra/                    # operação, deploy, produção (sem negócio)
-    ├── docker/               # compose e artefactos por produto
-    ├── nginx/                # rotas por domínio
-    └── monitoring/
+├── services/                 # identity, billing, …
+├── infra/                    # Docker, nginx, scripts, Cloudflare (planeamento)
+└── docs/                     # arquitectura, deploy, ops (produção futura)
 ```
 
-Princípio: pastas nomeiam **função** (`backend`, `app`, `identity`), não tecnologia (`api`, `flutter`, `bun`).
+Princípio: pastas nomeiam **função** (`backend`, `app`, `identity`), não tecnologia.
 
-## PhRx
+## PhRx (desenvolvimento)
 
 ```bash
 cd infra/docker/phrx
+cp -n .env.example .env
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-- Backend: `http://localhost:4001`
-- App: `cd apps/phrx/app && flutter run`
+| | |
+|--|--|
+| API | http://localhost:4001 (`/api/v1/health`) |
+| App | `cd apps/phrx/app && flutter run` |
+| Docs produto | [apps/phrx/README.md](./apps/phrx/README.md) |
+| Docs ops | [docs/README.md](./docs/README.md) · [infra/README.md](./infra/README.md) |
 
-## Domínios alvo
+## Domínios alvo (PhRx)
 
 | Host | Destino |
 |------|---------|
-| skalway.com | website |
-| phrx.skalway.com | PhRx app |
-| api.phrx.skalway.com | PhRx backend |
-| api.gastro.skalway.com | Gastro backend |
+| `phrx.skalway.com` | Flutter Web → `/var/www/phrx` |
+| `api.phrx.skalway.com` | Nginx → `127.0.0.1:4001` → container |
+
+Produção está **preparada** no repo (compose prod, nginx ref, scripts dry-run) — **não** aplicar na VPS automaticamente. Ver [docs/deployment/production.md](./docs/deployment/production.md).
 
 ## Extração de serviços
 

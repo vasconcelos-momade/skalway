@@ -49,7 +49,7 @@ export function buildV1Router(): Router {
   router.get(`${API_V1_PREFIX}/health`, async () => ({
     status: "ok",
     version: "v1",
-    service: "pharma-erp-backend",
+    service: "skalway-phrx-backend",
   }));
 
   return router;

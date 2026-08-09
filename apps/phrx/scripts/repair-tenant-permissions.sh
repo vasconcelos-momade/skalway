@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Restaura a matriz padrão de role_permissions num tenant (útil após edição acidental na UI).
-# Uso: bash scripts/repair-tenant-permissions.sh tenant_farmacia_1782573570
+# Uso: bash scripts/repair-tenant-permissions.sh phrx_tenant_1_branch_1
 
 set -euo pipefail
 
 TENANT_DB="${1:-}"
 if [[ -z "$TENANT_DB" ]]; then
   echo "Uso: bash scripts/repair-tenant-permissions.sh <tenant_db>"
-  echo "Exemplo: bash scripts/repair-tenant-permissions.sh tenant_farmacia_1782573570"
+  echo "Exemplo: bash scripts/repair-tenant-permissions.sh phrx_tenant_1_branch_1"
   exit 1
 fi
 
