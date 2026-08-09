@@ -33,7 +33,10 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+# Ignore Flutter build outputs except production web (versioned for VPS git deploy)
+/build/*
+!/build/web/
+!/build/web/**
 /coverage/
 
 # Symbolication related

@@ -1,6 +1,11 @@
 node_modules/
 dist/
 build/
+# Flutter Web de produção (fonte de verdade para deploy VPS)
+!app/build/
+app/build/*
+!app/build/web/
+!app/build/web/**
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

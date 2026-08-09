@@ -32,9 +32,9 @@ Serviços partilhados: `services/{identity,billing,...}`
 | `scripts/bootstrap.sh` | pastas + `.env` local |
 | `scripts/build.sh` | imagem backend (+ web via build-web.sh) |
 | `scripts/build-web.sh` | Flutter Web release (local, prod URLs) |
-| `scripts/deploy-web.sh` | rsync → `/var/www/phrx` (VPS_HOST/VPS_USER) |
+| `scripts/deploy-web.sh` | **VPS:** publicar `build/web` → `/var/www/phrx` (após git pull) |
 | `scripts/test-web.sh` | testes HTTPS phrx + API |
-| `scripts/deploy-web-production.sh` | orquestra build/deploy/testes (+ `--commit`) |
+| `scripts/deploy-web-production.sh` | local: build + opcional `--commit` (sem rsync) |
 | `scripts/deploy.sh` | compose prod (dry-run por omissão) |
 | `scripts/vps-preflight.sh` | Pre-flight VPS (só verificação; próxima etapa) |
 | `scripts/healthcheck.sh` | containers + API |

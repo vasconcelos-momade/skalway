@@ -2,6 +2,11 @@ node_modules/
 .next/
 dist/
 build/
+# Flutter Web de produção: versionado no Git (fonte de verdade para /var/www/phrx)
+!apps/phrx/app/build/
+apps/phrx/app/build/*
+!apps/phrx/app/build/web/
+!apps/phrx/app/build/web/**
 .dart_tool/
 .flutter-plugins-dependencies
 *.iml
