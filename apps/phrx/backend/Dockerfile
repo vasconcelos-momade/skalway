@@ -2,7 +2,7 @@
 # Build context: skalway/ (monorepo root)
 #   docker build -f apps/phrx/backend/Dockerfile -t skalway-phrx-backend:prod .
 #
-# Usada por: phrx-backend, phrx-backend-worker, phrx-backend-print-worker
+# Usada por: phrx-backend, phrx-backend-worker, phrx-backend-print-worker, phrx-migrate
 # (sem bind-mount de código)
 
 FROM oven/bun:1.3
@@ -51,9 +51,13 @@ RUN bun install --frozen-lockfile || bun install
 
 COPY apps/phrx/backend/ .
 
-# Clients Prisma não vão no Git (tenant/generated); gerar na imagem
+# Clients Prisma + CLI (devDependency) — bun install corre ANTES de NODE_ENV=production
+# Necessário para phrx-migrate: bunx prisma migrate deploy
 ENV PRISMA_CLIENT_ENGINE_TYPE=binary
-RUN bun run prisma:generate
+RUN bun run prisma:generate \
+  && test -f src/infrastructure/prisma/central/schema.prisma \
+  && test -d src/infrastructure/prisma/central/migrations \
+  && bunx prisma --version
 
 # Chromium para PDF / print-worker (além das libs já instaladas)
 RUN apt-get update && apt-get install -y --no-install-recommends chromium \

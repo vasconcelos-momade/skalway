@@ -3,16 +3,49 @@
 # Uso futuro (na VPS, após preparação manual):
 #   cd /opt/skalway-repo/infra/docker/phrx
 #   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-# Runtime (backups/logs): /opt/skalway/  — não copiar este compose para lá.#
+# Runtime (backups/logs): /opt/skalway/  — não copiar este compose para lá.
+#
 # Diferenças vs DEV:
 # - imagem apps/phrx/backend/Dockerfile (sem bind-mount de código)
 # - MySQL/Redis NÃO publicados na Internet
 # - API só em 127.0.0.1:4001 (Nginx do host faz TLS)
+# - phrx-migrate aplica Prisma migrate deploy (Central) antes do backend
 # - sem Adminer/phpMyAdmin
 # - Redis com volume persistente
 # - NODE_ENV=production
 
 services:
+  # One-shot: migrations Central (idempotente). Não reinicia após sucesso.
+  phrx-migrate:
+    image: skalway-phrx-backend:prod
+    container_name: phrx_migrate
+    restart: "no"
+    env_file:
+      - ./.env
+    environment:
+      TZ: Africa/Maputo
+      NODE_ENV: production
+      PRISMA_CLIENT_ENGINE_TYPE: binary
+      DATABASE_URL: ${DATABASE_URL}
+    command:
+      [
+        "bunx",
+        "prisma",
+        "migrate",
+        "deploy",
+        "--schema=src/infrastructure/prisma/central/schema.prisma",
+      ]
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+    networks:
+      - phrx_net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   phrx-backend:
     build:
       context: ../../..
@@ -44,6 +77,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      phrx-migrate:
+        condition: service_completed_successfully
     networks:
       - phrx_net
     healthcheck:
@@ -82,8 +117,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      phrx-migrate:
+        condition: service_completed_successfully
       phrx-backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - phrx_net
     logging:
@@ -110,8 +147,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      phrx-migrate:
+        condition: service_completed_successfully
       phrx-backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - phrx_net
     logging:

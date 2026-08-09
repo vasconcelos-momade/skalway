@@ -55,8 +55,9 @@ Não copiar o compose para `/opt/skalway/`. Cada app tem o seu compose sob `infr
 ### B — Deploy (etapa seguinte — NÃO agora)
 
 8. Carregar imagem `skalway-phrx-backend:prod`
-9. `cd /opt/skalway-repo/infra/docker/phrx && docker compose -f docker-compose.prod.yml --env-file .env up -d`
-10. Migrations Central + tenants
+9. `cd /opt/skalway-repo/infra/docker/phrx && docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
+   (`phrx-migrate` aplica `prisma migrate deploy` no Central antes do backend)
+10. Migrations tenant (filiais), se necessário — Central já via `phrx-migrate`
 11. Publicar Flutter Web → `/var/www/phrx`
 12. `healthcheck.sh` / `check-stack.sh --full`
 13. Agendar `BACKUP_DIR=/opt/skalway/backups/mysql backup-mysql.sh`
