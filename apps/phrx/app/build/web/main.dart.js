@@ -45639,14 +45639,14 @@ if(a.charCodeAt(s)!==47)return q
 return b+3},
 a3o(a){var s=0,r=A.j(t.H),q
 var $async$a3o=A.k(function(b,c){if(b===1)return A.f(c,r)
-for(;;)switch(s){case 0:if($.ak==null)A.afD()
-$.ak.toString
-q=v.G.document.baseURI
+for(;;)switch(s){case 0:q=v.G.document.baseURI
 if(q==null)A.ah(A.eW("Please add a <base> element to your index.html"))
 if(!B.b.iE(q,"/"))A.ah(A.eW('The base href has to end with a "/" to work correctly'))
 q=A.cj0(A.bKo(A.hA(q,0,null).gdq()))
 $.atL=!0
 $.atm=new A.aOp(q,B.us)
+if($.ak==null)A.afD()
+$.ak.toString
 s=2
 return A.d(A.bK9(),$async$a3o)
 case 2:s=3
