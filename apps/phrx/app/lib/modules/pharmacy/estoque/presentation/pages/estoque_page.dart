@@ -291,6 +291,9 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
                 totalCountLabel: state.totalCount != null
                     ? 'Total: ${state.totalCount} lote(s)'
                     : null,
+                showItemDividers: false,
+                showEndOfListLabel: false,
+                totalCountTextAlign: TextAlign.start,
               ),
             ),
           ),

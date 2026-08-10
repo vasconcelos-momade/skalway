@@ -202,6 +202,7 @@ class EstoqueMobileToolbar extends StatelessWidget {
       onOpenFilters: onOpenFilters,
       onClearFilters: () async => controller.clearFilters(),
       onRefresh: controller.refreshCurrentPage,
+      showBottomBorder: false,
     );
   }
 }

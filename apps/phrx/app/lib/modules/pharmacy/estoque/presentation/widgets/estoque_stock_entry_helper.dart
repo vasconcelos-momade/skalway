@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/errors/api_failure.dart';
+import '../../../../../core/theme/component_theme.dart';
+import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
+import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/async_type_ahead_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
@@ -16,8 +19,6 @@ import '../../data/datasources/estoque_remote_datasource.dart';
 import '../../../../stock/data/datasources/fornecedor_remote_datasource.dart';
 import '../../../../stock/data/models/fornecedor_model.dart';
 import '../../../../stock/presentation/providers/movimentacao_provider.dart';
-
-import '../../../../../shared/navigation/adaptive_navigator.dart';
 
 abstract final class EstoqueStockEntryHelper {
   EstoqueStockEntryHelper._();
@@ -416,13 +417,16 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
   @override
   Widget build(BuildContext context) {
     final s = context.spacing;
-    
+    final t = context.pharmaTokens;
+    final scheme = Theme.of(context).colorScheme;
+    final outlinedStyle = PharmaComponentTheme.outlined(t, scheme);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.showHeader) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+            padding: EdgeInsets.fromLTRB(s.md, s.md, s.sm, s.sm),
             child: Row(
               children: [
                 Expanded(
@@ -443,7 +447,7 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
         ],
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(s.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -537,20 +541,38 @@ class _NovoLoteFormContentState extends ConsumerState<_NovoLoteFormContent> {
         ),
         if (widget.showHeader) const Divider(height: 1),
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: widget.onClose ?? () => AdaptiveNavigator.close(context),
+          padding: EdgeInsets.all(s.md),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final cancel = OutlinedButton(
+                style: outlinedStyle,
+                onPressed:
+                    widget.onClose ?? () => AdaptiveNavigator.close(context),
                 child: const Text('Cancelar'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
+              );
+              final confirm = FilledButton(
                 onPressed: _submit,
                 child: const Text('Confirmar'),
-              ),
-            ],
+              );
+              // Mobile: botões full-width na mesma linha quando há espaço.
+              if (constraints.maxWidth < Breakpoints.tablet) {
+                return Row(
+                  children: [
+                    Expanded(child: cancel),
+                    SizedBox(width: s.sm),
+                    Expanded(child: confirm),
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  cancel,
+                  SizedBox(width: s.sm),
+                  confirm,
+                ],
+              );
+            },
           ),
         ),
       ],

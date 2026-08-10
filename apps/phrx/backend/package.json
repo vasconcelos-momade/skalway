@@ -15,6 +15,7 @@
     "prisma:deploy:tenant": "bash scripts/ensure-tenant-database-url.sh && bunx prisma db push --schema=src/infrastructure/prisma/tenant/schema.prisma --accept-data-loss --skip-generate",
     "prisma:migrate:tenant": "bash scripts/ensure-tenant-database-url.sh && bunx prisma migrate deploy --schema=src/infrastructure/prisma/tenant/schema.prisma",
     "bootstrap:central": "bash scripts/bootstrap-central.sh",
+    "reset:superadmin-password": "bun scripts/reset-superadmin-password.ts",
     "seed:tenant": "bun prisma/seed-tenant.ts",
     "seed:demo": "bun prisma/seed-demo.ts",
     "billing:generate:monthly": "bun scripts/generate-monthly-billing.ts",

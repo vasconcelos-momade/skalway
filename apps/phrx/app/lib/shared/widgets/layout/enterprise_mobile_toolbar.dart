@@ -25,6 +25,7 @@ class EnterpriseMobileToolbar extends StatelessWidget {
     this.exportLabel = 'Exportar..',
     this.showFiltersButton = true,
     this.showRefreshButton = false,
+    this.showBottomBorder = true,
   });
 
   final TextEditingController searchController;
@@ -42,6 +43,7 @@ class EnterpriseMobileToolbar extends StatelessWidget {
   final String exportLabel;
   final bool showFiltersButton;
   final bool showRefreshButton;
+  final bool showBottomBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,9 @@ class EnterpriseMobileToolbar extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: s.sm),
         decoration: BoxDecoration(
           color: t.bgPrimary,
-          border: Border(bottom: BorderSide(color: t.border.withValues(alpha: 0.35))),
+          border: showBottomBorder
+              ? Border(bottom: BorderSide(color: t.border.withValues(alpha: 0.35)))
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/providers/auth_session_notifier.dart';
 import '../../../app/providers/nav_groups_expanded_provider.dart';
+import '../../../app/router/routes.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
@@ -168,7 +169,9 @@ class EnterpriseNavLogout extends ConsumerWidget {
     final t = context.pharmaTokens;
     final s = context.spacing;
     final theme = Theme.of(context);
-    final user = ref.watch(authSessionProvider.select((auth) => auth.session?.user));
+    final auth = ref.watch(authSessionProvider);
+    final user = auth.session?.user;
+    final inTenantBranch = auth.hasTenantContext;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -220,6 +223,23 @@ class EnterpriseNavLogout extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (inTenantBranch)
+                MenuItemButton(
+                  onPressed: () =>
+                      context.go(AppRoutePaths.authTenantSelection),
+                  leadingIcon: Icon(
+                    Icons.swap_horiz_rounded,
+                    color: t.textSecondary,
+                    size: DesignMetrics.iconSm,
+                  ),
+                  child: Text(
+                    'Trocar Branch/Filial',
+                    style: theme.textTheme.erpMenuItem.copyWith(
+                      color: t.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               const Divider(height: 1),
               MenuItemButton(
                 onPressed: onLogout,
@@ -289,14 +309,14 @@ class EnterpriseNavLogout extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.erpCaption.copyWith(
-                                color: t.textSecondary,
+                                color: t.textMuted,
                               ),
                             ),
                           ],
                         ),
                       ),
                       Icon(
-                        Icons.unfold_more_rounded,
+                        Icons.expand_more_rounded,
                         size: DesignMetrics.iconSm,
                         color: t.textMuted,
                       ),

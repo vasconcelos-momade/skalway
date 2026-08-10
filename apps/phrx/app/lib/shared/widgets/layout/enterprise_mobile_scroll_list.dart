@@ -25,6 +25,9 @@ class EnterpriseMobileScrollList extends StatefulWidget {
     this.totalCount,
     this.totalCountLabel,
     this.headerSlivers = const [],
+    this.showItemDividers = true,
+    this.showEndOfListLabel = true,
+    this.totalCountTextAlign = TextAlign.center,
   });
 
   final List<Widget>? kpis;
@@ -39,6 +42,9 @@ class EnterpriseMobileScrollList extends StatefulWidget {
   final int? totalCount;
   final String? totalCountLabel;
   final List<Widget> headerSlivers;
+  final bool showItemDividers;
+  final bool showEndOfListLabel;
+  final TextAlign totalCountTextAlign;
 
   @override
   State<EnterpriseMobileScrollList> createState() => _EnterpriseMobileScrollListState();
@@ -149,7 +155,7 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
                         ),
                       );
                     }
-                    if (!widget.hasMore) {
+                    if (!widget.hasMore && widget.showEndOfListLabel) {
                       return Padding(
                         padding: EdgeInsets.symmetric(vertical: s.lg),
                         child: Center(
@@ -166,7 +172,10 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (index > 0) const EnterpriseListDivider(),
+                      if (widget.showItemDividers && index > 0)
+                        const EnterpriseListDivider(),
+                      if (!widget.showItemDividers && index > 0)
+                        SizedBox(height: s.sm),
                       widget.itemBuilder(context, index),
                     ],
                   );
@@ -181,7 +190,7 @@ class _EnterpriseMobileScrollListState extends State<EnterpriseMobileScrollList>
               padding: EdgeInsets.only(bottom: s.md),
               child: Text(
                 widget.totalCountLabel ?? 'Total: ${widget.totalCount} registo(s)',
-                textAlign: TextAlign.center,
+                textAlign: widget.totalCountTextAlign,
                 style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
               ),
             ),

@@ -65,98 +65,115 @@ class EstoqueMobileCard extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: s.md, vertical: s.sm),
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.inventory_2_outlined, size: t.iconSm, color: t.textPrimary),
-                  SizedBox(width: s.xs),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.produtoDisplayLabel,
-                          style: theme.textTheme.erpCardTitle.copyWith(
-                            color: t.textPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.produtoDisplayLabel,
+                        style: theme.textTheme.erpCardTitle.copyWith(
+                          color: t.textPrimary,
+                          fontWeight: FontWeight.w700,
                         ),
-                        if ((item.produtoNomeGenerico ?? '').isNotEmpty) ...[
-                          SizedBox(height: s.xxs),
-                          Text(
-                            item.produtoNomeGenerico!,
-                            style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                        SizedBox(height: s.xxs),
-                        Text(
-                          'Lote ${item.numeroLote} • ${item.categoriaNome ?? '—'}',
-                          style: theme.textTheme.erpBodySecondary.copyWith(color: t.textSecondary),
-                        ),
-                      ],
-                    ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: s.xxs),
+                      Text(
+                        'Lote ${item.numeroLote}',
+                        style: theme.textTheme.erpBodySecondary.copyWith(color: t.textSecondary),
+                      ),
+                    ],
                   ),
-                  EstoqueActionsMenu(
-                    item: item,
-                    isBusy: isBusy,
-                    compact: true,
-                    fornecedores: fornecedores,
+                ),
+                EstoqueActionsMenu(
+                  item: item,
+                  isBusy: isBusy,
+                  compact: true,
+                  fornecedores: fornecedores,
+                ),
+              ],
+            ),
+            SizedBox(height: s.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Validade',
+                        style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                      ),
+                      SizedBox(height: s.xxs),
+                      Text(
+                        _formatDate(item.dataValidade),
+                        style: theme.textTheme.erpLabel.copyWith(color: t.textPrimary),
+                      ),
+                      SizedBox(height: s.xs),
+                      EstoqueBadges.validade(context, item),
+                    ],
                   ),
-                ],
-              ),
-              SizedBox(height: s.xs),
-              Wrap(
-                spacing: s.xs,
-                runSpacing: s.xxs,
-                children: [
-                  EstoqueBadges.validade(context, item),
-                  EstoqueBadges.stock(context, item),
-                ],
-              ),
-              SizedBox(height: s.xs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Validade: ${_formatDate(item.dataValidade)}',
-                    style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Stock',
+                        style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                      ),
+                      SizedBox(height: s.xxs),
+                      Text(
+                        LoteStockUtils.formatDisponivelFromNum(item.quantidadeDisponivel),
+                        style: theme.textTheme.erpLabel.copyWith(color: t.textPrimary),
+                      ),
+                      SizedBox(height: s.xs),
+                      EstoqueBadges.stock(context, item),
+                    ],
                   ),
-                  Text(
-                    'Stock: ${LoteStockUtils.formatDisponivelFromNum(item.quantidadeDisponivel)}',
-                    style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'P. venda',
+                        style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                      ),
+                      SizedBox(height: s.xxs),
+                      Text(
+                        item.precoVenda?.toStringAsFixed(2) ?? '—',
+                        style: theme.textTheme.erpLabel.copyWith(color: t.textPrimary),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              SizedBox(height: s.xxs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Quarentena: ${LoteStockUtils.formatDisponivelFromNum(item.quantidadeQuarentena)}',
-                    style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
-                  ),
-                  Text(
-                    'Incineração: ${LoteStockUtils.formatDisponivelFromNum(item.quantidadeIncinerada)}',
-                    style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
-                  ),
-                ],
-              ),
-              SizedBox(height: s.xxs),
-              Text(
-                '${item.fornecedorNome ?? '—'} • Compra ${item.precoCompra} • Venda ${item.precoVenda ?? '—'}',
-                style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            SizedBox(height: s.xs),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Quarentena: ${LoteStockUtils.formatDisponivelFromNum(item.quantidadeQuarentena)}',
+                  style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                ),
+                Text(
+                  'Incineração: ${LoteStockUtils.formatDisponivelFromNum(item.quantidadeIncinerada)}',
+                  style: theme.textTheme.erpCaption.copyWith(color: t.textMuted),
+                ),
+              ],
+            ),
+          ],
         ),
+      ),
     );
   }
 

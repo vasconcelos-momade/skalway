@@ -123,12 +123,12 @@ class _TenantSelectPageState extends ConsumerState<TenantSelectPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Seleccionar unidade',
+              'Seleccionar branch/filial',
               style: Theme.of(context).textTheme.erpSectionTitle,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Olá, ${session.user.name}. Escolha a farmácia e a unidade.',
+              'Olá, ${session.user.name}. Escolha a branch/filial para continuar.',
               style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -163,70 +163,9 @@ class _TenantSelectPageState extends ConsumerState<TenantSelectPage> {
               ],
             ),
             const SizedBox(height: AppSpacing.xxl),
-            Text(
-              'Organização',
-              style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textMuted),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final tenant in session.tenants)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Material(
-                  color: _tenantId == tenant.id
-                      ? t.brandGreen.withValues(alpha: 0.1)
-                      : t.card,
-                  borderRadius: BorderRadius.circular(t.radiusMd),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(t.radiusMd),
-                    onTap: () => setState(() {
-                      _tenantId = tenant.id;
-                      _branchId = tenant.branches.isNotEmpty
-                          ? tenant.branches.first.id
-                          : null;
-                    }),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg,
-                        vertical: AppSpacing.md,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(t.radiusMd),
-                        border: Border.all(color: t.border.withValues(alpha: 0.6)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _tenantId == tenant.id
-                                ? Icons.check_circle_rounded
-                                : Icons.circle_outlined,
-                            color: _tenantId == tenant.id ? t.brandGreen : t.textMuted,
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  tenant.tenantName,
-                                  style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textPrimary),
-                                ),
-                                Text(
-                                  tenant.tenantKey,
-                                  style: Theme.of(context).textTheme.erpCaption.copyWith(color: t.textMuted),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             if (_branches.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
               Text(
-                'Unidade',
+                'Branch/Filial',
                 style: Theme.of(context).textTheme.erpLabel.copyWith(color: t.textMuted),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -277,11 +216,14 @@ class _TenantSelectPageState extends ConsumerState<TenantSelectPage> {
               onPressed: _tenantId != null && _branchId != null ? _continue : null,
               child: const Text('Continuar'),
             ),
-            if (ref.watch(authSessionProvider).session?.isSuperAdmin ?? false)
+            if (ref.watch(authSessionProvider).session?.isSuperAdmin ?? false) ...[
+              const SizedBox(height: AppSpacing.md),
               TextButton(
                 onPressed: () => context.go(AppRoutePaths.platformDashboard),
                 child: const Text('Painel da plataforma SaaS'),
               ),
+            ],
+            const SizedBox(height: AppSpacing.lg),
             TextButton(
               onPressed: () async {
                 await ref.read(authSessionProvider.notifier).signOut();
