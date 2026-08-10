@@ -50,7 +50,13 @@ class SettingsPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
             ),
             trailing: TextButton(
-              onPressed: () => context.go(AppRoutePaths.authTenant),
+              onPressed: () async {
+                await ref
+                    .read(authSessionProvider.notifier)
+                    .clearTenantContext();
+                if (!context.mounted) return;
+                context.go(AppRoutePaths.authBranchSelection);
+              },
               child: const Text('Alterar'),
             ),
           ),

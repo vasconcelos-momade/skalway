@@ -199,14 +199,15 @@ class _InventoryProductsTabState extends ConsumerState<InventoryProductsTab> {
         ),
         SizedBox(height: s.md),
         Expanded(
-          child: catalogState.items.isEmpty
-              ? const ModuleEmptyState(
-                  title: 'Sem produtos aptos',
-                  subtitle:
-                      'Não existem produtos activos com lotes válidos para inventário.',
-                )
-              : EnterpriseDataTable(
+          child: EnterpriseDataTable(
                   showCheckboxColumn: false,
+                  status: catalogState.items.isEmpty
+                      ? EnterpriseTableStatus.empty
+                      : EnterpriseTableStatus.data,
+                  emptyTitle: 'Nenhum registo encontrado',
+                  emptyMessage: 'Nenhum registo encontrado',
+                  emptySubtitle:
+                      'Não existem produtos activos com lotes válidos para inventário.',
                   columns: const [
                     DataColumn(label: Text('Produto')),
                     DataColumn(label: Text('Dosagem')),

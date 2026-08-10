@@ -22,6 +22,8 @@ export interface TenantAuthContext {
   userId: string;
   /** `users.id` na base central (JWT `sub`). */
   centralUserId: string;
+  /** Papel na base central. */
+  role: string;
 }
 
 export function resolveTenantSelection(
@@ -91,6 +93,7 @@ export async function authenticateTenantRequest(req: Request): Promise<TenantAut
       branchId: requestedBranchId,
       userId: auth.userId,
       centralUserId: auth.userId,
+      role: String(auth.role),
     };
   }
 
@@ -110,6 +113,7 @@ export async function authenticateTenantRequest(req: Request): Promise<TenantAut
     branchId: selection.branchId,
     userId: auth.userId,
     centralUserId: auth.userId,
+    role: String(auth.role),
   };
 }
 

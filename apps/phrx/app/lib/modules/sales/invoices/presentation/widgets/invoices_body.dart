@@ -82,6 +82,10 @@ class InvoicesBody extends ConsumerWidget {
             switchOutCurve: Curves.easeIn,
             child: switch (listState.viewState) {
               InvoiceViewState.loading => const InvoicesLoadingSkeleton(),
+              InvoiceViewState.error => InvoicesErrorState(
+                  message: listState.errorMessage ?? 'Falha ao carregar faturas.',
+                  onRetry: () => ref.read(invoiceListProvider.notifier).refresh(),
+                ),
               InvoiceViewState.updating => Stack(
                   children: [
                     InvoicesResults(
@@ -89,6 +93,11 @@ class InvoicesBody extends ConsumerWidget {
                       onView: onView,
                       onCancel: onCancel,
                       onPrint: onPrint,
+                      isLoading: true,
+                      hasActiveFilters: query.hasFilters,
+                      onClearFilters: query.hasFilters
+                          ? () => ref.read(invoiceListProvider.notifier).clearFilters()
+                          : null,
                     ),
                     Positioned(
                       left: 0,
@@ -98,20 +107,16 @@ class InvoicesBody extends ConsumerWidget {
                     ),
                   ],
                 ),
-              InvoiceViewState.error => InvoicesErrorState(
-                  message: listState.errorMessage ?? 'Falha ao carregar faturas.',
-                  onRetry: () => ref.read(invoiceListProvider.notifier).refresh(),
-                ),
-              InvoiceViewState.empty => InvoicesEmptyState(
-                  onClearFilters: query.hasFilters
-                      ? () => ref.read(invoiceListProvider.notifier).clearFilters()
-                      : null,
-                ),
               _ => InvoicesResults(
                   invoices: listState.items,
                   onView: onView,
                   onCancel: onCancel,
                   onPrint: onPrint,
+                  isLoading: listState.viewState == InvoiceViewState.loading,
+                  hasActiveFilters: query.hasFilters,
+                  onClearFilters: query.hasFilters
+                      ? () => ref.read(invoiceListProvider.notifier).clearFilters()
+                      : null,
                 ),
             },
           ),
@@ -198,6 +203,10 @@ class InvoicesMobileContent extends ConsumerWidget {
             switchOutCurve: Curves.easeIn,
             child: switch (listState.viewState) {
               InvoiceViewState.loading => const InvoicesLoadingSkeleton(embedded: true),
+              InvoiceViewState.error => InvoicesErrorState(
+                  message: listState.errorMessage ?? 'Falha ao carregar faturas.',
+                  onRetry: () => ref.read(invoiceListProvider.notifier).refresh(),
+                ),
               InvoiceViewState.updating => Stack(
                   children: [
                     InvoicesResults(
@@ -207,6 +216,11 @@ class InvoicesMobileContent extends ConsumerWidget {
                       onPrint: onPrint,
                       searchController: searchController,
                       embedded: true,
+                      isLoading: true,
+                      hasActiveFilters: query.hasFilters,
+                      onClearFilters: query.hasFilters
+                          ? () => ref.read(invoiceListProvider.notifier).clearFilters()
+                          : null,
                     ),
                     Positioned(
                       left: 0,
@@ -215,15 +229,6 @@ class InvoicesMobileContent extends ConsumerWidget {
                       child: LinearProgressIndicator(minHeight: s.xxs),
                     ),
                   ],
-                ),
-              InvoiceViewState.error => InvoicesErrorState(
-                  message: listState.errorMessage ?? 'Falha ao carregar faturas.',
-                  onRetry: () => ref.read(invoiceListProvider.notifier).refresh(),
-                ),
-              InvoiceViewState.empty => InvoicesEmptyState(
-                  onClearFilters: query.hasFilters
-                      ? () => ref.read(invoiceListProvider.notifier).clearFilters()
-                      : null,
                 ),
               _ => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,6 +241,10 @@ class InvoicesMobileContent extends ConsumerWidget {
                       onPrint: onPrint,
                       searchController: searchController,
                       embedded: true,
+                      hasActiveFilters: query.hasFilters,
+                      onClearFilters: query.hasFilters
+                          ? () => ref.read(invoiceListProvider.notifier).clearFilters()
+                          : null,
                     ),
                     SizedBox(height: s.md),
                     InvoicePagination(

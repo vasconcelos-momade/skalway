@@ -11,6 +11,8 @@ abstract class AuthRepository {
     required String branchId,
   });
 
+  Future<void> clearTenantContext();
+
   Future<void> saveSession(AuthSession session);
 
   Future<void> signOut();

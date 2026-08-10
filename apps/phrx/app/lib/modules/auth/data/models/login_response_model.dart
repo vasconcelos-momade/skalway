@@ -99,13 +99,13 @@ class LoginResponseModel {
     UserEffectivePermissions? permissions,
   }) {
     if (CentralRole.isSuperAdmin(role)) {
-      return AppRoutePaths.platformDashboard;
+      return AppRoutePaths.authAccessSelection;
     }
 
     final hasTenant = tenantId != null && tenantId.isNotEmpty;
     if (!hasTenant) {
       final single = tenants.length == 1 && tenants.first.branches.length == 1;
-      if (!single) return AppRoutePaths.authTenantSelection;
+      if (!single) return AppRoutePaths.authBranchSelection;
     }
 
     if (permissions != null) {
@@ -122,13 +122,13 @@ class LoginResponseModel {
     required List<TenantAccess> tenants,
   }) {
     if (CentralRole.isSuperAdmin(role)) {
-      return AppRoutePaths.platformDashboard;
+      return AppRoutePaths.authAccessSelection;
     }
     if (tenantId != null && tenantId.isNotEmpty) {
       return AppRoutePaths.dashboard;
     }
     final single = tenants.length == 1 && tenants.first.branches.length == 1;
-    return single ? AppRoutePaths.dashboard : AppRoutePaths.authTenantSelection;
+    return single ? AppRoutePaths.dashboard : AppRoutePaths.authBranchSelection;
   }
 
   final String accessToken;

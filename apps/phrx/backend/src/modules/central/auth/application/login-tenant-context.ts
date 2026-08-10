@@ -101,7 +101,7 @@ export async function resolveLoginTenantContext(input: {
       tenantId: null,
       branchId: null,
       permissions: [],
-      redirectTo: "/platform/dashboard",
+      redirectTo: "/auth/access-selection",
     };
   }
 
@@ -111,7 +111,7 @@ export async function resolveLoginTenantContext(input: {
       tenantId: null,
       branchId: null,
       permissions: [],
-      redirectTo: "/auth/tenant-selection",
+      redirectTo: "/auth/branch-selection",
     };
   }
 

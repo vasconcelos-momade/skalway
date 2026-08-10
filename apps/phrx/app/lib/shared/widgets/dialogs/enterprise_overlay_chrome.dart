@@ -4,6 +4,101 @@ import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 
+/// Acções full-width em ecrãs estreitos: mesma linha se couberem; senão wrap.
+class EnterpriseResponsiveActions extends StatelessWidget {
+  const EnterpriseResponsiveActions({
+    super.key,
+    required this.actions,
+    this.spacing,
+    this.alignment = WrapAlignment.start,
+    this.forceExpand = false,
+  });
+
+  final List<Widget> actions;
+  final double? spacing;
+  final WrapAlignment alignment;
+
+  /// Quando true, força expansão (ex.: mobile), independentemente da largura.
+  final bool forceExpand;
+
+  @override
+  Widget build(BuildContext context) {
+    if (actions.isEmpty) return const SizedBox.shrink();
+
+    final s = context.spacing;
+    final gap = spacing ?? s.sm;
+    final t = context.pharmaTokens;
+    final expand = forceExpand ||
+        MediaQuery.sizeOf(context).width < Breakpoints.tablet;
+
+    if (!expand) {
+      return Wrap(
+        spacing: gap,
+        runSpacing: gap,
+        alignment: alignment,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          for (final action in actions)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: t.minTouchTarget,
+                minWidth: DesignMetrics.overlayActionMinWidth,
+              ),
+              child: action,
+            ),
+        ],
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final count = actions.length;
+        final totalGaps = gap * (count - 1);
+        final equalWidth = count > 0 ? (maxWidth - totalGaps) / count : maxWidth;
+        final fitSameLine =
+            equalWidth >= DesignMetrics.overlayActionMinWidth;
+
+        if (fitSameLine) {
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) SizedBox(width: gap),
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: t.minTouchTarget),
+                      child: actions[i],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final action in actions)
+              SizedBox(
+                width: maxWidth,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: t.minTouchTarget),
+                  child: action,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 /// Cabeçalho padronizado: título, subtítulo opcional, ícone e fechar.
 class EnterpriseOverlayHeader extends StatelessWidget {
   const EnterpriseOverlayHeader({
@@ -89,8 +184,6 @@ class EnterpriseOverlayFooter extends StatelessWidget {
 
     final t = context.pharmaTokens;
     final s = context.spacing;
-    final narrow = MediaQuery.sizeOf(context).width < Breakpoints.tablet;
-    final minActionWidth = DesignMetrics.overlayActionMinWidth;
     // 12px entre botões ([SpacingTokens.md]).
     final gap = s.md;
 
@@ -113,40 +206,13 @@ class EnterpriseOverlayFooter extends StatelessWidget {
             s.lg,
             dense ? s.md : s.lg,
           ),
-          child: narrow && expandOnNarrow
-              ? IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = 0; i < actions.length; i++) ...[
-                        if (i > 0) SizedBox(width: gap),
-                        Expanded(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: t.minTouchTarget,
-                            ),
-                            child: actions[i],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    for (var i = 0; i < actions.length; i++) ...[
-                      if (i > 0) SizedBox(width: gap),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: t.minTouchTarget,
-                          minWidth: minActionWidth,
-                        ),
-                        child: actions[i],
-                      ),
-                    ],
-                  ],
-                ),
+          child: EnterpriseResponsiveActions(
+            actions: actions,
+            spacing: gap,
+            alignment: WrapAlignment.end,
+            forceExpand: expandOnNarrow &&
+                MediaQuery.sizeOf(context).width < Breakpoints.tablet,
+          ),
         ),
       ),
     );

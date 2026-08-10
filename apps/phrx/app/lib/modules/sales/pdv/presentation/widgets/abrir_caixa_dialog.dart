@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../../shared/responsive/pharma_screen_layout.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
 import '../../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
@@ -37,6 +39,7 @@ Future<void> showAbrirCaixaDialog(BuildContext context) {
     context: context,
     title: const Text('Abrir Caixa'),
     routeSettings: const RouteSettings(name: '/pdv/caixa/abrir'),
+    mobileWrapInScrollView: false,
     formBuilder: (ctx, {required embedded}) =>
         AbrirCaixaDialog(embedded: embedded),
   );
@@ -237,6 +240,29 @@ class _AbrirCaixaDialogState extends ConsumerState<AbrirCaixaDialog> {
     ];
 
     if (widget.embedded) {
+      final isMobile = PharmaScreenLayout.isMobile(context);
+      if (isMobile) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  PharmaScreenLayout.mobileHorizontalInset(context),
+                  s.lg,
+                  PharmaScreenLayout.mobileHorizontalInset(context),
+                  s.lg,
+                ),
+                child: form,
+              ),
+            ),
+            EnterpriseOverlayFooter(
+              actions: actions,
+              expandOnNarrow: true,
+            ),
+          ],
+        );
+      }
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [

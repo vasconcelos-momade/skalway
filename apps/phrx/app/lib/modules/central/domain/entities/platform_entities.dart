@@ -345,9 +345,6 @@ class RegisterTenantPayload {
     required this.tenantName,
     required this.ownerEmail,
     required this.ownerPassword,
-    required this.adminName,
-    required this.adminEmail,
-    required this.adminPassword,
     required this.branches,
     this.planSlug = 'starter',
     this.status = 'trial',
@@ -357,9 +354,6 @@ class RegisterTenantPayload {
   final String tenantName;
   final String ownerEmail;
   final String ownerPassword;
-  final String adminName;
-  final String adminEmail;
-  final String adminPassword;
   final List<String> branches;
   final String planSlug;
   final String status;
@@ -368,9 +362,6 @@ class RegisterTenantPayload {
   Map<String, dynamic> toJson() => {
         'tenantName': tenantName,
         'email': ownerEmail,
-        'adminName': adminName,
-        'adminEmail': adminEmail,
-        'adminPassword': adminPassword,
         'planSlug': planSlug,
         'status': status,
         'billingPeriodMonths': billingPeriodMonths,

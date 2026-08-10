@@ -6,8 +6,10 @@ import '../../modules/audit/presentation/pages/audit_hub_page.dart';
 import '../../modules/audit/presentation/pages/audit_logs_page.dart';
 import '../../modules/sales/customers/presentation/pages/customers_page.dart';
 import '../../modules/sales/history/presentation/pages/sales_history_page.dart';
+import '../../modules/auth/presentation/pages/access_selection_page.dart';
 import '../../modules/auth/presentation/pages/forgot_password_page.dart';
 import '../../modules/auth/presentation/pages/login_page.dart';
+import '../../modules/auth/presentation/pages/super_admin_branch_select_page.dart';
 import '../../modules/auth/presentation/pages/tenant_select_page.dart';
 import '../../modules/central/presentation/pages/platform_branches_page.dart';
 import '../../modules/central/presentation/pages/platform_company_settings_page.dart';
@@ -60,8 +62,13 @@ bool _isPublicAuthRoute(String loc) {
       loc == AppRoutePaths.authForgotPassword;
 }
 
-bool _isTenantSelectionRoute(String loc) =>
-    loc == AppRoutePaths.authTenantSelection || loc == '/auth/tenant';
+bool _isAccessSelectionRoute(String loc) =>
+    loc == AppRoutePaths.authAccessSelection;
+
+bool _isBranchSelectionRoute(String loc) =>
+    loc == AppRoutePaths.authBranchSelection ||
+    loc == '/auth/tenant-selection' ||
+    loc == '/auth/tenant';
 
 bool _isTenantAppRoute(String loc) =>
     loc.startsWith(AppRoutePaths.app) || loc == AppRoutePaths.legacyPos;
@@ -104,57 +111,85 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (!auth.isSuperAdmin) {
           return auth.hasTenantContext
               ? homePathForAccess(access)
-              : AppRoutePaths.authTenantSelection;
+              : AppRoutePaths.authBranchSelection;
         }
-        if (auth.hasTenantContext) {
-          return AppRoutePaths.platformDashboard;
-        }
+        // Super Admin na plataforma: limpar contexto tenant mentalmente —
+        // permite aceder à plataforma mesmo com tenant activo na sessão.
         return null;
       }
 
-      // Legado /auth/tenant → /auth/tenant-selection
-      if (loc == '/auth/tenant') {
-        return AppRoutePaths.authTenantSelection;
+      // Legado /auth/tenant e /auth/tenant-selection → /auth/branch-selection
+      if (loc == '/auth/tenant' || loc == '/auth/tenant-selection') {
+        return AppRoutePaths.authBranchSelection;
       }
 
       // ── Rotas tenant (/app/*) ───────────────────────────────────────────
       if (!auth.isAuthenticated) {
-        if (_isPublicAuthRoute(loc)) return null;
+        if (_isPublicAuthRoute(loc) ||
+            _isAccessSelectionRoute(loc) ||
+            _isBranchSelectionRoute(loc)) {
+          return _isPublicAuthRoute(loc) ? null : AppRoutePaths.login;
+        }
         return AppRoutePaths.login;
       }
 
+      // Super Admin sem contexto tenant
       if (auth.isSuperAdmin && !auth.hasTenantContext) {
+        if (_isAccessSelectionRoute(loc) || _isBranchSelectionRoute(loc)) {
+          return null;
+        }
         if (_isTenantAppRoute(loc) || _isLegacyTenantRoute(loc)) {
-          return AppRoutePaths.platformDashboard;
+          return AppRoutePaths.authAccessSelection;
+        }
+        if (loc == AppRoutePaths.login ||
+            loc == AppRoutePaths.authForgotPassword) {
+          return AppRoutePaths.authAccessSelection;
+        }
+      }
+
+      // Super Admin com contexto tenant: pode usar /app/*
+      if (auth.isSuperAdmin && auth.hasTenantContext) {
+        if (_isAccessSelectionRoute(loc) ||
+            _isBranchSelectionRoute(loc) ||
+            loc == AppRoutePaths.login ||
+            loc == AppRoutePaths.authForgotPassword) {
+          return homePathForAccess(access);
         }
       }
 
       if (auth.isTenantRole && !auth.hasTenantContext) {
-        if (_isTenantSelectionRoute(loc)) return null;
-        if (_isPublicAuthRoute(loc)) return AppRoutePaths.authTenantSelection;
+        if (_isBranchSelectionRoute(loc)) return null;
+        if (_isPublicAuthRoute(loc)) return AppRoutePaths.authBranchSelection;
         if (_isTenantAppRoute(loc) || _isLegacyTenantRoute(loc)) {
-          return AppRoutePaths.authTenantSelection;
+          return AppRoutePaths.authBranchSelection;
         }
       }
 
       if (loc == AppRoutePaths.login ||
           loc == AppRoutePaths.authForgotPassword ||
-          _isTenantSelectionRoute(loc)) {
-        if (auth.isSuperAdmin) return AppRoutePaths.platformDashboard;
+          _isBranchSelectionRoute(loc)) {
+        if (auth.isSuperAdmin) {
+          return auth.hasTenantContext
+              ? homePathForAccess(access)
+              : AppRoutePaths.authAccessSelection;
+        }
         if (auth.hasTenantContext) return homePathForAccess(access);
-        if (_isTenantSelectionRoute(loc)) return null;
-        return AppRoutePaths.authTenantSelection;
+        if (_isBranchSelectionRoute(loc)) return null;
+        return AppRoutePaths.authBranchSelection;
       }
 
       if (_isAdministrationRoute(loc) && !access.isResolved) {
         return null;
       }
 
-      if (_isAdministrationRoute(loc) && !access.canAccessAdministration) {
+      if (_isAdministrationRoute(loc) &&
+          !access.canAccessAdministration &&
+          !auth.isSuperAdmin) {
         return homePathForAccess(access);
       }
 
       if (_isTenantAppRoute(loc) &&
+          !auth.isSuperAdmin &&
           !isNavPathAllowedForAccess(loc, access)) {
         final home = homePathForAccess(access);
         if (home != loc) return home;
@@ -186,9 +221,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordPage(),
       ),
       GoRoute(
-        path: AppRoutePaths.authTenantSelection,
-        name: 'tenant-selection',
-        builder: (context, state) => const TenantSelectPage(),
+        path: AppRoutePaths.authAccessSelection,
+        name: 'access-selection',
+        builder: (context, state) => const AccessSelectionPage(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.authBranchSelection,
+        name: 'branch-selection',
+        builder: (context, state) {
+          final auth = ref.read(authSessionProvider);
+          if (auth.isSuperAdmin) {
+            return const SuperAdminBranchSelectPage();
+          }
+          return const TenantSelectPage();
+        },
       ),
       GoRoute(
         path: AppRoutePaths.platformLogin,

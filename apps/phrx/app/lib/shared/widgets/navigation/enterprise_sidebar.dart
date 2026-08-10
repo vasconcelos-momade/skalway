@@ -225,8 +225,19 @@ class EnterpriseNavLogout extends ConsumerWidget {
               ),
               if (inTenantBranch)
                 MenuItemButton(
-                  onPressed: () =>
-                      context.go(AppRoutePaths.authTenantSelection),
+                  onPressed: () async {
+                    await ref
+                        .read(authSessionProvider.notifier)
+                        .clearTenantContext();
+                    if (!context.mounted) return;
+                    final isSuperAdmin =
+                        ref.read(authSessionProvider).isSuperAdmin;
+                    context.go(
+                      isSuperAdmin
+                          ? AppRoutePaths.authAccessSelection
+                          : AppRoutePaths.authBranchSelection,
+                    );
+                  },
                   leadingIcon: Icon(
                     Icons.swap_horiz_rounded,
                     color: t.textSecondary,
@@ -234,6 +245,29 @@ class EnterpriseNavLogout extends ConsumerWidget {
                   ),
                   child: Text(
                     'Trocar Branch/Filial',
+                    style: theme.textTheme.erpMenuItem.copyWith(
+                      color: t.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              if (inTenantBranch &&
+                  (ref.watch(authSessionProvider).isSuperAdmin))
+                MenuItemButton(
+                  onPressed: () async {
+                    await ref
+                        .read(authSessionProvider.notifier)
+                        .clearTenantContext();
+                    if (!context.mounted) return;
+                    context.go(AppRoutePaths.platformDashboard);
+                  },
+                  leadingIcon: Icon(
+                    Icons.admin_panel_settings_outlined,
+                    color: t.textSecondary,
+                    size: DesignMetrics.iconSm,
+                  ),
+                  child: Text(
+                    'PhRx Plataforma',
                     style: theme.textTheme.erpMenuItem.copyWith(
                       color: t.textPrimary,
                       fontWeight: FontWeight.w500,

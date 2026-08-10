@@ -8,6 +8,7 @@ import {
 } from "./central-auth";
 import { getPrisma } from "../../infrastructure/prisma/tenant-prisma.factory";
 import { resolveTenantUserId, TenantUserNotFoundError } from "../../modules/tenant/shared/resolve-tenant-user";
+import { ensureSuperAdminTenantUser } from "../../modules/tenant/shared/ensure-super-admin-tenant-user";
 import {
   authenticateTenantRequest,
   runWithTenantBranchContext,
@@ -152,10 +153,17 @@ export function tenantBranchContextMiddleware(): RouteMiddleware {
     const auth = requireTenantAuthFromState(context);
     const response = await runWithTenantBranchContext(auth.tenantId, auth.branchId, async () => {
       try {
-        const tenantUserId = await resolveTenantUserId(getPrisma(), {
-          centralUserId: auth.centralUserId,
-          email: auth.payload.email,
-        });
+        const prisma = getPrisma();
+        const tenantUserId = isSuperAdminRole(auth.role)
+          ? await ensureSuperAdminTenantUser(prisma, {
+              centralUserId: auth.centralUserId,
+              email: auth.payload.email,
+              name: auth.payload.email,
+            })
+          : await resolveTenantUserId(prisma, {
+              centralUserId: auth.centralUserId,
+              email: auth.payload.email,
+            });
 
         context.state.tenantAuth = {
           ...auth,
@@ -233,6 +241,21 @@ export function requireAnyPermission(
     }
 
     const auth = requireTenantAuthFromState(context);
+
+    // Super Admin tem acesso total a qualquer branch.
+    if (isSuperAdminRole(auth.role)) {
+      context.state.requiredTenantPermission = {
+        allowed: true,
+        source: "none",
+        role: "SUPER_ADMIN",
+        matchedModule: options[0]![0],
+        matchedAction: options[0]![1],
+        module: options[0]![0],
+        action: options[0]![1],
+      } satisfies TenantRoutePermissionContext;
+      return next();
+    }
+
     const service = new PermissionService();
 
     let allowedDecision: Awaited<ReturnType<PermissionService["resolvePermission"]>> | null =

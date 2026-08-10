@@ -133,6 +133,16 @@ class AuthSessionNotifier extends Notifier<AuthSessionState> {
     state = AuthSessionState(session: updated);
   }
 
+  /// Limpa o contexto tenant/branch para permitir trocar de filial.
+  Future<void> clearTenantContext() async {
+    final current = state.session;
+    if (current == null) return;
+
+    final updated = current.copyWith(clearTenant: true, clearPermissions: true);
+    await ref.read(authRepositoryProvider).clearTenantContext();
+    state = AuthSessionState(session: updated);
+  }
+
   Future<void> signOut() async {
     await ref.read(authRepositoryProvider).signOut();
     state = AuthSessionState.initial;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../../shared/widgets/tables/table_typography.dart';
 import '../../domain/entities/pdv_service.dart';
@@ -22,20 +21,22 @@ class PdvServiceTable extends StatelessWidget {
 
   static const _columns = ['SERVIÇO', 'TIPO', 'PREÇO', 'AÇÕES'];
 
+  EnterpriseTableStatus get _status {
+    if (items.isEmpty) return EnterpriseTableStatus.empty;
+    return EnterpriseTableStatus.data;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return ModuleEmptyState(
-        title: query.isEmpty
-            ? 'Nenhum serviço disponível.'
-            : 'Nenhum serviço encontrado.',
-        subtitle: query.isEmpty ? null : 'Tente outro nome de serviço.',
-      );
-    }
-
     return EnterpriseDataTable(
       adaptive: false,
       showCheckboxColumn: false,
+      status: _status,
+      emptyTitle: query.isEmpty
+          ? 'Nenhum registo encontrado'
+          : 'Nenhum serviço encontrado.',
+      emptyMessage: 'Nenhum registo encontrado',
+      emptySubtitle: query.isEmpty ? null : 'Tente outro nome de serviço.',
       columns: [
         for (final label in _columns)
           DataColumn(label: TableTypography.headerLabel(context, label)),
@@ -53,8 +54,15 @@ class PdvServiceTable extends StatelessWidget {
                 style: TableTypography.primary(context),
               ),
             ),
-            DataCell(TableTypography.cellText(context, service.tipoServicoClinico ?? '—')),
-            DataCell(TableTypography.cellText(context, pdvFormatMoney(service.preco))),
+            DataCell(
+              TableTypography.cellText(
+                context,
+                service.tipoServicoClinico ?? '—',
+              ),
+            ),
+            DataCell(
+              TableTypography.cellText(context, pdvFormatMoney(service.preco)),
+            ),
             DataCell(
               FilledButton.tonalIcon(
                 onPressed: canAdd ? () => onAdd(service) : null,

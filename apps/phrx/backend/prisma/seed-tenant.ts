@@ -83,6 +83,10 @@ async function main() {
   await runScript("prisma/seed-terminais.ts", dbUrl);
   console.log("✅ Terminais e caixas concluído.\n");
 
+  console.log("6️⃣  Serviços clínicos (POS / Proforma)...");
+  await runScript("prisma/seed-servicos.ts", dbUrl);
+  console.log("✅ Serviços clínicos concluído.\n");
+
   console.log(`🎉 [seed-tenant] Seeders estruturais concluídos para ${dbLabel}.`);
 }
 

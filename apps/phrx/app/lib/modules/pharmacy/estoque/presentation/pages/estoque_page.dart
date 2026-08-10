@@ -17,7 +17,6 @@ import '../../../presentation/widgets/pharmacy_report_exports.dart';
 import '../../../../stock/data/datasources/fornecedor_remote_datasource.dart';
 import '../../domain/entities/estoque_item.dart';
 import '../providers/estoque_provider.dart';
-import '../widgets/estoque_empty_state.dart';
 import '../widgets/estoque_filters_bottom_sheet.dart';
 import '../widgets/estoque_loading.dart';
 import '../widgets/estoque_mobile_list.dart';
@@ -238,13 +237,11 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
                           message: state.errorMessage!,
                           onRetry: () => controller.refreshCurrentPage(),
                         )
-                      : (isDesktop ? state.items.isEmpty : _accumulatedItems.isEmpty)
-                          ? const EstoqueEmptyState()
-                          : EstoqueTable(
-                              items: state.items,
-                              actionLoteId: state.actionLoteId,
-                              fornecedores: _fornecedores,
-                            ),
+                      : EstoqueTable(
+                          items: state.items,
+                          actionLoteId: state.actionLoteId,
+                          fornecedores: _fornecedores,
+                        ),
               desktopPagination: state.isInitialized && state.totalCount != null
                   ? EstoquePagination(
                       page: state.page,
@@ -291,7 +288,7 @@ class _EstoquePageState extends ConsumerState<EstoquePage> {
                 totalCountLabel: state.totalCount != null
                     ? 'Total: ${state.totalCount} lote(s)'
                     : null,
-                showItemDividers: false,
+                showItemDividers: true,
                 showEndOfListLabel: false,
                 totalCountTextAlign: TextAlign.start,
               ),

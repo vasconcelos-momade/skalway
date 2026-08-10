@@ -13,11 +13,13 @@ class SessionAccessState {
     this.permissions,
     this.viewState = SessionAccessViewState.idle,
     this.errorMessage,
+    this.superAdminFullAccess = false,
   });
 
   final UserEffectivePermissions? permissions;
   final SessionAccessViewState viewState;
   final String? errorMessage;
+  final bool superAdminFullAccess;
 
   bool get isLoading => viewState == SessionAccessViewState.loading;
   bool get isResolved =>
@@ -25,6 +27,7 @@ class SessionAccessState {
       viewState == SessionAccessViewState.error;
 
   bool can(String module, String action) {
+    if (superAdminFullAccess) return true;
     final entries = permissions?.permissions;
     if (entries == null) return false;
     return entries.any(
@@ -35,12 +38,14 @@ class SessionAccessState {
     );
   }
 
-  bool get canAccessAdministration => can('UTILIZADORES', 'VIEW');
+  bool get canAccessAdministration =>
+      superAdminFullAccess || can('UTILIZADORES', 'VIEW');
 
   SessionAccessState copyWith({
     UserEffectivePermissions? permissions,
     SessionAccessViewState? viewState,
     String? errorMessage,
+    bool? superAdminFullAccess,
     bool clearPermissions = false,
     bool clearError = false,
   }) {
@@ -48,6 +53,8 @@ class SessionAccessState {
       permissions: clearPermissions ? null : (permissions ?? this.permissions),
       viewState: viewState ?? this.viewState,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      superAdminFullAccess:
+          superAdminFullAccess ?? this.superAdminFullAccess,
     );
   }
 }
@@ -74,6 +81,16 @@ class SessionAccessNotifier extends Notifier<SessionAccessState> {
         state = SessionAccessState(
           permissions: cached,
           viewState: SessionAccessViewState.loaded,
+          superAdminFullAccess: next.isSuperAdmin,
+        );
+        return;
+      }
+
+      if (next.isSuperAdmin) {
+        _requestId++;
+        state = const SessionAccessState(
+          viewState: SessionAccessViewState.loaded,
+          superAdminFullAccess: true,
         );
         return;
       }
@@ -89,6 +106,12 @@ class SessionAccessNotifier extends Notifier<SessionAccessState> {
 
     final auth = ref.watch(authSessionProvider);
     if (!auth.isBootstrapping && auth.hasTenantContext) {
+      if (auth.isSuperAdmin) {
+        return const SessionAccessState(
+          viewState: SessionAccessViewState.loaded,
+          superAdminFullAccess: true,
+        );
+      }
       final cached = auth.session?.permissions;
       if (cached != null) {
         return SessionAccessState(
@@ -103,15 +126,26 @@ class SessionAccessNotifier extends Notifier<SessionAccessState> {
   }
 
   Future<void> refresh() async {
-    if (!ref.read(authSessionProvider).hasTenantContext) {
+    final auth = ref.read(authSessionProvider);
+    if (!auth.hasTenantContext) {
       state = const SessionAccessState();
       return;
     }
 
     final requestId = ++_requestId;
+
+    if (auth.isSuperAdmin) {
+      state = const SessionAccessState(
+        viewState: SessionAccessViewState.loaded,
+        superAdminFullAccess: true,
+      );
+      return;
+    }
+
     state = state.copyWith(
       viewState: SessionAccessViewState.loading,
       clearError: true,
+      superAdminFullAccess: false,
     );
 
     try {
@@ -123,12 +157,14 @@ class SessionAccessNotifier extends Notifier<SessionAccessState> {
         permissions: permissions,
         viewState: SessionAccessViewState.loaded,
         clearError: true,
+        superAdminFullAccess: false,
       );
     } catch (e) {
       if (requestId != _requestId) return;
       state = state.copyWith(
         viewState: SessionAccessViewState.error,
         errorMessage: e.toString(),
+        superAdminFullAccess: false,
       );
     }
   }

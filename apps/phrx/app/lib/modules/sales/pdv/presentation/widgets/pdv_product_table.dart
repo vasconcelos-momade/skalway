@@ -4,7 +4,6 @@ import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/theme/table_theme.dart';
 import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
-import '../../../../../shared/widgets/feedback/module_data_states.dart';
 import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
@@ -37,21 +36,14 @@ class PdvProductTable extends StatelessWidget {
     'AÇÕES',
   ];
 
+  EnterpriseTableStatus get _status {
+    if (isLoading && items.isEmpty) return EnterpriseTableStatus.loading;
+    if (items.isEmpty) return EnterpriseTableStatus.empty;
+    return EnterpriseTableStatus.data;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (isLoading && items.isEmpty) {
-      return const ModuleLoadingState(itemCount: 6);
-    }
-
-    if (items.isEmpty) {
-      return ModuleEmptyState(
-        title: query.isEmpty
-            ? 'Nenhum produto disponível.'
-            : 'Nenhum produto encontrado.',
-        subtitle: query.isEmpty ? null : 'Tente outro nome, código ou EAN.',
-      );
-    }
-
     final t = context.pharmaTokens;
     final s = context.spacing;
     final tableTheme = context.tableTheme;
@@ -59,13 +51,23 @@ class PdvProductTable extends StatelessWidget {
     return EnterpriseDataTable(
       adaptive: false,
       showCheckboxColumn: false,
+      status: _status,
       isLoading: isLoading,
+      emptyTitle: query.isEmpty
+          ? 'Nenhum registo encontrado'
+          : 'Nenhum produto encontrado.',
+      emptyMessage: 'Nenhum registo encontrado',
+      emptySubtitle: query.isEmpty ? null : 'Tente outro nome, código ou EAN.',
       dataRowMinHeight: 72,
       dataRowMaxHeight: 92,
       columnSpacing: s.xxl,
       columns: [
         for (final label in _columns)
-          enterpriseDataColumn(context, label, numeric: label == 'PREÇO' || label == 'STOCK'),
+          enterpriseDataColumn(
+            context,
+            label,
+            numeric: label == 'PREÇO' || label == 'STOCK',
+          ),
       ],
       rowCount: items.length,
       rowBuilder: (context, index) {
@@ -98,7 +100,9 @@ class PdvProductTable extends StatelessWidget {
                     ? SizedBox(
                         width: t.minTouchTarget,
                         height: t.minTouchTarget,
-                        child: Center(child: PharmaButtonLoader(color: t.brandBlue)),
+                        child: Center(
+                          child: PharmaButtonLoader(color: t.brandBlue),
+                        ),
                       )
                     : FilledButton.tonalIcon(
                         onPressed: canInteract ? () => onAdd(product) : null,

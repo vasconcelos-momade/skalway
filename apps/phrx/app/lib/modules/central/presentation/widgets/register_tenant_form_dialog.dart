@@ -48,9 +48,6 @@ class _RegisterTenantFormDialogState
   final _tenantEmailCtrl = TextEditingController();
   final _tenantPassCtrl = TextEditingController();
   final _tenantPassConfirmCtrl = TextEditingController();
-  final _adminNameCtrl = TextEditingController();
-  final _adminEmailCtrl = TextEditingController();
-  final _adminPassCtrl = TextEditingController();
   final List<TextEditingController> _branchCtrls = [
     TextEditingController(),
   ];
@@ -83,9 +80,6 @@ class _RegisterTenantFormDialogState
     _tenantEmailCtrl.dispose();
     _tenantPassCtrl.dispose();
     _tenantPassConfirmCtrl.dispose();
-    _adminNameCtrl.dispose();
-    _adminEmailCtrl.dispose();
-    _adminPassCtrl.dispose();
     for (final c in _branchCtrls) {
       c.dispose();
     }
@@ -311,51 +305,6 @@ class _RegisterTenantFormDialogState
             onChanged: _submitting
                 ? null
                 : (v) => setState(() => _billingPeriodMonths = v ?? 1),
-          ),
-          SizedBox(height: s.md),
-          _sectionTitle('Administrador Local'),
-          EnterpriseFormGrid(
-            gap: s.md,
-            children: [
-              EnterpriseFormGridItem(
-                fullWidth: true,
-                child: EnterpriseTextFormField(
-                  controller: _adminNameCtrl,
-                  labelText: 'Nome *',
-                  enabled: !_submitting,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Campo obrigatório' : null,
-                ),
-              ),
-              EnterpriseFormGridItem(
-                fullWidth: true,
-                child: EnterpriseTextFormField(
-                  controller: _adminEmailCtrl,
-                  labelText: 'Email *',
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !_submitting,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Campo obrigatório';
-                    if (!v.contains('@')) return 'E-mail inválido';
-                    return null;
-                  },
-                ),
-              ),
-              EnterpriseFormGridItem(
-                fullWidth: true,
-                child: EnterpriseTextFormField(
-                  controller: _adminPassCtrl,
-                  labelText: 'Palavra-passe *',
-                  obscureText: true,
-                  enabled: !_submitting,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Campo obrigatório';
-                    if (v.length < 6) return 'Mínimo 6 caracteres';
-                    return null;
-                  },
-                ),
-              ),
-            ],
           ),
           SizedBox(height: s.sm),
           Row(

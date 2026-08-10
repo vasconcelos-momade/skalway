@@ -171,14 +171,15 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
                   ),
                 ],
               ),
-              desktopContent: state.items.isEmpty && !state.isLoading
-                  ? Center(
-                      child: Text(
-                        'Nenhuma categoria encontrada',
-                        style: Theme.of(context).textTheme.erpBodySecondary.copyWith(color: t.textMuted),
-                      ),
-                    )
-                  : EnterpriseDataTable(
+              desktopContent: EnterpriseDataTable(
+                      status: state.isLoading && state.items.isEmpty
+                          ? EnterpriseTableStatus.loading
+                          : state.items.isEmpty
+                              ? EnterpriseTableStatus.empty
+                              : EnterpriseTableStatus.data,
+                      isLoading: state.isLoading,
+                      emptyTitle: 'Nenhum registo encontrado',
+                      emptyMessage: 'Nenhum registo encontrado',
                       columns: [
                         enterpriseDataColumn(context, 'Nome'),
                         enterpriseDataColumn(context, 'Descrição'),

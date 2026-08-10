@@ -4,6 +4,7 @@ import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
 import '../../responsive/pharma_screen_layout.dart';
 import '../cards/enterprise_kpi_grid.dart';
+import '../dialogs/enterprise_overlay_chrome.dart';
 
 /// Hub de módulo com grelha KPI adaptativa e cabeçalho denso em mobile/tablet.
 class EnterpriseModuleHub extends StatelessWidget {
@@ -111,11 +112,10 @@ class EnterpriseModuleHub extends StatelessWidget {
                   Flexible(
                     child: Align(
                       alignment: Alignment.topRight,
-                      child: Wrap(
-                        spacing: s.sm,
-                        runSpacing: s.sm,
+                      child: EnterpriseResponsiveActions(
+                        actions: actions!,
                         alignment: WrapAlignment.end,
-                        children: actions!,
+                        forceExpand: size == PharmaScreenSize.mobile,
                       ),
                     ),
                   ),

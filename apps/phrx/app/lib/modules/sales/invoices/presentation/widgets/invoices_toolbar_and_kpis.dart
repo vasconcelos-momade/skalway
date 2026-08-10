@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/theme/extensions.dart';
-import '../../../../../core/theme/spacing.dart';
 import '../../../../../shared/responsive/pharma_screen_layout.dart';
-import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
+import '../../../../../shared/widgets/cards/enterprise_kpi_grid.dart';
 import '../../../../../shared/widgets/inputs/enterprise_search_field.dart';
 import '../providers/invoice_list_provider.dart';
 
@@ -104,59 +103,38 @@ class InvoicesKpiGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
-    final screen = context.pharmaScreen;
-    return LayoutBuilder(
-      builder: (context, c) {
-        final cross = switch (screen) {
-          PharmaScreenSize.mobile => 1,
-          PharmaScreenSize.tablet => 2,
-          PharmaScreenSize.desktop => 4,
-        };
-        final aspect = switch (screen) {
-          PharmaScreenSize.mobile => 2.35,
-          PharmaScreenSize.tablet => 1.7,
-          PharmaScreenSize.desktop => 1.45,
-        };
-        return GridView.count(
-          crossAxisCount: cross,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: screen == PharmaScreenSize.mobile ? 10 : s.md,
-          mainAxisSpacing: screen == PharmaScreenSize.mobile ? 10 : s.md,
-          childAspectRatio: aspect,
-          children: [
-            EnterpriseStatCard(
-              title: 'Visíveis',
-              value: '$totalInvoices',
-              subtitle: hasFilters ? 'Com filtros activos' : 'Lista actual',
-              icon: Icons.receipt_long_outlined,
-              accent: StatCardAccent.info,
-            ),
-            EnterpriseStatCard(
-              title: 'Pagas',
-              value: '$paid',
-              subtitle: 'Liquidadas no POS',
-              icon: Icons.check_circle_outline_rounded,
-              accent: StatCardAccent.positive,
-            ),
-            EnterpriseStatCard(
-              title: 'Pendentes',
-              value: '$pending',
-              subtitle: 'Emitidas/parciais',
-              icon: Icons.timelapse_rounded,
-              accent: StatCardAccent.warning,
-            ),
-            EnterpriseStatCard(
-              title: 'Canceladas',
-              value: '$cancelled',
-              subtitle: 'Com reversão aplicada',
-              icon: Icons.block_rounded,
-              accent: StatCardAccent.danger,
-            ),
-          ],
-        );
-      },
+    return EnterpriseKpiGrid(
+      useDesktopRowWhenSingleLine: true,
+      cards: [
+        EnterpriseStatCard(
+          title: 'Visíveis',
+          value: '$totalInvoices',
+          subtitle: hasFilters ? 'Com filtros activos' : 'Lista actual',
+          icon: Icons.receipt_long_outlined,
+          accent: StatCardAccent.info,
+        ),
+        EnterpriseStatCard(
+          title: 'Pagas',
+          value: '$paid',
+          subtitle: 'Liquidadas no POS',
+          icon: Icons.check_circle_outline_rounded,
+          accent: StatCardAccent.positive,
+        ),
+        EnterpriseStatCard(
+          title: 'Pendentes',
+          value: '$pending',
+          subtitle: 'Emitidas/parciais',
+          icon: Icons.timelapse_rounded,
+          accent: StatCardAccent.warning,
+        ),
+        EnterpriseStatCard(
+          title: 'Canceladas',
+          value: '$cancelled',
+          subtitle: 'Com reversão aplicada',
+          icon: Icons.block_rounded,
+          accent: StatCardAccent.danger,
+        ),
+      ],
     );
   }
 }

@@ -41,6 +41,11 @@ class EstoqueTable extends StatelessWidget {
     return EnterpriseDataTable(
       adaptive: false,
       showCheckboxColumn: false,
+      status: items.isEmpty
+          ? EnterpriseTableStatus.empty
+          : EnterpriseTableStatus.data,
+      emptyTitle: 'Nenhum registo encontrado',
+      emptyMessage: 'Nenhum registo encontrado',
       dataRowMinHeight: 64,
       dataRowMaxHeight: 88,
       columnSpacing: s.md,

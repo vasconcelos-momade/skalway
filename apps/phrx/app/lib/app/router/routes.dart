@@ -6,9 +6,13 @@ abstract final class AppRoutePaths {
 
   static const String login = '/login';
   static const String authForgotPassword = '/auth/forgot-password';
-  static const String authTenantSelection = '/auth/tenant-selection';
-  /// Legado — redirect para [authTenantSelection].
-  static const String authTenant = authTenantSelection;
+  /// Super Admin: escolher Plataforma vs Branch.
+  static const String authAccessSelection = '/auth/access-selection';
+  static const String authBranchSelection = '/auth/branch-selection';
+  /// Legado — redirect para [authBranchSelection].
+  static const String authTenantSelection = authBranchSelection;
+  /// Legado — redirect para [authBranchSelection].
+  static const String authTenant = authBranchSelection;
 
   static const String dashboard = '/app/dashboard';
   static const String dashboardPharmacy = '/app/dashboard/pharmacy';
@@ -113,7 +117,8 @@ abstract final class AppRouteTitles {
     return switch (path) {
       AppRoutePaths.login => 'Autenticação',
       AppRoutePaths.authForgotPassword => 'Recuperar palavra-passe',
-      AppRoutePaths.authTenantSelection => 'Selecção de unidade',
+      AppRoutePaths.authAccessSelection => 'Selecção de acesso',
+      AppRoutePaths.authBranchSelection => 'Selecção de unidade',
       AppRoutePaths.dashboard => 'Executivo',
       AppRoutePaths.dashboardPharmacy => 'Farmácia',
       AppRoutePaths.dashboardFinance => 'Financeiro',

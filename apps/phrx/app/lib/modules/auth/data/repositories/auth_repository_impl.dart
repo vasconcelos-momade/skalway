@@ -58,6 +58,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> clearTenantContext() async {
+    final current = await _local.readSession();
+    if (current == null) return;
+    await _local.saveSession(
+      current.copyWith(clearTenant: true, clearPermissions: true),
+    );
+  }
+
+  @override
   Future<void> saveSession(AuthSession session) => _local.saveSession(session);
 
   @override

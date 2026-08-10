@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/extensions.dart';
+import '../../responsive/pharma_screen_layout.dart';
+import '../dialogs/enterprise_overlay_chrome.dart';
 
 /// Moldura comum para páginas de módulo (título opcional + conteúdo scrollável).
 class ModulePageFrame extends StatelessWidget {
@@ -25,29 +27,51 @@ class ModulePageFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final s = context.spacing;
+    final isMobile = PharmaScreenLayout.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (_showsHeader)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title != null && title!.trim().isNotEmpty)
-                Expanded(
-                  child: Text(
-                    title!,
-                    style: context.erpPageTitle.copyWith(color: t.textPrimary),
-                  ),
+          isMobile && actions.isNotEmpty
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (title != null && title!.trim().isNotEmpty) ...[
+                      Text(
+                        title!,
+                        style: context.erpPageTitle.copyWith(color: t.textPrimary),
+                      ),
+                      SizedBox(height: s.md),
+                    ],
+                    EnterpriseResponsiveActions(
+                      actions: actions,
+                      forceExpand: true,
+                    ),
+                  ],
                 )
-              else
-                const Spacer(),
-              if (actions.isNotEmpty) ...[
-                if (title != null && title!.trim().isNotEmpty)
-                  SizedBox(width: s.md),
-                Wrap(spacing: s.sm, runSpacing: s.sm, children: actions),
-              ],
-            ],
-          ),
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null && title!.trim().isNotEmpty)
+                      Expanded(
+                        child: Text(
+                          title!,
+                          style: context.erpPageTitle.copyWith(color: t.textPrimary),
+                        ),
+                      )
+                    else
+                      const Spacer(),
+                    if (actions.isNotEmpty) ...[
+                      if (title != null && title!.trim().isNotEmpty)
+                        SizedBox(width: s.md),
+                      EnterpriseResponsiveActions(
+                        actions: actions,
+                        alignment: WrapAlignment.end,
+                      ),
+                    ],
+                  ],
+                ),
         if (_showsHeader) SizedBox(height: s.lg),
         Expanded(
           child: scrollable ? SingleChildScrollView(child: child) : child,
