@@ -234,7 +234,25 @@ class _AuditPsychotropicsPageState
   }
 
   Widget _buildDesktopContent(BuildContext context) {
-    if (_loading && _items.isEmpty) return const ModuleLoadingState();
+    if (_loading && _items.isEmpty) {
+      return EnterpriseDataTable(
+        status: EnterpriseTableStatus.loading,
+        emptyTitle: 'Nenhum resultado encontrado',
+        emptyMessage: 'Nenhum resultado encontrado',
+        columns: [
+          for (final label in [
+            'Data',
+            'Documento',
+            'Produto',
+            'Movimento',
+            'Qtd',
+          ])
+            DataColumn(label: Text(label.toUpperCase())),
+        ],
+        rowCount: 0,
+        rowBuilder: (context, index) => const DataRow(cells: []),
+      );
+    }
     if (_error != null && _items.isEmpty) {
       return ModuleErrorState(
         title: 'Falha ao carregar auditoria',
@@ -243,16 +261,14 @@ class _AuditPsychotropicsPageState
         icon: Icons.verified_user_outlined,
       );
     }
-    if (_items.isEmpty) {
-      return const ModuleEmptyState(
-        title: 'Sem movimentos auditáveis',
-        subtitle:
-            'Não existem registos de psicotrópicos para os filtros actuais.',
-      );
-    }
 
     final t = context.pharmaTokens;
     return EnterpriseDataTable(
+      status: _items.isEmpty
+          ? EnterpriseTableStatus.empty
+          : EnterpriseTableStatus.data,
+      emptyTitle: 'Nenhum resultado encontrado',
+      emptyMessage: 'Nenhum resultado encontrado',
       columns: [
         for (final label in [
           'Data',

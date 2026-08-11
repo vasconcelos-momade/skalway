@@ -418,13 +418,16 @@ class _RegulatoryPageState extends ConsumerState<RegulatoryPage> {
             ),
           ),
         Expanded(
-          child: _items.isEmpty && !_loadingSanitario
-              ? const Center(
-                  child: Text('Sem resultados para os filtros selecionados.'),
-                )
-              : EnterpriseDataTable(
+          child: EnterpriseDataTable(
                   adaptive: false,
                   showCheckboxColumn: false,
+                  status: _loadingSanitario && _items.isEmpty
+                      ? EnterpriseTableStatus.loading
+                      : _items.isEmpty
+                          ? EnterpriseTableStatus.empty
+                          : EnterpriseTableStatus.data,
+                  emptyTitle: 'Nenhum resultado encontrado',
+                  emptyMessage: 'Nenhum resultado encontrado',
                   columns: [
                     enterpriseDataColumn(context, 'Produto'),
                     enterpriseDataColumn(context, 'Lote'),

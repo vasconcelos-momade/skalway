@@ -29,6 +29,8 @@ fi
 
 TS=$(date +%s)
 TENANT_SLUG="farmacia_${TS}"
+# DB real é calculado pelo backend (phrx_tenant_{tenantId}_branch_{branchId});
+# inicializamos por defeito, mas depois extraímos da resposta.
 DB_NAME="tenant_${TENANT_SLUG}"
 OWNER_EMAIL="dono.${TS}@demo.com"
 OWNER_PASSWORD="123456"
@@ -37,14 +39,11 @@ echo "==> 1. Health"
 curl -sf "${BASE_URL}/health" | grep -q '"status":"ok"' && echo "    OK" || { echo "    FALHA"; exit 1; }
 
 echo "==> 2. Criar tenant (POST /central/tenants) — estrutural via CreateTenantUseCase"
-RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
+RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
   -d "{
     \"tenantName\": \"${TENANT_SLUG}\",
     \"branches\": [{ \"name\": \"${TENANT_SLUG}\" }],
-    \"adminName\": \"Admin Tenant\",
-    \"adminEmail\": \"admin.${TS}@demo.com\",
-    \"adminPassword\": \"${OWNER_PASSWORD}\",
     \"ownerUser\": {
       \"name\": \"${TENANT_SLUG}\",
       \"email\": \"${OWNER_EMAIL}\",
@@ -53,8 +52,8 @@ RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
     }
   }")
 
-HTTP_CODE=$(echo "$RESP" | head -1 | awk '{print $2}')
-BODY=$(echo "$RESP" | sed -n '/^{/,$p' | head -1)
+HTTP_CODE="${RESP##*$'\n'}"
+BODY="${RESP%$'\n'*}"
 
 if [[ "$HTTP_CODE" != "201" ]]; then
   echo "    Esperado 201, obteve ${HTTP_CODE}"
@@ -62,15 +61,20 @@ if [[ "$HTTP_CODE" != "201" ]]; then
   exit 1
 fi
 
-echo "    201 Created — base: ${DB_NAME}"
-
 if command -v jq >/dev/null 2>&1; then
   TENANT_ID=$(echo "$BODY" | jq -r '.data.id // .id')
   BRANCH_ID=$(echo "$BODY" | jq -r '.data.branch.id // .branch.id')
+  DB_NAME=$(echo "$BODY" | jq -r '.data.branch.dbName // .branch.dbName // empty')
 else
   TENANT_ID=$(echo "$BODY" | sed -n 's/.*"id":"\?\([^",}]*\)".*/\1/p' | head -1)
   BRANCH_ID=$(echo "$BODY" | sed -n 's/.*"branch":{[^}]*"id":"\?\([^",}]*\)".*/\1/p' | head -1)
 fi
+
+if [[ -z "${DB_NAME:-}" && -n "${TENANT_ID:-}" && -n "${BRANCH_ID:-}" ]]; then
+  DB_NAME="phrx_tenant_${TENANT_ID}_branch_${BRANCH_ID}"
+fi
+
+echo "    201 Created — base: ${DB_NAME}"
 
 echo "==> 3. MySQL"
 if tenant_database_exists "${DB_NAME}"; then

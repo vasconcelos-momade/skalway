@@ -12,6 +12,10 @@ class PlatformTenantSummary {
     this.monthlyValue,
     this.nextBillingAt,
     this.createdAt,
+    this.nuit,
+    this.email,
+    this.telefone,
+    this.endereco,
   });
 
   final String id;
@@ -24,6 +28,10 @@ class PlatformTenantSummary {
   final double? monthlyValue;
   final DateTime? nextBillingAt;
   final DateTime? createdAt;
+  final String? nuit;
+  final String? email;
+  final String? telefone;
+  final String? endereco;
 }
 
 class PlatformTenantDetail {
@@ -346,6 +354,9 @@ class RegisterTenantPayload {
     required this.ownerEmail,
     required this.ownerPassword,
     required this.branches,
+    this.nuit,
+    this.telefone,
+    this.endereco,
     this.planSlug = 'starter',
     this.status = 'trial',
     this.billingPeriodMonths = 1,
@@ -355,6 +366,9 @@ class RegisterTenantPayload {
   final String ownerEmail;
   final String ownerPassword;
   final List<String> branches;
+  final String? nuit;
+  final String? telefone;
+  final String? endereco;
   final String planSlug;
   final String status;
   final int billingPeriodMonths;
@@ -362,6 +376,9 @@ class RegisterTenantPayload {
   Map<String, dynamic> toJson() => {
         'tenantName': tenantName,
         'email': ownerEmail,
+        if (nuit != null && nuit!.isNotEmpty) 'nuit': nuit,
+        if (telefone != null && telefone!.isNotEmpty) 'telefone': telefone,
+        if (endereco != null && endereco!.isNotEmpty) 'endereco': endereco,
         'planSlug': planSlug,
         'status': status,
         'billingPeriodMonths': billingPeriodMonths,
@@ -373,6 +390,32 @@ class RegisterTenantPayload {
           'role': 'admin',
         },
       };
+}
+
+class UpdateTenantPayload {
+  const UpdateTenantPayload({
+    this.tenantName,
+    this.nuit,
+    this.email,
+    this.telefone,
+    this.endereco,
+  });
+
+  final String? tenantName;
+  final String? nuit;
+  final String? email;
+  final String? telefone;
+  final String? endereco;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    if (tenantName != null) map['tenantName'] = tenantName;
+    if (nuit != null) map['nuit'] = nuit;
+    if (email != null) map['email'] = email;
+    if (telefone != null) map['telefone'] = telefone;
+    if (endereco != null) map['endereco'] = endereco;
+    return map;
+  }
 }
 
 class PlatformDashboardStats {

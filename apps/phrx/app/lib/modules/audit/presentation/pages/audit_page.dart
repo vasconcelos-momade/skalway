@@ -97,13 +97,6 @@ class AuditPage extends ConsumerWidget {
     }
 
     final events = state.dashboard.recentEvents;
-    if (events.isEmpty) {
-      return const ModuleEmptyState(
-        title: 'Sem eventos recentes',
-        subtitle: 'Não existem eventos de negócio registados.',
-      );
-    }
-
     final s = context.spacing;
 
     return ResponsiveBuilder(
@@ -137,6 +130,7 @@ class AuditPage extends ConsumerWidget {
             ),
             hasMore: false,
             isLoading: false,
+            emptyMessage: 'Nenhum resultado encontrado',
           );
         }
 
@@ -154,6 +148,11 @@ class AuditPage extends ConsumerWidget {
               child: EnterpriseDataTable(
                 adaptive: false,
                 showCheckboxColumn: false,
+                status: events.isEmpty
+                    ? EnterpriseTableStatus.empty
+                    : EnterpriseTableStatus.data,
+                emptyTitle: 'Nenhum resultado encontrado',
+                emptyMessage: 'Nenhum resultado encontrado',
                 columns: const [
                   DataColumn(label: Text('TIPO')),
                   DataColumn(label: Text('ENTIDADE')),

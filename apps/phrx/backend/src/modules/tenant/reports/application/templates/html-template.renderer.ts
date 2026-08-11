@@ -46,9 +46,17 @@ export function renderInstitutionalReportHtml(definition: ReportDefinition): str
   }
 
   const view = buildInstitutionalReportView(definition);
+  const pageRule = `
+@page {
+  size: ${view.pageSize} ${view.pageOrientation};
+  /* Margins are controlled by Puppeteer (header/footer); avoid double insets. */
+  margin: 0;
+}
+`.trim();
+
   return layoutTemplate({
     title: view.title,
-    css: institutionalCss ?? "",
+    css: `${pageRule}\n${institutionalCss ?? ""}`,
     pageOrientation: view.pageOrientation,
     pageSize: view.pageSize,
     watermarkText: view.watermarkText,

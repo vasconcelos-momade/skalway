@@ -46,9 +46,12 @@ class EnterpriseAlertCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: textTheme.erpCardTitle.copyWith(
                     color: t.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -57,6 +60,8 @@ class EnterpriseAlertCard extends StatelessWidget {
                 SizedBox(height: s.xxs),
                 Text(
                   description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: textTheme.erpBody.copyWith(color: t.textMuted),
                 ),
               ],

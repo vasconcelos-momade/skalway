@@ -5,8 +5,7 @@ import {
   type ReportExporter,
 } from "../types/report.types";
 import { toReportFileName } from "../helpers/report-export.helper";
-import { renderInstitutionalReportHtml } from "../templates/html-template.renderer";
-import { convertHtmlToPdf } from "../templates/pdf-html.converter";
+import { ReportPdfService } from "../services/report-pdf.service";
 
 export class PdfExporter implements ReportExporter {
   readonly format = "pdf" as const;
@@ -15,8 +14,7 @@ export class PdfExporter implements ReportExporter {
     definition: ReportDefinition,
     disposition: ReportDisposition,
   ): Promise<ReportArtifact> {
-    const html = renderInstitutionalReportHtml(definition);
-    const bytes = await convertHtmlToPdf(html, definition);
+    const bytes = await ReportPdfService.generate(definition);
 
     return {
       bytes,

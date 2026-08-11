@@ -12,6 +12,7 @@ import type { CentralAuthContext } from "../../../../shared/http/central-auth";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
 import { success } from "../../../../shared/http/api-response";
 import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
+import { ComplianceAuditService } from "../../../../shared/services/compliance-audit.service";
 
 const ownerUserSchema = z.object({
   name: z.string().trim().min(1),
@@ -27,9 +28,6 @@ const branchInputSchema = z.object({
 const registerTenantSchema = z
   .object({
     tenantName: z.string().trim().min(1, "Nome do tenant é obrigatório"),
-    adminName: z.string().trim().min(1),
-    adminEmail: z.string().trim().pipe(z.email()),
-    adminPassword: z.string().min(6),
     userId: z.string().trim().min(1).optional(),
     ownerUser: ownerUserSchema.optional(),
     email: z.string().trim().pipe(z.email()).optional().nullable(),
@@ -99,6 +97,26 @@ const listTenantsQuerySchema = z.object({
   q: z.string().trim().min(1).optional(),
   page: z.coerce.number().int().positive().optional(),
   pageSize: z.coerce.number().int().positive().max(100).optional(),
+});
+
+const updateTenantSchema = z
+  .object({
+    tenantName: z.string().trim().min(1).optional(),
+    nuit: z.string().trim().optional().nullable(),
+    email: z.string().trim().pipe(z.email()).optional().nullable(),
+    telefone: z.string().trim().optional().nullable(),
+    endereco: z.string().trim().optional().nullable(),
+  })
+  .refine(
+    (v) => {
+      if (v.nuit && !isValidNuit(v.nuit)) return false;
+      return true;
+    },
+    { message: "NUIT inválido. Deve conter exactamente 9 dígitos.", path: ["nuit"] },
+  );
+
+const updateOwnerPasswordSchema = z.object({
+  newPassword: z.string().min(6, "A nova senha deve ter pelo menos 6 caracteres."),
 });
 
 function parseCentralRole(input: unknown, fallback: Role): Role {
@@ -290,11 +308,6 @@ export class CentralTenantController {
     const body = await parseJsonBody(req, registerTenantSchema);
     const tenantName = body.tenantName.trim();
     const tenantKey = normalizeTenantSlug(tenantName);
-    const adminEmail = body.adminEmail.trim().toLowerCase();
-    const ownerEmail =
-      body.ownerUser?.email.trim().toLowerCase() ??
-      body.email?.trim().toLowerCase() ??
-      null;
 
     let ownerUserId = body.userId;
     if (!ownerUserId) {
@@ -326,35 +339,6 @@ export class CentralTenantController {
       ownerUserId = createdUser.id.toString();
     }
 
-    let adminUserId: string | null = null;
-    if (ownerEmail && ownerEmail === adminEmail) {
-      adminUserId = ownerUserId;
-    } else {
-      const existingAdmin = await prismaCentral.user.findUnique({
-        where: { email: adminEmail },
-      });
-      if (existingAdmin) {
-        return Response.json(
-          {
-            error: {
-              message: `Já existe um utilizador central com o e-mail ${body.adminEmail}.`,
-            },
-          },
-          { status: 409 },
-        );
-      }
-      const hashedAdminPassword = await bcrypt.hash(body.adminPassword, 10);
-      const createdAdmin = await prismaCentral.user.create({
-        data: {
-          name: body.adminName.trim(),
-          email: adminEmail,
-          password: hashedAdminPassword,
-          role: Role.admin,
-        },
-      });
-      adminUserId = createdAdmin.id.toString();
-    }
-
     const branches =
       body.branches && body.branches.length > 0
         ? body.branches.map((b) => ({ name: b.name.trim() }))
@@ -363,11 +347,7 @@ export class CentralTenantController {
     const tenantRegistrationPayload = {
       tenantName,
       tenantKey,
-      adminName: body.adminName,
-      adminEmail: body.adminEmail,
-      adminPassword: body.adminPassword,
       userId: ownerUserId,
-      adminUserId,
       email: body.email ?? body.ownerUser?.email ?? null,
       endereco: body.endereco ?? null,
       nuit: body.nuit ?? null,
@@ -409,5 +389,151 @@ export class CentralTenantController {
         { status: conflict ? 409 : 400 },
       );
     }
+  }
+
+  async update(auth: CentralAuthContext, tenantId: string, req: Request): Promise<Response> {
+    if (auth.role !== Role.superadmin) {
+      return Response.json({ error: { message: "Apenas superadmin pode editar tenants." } }, { status: 403 });
+    }
+
+    const body = await parseJsonBody(req, updateTenantSchema);
+    const prisma = prismaCentral as any;
+
+    const existing = await prisma.tenant.findFirst({
+      where: { id: BigInt(tenantId), deletedAt: null },
+      select: { id: true, tenantName: true, nuit: true, email: true, telefone: true, endereco: true },
+    });
+    if (!existing) {
+      return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (body.tenantName !== undefined) data.tenantName = body.tenantName;
+    if (body.nuit !== undefined) data.nuit = body.nuit;
+    if (body.email !== undefined) data.email = body.email;
+    if (body.telefone !== undefined) data.telefone = body.telefone;
+    if (body.endereco !== undefined) data.endereco = body.endereco;
+
+    if (Object.keys(data).length === 0) {
+      return Response.json({ error: { message: "Nenhum campo para actualizar." } }, { status: 400 });
+    }
+
+    const updated = await prisma.tenant.update({
+      where: { id: BigInt(tenantId) },
+      data,
+      select: tenantListSelect,
+    });
+
+    const auditSvc = new ComplianceAuditService();
+    await auditSvc.createImmutableLog({
+      userId: auth.userId,
+      action: "TENANT_UPDATE",
+      entity: "Tenant",
+      entityId: tenantId,
+      before: serializeForJson(existing),
+      after: serializeForJson(data),
+    });
+
+    return Response.json(serializeForJson(mapTenantRecord(updated)));
+  }
+
+  async deleteTenant(auth: CentralAuthContext, tenantId: string): Promise<Response> {
+    if (auth.role !== Role.superadmin) {
+      return Response.json({ error: { message: "Apenas superadmin pode eliminar tenants." } }, { status: 403 });
+    }
+
+    const prisma = prismaCentral as any;
+
+    const tenant = await prisma.tenant.findFirst({
+      where: { id: BigInt(tenantId), deletedAt: null },
+      select: {
+        id: true,
+        tenantName: true,
+        tenantKey: true,
+        ownerUserId: true,
+        subscriptions: {
+          where: { deletedAt: null },
+          select: { id: true, status: true },
+        },
+        invoices: {
+          where: { status: { in: ["pago", "paga", "confirmado"] } },
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!tenant) {
+      return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
+    }
+
+    const hasPaidSub = tenant.subscriptions?.some(
+      (s: any) => s.status && ["ativo", "active"].includes(s.status.toLowerCase()),
+    );
+    if (hasPaidSub) {
+      return Response.json(
+        { error: { message: "Não é possível eliminar um tenant com plano pago activo." } },
+        { status: 422 },
+      );
+    }
+
+    const hasPaidInvoice = (tenant.invoices?.length ?? 0) > 0;
+    if (hasPaidInvoice) {
+      return Response.json(
+        { error: { message: "Não é possível eliminar um tenant que possui facturas pagas." } },
+        { status: 422 },
+      );
+    }
+
+    await prisma.tenant.update({
+      where: { id: BigInt(tenantId) },
+      data: { deletedAt: new Date() },
+    });
+
+    const auditSvc = new ComplianceAuditService();
+    await auditSvc.createImmutableLog({
+      userId: auth.userId,
+      action: "TENANT_DELETE",
+      entity: "Tenant",
+      entityId: tenantId,
+      before: serializeForJson({ tenantName: tenant.tenantName, tenantKey: tenant.tenantKey }),
+    });
+
+    return new Response(null, { status: 204 });
+  }
+
+  async updateOwnerPassword(auth: CentralAuthContext, tenantId: string, req: Request): Promise<Response> {
+    if (auth.role !== Role.superadmin) {
+      return Response.json({ error: { message: "Apenas superadmin pode alterar a senha do proprietário." } }, { status: 403 });
+    }
+
+    const body = await parseJsonBody(req, updateOwnerPasswordSchema);
+    const prisma = prismaCentral as any;
+
+    const tenant = await prisma.tenant.findFirst({
+      where: { id: BigInt(tenantId), deletedAt: null },
+      select: { id: true, tenantName: true, ownerUserId: true },
+    });
+    if (!tenant) {
+      return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
+    }
+
+    const hashedPassword = await bcrypt.hash(body.newPassword, 10);
+    await prisma.user.update({
+      where: { id: tenant.ownerUserId },
+      data: { password: hashedPassword },
+    });
+
+    const auditSvc = new ComplianceAuditService();
+    await auditSvc.createImmutableLog({
+      userId: auth.userId,
+      action: "TENANT_OWNER_PASSWORD_CHANGE",
+      entity: "User",
+      entityId: tenant.ownerUserId.toString(),
+      before: null,
+      after: { tenantId, tenantName: tenant.tenantName, note: "password changed by superadmin" },
+    });
+
+    return Response.json({ message: "Senha do proprietário actualizada com sucesso." });
   }
 }

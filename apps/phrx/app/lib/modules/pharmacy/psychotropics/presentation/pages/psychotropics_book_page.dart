@@ -318,13 +318,14 @@ class _PsychotropicsBookPageState extends ConsumerState<PsychotropicsBookPage> {
                         ),
                       ),
                     Expanded(
-                      child: _items.isEmpty && !_loading
-                          ? const Center(
-                              child: Text(
-                                'Sem resultados para os filtros selecionados.',
-                              ),
-                            )
-                          : EnterpriseDataTable(
+                      child: EnterpriseDataTable(
+                              status: _loading && _items.isEmpty
+                                  ? EnterpriseTableStatus.loading
+                                  : _items.isEmpty
+                                      ? EnterpriseTableStatus.empty
+                                      : EnterpriseTableStatus.data,
+                              emptyTitle: 'Nenhum resultado encontrado',
+                              emptyMessage: 'Nenhum resultado encontrado',
                               columns: const [
                                 DataColumn(label: Text('DOCUMENTO')),
                                 DataColumn(label: Text('PRODUTO')),

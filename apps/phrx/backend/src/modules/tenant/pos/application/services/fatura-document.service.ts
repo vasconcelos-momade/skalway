@@ -14,65 +14,10 @@ function toAscii(value: unknown): string {
     .trim();
 }
 
-function formatMoney(value: unknown): string {
-  const numeric = Number(String(value ?? "0").replace(",", "."));
-  if (!Number.isFinite(numeric)) {
-    return "0.00";
-  }
-  return numeric.toFixed(2);
-}
-
 function toNumber(value: unknown): number {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   const parsed = Number(String(value ?? "0").replace(",", "."));
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function escapePdfText(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-}
-
-function buildSimplePdf(lines: string[]): Uint8Array {
-  const encoder = new TextEncoder();
-  const safeLines = lines.map((line) => escapePdfText(toAscii(line)));
-  const streamLines = ["BT", "/F1 11 Tf", "50 790 Td"];
-
-  for (const line of safeLines) {
-    streamLines.push(`(${line}) Tj`);
-    streamLines.push("0 -14 Td");
-  }
-
-  streamLines.push("ET");
-  const stream = `${streamLines.join("\n")}\n`;
-  const streamBytes = encoder.encode(stream);
-  const streamLength = streamBytes.length;
-
-  const objects = [
-    "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
-    "2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj\n",
-    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n",
-    "4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
-    `5 0 obj\n<< /Length ${streamLength} >>\nstream\n${stream}endstream\nendobj\n`,
-  ];
-
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-
-  for (const object of objects) {
-    offsets.push(encoder.encode(pdf).length);
-    pdf += object;
-  }
-
-  const xrefOffset = encoder.encode(pdf).length;
-  pdf += `xref\n0 ${objects.length + 1}\n`;
-  pdf += "0000000000 65535 f \n";
-
-  for (let index = 1; index < offsets.length; index += 1) {
-    pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
-  }
-
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-  return encoder.encode(pdf);
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -165,66 +110,6 @@ export type InvoiceDocumentPayload = {
 };
 
 export class FaturaDocumentService {
-  static buildPdf(invoice: InvoiceDocumentPayload): {
-    bytes: Uint8Array;
-    fileName: string;
-    contentType: string;
-  } {
-    const createdAt = invoice.createdAt
-      ? new Date(invoice.createdAt).toISOString().slice(0, 19).replace("T", " ")
-      : "-";
-    const paymentLines = [
-      ...(invoice.valorRecebido != null
-        ? [`Valor recebido: ${formatMoney(invoice.valorRecebido)}`]
-        : []),
-      ...(invoice.troco != null && Number(invoice.troco) > 0
-        ? [`Troco: ${formatMoney(invoice.troco)}`]
-        : []),
-    ];
-    const empresaNome = resolveEmpresaNome(invoice.empresa?.nome);
-    const lines = [
-      `${toAscii(empresaNome)} - Fatura`,
-      `NUIT: ${invoice.empresa?.nuit ?? "-"}`,
-      `Endereco: ${invoice.empresa?.endereco ?? "-"}`,
-      `Contacto: ${invoice.empresa?.email ?? invoice.empresa?.telefone ?? "-"}`,
-      `Numero: ${invoice.numero}`,
-      `Serie: ${invoice.serie ?? "-"}`,
-      `Data: ${createdAt}`,
-      `Estado: ${invoice.estado ?? "-"}`,
-      `Cliente: ${invoice.cliente?.nome ?? "Consumidor Final"}`,
-      `Documento: ${invoice.cliente?.documento ?? "-"}`,
-      `Terminal: ${invoice.terminal?.codigo ?? invoice.terminal?.nome ?? "-"}`,
-      `Operador: ${invoice.user?.name ?? "-"}`,
-      "",
-      "Itens:",
-      ...(invoice.items ?? []).map((item, index) =>
-        `${index + 1}. ${formatProdutoItemLabel({
-          nomeComercial: item.nomeComercial,
-          dosagem: item.dosagem,
-          forma: item.forma,
-          fallback: item.descricao,
-        })} x${item.quantidade ?? 0} @ ${formatMoney(item.precoUnit)} = ${formatMoney(item.total)}`,
-      ),
-      "",
-      "Pagamentos:",
-      ...(invoice.payments ?? []).map((payment, index) =>
-        `${index + 1}. ${payment.metodo ?? "-"} ${formatMoney(payment.valor)}${payment.referencia ? ` ref ${payment.referencia}` : ""}`,
-      ),
-      "",
-      `Subtotal: ${formatMoney(invoice.subtotal)}`,
-      `Desconto: ${formatMoney(invoice.desconto)}`,
-      `IVA: ${formatMoney(invoice.ivaTotal)}`,
-      `Total: ${formatMoney(invoice.total)}`,
-      ...paymentLines,
-    ];
-
-    return {
-      bytes: buildSimplePdf(lines),
-      fileName: `fatura-${toAscii(invoice.numero || invoice.id || "documento")}.pdf`,
-      contentType: "application/pdf",
-    };
-  }
-
   /** Mapeia fatura POS → DTO do template ESC/POS 80mm (scalway-gastro). */
   static toEscposInput(invoice: InvoiceDocumentPayload): FaturaReciboEscposInput {
     return {

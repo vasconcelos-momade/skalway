@@ -518,6 +518,39 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
     }
   }
 
+  Future<void> updateTenant(String tenantId, UpdateTenantPayload payload) async {
+    state = true;
+    try {
+      await ref.read(platformAdminDataSourceProvider).updateTenant(tenantId, payload);
+      ref.invalidate(platformTenantsProvider);
+      ref.invalidate(platformTenantDetailProvider(tenantId));
+    } finally {
+      state = false;
+    }
+  }
+
+  Future<void> deleteTenant(String tenantId) async {
+    state = true;
+    try {
+      await ref.read(platformAdminDataSourceProvider).deleteTenant(tenantId);
+      ref.invalidate(platformTenantsProvider);
+      ref.invalidate(platformDashboardProvider);
+    } finally {
+      state = false;
+    }
+  }
+
+  Future<void> updateOwnerPassword(String tenantId, String newPassword) async {
+    state = true;
+    try {
+      await ref
+          .read(platformAdminDataSourceProvider)
+          .updateOwnerPassword(tenantId, newPassword);
+    } finally {
+      state = false;
+    }
+  }
+
   Future<PlatformBranch> createBranch({
     required String tenantId,
     required String name,

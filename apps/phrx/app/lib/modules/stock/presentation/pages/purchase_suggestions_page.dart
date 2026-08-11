@@ -258,17 +258,14 @@ class _PurchaseSuggestionsPageState
             ),
           ),
         Expanded(
-          child: state.items.isEmpty && !state.isLoading
-              ? Center(
-                  child: Text(
-                    'Nenhuma sugestão de compra registada',
-                    style: Theme.of(context)
-                        .textTheme
-                        .erpBodySecondary
-                        .copyWith(color: t.textMuted),
-                  ),
-                )
-              : EnterpriseDataTable(
+          child: EnterpriseDataTable(
+                  status: state.isLoading && state.items.isEmpty
+                      ? EnterpriseTableStatus.loading
+                      : state.items.isEmpty
+                          ? EnterpriseTableStatus.empty
+                          : EnterpriseTableStatus.data,
+                  emptyTitle: 'Nenhum resultado encontrado',
+                  emptyMessage: 'Nenhum resultado encontrado',
                   columns: const [
                     DataColumn(label: Text('PRODUTO')),
                     DataColumn(label: Text('ORIGEM')),

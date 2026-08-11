@@ -16,6 +16,11 @@ class MovimentacoesTable extends StatelessWidget {
     final t = context.pharmaTokens;
 
     return EnterpriseDataTable(
+      status: items.isEmpty
+          ? EnterpriseTableStatus.empty
+          : EnterpriseTableStatus.data,
+      emptyTitle: 'Nenhum resultado encontrado',
+      emptyMessage: 'Nenhum resultado encontrado',
       columns: [
         enterpriseDataColumn(context, 'Data'),
         enterpriseDataColumn(context, 'Tipo'),

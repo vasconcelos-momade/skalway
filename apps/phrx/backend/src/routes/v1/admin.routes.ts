@@ -127,6 +127,39 @@ export function registerAdminRoutes(router: Router, prefix: string): void {
     },
   );
 
+  router.patch(
+    `${prefix}/central/tenants/:tenantId`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
+      return tenantController.update(getCentralAuth(context), tenantId, context.req);
+    },
+  );
+
+  router.delete(
+    `${prefix}/central/tenants/:tenantId`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
+      return tenantController.deleteTenant(getCentralAuth(context), tenantId);
+    },
+  );
+
+  router.patch(
+    `${prefix}/central/tenants/:tenantId/owner-password`,
+    centralAuthMiddleware(),
+    superadminMiddleware(),
+    auditMiddleware,
+    async (context) => {
+      const { tenantId } = parseRouteParams(context.params, tenantIdParamSchema);
+      return tenantController.updateOwnerPassword(getCentralAuth(context), tenantId, context.req);
+    },
+  );
+
   router.get(
     `${prefix}/central/tenants/:tenantId/branches`,
     centralAuthMiddleware(),

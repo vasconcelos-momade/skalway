@@ -127,7 +127,16 @@ class _AuditAdaptiveListBodyState<T> extends State<AuditAdaptiveListBody<T>> {
     final state = widget.state;
 
     if (state.viewState == AuditViewState.loading) {
-      return const ModuleLoadingState();
+      return EnterpriseDataTable(
+        adaptive: false,
+        showCheckboxColumn: false,
+        status: EnterpriseTableStatus.loading,
+        emptyTitle: 'Nenhum resultado encontrado',
+        emptyMessage: 'Nenhum resultado encontrado',
+        columns: widget.columns,
+        rowCount: 0,
+        rowBuilder: (context, index) => widget.rowBuilder(state.items[index]),
+      );
     }
     if (state.viewState == AuditViewState.error) {
       return ModuleErrorState(
@@ -137,17 +146,18 @@ class _AuditAdaptiveListBodyState<T> extends State<AuditAdaptiveListBody<T>> {
         icon: widget.errorIcon,
       );
     }
-    if (state.viewState == AuditViewState.empty) {
-      return ModuleEmptyState(
-        title: widget.emptyTitle,
-        subtitle: widget.emptySubtitle,
-        onClearFilters: state.query.hasFilters ? widget.onClearFilters : null,
-      );
-    }
 
     return EnterpriseDataTable(
       adaptive: false,
       showCheckboxColumn: false,
+      status: state.viewState == AuditViewState.empty || state.items.isEmpty
+          ? EnterpriseTableStatus.empty
+          : EnterpriseTableStatus.data,
+      emptyTitle: 'Nenhum resultado encontrado',
+      emptyMessage: 'Nenhum resultado encontrado',
+      emptySubtitle: widget.emptySubtitle,
+      hasActiveFilters: state.query.hasFilters,
+      onClearFilters: state.query.hasFilters ? widget.onClearFilters : null,
       columns: widget.columns,
       rowCount: state.items.length,
       rowBuilder: (context, index) => widget.rowBuilder(state.items[index]),

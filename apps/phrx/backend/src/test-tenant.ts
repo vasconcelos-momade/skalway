@@ -29,10 +29,8 @@ async function test() {
     // 3. Tentar criar um novo tenant
     const result = await createTenant.execute({
       tenantName: "Farmácia Central de Maputo",
-      adminName: "Gerente Farmácia",
-      adminEmail: "gerente@farmaciamaputo.com",
-      adminPassword: "password123",
       userId: user.id.toString(),
+      email: "farmacia.maputo@example.com",
       branches: [
         { name: "Farmácia Central de Maputo" },
         { name: "Filial Nampula" },

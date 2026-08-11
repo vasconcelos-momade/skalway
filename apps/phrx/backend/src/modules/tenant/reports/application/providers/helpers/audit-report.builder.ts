@@ -56,8 +56,8 @@ export function buildAuditReportDefinition(input: {
     tables: input.tables,
     totals: input.totals,
     observations: input.observations,
-    orientation: "landscape",
-    pdf: { orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { orientation: "portrait", pageSize: "A4" },
   } as ModuleReportDefinition;
 }
 

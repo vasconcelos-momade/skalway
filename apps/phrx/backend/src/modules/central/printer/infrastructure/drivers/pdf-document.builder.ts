@@ -1,4 +1,4 @@
-import { buildSimplePdfFromLines } from "../../../../tenant/reports/application/templates/pdf-html.converter";
+import { buildSimplePdfFromLines } from "../../../../../infrastructure/pdf";
 
 function asRecord(payload: unknown): Record<string, unknown> {
   return payload && typeof payload === "object"

@@ -41,8 +41,8 @@ export function buildFinanceReportDefinition(input: {
     kpis: input.kpis,
     tables: input.tables,
     totals: input.totals,
-    orientation: "landscape",
-    pdf: { orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { orientation: "portrait", pageSize: "A4" },
   };
 }
 

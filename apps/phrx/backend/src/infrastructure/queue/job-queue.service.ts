@@ -6,11 +6,7 @@ export const DEFAULT_QUEUE_NAME = process.env.JOB_QUEUE_NAME || "skalway:jobs";
 export interface TenantRegisterJobPayload {
   tenantName: string;
   tenantKey?: string | null;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
   userId: string;
-  adminUserId?: string | null;
   email?: string | null;
   endereco?: string | null;
   nuit?: string | null;

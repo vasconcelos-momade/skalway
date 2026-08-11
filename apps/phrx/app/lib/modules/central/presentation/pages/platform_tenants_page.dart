@@ -412,9 +412,10 @@ enum _TenantAction {
   history,
   addBranch,
   addCredits,
+  deleteTenant,
 }
 
-class _TenantActionsMenuButton extends StatelessWidget {
+class _TenantActionsMenuButton extends ConsumerWidget {
   const _TenantActionsMenuButton({
     required this.tenant,
     required this.currency,
@@ -426,7 +427,7 @@ class _TenantActionsMenuButton extends StatelessWidget {
   final DateFormat dateFmt;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return EnterpriseActionsMenuButton<_TenantAction>(
       tooltip: 'Acções do tenant',
       items: const [
@@ -449,6 +450,12 @@ class _TenantActionsMenuButton extends StatelessWidget {
           value: _TenantAction.addCredits,
           label: 'Adicionar Créditos',
           icon: Icons.account_balance_wallet_outlined,
+        ),
+        EnterpriseDropdownItem<_TenantAction>(
+          value: _TenantAction.deleteTenant,
+          label: 'Deletar Tenant',
+          icon: Icons.delete_outline_rounded,
+          destructive: true,
         ),
       ],
       onSelected: (action) async {
@@ -496,6 +503,31 @@ class _TenantActionsMenuButton extends StatelessWidget {
             );
             if (ok && context.mounted) {
               PharmaFeedback.success(context, 'Créditos adicionados.');
+            }
+          case _TenantAction.deleteTenant:
+            final confirmed = await PharmaFeedback.confirm(
+              context: context,
+              title: 'Deletar Tenant',
+              message:
+                  'Esta operação é irreversível. O tenant "${tenant.tenantName}" '
+                  'e todos os seus dados serão eliminados permanentemente.\n\n'
+                  'Só é possível eliminar tenants sem plano pago activo nem facturas pagas.',
+              confirmText: 'Deletar',
+              destructive: true,
+            );
+            if (!confirmed || !context.mounted) return;
+            try {
+              await ref
+                  .read(platformBillingActionsProvider.notifier)
+                  .deleteTenant(tenant.id);
+              if (!context.mounted) return;
+              PharmaFeedback.success(context, 'Tenant eliminado.');
+            } catch (e) {
+              if (!context.mounted) return;
+              PharmaFeedback.error(
+                context,
+                e.toString().replaceFirst('Exception: ', ''),
+              );
             }
         }
       },

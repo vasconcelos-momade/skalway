@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
@@ -16,6 +17,8 @@ import '../../domain/entities/platform_entities.dart';
 import '../providers/platform_providers.dart';
 import '../widgets/confirm_payment_side_sheet.dart';
 import '../widgets/create_branch_form_dialog.dart';
+import '../widgets/edit_tenant_side_sheet.dart';
+import '../widgets/update_tenant_owner_password_dialog.dart';
 
 class PlatformTenantDetailPage extends ConsumerWidget {
   const PlatformTenantDetailPage({super.key, required this.tenantId});
@@ -57,6 +60,81 @@ class PlatformTenantDetailPage extends ConsumerWidget {
               tooltip: 'Actualizar',
               onPressed: () => invalidateTenantBilling(ref, tenantId),
               icon: const Icon(Icons.refresh),
+            ),
+            PopupMenuButton<String>(
+              tooltip: 'Acções',
+              icon: const Icon(Icons.more_vert),
+              onSelected: (action) async {
+                if (action == 'edit') {
+                  final ok = await showEditTenantSideSheet(
+                    context,
+                    tenant: t,
+                  );
+                  if (ok == true && context.mounted) {
+                    invalidateTenantBilling(ref, tenantId);
+                    PharmaFeedback.success(context, 'Tenant actualizado.');
+                  }
+                } else if (action == 'password') {
+                  final ok = await showUpdateOwnerPasswordDialog(
+                    context,
+                    tenantId: tenantId,
+                    tenantName: t.tenantName,
+                  );
+                  if (ok == true && context.mounted) {
+                    PharmaFeedback.success(context, 'Senha actualizada com sucesso.');
+                  }
+                } else if (action == 'delete') {
+                  final confirmed = await PharmaFeedback.confirm(
+                    context: context,
+                    title: 'Eliminar Tenant',
+                    message:
+                        'Esta operação é irreversível. O tenant "${t.tenantName}" '
+                        'e todos os seus dados serão eliminados permanentemente.\n\n'
+                        'Só é possível eliminar tenants sem plano pago activo nem facturas pagas.',
+                    confirmText: 'Eliminar',
+                    destructive: true,
+                  );
+                  if (!confirmed || !context.mounted) return;
+                  try {
+                    await ref
+                        .read(platformBillingActionsProvider.notifier)
+                        .deleteTenant(tenantId);
+                    if (!context.mounted) return;
+                    PharmaFeedback.success(context, 'Tenant eliminado.');
+                    if (context.canPop()) context.pop();
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    PharmaFeedback.error(context, e.toString());
+                  }
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('Editar Tenant'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'password',
+                  child: ListTile(
+                    leading: Icon(Icons.lock_reset_outlined),
+                    title: Text('Alterar senha do proprietário'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                    title: Text('Eliminar Tenant', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
           kpis: [

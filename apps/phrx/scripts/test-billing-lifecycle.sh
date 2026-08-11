@@ -69,9 +69,6 @@ else
     -d "{
       \"tenantName\": \"${TENANT_SLUG}\",
     \"branches\": [{ \"name\": \"${TENANT_SLUG}\" }],
-      \"adminName\": \"Admin\",
-      \"adminEmail\": \"admin.${TS}@demo.com\",
-      \"adminPassword\": \"${OWNER_PASSWORD}\",
       \"ownerUser\": {
         \"name\": \"${TENANT_SLUG}\",
         \"email\": \"${OWNER_EMAIL}\",

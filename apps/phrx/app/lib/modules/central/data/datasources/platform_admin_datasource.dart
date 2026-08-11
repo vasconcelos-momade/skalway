@@ -281,6 +281,36 @@ class PlatformAdminDataSource {
     }
   }
 
+  Future<void> updateTenant(String tenantId, UpdateTenantPayload payload) async {
+    try {
+      await _dio.patch<void>(
+        '${ApiConstants.centralTenants}/$tenantId',
+        data: payload.toJson(),
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<void> deleteTenant(String tenantId) async {
+    try {
+      await _dio.delete<void>('${ApiConstants.centralTenants}/$tenantId');
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<void> updateOwnerPassword(String tenantId, String newPassword) async {
+    try {
+      await _dio.patch<void>(
+        '${ApiConstants.centralTenants}/$tenantId/owner-password',
+        data: {'newPassword': newPassword},
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   Future<PlatformBranch> createBranch({
     required String tenantId,
     required String name,
@@ -866,6 +896,10 @@ class PlatformAdminDataSource {
       monthlyValue: monthlyValue,
       nextBillingAt: nextBilling,
       createdAt: _toDate(json['createdAt']),
+      nuit: json['nuit'] as String?,
+      email: json['email'] as String?,
+      telefone: json['telefone'] as String?,
+      endereco: json['endereco'] as String?,
     );
   }
 

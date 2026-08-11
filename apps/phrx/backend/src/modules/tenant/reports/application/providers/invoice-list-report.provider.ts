@@ -141,10 +141,10 @@ export async function buildInvoiceListReportDefinition(
       Registos: items.length,
       "Valor total (MZN)": formatCurrency(totalAmount),
     },
-    orientation: "landscape",
+    orientation: "portrait",
     pdf: {
       template: "invoices/list",
-      orientation: "landscape",
+      orientation: "portrait",
       pageSize: "A4",
     },
   };

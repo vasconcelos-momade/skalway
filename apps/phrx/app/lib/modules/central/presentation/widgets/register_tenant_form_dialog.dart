@@ -48,6 +48,9 @@ class _RegisterTenantFormDialogState
   final _tenantEmailCtrl = TextEditingController();
   final _tenantPassCtrl = TextEditingController();
   final _tenantPassConfirmCtrl = TextEditingController();
+  final _nuitCtrl = TextEditingController();
+  final _telefoneCtrl = TextEditingController();
+  final _enderecoCtrl = TextEditingController();
   final List<TextEditingController> _branchCtrls = [
     TextEditingController(),
   ];
@@ -80,6 +83,9 @@ class _RegisterTenantFormDialogState
     _tenantEmailCtrl.dispose();
     _tenantPassCtrl.dispose();
     _tenantPassConfirmCtrl.dispose();
+    _nuitCtrl.dispose();
+    _telefoneCtrl.dispose();
+    _enderecoCtrl.dispose();
     for (final c in _branchCtrls) {
       c.dispose();
     }
@@ -108,9 +114,9 @@ class _RegisterTenantFormDialogState
       tenantName: tenantName,
       ownerEmail: _tenantEmailCtrl.text.trim(),
       ownerPassword: _tenantPassCtrl.text,
-      adminName: _adminNameCtrl.text.trim(),
-      adminEmail: _adminEmailCtrl.text.trim(),
-      adminPassword: _adminPassCtrl.text,
+      nuit: _nuitCtrl.text.trim().isEmpty ? null : _nuitCtrl.text.trim(),
+      telefone: _telefoneCtrl.text.trim().isEmpty ? null : _telefoneCtrl.text.trim(),
+      endereco: _enderecoCtrl.text.trim().isEmpty ? null : _enderecoCtrl.text.trim(),
       planSlug: _planSlug,
       status: _status,
       billingPeriodMonths: _billingPeriodMonths,
@@ -218,6 +224,38 @@ class _RegisterTenantFormDialogState
                     if (!v.contains('@')) return 'E-mail inválido';
                     return null;
                   },
+                ),
+              ),
+              EnterpriseFormGridItem(
+                child: EnterpriseTextFormField(
+                  controller: _nuitCtrl,
+                  labelText: 'NUIT',
+                  keyboardType: TextInputType.number,
+                  enabled: !_submitting,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return null;
+                    if (v.trim().length != 9 || int.tryParse(v.trim()) == null) {
+                      return 'NUIT deve ter 9 dígitos';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              EnterpriseFormGridItem(
+                child: EnterpriseTextFormField(
+                  controller: _telefoneCtrl,
+                  labelText: 'Telefone',
+                  keyboardType: TextInputType.phone,
+                  enabled: !_submitting,
+                ),
+              ),
+              EnterpriseFormGridItem(
+                fullWidth: true,
+                child: EnterpriseTextFormField(
+                  controller: _enderecoCtrl,
+                  labelText: 'Endereço',
+                  enabled: !_submitting,
+                  maxLines: 2,
                 ),
               ),
               EnterpriseFormGridItem(

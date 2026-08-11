@@ -44,6 +44,8 @@ docker exec "$BACKEND_CONTAINER" bun run bootstrap:central
 
 TS=$(date +%s)
 TENANT_SLUG="farmacia_${TS}"
+# DB real é calculado pelo backend (phrx_tenant_{tenantId}_branch_{branchId});
+# inicializamos por defeito e depois extraímos da resposta.
 DB_NAME="tenant_${TENANT_SLUG}"
 OWNER_EMAIL="dono.${TS}@demo.com"
 OWNER_PASSWORD="123456"
@@ -63,15 +65,12 @@ fi
 echo "    SUPER_ADMIN OK"
 
 echo "==> 3. Criar Tenant via API (CreateTenantUseCase) — base: ${DB_NAME}"
-RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
+RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/central/tenants" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${SUPER_TOKEN}" \
   -d "{
     \"tenantName\": \"${TENANT_SLUG}\",
     \"branches\": [{ \"name\": \"${TENANT_SLUG}\" }],
-    \"adminName\": \"Admin Tenant\",
-    \"adminEmail\": \"admin.${TS}@demo.com\",
-    \"adminPassword\": \"${OWNER_PASSWORD}\",
     \"ownerUser\": {
       \"name\": \"${TENANT_SLUG}\",
       \"email\": \"${OWNER_EMAIL}\",
@@ -80,12 +79,24 @@ RESP=$(curl -s -i -X POST "${BASE_URL}/central/tenants" \
     }
   }")
 
-HTTP_CODE=$(echo "$RESP" | head -1 | awk '{print $2}')
+HTTP_CODE="${RESP##*$'\n'}"
+BODY="${RESP%$'\n'*}"
 if [[ "$HTTP_CODE" != "201" ]]; then
   echo "    Esperado 201, obteve ${HTTP_CODE}"
   echo "$RESP"
   exit 1
 fi
+
+if command -v jq >/dev/null 2>&1; then
+  TENANT_ID=$(echo "$BODY" | jq -r '.data.id // .id // empty')
+  BRANCH_ID=$(echo "$BODY" | jq -r '.data.branch.id // .branch.id // empty')
+  DB_NAME=$(echo "$BODY" | jq -r '.data.branch.dbName // .branch.dbName // empty')
+fi
+
+if [[ -z "${DB_NAME:-}" && -n "${TENANT_ID:-}" && -n "${BRANCH_ID:-}" ]]; then
+  DB_NAME="phrx_tenant_${TENANT_ID}_branch_${BRANCH_ID}"
+fi
+
 echo "    201 Created"
 
 if ! tenant_database_exists "${DB_NAME}"; then

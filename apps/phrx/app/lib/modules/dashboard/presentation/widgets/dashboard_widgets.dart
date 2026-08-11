@@ -1703,13 +1703,14 @@ Widget dashboardSimpleTable({
         Text(title, style: Theme.of(context).textTheme.erpSectionTitle),
         const SizedBox(height: SpacingTokens.sm),
       ],
-      if (rows.isEmpty)
-        DashboardEmptyState(
-          subtitle: emptySubtitle,
-        )
-      else
-        EnterpriseDataTable(
+      EnterpriseDataTable(
           showCheckboxColumn: false,
+          status: rows.isEmpty
+              ? EnterpriseTableStatus.empty
+              : EnterpriseTableStatus.data,
+          emptyTitle: 'Nenhum resultado encontrado',
+          emptyMessage: 'Nenhum resultado encontrado',
+          emptySubtitle: emptySubtitle,
           sortColumnIndex: sortColumnIndex,
           sortAscending: sortAscending,
           columns: List.generate(tableColumns.length, (index) {

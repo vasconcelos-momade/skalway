@@ -1,14 +1,15 @@
-@page {
-  size: A4 portrait;
-  margin: 15mm 15mm 18mm 15mm;
-}
+/* @page size/orientation injected by html-template.renderer; margins via Puppeteer */
 
 * {
   box-sizing: border-box;
 }
 
 :root {
-  --blue: #184a80;
+  /* PhRx design system — AppColors.hospitalGreen / hospitalGreenBright */
+  --primary: #059669;
+  --primary-bright: #22c55e;
+  --primary-deep: #047857;
+  --primary-soft: rgba(5, 150, 105, 0.08);
   --black: #111111;
   --gray-900: #2d2d2d;
   --gray-700: #555555;
@@ -31,8 +32,9 @@ body.report-body {
 
 .report-shell {
   position: relative;
-  min-height: 100%;
-  padding-bottom: 15mm;
+  /* Avoid min-height/padding that can push content onto page 2 */
+  min-height: 0;
+  padding-bottom: 0;
 }
 
 .watermark {
@@ -45,7 +47,7 @@ body.report-body {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(24, 74, 128, 0.06);
+  color: rgba(5, 150, 105, 0.06);
   transform: rotate(-30deg);
   pointer-events: none;
   z-index: 0;
@@ -62,12 +64,17 @@ body.report-body {
 
 .section {
   margin: 0 0 10px;
+  /* Sections with tables must be allowed to break across pages */
+  page-break-inside: auto;
+  break-inside: auto;
 }
 
 .section-heading {
   border-top: 1px solid var(--gray-300);
   padding-top: 5px;
   margin-bottom: 5px;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .keep-with-next {
@@ -94,12 +101,16 @@ body.report-body {
   padding-bottom: 8px;
   page-break-inside: avoid;
   break-inside: avoid;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .institutional-head {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: 18px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .logo-and-brand {
@@ -123,7 +134,7 @@ body.report-body {
 
 .report-brand {
   font-size: 10px;
-  color: var(--blue);
+  color: var(--primary);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -183,35 +194,46 @@ body.report-body {
 .data-table,
 .totals-table {
   width: 100%;
-  border-collapse: collapse;
+  /* separate + spacing 0: Chromium repeats thead more reliably than collapse */
+  border-collapse: separate;
   border-spacing: 0;
   font-size: 10px;
 }
 
 .data-table {
   page-break-inside: auto;
+  break-inside: auto;
 }
 
+/* Repeat column headers on every printed page */
 .data-table thead {
   display: table-header-group;
+}
+
+.data-table thead tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .data-table tfoot {
   display: table-footer-group;
 }
 
-.data-table tr {
+/* Keep each data row together across page breaks when possible */
+.data-table tbody tr {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
 .data-table th {
-  background: var(--blue);
+  background: var(--primary);
   color: var(--white);
   font-weight: 700;
   text-align: left;
   padding: 7px 8px;
-  border-bottom: 1px solid #12385f;
+  border-bottom: 1px solid var(--primary-deep);
 }
 
 .data-table td {
@@ -229,6 +251,8 @@ body.report-body {
 
 .totals-table {
   margin-top: 2px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .totals-table th,
@@ -300,10 +324,20 @@ body.report-body {
   font-size: 10px;
 }
 
+.kpi-grid,
+.filters-block {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
 @media print {
-  .section,
+  /* Do NOT set page-break-inside:avoid on .section — tall tables were
+     pushed entirely to page 2, leaving an empty first page. */
+  .report-header-block,
   .institutional-head,
-  .signature-card {
+  .signature-card,
+  .kpi-grid,
+  .filters-block {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -311,6 +345,20 @@ body.report-body {
   .section-heading {
     page-break-after: avoid;
     break-after: avoid;
+  }
+
+  .data-table {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .data-table thead {
+    display: table-header-group;
+  }
+
+  .data-table tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   p,

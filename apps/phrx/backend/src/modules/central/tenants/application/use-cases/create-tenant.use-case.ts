@@ -28,13 +28,8 @@ export interface CreateTenantDTO {
    * A UI não envia este campo — apenas o backend gera.
    */
   tenantKey?: string | null;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
   /** Utilizador dono (central). */
   userId: string;
-  /** Administrador local (central), se já criado. */
-  adminUserId?: string | null;
   email?: string | null;
   endereco?: string | null;
   nuit?: string | null;
@@ -112,7 +107,6 @@ export class CreateTenantUseCase {
       throw new Error("É necessário informar pelo menos uma Branch.");
     }
 
-    const adminEmail = data.adminEmail.trim().toLowerCase();
     const dbPasswordPlain = runtimeGlobals.process?.env?.MYSQL_ROOT_PASSWORD;
     if (!dbPasswordPlain) {
       throw new Error("MYSQL_ROOT_PASSWORD não definido.");
@@ -224,27 +218,6 @@ export class CreateTenantUseCase {
             active: true,
           },
         });
-
-        if (data.adminUserId && data.adminUserId !== data.userId) {
-          await tx.userTenant.create({
-            data: {
-              userId: BigInt(data.adminUserId),
-              tenantId: tenant.id,
-              role: "ADMIN",
-              active: true,
-            },
-          });
-          if (allPermissions.length > 0) {
-            await tx.userPermission.createMany({
-              data: allPermissions.map((p: any) => ({
-                userId: BigInt(data.adminUserId!),
-                permissionId: p.id,
-                tenantId: tenant.id,
-                allowed: true,
-              })),
-            });
-          }
-        }
 
         const subscription = await tx.subscription.create({
           data: {
@@ -369,10 +342,6 @@ export class CreateTenantUseCase {
       MySqlManagementService.runStructuralSeed(hqDbName);
 
       runtimeGlobals.console?.log(`👤 [CreateTenant] 6/6 Sincronizar utilizadores...`);
-      const centralForAdmin = await prisma.user.findUnique({
-        where: { email: adminEmail },
-        select: { id: true, name: true, email: true },
-      });
       const ownerCentral = await prisma.user.findUnique({
         where: { id: BigInt(data.userId) },
         select: { id: true, name: true, email: true },
@@ -395,13 +364,6 @@ export class CreateTenantUseCase {
           return syncTenantUsersFromCentral({
             tenantId: tenant.id,
             prismaTenant,
-            extraUsers: [
-              {
-                name: data.adminName,
-                email: adminEmail,
-                centralUserId: centralForAdmin?.id ?? null,
-              },
-            ],
           });
         },
       );
@@ -436,42 +398,37 @@ export class CreateTenantUseCase {
             return syncTenantUsersFromCentral({
               tenantId: tenant.id,
               prismaTenant,
-              extraUsers: [
-                {
-                  name: data.adminName,
-                  email: adminEmail,
-                  centralUserId: centralForAdmin?.id ?? null,
-                },
-              ],
             });
           },
         );
       }
 
-      const notificationEmail = ownerCentral?.email ?? adminEmail;
-      const notificationName = ownerCentral?.name ?? data.adminName;
+      const notificationEmail = ownerCentral?.email ?? data.email?.trim() ?? null;
+      const notificationName = ownerCentral?.name ?? tenantName;
 
-      try {
-        await EmailService.send({
-          to: notificationEmail,
-          subject: `Cliente criado: ${tenantName}`,
-          text: [
-            `O tenant ${tenantName} foi criado com sucesso.`,
-            `Identificador: ${slug}.`,
-            `Plano: ${plan.name}.`,
-            `Estado: ${tenantStatus}.`,
-            subscriptionStatus === "trial"
-              ? `Trial válido até ${trialEndsAt.toISOString().slice(0, 10)}.`
-              : "Subscrição activa.",
-            `Branches: ${branches.map((b: any) => `${b.name} (${b.code})`).join(", ")}.`,
-            `Responsável registado: ${notificationName}.`,
-          ].join("\n"),
-        });
-      } catch (error) {
-        runtimeGlobals.console?.log(
-          `⚠️ Email de boas-vindas não enviado para ${notificationEmail}:`,
-          error instanceof Error ? error.message : error,
-        );
+      if (notificationEmail) {
+        try {
+          await EmailService.send({
+            to: notificationEmail,
+            subject: `Cliente criado: ${tenantName}`,
+            text: [
+              `O tenant ${tenantName} foi criado com sucesso.`,
+              `Identificador: ${slug}.`,
+              `Plano: ${plan.name}.`,
+              `Estado: ${tenantStatus}.`,
+              subscriptionStatus === "trial"
+                ? `Trial válido até ${trialEndsAt.toISOString().slice(0, 10)}.`
+                : "Subscrição activa.",
+              `Branches: ${branches.map((b: any) => `${b.name} (${b.code})`).join(", ")}.`,
+              `Responsável registado: ${notificationName}.`,
+            ].join("\n"),
+          });
+        } catch (error) {
+          runtimeGlobals.console?.log(
+            `⚠️ Email de boas-vindas não enviado para ${notificationEmail}:`,
+            error instanceof Error ? error.message : error,
+          );
+        }
       }
 
       runtimeGlobals.console?.log(`🎉 [CreateTenant] Tenant ${slug} pronto para utilização.`);

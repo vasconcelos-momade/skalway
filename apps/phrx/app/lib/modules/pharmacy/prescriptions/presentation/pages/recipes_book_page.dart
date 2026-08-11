@@ -918,11 +918,14 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             ),
           ),
         Expanded(
-          child: _receitasItems.isEmpty && !_loadingReceitas
-              ? const Center(
-                  child: Text('Sem resultados para os filtros selecionados.'),
-                )
-              : EnterpriseDataTable(
+          child: EnterpriseDataTable(
+                  status: _loadingReceitas && _receitasItems.isEmpty
+                      ? EnterpriseTableStatus.loading
+                      : _receitasItems.isEmpty
+                          ? EnterpriseTableStatus.empty
+                          : EnterpriseTableStatus.data,
+                  emptyTitle: 'Nenhum resultado encontrado',
+                  emptyMessage: 'Nenhum resultado encontrado',
                   columns: const [
                     DataColumn(label: Text('RECEITA')),
                     DataColumn(label: Text('PACIENTE')),
@@ -1140,11 +1143,14 @@ class _RecipesBookPageState extends ConsumerState<RecipesBookPage>
             ),
           ),
         Expanded(
-          child: _livroItems.isEmpty && !_loadingLivro
-              ? const Center(
-                  child: Text('Sem resultados para os filtros selecionados.'),
-                )
-              : EnterpriseDataTable(
+          child: EnterpriseDataTable(
+                  status: _loadingLivro && _livroItems.isEmpty
+                      ? EnterpriseTableStatus.loading
+                      : _livroItems.isEmpty
+                          ? EnterpriseTableStatus.empty
+                          : EnterpriseTableStatus.data,
+                  emptyTitle: 'Nenhum resultado encontrado',
+                  emptyMessage: 'Nenhum resultado encontrado',
                   columns: const [
                     DataColumn(label: Text('RECEITA')),
                     DataColumn(label: Text('PACIENTE')),

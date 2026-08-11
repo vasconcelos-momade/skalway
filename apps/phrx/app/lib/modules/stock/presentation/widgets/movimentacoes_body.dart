@@ -155,10 +155,8 @@ class _MovimentacoesResultsPane extends ConsumerWidget {
           message: listState.errorMessage ?? 'Falha ao carregar movimentos.',
           onRetry: notifier.refresh,
         ),
-        MovimentacaoViewState.empty => MovimentacoesEmptyState(
-          onClearFilters: listState.query.hasFilters
-              ? notifier.clearFilters
-              : null,
+        MovimentacaoViewState.empty => MovimentacoesTable(
+          items: listState.items,
         ),
         _ => MovimentacoesTable(items: listState.items),
       },

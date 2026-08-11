@@ -109,10 +109,10 @@ export class CustomersReportProvider implements ReportDataProvider {
         Registos: items.length,
         "Saldo total (MZN)": formatCurrency(saldoTotal),
       },
-      orientation: "landscape",
+      orientation: "portrait",
       pdf: {
         template: "customers/list",
-        orientation: "landscape",
+        orientation: "portrait",
         pageSize: "A4",
       },
     };

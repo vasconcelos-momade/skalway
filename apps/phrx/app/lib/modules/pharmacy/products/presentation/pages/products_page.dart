@@ -102,7 +102,6 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
 
     return ResponsiveBuilder(
       builder: (context, constraints) {
-        final isDesktop = constraints.isDesktopOrWider;
         final isMobile = !constraints.isTabletOrWider;
 
         return PageRefreshBinder(
@@ -172,7 +171,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     padding: EdgeInsets.only(bottom: s.sm),
                     child: pharmacyReportError(ref),
                   ),
-                if (state.errorMessage != null && !isDesktop)
+                if (state.errorMessage != null && isMobile)
                   Padding(
                     padding: EdgeInsets.only(bottom: s.sm),
                     child: Text(
@@ -183,8 +182,24 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     ),
                   ),
                 Expanded(
-                  child: isDesktop
-                      ? ProdutoTable(
+                  // Tablet+ always mounts ProdutoTable so column headers stay
+                  // visible even with empty/loading/error body overlays.
+                  child: isMobile
+                      ? !state.isInitialized && state.isLoading
+                          ? const ProdutoLoading(isDesktop: false)
+                          : mobileItems.isEmpty
+                              ? const ProdutoEmptyState()
+                              : ProdutoList(
+                                  items: mobileItems,
+                                  hasMore: state.hasMore,
+                                  isLoading: state.isLoading,
+                                  onLoadMore: () =>
+                                      controller.goToPage(state.page + 1),
+                                  onItemTap: (_) {},
+                                  onItemAction: (p, action) =>
+                                      _handleAction(context, ref, p, action),
+                                )
+                      : ProdutoTable(
                           items: state.items,
                           sortBy: state.sortBy,
                           sortOrder: state.sortOrder,
@@ -207,21 +222,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                             onPageChanged: controller.goToPage,
                             onPageSizeChanged: controller.setPageSize,
                           ),
-                        )
-                      : !state.isInitialized && state.isLoading
-                          ? ProdutoLoading(isDesktop: isDesktop)
-                          : mobileItems.isEmpty
-                              ? const ProdutoEmptyState()
-                              : ProdutoList(
-                                  items: mobileItems,
-                                  hasMore: state.hasMore,
-                                  isLoading: state.isLoading,
-                                  onLoadMore: () =>
-                                      controller.goToPage(state.page + 1),
-                                  onItemTap: (_) {},
-                                  onItemAction: (p, action) =>
-                                      _handleAction(context, ref, p, action),
-                                ),
+                        ),
                 ),
               ],
             ),

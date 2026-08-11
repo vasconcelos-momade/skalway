@@ -145,8 +145,8 @@ export function buildExecutiveDashboardReport(
         ],
       ),
     ],
-    orientation: "landscape",
-    pdf: { template: "dashboards/executive", orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { template: "dashboards/executive", orientation: "portrait", pageSize: "A4" },
   };
 }
 
@@ -208,8 +208,8 @@ export function buildFinanceDashboardReport(data: any): ModuleReportDefinition {
         ],
       ),
     ],
-    orientation: "landscape",
-    pdf: { template: "dashboards/finance", orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { template: "dashboards/finance", orientation: "portrait", pageSize: "A4" },
   };
 }
 
@@ -271,8 +271,8 @@ export function buildPharmacyDashboardReport(data: any): ModuleReportDefinition 
         ],
       ),
     ],
-    orientation: "landscape",
-    pdf: { template: "dashboards/pharmacy", orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { template: "dashboards/pharmacy", orientation: "portrait", pageSize: "A4" },
   };
 }
 
@@ -335,7 +335,7 @@ export function buildStockDashboardReport(data: any): ModuleReportDefinition {
         ],
       ),
     ],
-    orientation: "landscape",
-    pdf: { template: "dashboards/stock", orientation: "landscape", pageSize: "A4" },
+    orientation: "portrait",
+    pdf: { template: "dashboards/stock", orientation: "portrait", pageSize: "A4" },
   };
 }
