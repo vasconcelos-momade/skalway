@@ -11,7 +11,11 @@ import { controllerErrorResponse } from "../../../../../shared/http/controller-e
 
 const receivePurchaseSchema = z.object({
   fornecedorId: z.string().trim().min(1),
-  numeroDocumento: z.string().trim().min(1, "Número do documento é obrigatório"),
+  numeroDocumento: z
+    .string()
+    .trim()
+    .min(1, "Número do documento é obrigatório")
+    .max(100, "Documento de referência não pode exceder 100 caracteres"),
   items: z.array(z.object({
     produtoId: z.string().trim().min(1),
     numeroLote: z.string().trim().min(1),

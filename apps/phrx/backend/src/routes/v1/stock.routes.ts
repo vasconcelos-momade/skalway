@@ -265,6 +265,23 @@ function registerLotesAndStockRoutes(router: Router, prefix: string): void {
       estoqueController.entradaCompra(context.req, getTenantAuth(context).userId),
   );
 
+  router.post(
+    `${prefix}/tenant/estoque/transferencia`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("LOTES", "CREATE_LOTE"),
+    auditMiddleware,
+    async (context) => {
+      const auth = getTenantAuth(context);
+      return estoqueController.transferir(context.req, {
+        userId: auth.userId,
+        centralUserId: auth.centralUserId,
+        tenantId: auth.tenantId,
+        branchId: auth.branchId,
+      });
+    },
+  );
+
   router.get(
     `${prefix}/tenant/estoque/movimentos`,
     tenantAuthMiddleware(),

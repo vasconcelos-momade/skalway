@@ -19,6 +19,11 @@ const optionalStringSchema = z
 export const entradaCompraBodySchema = z.object({
   produtoId: z.string().trim().min(1, "Produto é obrigatório"),
   fornecedorId: z.string().trim().min(1, "Fornecedor é obrigatório"),
+  documentoReferencia: z
+    .string()
+    .trim()
+    .min(1, "Documento de referência é obrigatório para compra a fornecedor")
+    .max(100, "Documento de referência não pode exceder 100 caracteres"),
   numeroLote: z.string().trim().min(1, "Número do lote é obrigatório"),
   dataValidade: z.string().trim().min(1, "Data de validade é obrigatória"),
   quantidade: z.coerce.number().positive("Quantidade inválida"),
@@ -27,6 +32,20 @@ export const entradaCompraBodySchema = z.object({
 });
 
 export type EntradaCompraDTO = z.infer<typeof entradaCompraBodySchema>;
+
+export const transferenciaStockBodySchema = z.object({
+  produtoId: z.string().trim().min(1, "Produto é obrigatório"),
+  loteId: z.string().trim().min(1, "Lote é obrigatório"),
+  destinoBranchId: z.string().trim().min(1, "Filial de destino é obrigatória"),
+  quantidade: z.coerce.number().positive("Quantidade inválida"),
+  documentoReferencia: z
+    .string()
+    .trim()
+    .min(1, "Documento de referência é obrigatório para transferência")
+    .max(100, "Documento de referência não pode exceder 100 caracteres"),
+});
+
+export type TransferenciaStockDTO = z.infer<typeof transferenciaStockBodySchema>;
 
 export const searchEstoqueQuerySchema = z.object({
   q: optionalStringSchema,

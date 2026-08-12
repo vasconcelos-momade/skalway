@@ -3,6 +3,7 @@ import {
   getNormalizedExpiryRange,
   normalizeExpiryDate,
   receivePurchaseItemStock,
+  receiveStockEntryItem,
 } from "./purchase-receiving.service";
 
 type MovementRow = {
@@ -155,6 +156,7 @@ describe("receivePurchaseItemStock", () => {
       {
         produtoId: 101n,
         fornecedorId: 20n,
+        documentoReferencia: "NF-001",
         numeroLote: "LT-001",
         dataValidade: "2026-06-08T13:00:00.000Z",
         quantidade: 10,
@@ -182,9 +184,60 @@ describe("receivePurchaseItemStock", () => {
 
     const movimentoPayload = tx.estoqueMovimento.create.mock.calls[0]![0].data;
     expect(movimentoPayload.tipo).toBe("COMPRA");
-    expect(movimentoPayload.origem).toBe("COMPRA");
+    expect(movimentoPayload.origem).toBe("FORNECEDOR");
+    expect(movimentoPayload.documentoReferencia).toBe("NF-001");
     expect(movimentoPayload.estoqueAnterior).toBe(0);
     expect(movimentoPayload.estoqueFinal).toBe(10);
+  });
+
+  test("ENTRADA cria movimento ESTOQUE_INICIAL sem documento nem fornecedor", async () => {
+    const tx = createTx();
+
+    const result = await receiveStockEntryItem(
+      tx,
+      {
+        produtoId: 101n,
+        numeroLote: "LT-INI",
+        dataValidade: "2026-06-08",
+        quantidade: 4,
+        precoCompra: 10,
+        precoVenda: 20,
+        userId: 7n,
+        modo: "ENTRADA",
+      },
+      { salePriceMode: "nullish" },
+    );
+
+    expect(result.modo).toBe("ENTRADA");
+    expect(result.origem).toBe("ESTOQUE_INICIAL");
+    const movimentoPayload = tx.estoqueMovimento.create.mock.calls[0]![0].data;
+    expect(movimentoPayload.tipo).toBe("ENTRADA");
+    expect(movimentoPayload.origem).toBe("ESTOQUE_INICIAL");
+    expect(movimentoPayload.documentoReferencia).toBeNull();
+    const loteCreatePayload = tx.lote.create.mock.calls[0]![0].data;
+    expect(loteCreatePayload.fornecedorId).toBeNull();
+  });
+
+  test("COMPRA rejeita ausência de documento de referência", async () => {
+    const tx = createTx();
+
+    await expect(
+      receiveStockEntryItem(
+        tx,
+        {
+          produtoId: 101n,
+          fornecedorId: 20n,
+          numeroLote: "LT-DOC",
+          dataValidade: "2026-06-08",
+          quantidade: 1,
+          precoCompra: 1,
+          precoVenda: 10,
+          userId: 7n,
+          modo: "COMPRA",
+        },
+        { salePriceMode: "nullish" },
+      ),
+    ).rejects.toThrow("Documento de referência é obrigatório");
   });
 
   test("reutiliza lote existente e incrementa quantidades", async () => {
@@ -223,6 +276,7 @@ describe("receivePurchaseItemStock", () => {
       {
         produtoId: 101n,
         fornecedorId: 20n,
+        documentoReferencia: "NF-001",
         numeroLote: "LT-001",
         dataValidade: "2026-06-08",
         quantidade: 10,
@@ -415,6 +469,7 @@ describe("receivePurchaseItemStock", () => {
       {
         produtoId: 101n,
         fornecedorId: 20n,
+        documentoReferencia: "NF-001",
         numeroLote: "LT-SEQ",
         dataValidade: "2026-06-08T08:10:00.000Z",
         quantidade: 10,
@@ -430,6 +485,7 @@ describe("receivePurchaseItemStock", () => {
       {
         produtoId: 101n,
         fornecedorId: 20n,
+        documentoReferencia: "NF-001",
         numeroLote: "LT-SEQ",
         dataValidade: "2026-06-08T19:45:00.000Z",
         quantidade: 5,
@@ -459,6 +515,7 @@ describe("receivePurchaseItemStock", () => {
         {
           produtoId: 101n,
           fornecedorId: 20n,
+          documentoReferencia: "NF-001",
           numeroLote: "LT-002",
           dataValidade: "2026-06-08",
           quantidade: 3,
@@ -480,6 +537,7 @@ describe("receivePurchaseItemStock", () => {
         {
           produtoId: 101n,
           fornecedorId: 20n,
+          documentoReferencia: "NF-001",
           numeroLote: " ",
           dataValidade: "2026-06-08",
           quantidade: 1,
@@ -497,6 +555,7 @@ describe("receivePurchaseItemStock", () => {
         {
           produtoId: 101n,
           fornecedorId: 20n,
+          documentoReferencia: "NF-001",
           numeroLote: "LT-003",
           dataValidade: " ",
           quantidade: 1,

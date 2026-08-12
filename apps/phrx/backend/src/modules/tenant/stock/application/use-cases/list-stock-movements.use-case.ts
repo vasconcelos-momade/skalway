@@ -111,8 +111,14 @@ function movementOriginLabel(origem?: string | null): string {
       return "Venda POS";
     case "ANULACAO_FATURA":
       return "Anulacao de fatura";
-    case "COMPRA":
+    case "FORNECEDOR":
       return "Compra a fornecedor";
+    case "ESTOQUE_INICIAL":
+      return "Estoque inicial";
+    case "TRANSFERENCIA":
+      return "Transferência entre filiais";
+    case "COMPRA":
+      return "Compra a fornecedor (legado)";
     case "COMPRA_FORNECEDOR":
       return "Compra a fornecedor (legado)";
     case "AJUSTE_INVENTARIO":
@@ -128,10 +134,16 @@ function movementOriginLabel(origem?: string | null): string {
 }
 
 function movementDocumentReference(row: {
+  documentoReferencia?: string | null;
   origem?: string | null;
   idempotencyKey?: string | null;
   observacoes?: string | null;
 }): string | null {
+  const explicit = normalizeOptionalString(row.documentoReferencia);
+  if (explicit) {
+    return explicit;
+  }
+
   if (row.origem?.startsWith("REQUISICAO:")) {
     const requisicaoId = row.origem.split(":")[1];
     return requisicaoId ? `LEG-${requisicaoId}` : null;
@@ -185,6 +197,7 @@ function buildMovementWhere(params: ListStockMovementsParams) {
     where.OR = [
       { origem: { contains: q } },
       { observacoes: { contains: q } },
+      { documentoReferencia: { contains: q } },
       { produto: { nomeComercial: { contains: q } } },
       { produto: { barcode: { contains: q } } },
       { lote: { numeroLote: { contains: q } } },

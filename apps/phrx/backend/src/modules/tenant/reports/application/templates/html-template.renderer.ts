@@ -49,8 +49,8 @@ export function renderInstitutionalReportHtml(definition: ReportDefinition): str
   const pageRule = `
 @page {
   size: ${view.pageSize} ${view.pageOrientation};
-  /* Margins are controlled by Puppeteer (header/footer); avoid double insets. */
-  margin: 0;
+  /* Printable inset for every page (including table continuations). */
+  margin: 12mm 15mm;
 }
 `.trim();
 

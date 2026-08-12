@@ -407,22 +407,23 @@ model IncineracaoItem {
 }
 
 model EstoqueMovimento {
-  id              BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  produtoId       BigInt        @db.UnsignedBigInt
-  loteId          BigInt?       @db.UnsignedBigInt
-  userId          BigInt        @db.UnsignedBigInt
-  tipo            TipoMovimento
-  quantidade      Decimal       @db.Decimal(14, 2)
-  estoqueAnterior Decimal       @db.Decimal(14, 2)
-  estoqueFinal    Decimal       @db.Decimal(14, 2)
-  origem          String?
-  idempotencyKey  String?       @unique
-  observacoes     String?       @db.Text
-  deletedAt       DateTime?
-  createdAt       DateTime      @default(now())
-  produto         Produto       @relation(fields: [produtoId], references: [id])
-  lote            Lote?         @relation(fields: [loteId], references: [id])
-  user            User          @relation(fields: [userId], references: [id])
+  id                  BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  produtoId           BigInt        @db.UnsignedBigInt
+  loteId              BigInt?       @db.UnsignedBigInt
+  userId              BigInt        @db.UnsignedBigInt
+  tipo                TipoMovimento
+  quantidade          Decimal       @db.Decimal(14, 2)
+  estoqueAnterior     Decimal       @db.Decimal(14, 2)
+  estoqueFinal        Decimal       @db.Decimal(14, 2)
+  origem              String?
+  documentoReferencia String?       @db.VarChar(100)
+  idempotencyKey      String?       @unique
+  observacoes         String?       @db.Text
+  deletedAt           DateTime?
+  createdAt           DateTime      @default(now())
+  produto             Produto       @relation(fields: [produtoId], references: [id])
+  lote                Lote?         @relation(fields: [loteId], references: [id])
+  user                User          @relation(fields: [userId], references: [id])
 
   @@index([produtoId, createdAt])
   @@index([loteId, createdAt])

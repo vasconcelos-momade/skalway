@@ -127,6 +127,33 @@ export class MySqlManagementService {
   }
 
   /**
+   * Elimina uma base MySQL (filial/tenant). Ignora se já não existir.
+   */
+  static async dropDatabase(dbName: string) {
+    const safeName = assertSafeDbIdentifier(dbName);
+    console.log(`🗑 [MySQL] A eliminar banco: ${safeName}`);
+    const { client, rootClient } = this.openRootClient();
+
+    try {
+      const exists = await this.schemaExists(client, safeName);
+      if (!exists) {
+        console.log(`ℹ️  [MySQL] Banco ${safeName} já não existe.`);
+        return { dropped: false as const, dbName: safeName };
+      }
+      await client.$executeRawUnsafe(`DROP DATABASE \`${safeName}\`;`);
+      console.log(`✅ [MySQL] Banco ${safeName} eliminado.`);
+      return { dropped: true as const, dbName: safeName };
+    } catch (error) {
+      console.error(`❌ [MySQL] Erro ao eliminar banco ${safeName}:`, error);
+      throw new Error(`Falha ao eliminar banco de dados ${safeName}.`);
+    } finally {
+      if (rootClient) {
+        await rootClient.$disconnect().catch(() => undefined);
+      }
+    }
+  }
+
+  /**
    * Applies tenant Prisma schema for a new database.
    *
    * Não chama `prisma generate` aqui: em dev (`bun --watch`) regerar o client

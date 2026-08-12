@@ -357,6 +357,7 @@ class EstoqueRemoteDataSource {
   Future<void> entradaCompra({
     required String produtoId,
     required String fornecedorId,
+    required String documentoReferencia,
     required String numeroLote,
     required String dataValidade,
     required num quantidade,
@@ -369,6 +370,7 @@ class EstoqueRemoteDataSource {
         data: <String, dynamic>{
           'produtoId': produtoId,
           'fornecedorId': fornecedorId,
+          'documentoReferencia': documentoReferencia,
           'numeroLote': numeroLote,
           'dataValidade': dataValidade,
           'quantidade': quantidade,
@@ -381,9 +383,34 @@ class EstoqueRemoteDataSource {
     }
   }
 
+  Future<void> transferirStock({
+    required String produtoId,
+    required String loteId,
+    required String destinoBranchId,
+    required String documentoReferencia,
+    required num quantidade,
+  }) async {
+    try {
+      await _dio.post<Map<String, dynamic>>(
+        ApiConstants.tenantEstoqueTransferencia,
+        data: <String, dynamic>{
+          'produtoId': produtoId,
+          'loteId': loteId,
+          'destinoBranchId': destinoBranchId,
+          'documentoReferencia': documentoReferencia,
+          'quantidade': quantidade,
+        },
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   Future<void> createLote({
     required String produtoId,
-    required String fornecedorId,
+    required String modo,
+    String? fornecedorId,
+    String? documentoReferencia,
     required String numeroLote,
     required String dataValidade,
     required num quantidadeInicial,
@@ -395,7 +422,9 @@ class EstoqueRemoteDataSource {
         ApiConstants.tenantLotes,
         data: <String, dynamic>{
           'produtoId': produtoId,
-          'fornecedorId': fornecedorId,
+          'modo': modo,
+          'fornecedorId': ?fornecedorId,
+          'documentoReferencia': ?documentoReferencia,
           'numeroLote': numeroLote,
           'dataValidade': dataValidade,
           'quantidadeInicial': quantidadeInicial,

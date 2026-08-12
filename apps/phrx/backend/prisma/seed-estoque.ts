@@ -89,6 +89,7 @@ async function main() {
         quantidade: 50,
         estoqueAnterior,
         estoqueFinal,
+        origem: "ESTOQUE_INICIAL",
         observacoes: "Movimento de entrada de teste"
       }
     });

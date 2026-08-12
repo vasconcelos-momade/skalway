@@ -25,11 +25,12 @@ export type HtmlPdfRenderOptions = {
   fallbackLines?: string[];
 };
 
+/** Defaults aligned with institutional @page { margin: 12mm 15mm }. */
 const DEFAULT_MARGINS: Required<HtmlPdfMargins> = {
-  top: "10mm",
-  right: "10mm",
-  bottom: "18mm",
-  left: "10mm",
+  top: "12mm",
+  right: "15mm",
+  bottom: "12mm",
+  left: "15mm",
 };
 
 let browserPromise: Promise<Browser> | null = null;

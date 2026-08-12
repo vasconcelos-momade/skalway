@@ -108,6 +108,7 @@ async function main() {
   const entrada1 = await api("POST", "/tenant/estoque/entrada-compra", token, tenantId, branchId, {
     produtoId,
     fornecedorId: "1",
+    documentoReferencia: `NF-A-${suffix}`,
     numeroLote: loteA,
     dataValidade: "2027-06-15",
     quantidade: 10,
@@ -117,12 +118,13 @@ async function main() {
   if (entrada1.status !== 201) {
     fail("entrada-compra", `HTTP ${entrada1.status}: ${JSON.stringify(entrada1.json)}`);
   } else {
-    ok("entrada-compra", "Entrada de compra registada");
+    ok("entrada-compra", "Compra a fornecedor registada");
   }
 
   const entrada2 = await api("POST", "/tenant/estoque/entrada-compra", token, tenantId, branchId, {
     produtoId,
     fornecedorId: "1",
+    documentoReferencia: `NF-A2-${suffix}`,
     numeroLote: loteA,
     dataValidade: "2027-06-15",
     quantidade: 5,
@@ -137,7 +139,9 @@ async function main() {
 
   const novoLote = await api("POST", "/tenant/lotes", token, tenantId, branchId, {
     produtoId,
+    modo: "COMPRA",
     fornecedorId: "1",
+    documentoReferencia: `NF-B-${suffix}`,
     numeroLote: loteB,
     dataValidade: "2028-12-31",
     quantidadeInicial: 3,
@@ -147,7 +151,7 @@ async function main() {
   if (novoLote.status !== 201) {
     fail("novo-lote", `POST /tenant/lotes falhou HTTP ${novoLote.status}`);
   } else {
-    ok("novo-lote", "Novo lote criado com movimento COMPRA");
+    ok("novo-lote", "Novo lote criado com movimento COMPRA/FORNECEDOR");
   }
 
   const afterTotal = Number(
@@ -162,14 +166,14 @@ async function main() {
   const movCompra = Number(
     await queryScalar(`
       SELECT COUNT(*) FROM estoque_movimentos
-      WHERE produtoId=${produtoId} AND tipo='COMPRA' AND origem='COMPRA'
+      WHERE produtoId=${produtoId} AND tipo='COMPRA' AND origem='FORNECEDOR'
         AND createdAt > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
     `),
   );
   if (movCompra < 3) {
-    fail("movimento", `Esperados >=3 movimentos COMPRA, obtidos ${movCompra}`);
+    fail("movimento", `Esperados >=3 movimentos COMPRA/FORNECEDOR, obtidos ${movCompra}`);
   } else {
-    ok("movimento", `${movCompra} movimento(s) COMPRA gerado(s)`);
+    ok("movimento", `${movCompra} movimento(s) COMPRA/FORNECEDOR gerado(s)`);
   }
 
   const suggestions = await api("GET", "/tenant/compras/sugestoes", token, tenantId, branchId);

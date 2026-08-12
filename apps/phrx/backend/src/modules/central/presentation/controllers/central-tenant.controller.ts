@@ -8,11 +8,13 @@ import {
   isValidNuit,
   normalizeTenantSlug,
 } from "../../tenants/application/use-cases/create-tenant.use-case";
+import { DeleteTenantUseCase } from "../../tenants/application/use-cases/delete-tenant.use-case";
 import type { CentralAuthContext } from "../../../../shared/http/central-auth";
 import { serializeForJson } from "../../../../shared/http/serialize-json";
 import { success } from "../../../../shared/http/api-response";
 import { parseJsonBody, parseSearchParams } from "../../../../shared/http/request-validation";
-import { ComplianceAuditService } from "../../../../shared/services/compliance-audit.service";
+import { writeCentralAuditLog } from "../../infrastructure/central-audit.helper";
+import { controllerErrorResponse } from "../../../../shared/http/controller-error";
 
 const ownerUserSchema = z.object({
   name: z.string().trim().min(1),
@@ -424,14 +426,14 @@ export class CentralTenantController {
       select: tenantListSelect,
     });
 
-    const auditSvc = new ComplianceAuditService();
-    await auditSvc.createImmutableLog({
-      userId: auth.userId,
+    await writeCentralAuditLog({
+      tenantId: BigInt(tenantId),
+      userId: BigInt(auth.userId),
       action: "TENANT_UPDATE",
       entity: "Tenant",
       entityId: tenantId,
-      before: serializeForJson(existing),
-      after: serializeForJson(data),
+      oldData: serializeForJson(existing),
+      newData: serializeForJson(data),
     });
 
     return Response.json(serializeForJson(mapTenantRecord(updated)));
@@ -439,101 +441,65 @@ export class CentralTenantController {
 
   async deleteTenant(auth: CentralAuthContext, tenantId: string): Promise<Response> {
     if (auth.role !== Role.superadmin) {
-      return Response.json({ error: { message: "Apenas superadmin pode eliminar tenants." } }, { status: 403 });
-    }
-
-    const prisma = prismaCentral as any;
-
-    const tenant = await prisma.tenant.findFirst({
-      where: { id: BigInt(tenantId), deletedAt: null },
-      select: {
-        id: true,
-        tenantName: true,
-        tenantKey: true,
-        ownerUserId: true,
-        subscriptions: {
-          where: { deletedAt: null },
-          select: { id: true, status: true },
-        },
-        invoices: {
-          where: { status: { in: ["pago", "paga", "confirmado"] } },
-          select: { id: true },
-          take: 1,
-        },
-      },
-    });
-
-    if (!tenant) {
-      return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
-    }
-
-    const hasPaidSub = tenant.subscriptions?.some(
-      (s: any) => s.status && ["ativo", "active"].includes(s.status.toLowerCase()),
-    );
-    if (hasPaidSub) {
       return Response.json(
-        { error: { message: "Não é possível eliminar um tenant com plano pago activo." } },
-        { status: 422 },
+        { error: { message: "Apenas superadmin pode eliminar tenants." } },
+        { status: 403 },
       );
     }
 
-    const hasPaidInvoice = (tenant.invoices?.length ?? 0) > 0;
-    if (hasPaidInvoice) {
-      return Response.json(
-        { error: { message: "Não é possível eliminar um tenant que possui facturas pagas." } },
-        { status: 422 },
-      );
+    try {
+      await new DeleteTenantUseCase().execute({
+        tenantId,
+        userId: auth.userId,
+      });
+      return new Response(null, { status: 204 });
+    } catch (error) {
+      return controllerErrorResponse(error, 500);
     }
-
-    await prisma.tenant.update({
-      where: { id: BigInt(tenantId) },
-      data: { deletedAt: new Date() },
-    });
-
-    const auditSvc = new ComplianceAuditService();
-    await auditSvc.createImmutableLog({
-      userId: auth.userId,
-      action: "TENANT_DELETE",
-      entity: "Tenant",
-      entityId: tenantId,
-      before: serializeForJson({ tenantName: tenant.tenantName, tenantKey: tenant.tenantKey }),
-    });
-
-    return new Response(null, { status: 204 });
   }
 
   async updateOwnerPassword(auth: CentralAuthContext, tenantId: string, req: Request): Promise<Response> {
     if (auth.role !== Role.superadmin) {
-      return Response.json({ error: { message: "Apenas superadmin pode alterar a senha do proprietário." } }, { status: 403 });
+      return Response.json(
+        { error: { message: "Apenas superadmin pode alterar a senha do proprietário." } },
+        { status: 403 },
+      );
     }
 
-    const body = await parseJsonBody(req, updateOwnerPasswordSchema);
-    const prisma = prismaCentral as any;
+    try {
+      const body = await parseJsonBody(req, updateOwnerPasswordSchema);
+      const prisma = prismaCentral as any;
 
-    const tenant = await prisma.tenant.findFirst({
-      where: { id: BigInt(tenantId), deletedAt: null },
-      select: { id: true, tenantName: true, ownerUserId: true },
-    });
-    if (!tenant) {
-      return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
+      const tenant = await prisma.tenant.findFirst({
+        where: { id: BigInt(tenantId), deletedAt: null },
+        select: { id: true, tenantName: true, ownerUserId: true },
+      });
+      if (!tenant) {
+        return Response.json({ error: { message: "Tenant não encontrado." } }, { status: 404 });
+      }
+
+      const hashedPassword = await bcrypt.hash(body.newPassword, 10);
+      await prisma.user.update({
+        where: { id: tenant.ownerUserId },
+        data: { password: hashedPassword },
+      });
+
+      await writeCentralAuditLog({
+        tenantId: BigInt(tenantId),
+        userId: BigInt(auth.userId),
+        action: "TENANT_OWNER_PASSWORD_CHANGE",
+        entity: "User",
+        entityId: tenant.ownerUserId.toString(),
+        newData: {
+          tenantId,
+          tenantName: tenant.tenantName,
+          note: "password changed by superadmin",
+        },
+      });
+
+      return Response.json({ message: "Senha do proprietário actualizada com sucesso." });
+    } catch (error) {
+      return controllerErrorResponse(error, 500);
     }
-
-    const hashedPassword = await bcrypt.hash(body.newPassword, 10);
-    await prisma.user.update({
-      where: { id: tenant.ownerUserId },
-      data: { password: hashedPassword },
-    });
-
-    const auditSvc = new ComplianceAuditService();
-    await auditSvc.createImmutableLog({
-      userId: auth.userId,
-      action: "TENANT_OWNER_PASSWORD_CHANGE",
-      entity: "User",
-      entityId: tenant.ownerUserId.toString(),
-      before: null,
-      after: { tenantId, tenantName: tenant.tenantName, note: "password changed by superadmin" },
-    });
-
-    return Response.json({ message: "Senha do proprietário actualizada com sucesso." });
   }
 }

@@ -3,7 +3,12 @@ import {
   SearchEstoqueUseCase,
 } from "../../application/use-cases/estoque/search-estoque.use-case";
 import { EntradaCompraUseCase } from "../../application/use-cases/estoque/entrada-compra.use-case";
-import { entradaCompraBodySchema, searchEstoqueQuerySchema } from "../../application/dto/estoque.dto";
+import { TransferStockBetweenBranchesUseCase } from "../../application/use-cases/estoque/transfer-stock-between-branches.use-case";
+import {
+  entradaCompraBodySchema,
+  searchEstoqueQuerySchema,
+  transferenciaStockBodySchema,
+} from "../../application/dto/estoque.dto";
 import { parseSearchParams, parseJsonBody } from "../../../../../shared/http/request-validation";
 import { controllerErrorResponse } from "../../../../../shared/http/controller-error";
 
@@ -11,6 +16,7 @@ export class EstoqueController {
   private dashboardUseCase = new EstoqueDashboardUseCase();
   private searchUseCase = new SearchEstoqueUseCase();
   private entradaCompraUseCase = new EntradaCompraUseCase();
+  private transferStockUseCase = new TransferStockBetweenBranchesUseCase();
 
   async dashboard(_req: Request) {
     try {
@@ -36,6 +42,30 @@ export class EstoqueController {
     try {
       const body = await parseJsonBody(req, entradaCompraBodySchema);
       const result = await this.entradaCompraUseCase.execute({ ...body, userId });
+      return Response.json(this.serialize(result), { status: 201 });
+    } catch (error: any) {
+      return controllerErrorResponse(error);
+    }
+  }
+
+  async transferir(
+    req: Request,
+    auth: {
+      userId: string;
+      centralUserId?: string;
+      tenantId: string;
+      branchId: string;
+    },
+  ) {
+    try {
+      const body = await parseJsonBody(req, transferenciaStockBodySchema);
+      const result = await this.transferStockUseCase.execute({
+        ...body,
+        userId: auth.userId,
+        centralUserId: auth.centralUserId,
+        tenantId: auth.tenantId,
+        origemBranchId: auth.branchId,
+      });
       return Response.json(this.serialize(result), { status: 201 });
     } catch (error: any) {
       return controllerErrorResponse(error);

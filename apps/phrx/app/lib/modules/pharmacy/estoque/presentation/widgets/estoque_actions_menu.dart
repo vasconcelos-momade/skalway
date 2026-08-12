@@ -60,7 +60,7 @@ class EstoqueActionsMenu extends ConsumerWidget {
     }
 
     if (access.can('LOTES', 'CREATE_LOTE')) {
-      add('entrada', 'Entrada', Icons.add_box_outlined);
+      add('movimentar', 'Movimentar Stock', Icons.swap_horiz_rounded);
     }
     if (access.can('LOTES', 'UPDATE')) {
       add('editar', 'Editar lote', Icons.edit_outlined);
@@ -88,8 +88,9 @@ class EstoqueActionsMenu extends ConsumerWidget {
     List<({String id, String nome})> fornecedores,
   ) async {
     switch (action) {
+      case 'movimentar':
       case 'entrada':
-        await EstoqueStockEntryHelper.entradaCompra(
+        await EstoqueStockEntryHelper.movimentarStock(
           context,
           ref,
           item,

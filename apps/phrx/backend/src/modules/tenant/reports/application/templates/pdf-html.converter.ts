@@ -37,7 +37,7 @@ function buildInstitutionalFooterTemplate(definition: ReportDefinition): string 
   const generatedBy = escapeHtml(definition.generatedBy);
 
   return `
-      <div style="width:100%; padding:0 10mm; font-family: Arial, Helvetica, sans-serif; font-size:9px; color:#555;">
+      <div style="width:100%; padding:0 15mm; font-family: Arial, Helvetica, sans-serif; font-size:9px; color:#555; box-sizing:border-box;">
         <div style="border-top:1px solid #059669; padding-top:4px; display:flex; justify-content:space-between; gap:8px;">
           <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             <span style="font-weight:700; color:#059669;">Pharma ERP</span>
@@ -73,14 +73,16 @@ export async function convertHtmlToPdf(
     html,
     pageSize,
     orientation,
+    preferCSSPageSize: true,
     displayHeaderFooter: true,
     headerTemplate: "<div></div>",
     footerTemplate: buildInstitutionalFooterTemplate(definition),
+    // Match @page { margin: 12mm 15mm } so header/footer bands align with CSS insets.
     margins: {
-      top: "10mm",
-      right: "10mm",
-      bottom: "18mm",
-      left: "10mm",
+      top: "12mm",
+      right: "15mm",
+      bottom: "12mm",
+      left: "15mm",
     },
     fallbackLines: renderInstitutionalReportTextLines(definition),
   });

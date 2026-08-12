@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/constants/report_paths.dart';
+import '../../../../../core/theme/component_theme.dart';
+import '../../../../../core/theme/design_tokens.dart';
 import '../../../../reports/presentation/controllers/report_controller.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../domain/entities/invoice_summary.dart';
 import '../providers/invoice_action_provider.dart';
 import '../providers/invoice_detail_provider.dart';
@@ -78,31 +81,54 @@ class _SalesInvoicesPageState extends ConsumerState<SalesInvoicesPage> {
           'Histórico operacional do POS com pesquisa, filtros rápidos, cache em memória e cancelamento seguro.',
       tag: 'Terminal',
       actions: [
-        PopupMenuButton<String>(
-          enabled: listState.items.isNotEmpty && !reportState.isSubmitting,
-          tooltip: 'Exportar',
-          onSelected: (value) {
-            if (value == 'pdf') {
-              reportController.downloadPdf(
-                path: ReportPaths.invoices,
-                queryParameters: reportQuery,
-              );
-              return;
-            }
-            reportController.exportCsv(
-              path: ReportPaths.invoices,
-              queryParameters: reportQuery,
+        Builder(
+          builder: (anchorContext) {
+            final t = context.pharmaTokens;
+            final compactStyle = PharmaComponentTheme.outlined(
+              t,
+              Theme.of(context).colorScheme,
+              compact: true,
+            );
+            final enabled =
+                listState.items.isNotEmpty && !reportState.isSubmitting;
+            return OutlinedButton.icon(
+              style: compactStyle,
+              onPressed: !enabled
+                  ? null
+                  : () async {
+                      final selected =
+                          await showEnterpriseDropdownMenuFrom<String>(
+                        context: context,
+                        anchorContext: anchorContext,
+                        items: const [
+                          EnterpriseDropdownItem(
+                            value: 'pdf',
+                            label: 'Exportar PDF',
+                            icon: Icons.picture_as_pdf_outlined,
+                          ),
+                          EnterpriseDropdownItem(
+                            value: 'csv',
+                            label: 'Exportar CSV',
+                            icon: Icons.table_chart_outlined,
+                          ),
+                        ],
+                      );
+                      if (selected == 'pdf') {
+                        reportController.downloadPdf(
+                          path: ReportPaths.invoices,
+                          queryParameters: reportQuery,
+                        );
+                      } else if (selected == 'csv') {
+                        reportController.exportCsv(
+                          path: ReportPaths.invoices,
+                          queryParameters: reportQuery,
+                        );
+                      }
+                    },
+              icon: Icon(Icons.download_outlined, size: t.iconSm),
+              label: const Text('Exportar'),
             );
           },
-          itemBuilder: (context) => const [
-            PopupMenuItem<String>(value: 'pdf', child: Text('Exportar PDF')),
-            PopupMenuItem<String>(value: 'csv', child: Text('Exportar CSV')),
-          ],
-          child: OutlinedButton.icon(
-            onPressed: null,
-            icon: Icon(Icons.download_outlined),
-            label: Text('Exportar'),
-          ),
         ),
       ],
       child: InvoicesBody(

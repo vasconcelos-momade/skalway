@@ -85,15 +85,50 @@ export const updateLoteBodySchema = z.object({
   dataFabricacao: z.string().trim().optional().nullable(),
 });
 
-export const createLoteSchema = z.object({
-  produtoId: z.string().trim().min(1, "Produto é obrigatório"),
-  fornecedorId: z.string().trim().min(1, "Fornecedor é obrigatório"),
-  numeroLote: z.string().trim().min(1, "Número do lote é obrigatório"),
-  dataValidade: z.coerce.date(),
-  quantidadeInicial: z.coerce.number().positive("Quantidade inicial inválida"),
-  precoCompra: z.coerce.number().nonnegative("Preço de compra inválido"),
-  precoVenda: z.coerce.number().positive("Preço de venda inválido"),
-});
+export const createLoteSchema = z
+  .object({
+    produtoId: z.string().trim().min(1, "Produto é obrigatório"),
+    modo: z.enum(["ENTRADA", "COMPRA"]).default("COMPRA"),
+    fornecedorId: z
+      .string()
+      .trim()
+      .min(1, "Fornecedor inválido")
+      .optional()
+      .nullable(),
+    documentoReferencia: z
+      .string()
+      .trim()
+      .max(100, "Documento de referência não pode exceder 100 caracteres")
+      .optional()
+      .nullable()
+      .transform((value) => {
+        const normalized = value?.trim();
+        return normalized && normalized.length > 0 ? normalized : null;
+      }),
+    numeroLote: z.string().trim().min(1, "Número do lote é obrigatório"),
+    dataValidade: z.coerce.date(),
+    quantidadeInicial: z.coerce.number().positive("Quantidade inicial inválida"),
+    precoCompra: z.coerce.number().nonnegative("Preço de compra inválido"),
+    precoVenda: z.coerce.number().positive("Preço de venda inválido"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.modo === "COMPRA") {
+      if (!data.fornecedorId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["fornecedorId"],
+          message: "Fornecedor é obrigatório para compra",
+        });
+      }
+      if (!data.documentoReferencia) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["documentoReferencia"],
+          message: "Documento de referência é obrigatório para compra a fornecedor",
+        });
+      }
+    }
+  });
 
 export const searchStockProdutosQuerySchema = z.object({
   q: z.string().trim().min(1).optional(),

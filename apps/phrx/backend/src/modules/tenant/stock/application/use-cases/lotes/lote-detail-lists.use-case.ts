@@ -36,6 +36,7 @@ export class ListLoteMovimentosUseCase {
         estoqueAnterior: Number(m.estoqueAnterior),
         estoqueFinal: Number(m.estoqueFinal),
         origem: m.origem ?? null,
+        documentoReferencia: m.documentoReferencia ?? null,
         observacoes: m.observacoes ?? null,
         createdAt: m.createdAt.toISOString(),
         user: m.user ? { id: m.user.id.toString(), nome: m.user.name } : null,

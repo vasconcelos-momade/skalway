@@ -1,4 +1,4 @@
-/* @page size/orientation injected by html-template.renderer; margins via Puppeteer */
+/* @page size/orientation/margins injected by html-template.renderer (preferCSSPageSize) */
 
 * {
   box-sizing: border-box;
@@ -20,9 +20,14 @@
   --white: #ffffff;
 }
 
+html,
 body.report-body {
   margin: 0;
   padding: 0;
+  width: 100%;
+}
+
+body.report-body {
   font-family: Inter, Arial, Helvetica, sans-serif;
   font-size: 11px;
   line-height: 1.45;
@@ -32,9 +37,11 @@ body.report-body {
 
 .report-shell {
   position: relative;
+  width: 100%;
   /* Avoid min-height/padding that can push content onto page 2 */
   min-height: 0;
-  padding-bottom: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .watermark {
@@ -60,6 +67,9 @@ body.report-body {
 .report-main {
   position: relative;
   z-index: 1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .section {

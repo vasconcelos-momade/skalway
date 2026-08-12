@@ -1,8 +1,9 @@
 import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 import { ValidationApiError } from "../../../../../shared/http/api-error";
+import { ComplianceAuditService } from "../../../../../shared/services/compliance-audit.service";
 import {
   normalizeExpiryDate,
-  receivePurchaseItemStock,
+  receiveStockEntryItem,
 } from "../../domain/purchase-receiving.service";
 
 export interface ReceivePurchaseDTO {
@@ -19,10 +20,24 @@ export interface ReceivePurchaseDTO {
   }[];
 }
 
+/**
+ * Recebimento multi-item de compra a fornecedor.
+ * Persiste numeroDocumento em EstoqueMovimento.documentoReferencia.
+ */
 export class ReceivePurchaseUseCase {
   async execute(data: ReceivePurchaseDTO) {
     if (data.items.length === 0) {
       throw new ValidationApiError("Informe pelo menos um item");
+    }
+
+    const documentoReferencia = data.numeroDocumento.trim();
+    if (!documentoReferencia) {
+      throw new ValidationApiError("Número do documento é obrigatório");
+    }
+    if (documentoReferencia.length > 100) {
+      throw new ValidationApiError(
+        "Documento de referência não pode exceder 100 caracteres",
+      );
     }
 
     const prisma = getPrisma();
@@ -34,7 +49,7 @@ export class ReceivePurchaseUseCase {
         const produtoId = BigInt(item.produtoId);
         const dataValidade = normalizeExpiryDate(item.dataValidade);
 
-        const result = await receivePurchaseItemStock(
+        const result = await receiveStockEntryItem(
           tx,
           {
             produtoId,
@@ -45,6 +60,8 @@ export class ReceivePurchaseUseCase {
             precoCompra: item.precoCompra,
             precoVenda: item.precoVenda ?? null,
             userId: BigInt(data.userId),
+            documentoReferencia,
+            modo: "COMPRA",
           },
           {
             salePriceMode: "truthy",
@@ -65,9 +82,28 @@ export class ReceivePurchaseUseCase {
         0,
       );
 
+      const complianceService = new ComplianceAuditService();
+      await complianceService.createImmutableLog(
+        {
+          userId: data.userId,
+          action: "STOCK_RECEIVE_COMPRA",
+          entity: "EstoqueMovimento",
+          after: {
+            modo: "COMPRA",
+            origem: "FORNECEDOR",
+            fornecedorId: data.fornecedorId,
+            documentoReferencia,
+            total: totalCompra,
+            items: results,
+          },
+        },
+        tx,
+      );
+
       return {
-        message: "Entrada de compra registada com sucesso",
-        numeroDocumento: data.numeroDocumento.trim(),
+        message: "Compra a fornecedor registada com sucesso",
+        numeroDocumento: documentoReferencia,
+        documentoReferencia,
         total: totalCompra,
         items: results,
       };
