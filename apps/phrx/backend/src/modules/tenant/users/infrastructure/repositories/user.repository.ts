@@ -118,6 +118,16 @@ export class UserRepository {
       throw new Error("Conflito de versão — registo foi alterado por outro utilizador");
     }
 
+    if (data.email !== undefined) {
+      const email = data.email.trim().toLowerCase();
+      const clash = await this.prisma.user.findFirst({
+        where: { email, deletedAt: null, NOT: { id } },
+      });
+      if (clash) {
+        throw new Error("Email já registado nesta farmácia");
+      }
+    }
+
     const updated = await this.prisma.$transaction(async (tx: any) => {
       const user = await tx.user.update({
         where: { id },

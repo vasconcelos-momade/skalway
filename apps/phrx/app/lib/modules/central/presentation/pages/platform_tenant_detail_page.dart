@@ -84,27 +84,64 @@ class PlatformTenantDetailPage extends ConsumerWidget {
                     PharmaFeedback.success(context, 'Senha actualizada com sucesso.');
                   }
                 } else if (action == 'delete') {
+                  final actionsBusy = ref.read(platformBillingActionsProvider);
+                  if (actionsBusy) {
+                    PharmaFeedback.warning(
+                      context,
+                      'Já existe uma operação em curso. Aguarde.',
+                    );
+                    return;
+                  }
+                  final branchLines = detail.branches.isEmpty
+                      ? '• Nenhuma filial activa listada'
+                      : detail.branches
+                          .map(
+                            (b) =>
+                                '• ${b.name} (${b.code})${b.dbName != null ? ' — BD: ${b.dbName}' : ''}',
+                          )
+                          .join('\n');
                   final confirmed = await PharmaFeedback.confirm(
                     context: context,
                     title: 'Eliminar Tenant',
                     message:
-                        'Esta operação é irreversível. O tenant "${t.tenantName}" '
-                        'e todos os seus dados serão eliminados permanentemente.\n\n'
-                        'Só é possível eliminar tenants sem plano pago activo nem facturas pagas.',
-                    confirmText: 'Eliminar',
+                        'Esta acção é destrutiva e não pode ser desfeita.\n\n'
+                        'Tenant: ${t.tenantName} (${t.tenantKey})\n'
+                        'Filiais que serão eliminadas:\n$branchLines\n\n'
+                        '• A database operacional de cada filial será eliminada fisicamente.\n'
+                        '• Facturas, pagamentos e auditoria permanecem na Central e '
+                        'continuam consultáveis para fins administrativos/financeiros; '
+                        'deixam de aparecer nas listagens operacionais normais.\n'
+                        '• Utilizadores, permissões e sessões deste tenant são desactivados.\n'
+                        '• Pagamentos pendentes de confirmação impedem a eliminação.',
+                    confirmText: 'Eliminar definitivamente',
                     destructive: true,
                   );
                   if (!confirmed || !context.mounted) return;
                   try {
+                    // Não fazer await: showLoading só completa quando o diálogo é fechado.
+                    PharmaFeedback.loading(
+                      context: context,
+                      title: 'A eliminar tenant',
+                      message:
+                          'A preservar histórico na Central e a remover as bases…',
+                    );
                     await ref
                         .read(platformBillingActionsProvider.notifier)
                         .deleteTenant(tenantId);
                     if (!context.mounted) return;
-                    PharmaFeedback.success(context, 'Tenant eliminado.');
+                    PharmaFeedback.dismiss(context);
+                    PharmaFeedback.success(
+                      context,
+                      'Tenant eliminado. Histórico preservado na Central.',
+                    );
                     if (context.canPop()) context.pop();
                   } catch (e) {
                     if (!context.mounted) return;
-                    PharmaFeedback.error(context, e.toString());
+                    PharmaFeedback.dismiss(context);
+                    PharmaFeedback.error(
+                      context,
+                      e.toString().replaceFirst('Exception: ', ''),
+                    );
                   }
                 }
               },
@@ -129,8 +166,11 @@ class PlatformTenantDetailPage extends ConsumerWidget {
                 PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: Icon(Icons.delete_outline, color: Colors.red),
-                    title: Text('Eliminar Tenant', style: TextStyle(color: Colors.red)),
+                    leading: Icon(Icons.delete_forever, color: Colors.red),
+                    title: Text(
+                      'Eliminar Tenant',
+                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                    ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),

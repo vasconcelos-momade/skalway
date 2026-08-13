@@ -40,7 +40,7 @@ function buildInstitutionalFooterTemplate(definition: ReportDefinition): string 
       <div style="width:100%; padding:0 15mm; font-family: Arial, Helvetica, sans-serif; font-size:9px; color:#555; box-sizing:border-box;">
         <div style="border-top:1px solid #059669; padding-top:4px; display:flex; justify-content:space-between; gap:8px;">
           <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-            <span style="font-weight:700; color:#059669;">Pharma ERP</span>
+            <span style="font-weight:700; color:#059669;">Skalway PhRx</span>
             <span style="margin:0 6px; color:#777;">|</span>
             <span>${pharmacyName}</span>
             <span style="margin:0 6px; color:#777;">|</span>

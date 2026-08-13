@@ -530,11 +530,17 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
   }
 
   Future<void> deleteTenant(String tenantId) async {
+    if (state) {
+      throw Exception('Já existe uma operação em curso.');
+    }
     state = true;
     try {
       await ref.read(platformAdminDataSourceProvider).deleteTenant(tenantId);
       ref.invalidate(platformTenantsProvider);
       ref.invalidate(platformDashboardProvider);
+      ref.invalidate(platformTenantDetailProvider(tenantId));
+      ref.invalidate(platformInvoicesProvider);
+      ref.invalidate(platformPaymentsProvider);
     } finally {
       state = false;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../shared/widgets/dashboard/enterprise_kpi_card.dart';
 import '../utils/dashboard_data_utils.dart';
 
@@ -23,6 +24,7 @@ abstract final class CashierDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, 'totalVendasDia'),
         unit: 'MZN',
         icon: Icons.payments_outlined,
+        accent: StatCardAccent.positive,
         trend: EnterpriseKpiTrend.positive,
         onTap: () => context.go(AppRoutePaths.salesInvoices),
       ),
@@ -30,6 +32,7 @@ abstract final class CashierDashboardKpis {
         title: 'N.º de vendas',
         value: DashboardDataUtils.kpi(kpis, 'numVendas'),
         icon: Icons.receipt_long_outlined,
+        accent: StatCardAccent.info,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.salesInvoices),
       ),
@@ -38,6 +41,7 @@ abstract final class CashierDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, 'ticketMedio'),
         unit: 'MZN',
         icon: Icons.sell_outlined,
+        accent: StatCardAccent.warning,
         trend: EnterpriseKpiTrend.neutral,
       ),
       EnterpriseKpiCard(
@@ -45,15 +49,15 @@ abstract final class CashierDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, 'valorEmCaixa'),
         unit: 'MZN',
         icon: Icons.account_balance_wallet_outlined,
+        accent: StatCardAccent.neutral,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.financeCashflow),
       ),
       EnterpriseKpiCard(
         title: 'Estado do caixa',
         value: estado,
-        icon: aberto
-            ? Icons.lock_open_outlined
-            : Icons.lock_outline,
+        icon: aberto ? Icons.lock_open_outlined : Icons.lock_outline,
+        accent: aberto ? StatCardAccent.positive : StatCardAccent.danger,
         trend: aberto
             ? EnterpriseKpiTrend.positive
             : EnterpriseKpiTrend.negative,
@@ -63,6 +67,7 @@ abstract final class CashierDashboardKpis {
         title: 'Sessões abertas',
         value: DashboardDataUtils.kpi(kpis, 'sessoesAbertas'),
         icon: Icons.point_of_sale_outlined,
+        accent: StatCardAccent.info,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.pos),
       ),

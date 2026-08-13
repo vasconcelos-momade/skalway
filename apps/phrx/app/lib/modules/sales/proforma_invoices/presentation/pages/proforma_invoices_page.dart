@@ -540,7 +540,6 @@ class _SalesProformaInvoicesPageState
                 controller: _search,
                 focusNode: _searchFocusNode,
                 autofocus: true,
-                fullWidth: true,
                 hintText: _isProductsTab
                     ? (isMobile
                           ? 'Pesquisar ou escanear...'
@@ -585,7 +584,10 @@ class _SalesProformaInvoicesPageState
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(child: searchBar),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: searchBar,
+                    ),
                     if (_isProductsTab) ...[
                       SizedBox(width: s.sm),
                       SizedBox(
@@ -603,7 +605,6 @@ class _SalesProformaInvoicesPageState
           EnterpriseModuleSearchBar(
             controller: _search,
             focusNode: _searchFocusNode,
-            fullWidth: true,
             hintText: 'Pesquisar histórico de faturas proforma...',
             onSubmitted: (_) => _onSearchSubmitted(
               products: productState.items,
@@ -633,6 +634,7 @@ class _SalesProformaInvoicesPageState
                         canAdd: true,
                         addingProductId: null,
                         onAdd: (product) => unawaited(_addProduct(product)),
+                        pagination: catalogFooter,
                       )
               : _isServicesTab
               ? isMobile
@@ -648,13 +650,10 @@ class _SalesProformaInvoicesPageState
                         query: serviceState.query,
                         canAdd: true,
                         onAdd: (service) => unawaited(_addService(service)),
+                        pagination: catalogFooter,
                       )
               : _buildHistoryPane(),
         ),
-        if (!isMobile && catalogFooter != null) ...[
-          SizedBox(height: s.sm),
-          catalogFooter,
-        ],
       ],
     );
   }

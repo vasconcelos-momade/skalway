@@ -32,6 +32,7 @@ export class ListCentralInvoicesUseCase {
 
     const where: Record<string, unknown> = {
       deletedAt: null,
+      tenant: { deletedAt: null },
       ...(data.status ? { status: data.status } : {}),
       ...(data.tenantIds?.length
         ? { tenantId: { in: data.tenantIds.map((id) => BigInt(id)) } }
@@ -41,8 +42,8 @@ export class ListCentralInvoicesUseCase {
             OR: [
               { number: { contains: search } },
               { description: { contains: search } },
-              { tenant: { tenantKey: { contains: search } } },
-              { tenant: { tenantName: { contains: search } } },
+              { tenant: { tenantKey: { contains: search }, deletedAt: null } },
+              { tenant: { tenantName: { contains: search }, deletedAt: null } },
             ],
           }
         : {}),

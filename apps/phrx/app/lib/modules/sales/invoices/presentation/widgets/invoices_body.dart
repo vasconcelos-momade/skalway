@@ -126,13 +126,10 @@ class InvoicesBody extends ConsumerWidget {
           page: query.page,
           pageSize: query.pageSize,
           hasMore: listState.hasMore,
+          itemsOnPage: listState.items.length,
           isBusy: listState.isBusy,
-          onPrev: query.page > 1
-              ? () => ref.read(invoiceListProvider.notifier).goToPage(query.page - 1)
-              : null,
-          onNext: listState.hasMore
-              ? () => ref.read(invoiceListProvider.notifier).goToPage(query.page + 1)
-              : null,
+          onPageChanged: (page) =>
+              ref.read(invoiceListProvider.notifier).goToPage(page),
           onPageSizeChanged: (value) =>
               ref.read(invoiceListProvider.notifier).setPageSize(value),
         ),
@@ -251,13 +248,10 @@ class InvoicesMobileContent extends ConsumerWidget {
                       page: query.page,
                       pageSize: query.pageSize,
                       hasMore: listState.hasMore,
+                      itemsOnPage: listState.items.length,
                       isBusy: listState.isBusy,
-                      onPrev: query.page > 1
-                          ? () => ref.read(invoiceListProvider.notifier).goToPage(query.page - 1)
-                          : null,
-                      onNext: listState.hasMore
-                          ? () => ref.read(invoiceListProvider.notifier).goToPage(query.page + 1)
-                          : null,
+                      onPageChanged: (page) =>
+                          ref.read(invoiceListProvider.notifier).goToPage(page),
                       onPageSizeChanged: (value) =>
                           ref.read(invoiceListProvider.notifier).setPageSize(value),
                     ),

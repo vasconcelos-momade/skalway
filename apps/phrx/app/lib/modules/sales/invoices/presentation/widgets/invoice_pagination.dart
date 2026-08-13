@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/extensions.dart';
-import '../../../../../shared/responsive/pharma_screen_layout.dart';
-import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
+import '../../../../../shared/widgets/tables/enterprise_pagination.dart';
 
+/// Paginação de faturas no padrão enterprise (delega para [EnterprisePagination]).
 class InvoicePagination extends StatelessWidget {
   const InvoicePagination({
     super.key,
@@ -12,75 +10,49 @@ class InvoicePagination extends StatelessWidget {
     required this.pageSize,
     required this.hasMore,
     required this.isBusy,
+    this.totalCount,
+    this.itemsOnPage,
+    this.itemLabel = 'faturas',
     this.onPrev,
     this.onNext,
     this.onPageSizeChanged,
+    this.onPageChanged,
   });
 
   final int page;
   final int pageSize;
   final bool hasMore;
   final bool isBusy;
+  final int? totalCount;
+  final int? itemsOnPage;
+  final String itemLabel;
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
   final ValueChanged<int>? onPageSizeChanged;
+  final ValueChanged<int>? onPageChanged;
 
   @override
   Widget build(BuildContext context) {
-    final s = context.spacing;
-    final screen = context.pharmaScreen;
-    final pageSizeOptions = const [10, 25, 50, 100];
-
-    if (screen == PharmaScreenSize.mobile) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      children: [
-        Text(
-          'Página $page',
-          style: Theme.of(context).textTheme.erpTableSecondary,
-        ),
-        SizedBox(width: s.lg),
-        Text(
-          hasMore ? 'Mais resultados disponíveis' : 'Fim da lista',
-          style: Theme.of(context).textTheme.erpTableSecondary.copyWith(
-                color: context.pharmaTokens.textSecondary,
-              ),
-        ),
-        const Spacer(),
-        SizedBox(
-          width: 150,
-          child: EnterpriseSelectField<int>(
-            label: 'Por página',
-            value: pageSizeOptions.contains(pageSize)
-                ? pageSize
-                : pageSizeOptions.first,
-            enabled: !isBusy,
-            options: [
-              for (final value in pageSizeOptions)
-                EnterpriseSelectOption<int>(
-                  value: value,
-                  label: '$value / página',
-                ),
-            ],
-            onChanged: (value) =>
-                value != null ? onPageSizeChanged?.call(value) : null,
-          ),
-        ),
-        SizedBox(width: s.md),
-        OutlinedButton.icon(
-          onPressed: isBusy ? null : onPrev,
-          icon: const Icon(Icons.chevron_left_rounded),
-          label: const Text('Anterior'),
-        ),
-        SizedBox(width: s.sm),
-        FilledButton.icon(
-          onPressed: isBusy || !hasMore ? null : onNext,
-          icon: const Icon(Icons.chevron_right_rounded),
-          label: const Text('Próxima'),
-        ),
-      ],
+    return EnterprisePagination(
+      page: page,
+      pageSize: pageSize,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      itemsOnPage: itemsOnPage,
+      isBusy: isBusy,
+      itemLabel: itemLabel,
+      onPageChanged: (nextPage) {
+        if (onPageChanged != null) {
+          onPageChanged!(nextPage);
+          return;
+        }
+        if (nextPage < page) {
+          onPrev?.call();
+        } else if (nextPage > page) {
+          onNext?.call();
+        }
+      },
+      onPageSizeChanged: onPageSizeChanged ?? (_) {},
     );
   }
 }

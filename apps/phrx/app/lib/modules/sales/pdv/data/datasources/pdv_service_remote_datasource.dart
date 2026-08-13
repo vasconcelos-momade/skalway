@@ -12,7 +12,7 @@ abstract class PdvServiceRemoteDataSource {
   Future<PaginationResponse<PdvServiceModel>> searchServices({
     String? query,
     int page = 1,
-    int pageSize = 10,
+    int pageSize = PaginationDefaults.pageSize,
   });
 }
 
@@ -25,7 +25,7 @@ class PdvServiceRemoteDataSourceImpl implements PdvServiceRemoteDataSource {
   Future<PaginationResponse<PdvServiceModel>> searchServices({
     String? query,
     int page = 1,
-    int pageSize = 10,
+    int pageSize = PaginationDefaults.pageSize,
   }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(

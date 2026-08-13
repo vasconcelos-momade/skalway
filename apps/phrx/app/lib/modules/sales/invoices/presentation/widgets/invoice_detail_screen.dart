@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/errors/api_failure.dart';
+import '../../../../../core/theme/component_theme.dart';
 import '../../../../../core/theme/design_tokens.dart';
 import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/responsive/pharma_screen_layout.dart';
@@ -498,7 +499,14 @@ class _DetailActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.pharmaTokens;
     final s = context.spacing;
+    final scheme = Theme.of(context).colorScheme;
+    final compactStyle = PharmaComponentTheme.outlined(
+      t,
+      scheme,
+      compact: true,
+    );
     final actionState = ref.watch(invoiceActionProvider);
     final controller = ref.read(invoiceActionProvider.notifier);
     final isBusy =
@@ -605,6 +613,7 @@ class _DetailActions extends ConsumerWidget {
 
     final children = <Widget>[
       OutlinedButton.icon(
+        style: compactStyle,
         onPressed: isBusy ? null : showDocument,
         icon: isShowing
             ? const PharmaButtonLoader()
@@ -612,22 +621,25 @@ class _DetailActions extends ConsumerWidget {
                 isThermal
                     ? Icons.receipt_long_outlined
                     : Icons.visibility_outlined,
+                size: t.iconSm,
               ),
         label: Text(isThermal ? 'Ver PDF 80mm' : 'Ver A4'),
       ),
       OutlinedButton.icon(
+        style: compactStyle,
         onPressed: isBusy ? null : printReceipt,
         icon: isPrinting
             ? const PharmaButtonLoader()
-            : const Icon(Icons.print_outlined),
+            : Icon(Icons.print_outlined, size: t.iconSm),
         label: Text(isThermal ? 'Imprimir 80mm' : 'Imprimir A4'),
       ),
       if (!isThermal && canExportPdf)
         OutlinedButton.icon(
+          style: compactStyle,
           onPressed: isBusy ? null : exportPdf,
           icon: isExportingPdf
               ? const PharmaButtonLoader()
-              : const Icon(Icons.picture_as_pdf_outlined),
+              : Icon(Icons.download_outlined, size: t.iconSm),
           label: const Text('Exportar PDF'),
         ),
       FilledButton.icon(

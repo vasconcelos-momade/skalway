@@ -98,16 +98,20 @@ export function renderCentralInvoiceHtml(view: CentralInvoicePdfView): string {
   const itemRows =
     items.length > 0
       ? items
-          .map(
-            (row) => `
+          .map((row) => {
+            const [main, periodLine] = String(row.description).split("\n");
+            const periodHtml = periodLine
+              ? `<span class="contract-period">${escapeHtml(periodLine)}</span>`
+              : "";
+            return `
         <tr>
           <td class="c-item">${escapeHtml(row.item)}</td>
-          <td class="c-desc">${escapeHtml(row.description)}</td>
+          <td class="c-desc">${escapeHtml(main)}${periodHtml}</td>
           <td class="c-qty">${escapeHtml(row.qty)}</td>
           <td class="c-num">${escapeHtml(row.unitPrice)}</td>
           <td class="c-num">${escapeHtml(row.amount)}</td>
-        </tr>`,
-          )
+        </tr>`;
+          })
           .join("")
       : `<tr><td colspan="5" class="empty">Sem linhas de facturação.</td></tr>`;
 
@@ -245,7 +249,8 @@ export function renderCentralInvoiceHtml(view: CentralInvoicePdfView): string {
     }
     table.items tbody tr:nth-child(even) td { background: #f8fafc; }
     .c-item { width: 8%; text-align: center; }
-    .c-desc { width: 44%; }
+    .c-desc { width: 44%; white-space: pre-line; }
+    .c-desc .contract-period { display: block; margin-top: 4px; color: #555; font-size: 10px; font-weight: 600; }
     .c-qty { width: 12%; text-align: center; }
     .c-num { width: 18%; text-align: right; white-space: nowrap; }
     .empty { text-align: center; color: #777; padding: 16px !important; }

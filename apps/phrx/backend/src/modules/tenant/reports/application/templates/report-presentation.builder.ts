@@ -39,9 +39,9 @@ function resolvePresentation(definition: ReportDefinition): Required<
     emptyStateMessage:
       presentation.emptyStateMessage ??
       "Sem registos para os filtros aplicados.",
-    logoAsset: presentation.logoAsset ?? "logo.svg",
+    logoAsset: presentation.logoAsset ?? "logo.png",
     watermarkText: presentation.showWatermark
-      ? toText(presentation.watermarkText, "PHARMA ERP")
+      ? toText(presentation.watermarkText, "Skalway PhRx")
       : "",
     footer: {
       left: toText(
@@ -50,7 +50,7 @@ function resolvePresentation(definition: ReportDefinition): Required<
       ),
       center: toText(
         presentation.footer?.center,
-        "Gerado automaticamente pelo Pharma ERP",
+        "Gerado automaticamente pelo Skalway PhRx",
       ),
       right: toText(
         presentation.footer?.right,
@@ -190,7 +190,7 @@ export function buildInstitutionalReportView(definition: ReportDefinition) {
     })),
     sections: buildReportHtmlSections(definition),
     headerLines: [
-      "PHARMA ERP",
+      "Skalway PhRx",
       definition.institution.pharmacyName,
       definition.institution.branchName
         ? `Filial: ${definition.institution.branchName}`
@@ -205,7 +205,7 @@ export function buildInstitutionalReportView(definition: ReportDefinition) {
     ],
     footerLines: [
       presentation.footer?.left ?? "Pagina 1/1",
-      presentation.footer?.center ?? "Gerado automaticamente pelo Pharma ERP",
+      presentation.footer?.center ?? "Gerado automaticamente pelo Skalway PhRx",
       presentation.footer?.right ??
         `${formatDate(definition.generatedAt)} ${formatTime(definition.generatedAt)}`,
     ],

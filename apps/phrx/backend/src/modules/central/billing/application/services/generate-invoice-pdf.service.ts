@@ -13,15 +13,57 @@ function money(value: unknown, digits = 2): string {
   return n.toFixed(digits);
 }
 
-function formatDate(value: unknown): string {
-  if (!value) return "—";
+function toDate(value: unknown): Date | null {
+  if (!value) return null;
   const d = value instanceof Date ? value : new Date(String(value));
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("pt-MZ", {
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Formato português: dd/MM/yyyy */
+function formatDate(value: unknown): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat("pt-PT", {
     day: "2-digit",
-    month: "long",
+    month: "2-digit",
     year: "numeric",
-  });
+  }).format(d);
+}
+
+/** Formato português com hora: dd/MM/yyyy HH:mm */
+function formatDateTime(value: unknown): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${formatDate(d)} ${hours}:${minutes}`;
+}
+
+function formatPeriod(periodStart: unknown, periodEnd: unknown): string {
+  const start = formatDate(periodStart);
+  const end = formatDate(periodEnd);
+  if (start === "—" && end === "—") return "—";
+  if (start === "—") return end;
+  if (end === "—") return start;
+  return `${start} a ${end}`;
+}
+
+function resolveContractMonths(invoice: any): number {
+  const start = invoice.periodStart ? new Date(invoice.periodStart) : null;
+  const end = invoice.periodEnd ? new Date(invoice.periodEnd) : null;
+  if (
+    start &&
+    end &&
+    !Number.isNaN(start.getTime()) &&
+    !Number.isNaN(end.getTime())
+  ) {
+    const monthDiff =
+      (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+      (end.getUTCMonth() - start.getUTCMonth()) +
+      1;
+    return Math.max(1, monthDiff);
+  }
+  return 1;
 }
 
 function statusLabel(status: string): string {
@@ -64,24 +106,28 @@ function buildLineItems(invoice: any): CentralInvoiceLineItem[] {
     invoice.snapshotExtraBranches ?? invoice.extraBranches ?? 0,
   );
   const extraPrice = Number(invoice.extraBranchPrice ?? 0);
+  const contractMonths = resolveContractMonths(invoice);
+  const contractPeriodLabel = `Período do contrato: ${contractMonths} ${contractMonths === 1 ? "mês" : "meses"}`;
 
   if (Number.isFinite(planPrice) && planPrice >= 0) {
+    const lineAmount = planPrice * contractMonths;
     items.push({
       item: 1,
-      description: `Subscrição ${planName}${invoice.planSlug ? ` (${invoice.planSlug})` : ""} — mensalidade`,
-      qty: "1",
+      description: `Subscrição ${planName}${invoice.planSlug ? ` (${invoice.planSlug})` : ""} — mensalidade\n${contractPeriodLabel}`,
+      qty: String(contractMonths),
       unitPrice: money(planPrice),
-      amount: money(planPrice),
+      amount: money(lineAmount),
     });
   }
 
   if (extraBranches > 0 && Number.isFinite(extraPrice)) {
+    const lineAmount = extraBranches * extraPrice * contractMonths;
     items.push({
       item: items.length + 1,
-      description: `Filiais extra (${extraBranches} × ${money(extraPrice)} MZN)`,
+      description: `Filiais extra (${extraBranches} × ${money(extraPrice)} MZN/mês)\n${contractPeriodLabel}`,
       qty: String(extraBranches),
-      unitPrice: money(extraPrice),
-      amount: money(extraBranches * extraPrice),
+      unitPrice: money(extraPrice * contractMonths),
+      amount: money(lineAmount),
     });
   }
 
@@ -89,10 +135,13 @@ function buildLineItems(invoice: any): CentralInvoiceLineItem[] {
     items.push({
       item: 1,
       description:
-        invoice.description ||
-        `Factura SaaS ${invoice.number}`,
-      qty: "1",
-      unitPrice: money(invoice.amount),
+        `${invoice.description || `Factura SaaS ${invoice.number}`}\n${contractPeriodLabel}`,
+      qty: String(contractMonths),
+      unitPrice: money(
+        contractMonths > 0
+          ? Number(invoice.amount) / contractMonths
+          : invoice.amount,
+      ),
       amount: money(invoice.amount),
     });
   }
@@ -137,7 +186,7 @@ function buildView(invoice: any, issuer: any): CentralInvoicePdfView {
       date: formatDate(invoice.createdAt),
       dueDate: formatDate(invoice.dueDate),
       status: statusLabel(invoice.status),
-      period: invoice.period || "—",
+      period: formatPeriod(invoice.periodStart, invoice.periodEnd),
       currency,
       terms: "Transferência / M-Pesa / E-Mola / Cash",
       description: invoice.description,
@@ -155,7 +204,9 @@ function buildView(invoice: any, issuer: any): CentralInvoicePdfView {
       method: methodLabel(p.method),
       amount: money(p.amount),
       status: statusLabel(p.status),
-      date: formatDate(p.confirmedAt || p.createdAt),
+      date: p.confirmedAt
+        ? formatDateTime(p.confirmedAt)
+        : formatDateTime(p.createdAt),
     })),
   };
 }

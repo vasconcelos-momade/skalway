@@ -18,6 +18,7 @@ class PdvProductTable extends StatelessWidget {
     required this.addingProductId,
     required this.onAdd,
     this.isLoading = false,
+    this.pagination,
   });
 
   final List<Product> items;
@@ -26,6 +27,7 @@ class PdvProductTable extends StatelessWidget {
   final String? addingProductId;
   final void Function(Product product) onAdd;
   final bool isLoading;
+  final Widget? pagination;
 
   static const _columns = [
     'PRODUTO',
@@ -61,6 +63,7 @@ class PdvProductTable extends StatelessWidget {
       dataRowMinHeight: 72,
       dataRowMaxHeight: 92,
       columnSpacing: s.xxl,
+      pagination: pagination,
       columns: [
         for (final label in _columns)
           enterpriseDataColumn(

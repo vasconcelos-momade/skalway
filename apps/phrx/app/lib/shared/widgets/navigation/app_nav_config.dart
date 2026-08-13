@@ -156,13 +156,19 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
     title: AppNavSections.pharmacy,
     items: <AppNavItem>[
       AppNavItem(
-        label: 'Produtos',
+        label: 'Gestão de Produtos',
         path: AppRoutePaths.products,
         icon: Icons.medication_outlined,
         permissionModule: 'PRODUTOS',
       ),
       AppNavItem(
-        label: 'Categorias',
+        label: 'Gestão de Serviços',
+        path: AppRoutePaths.pharmacyServices,
+        icon: Icons.medical_services_outlined,
+        permissionModule: 'PRODUTOS',
+      ),
+      AppNavItem(
+        label: 'Gestão de Categorias',
         path: AppRoutePaths.pharmacyCategories,
         icon: Icons.category_outlined,
         permissionModule: 'PRODUTOS',
@@ -174,7 +180,7 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         permissionModule: 'LOTES',
       ),
       AppNavItem(
-        label: 'Inventário',
+        label: 'Gestão de Inventário',
         path: AppRoutePaths.stockInventory,
         icon: Icons.fact_check_outlined,
         permissionModule: 'INVENTARIO',
@@ -192,7 +198,7 @@ const List<AppNavSection> kAppNavSections = <AppNavSection>[
         permissionModule: 'INVENTARIO',
       ),
       AppNavItem(
-        label: 'Fornecedores',
+        label: 'Gestão de Fornecedores',
         path: AppRoutePaths.stockSuppliers,
         icon: Icons.local_shipping_outlined,
         permissionModule: 'FORNECEDORES',

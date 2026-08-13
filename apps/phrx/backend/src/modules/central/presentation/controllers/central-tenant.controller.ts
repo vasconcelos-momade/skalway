@@ -150,6 +150,7 @@ const tenantListSelect = {
   country: true,
   createdAt: true,
   branches: {
+    where: { deletedAt: null },
     select: {
       id: true,
       code: true,
@@ -315,8 +316,11 @@ export class CentralTenantController {
     if (!ownerUserId) {
       const ownerUser = body.ownerUser!;
 
-      const existingOwner = await prismaCentral.user.findUnique({
-        where: { email: ownerUser.email.trim().toLowerCase() },
+      const existingOwner = await prismaCentral.user.findFirst({
+        where: {
+          email: ownerUser.email.trim().toLowerCase(),
+          deletedAt: null,
+        },
       });
       if (existingOwner) {
         return Response.json(

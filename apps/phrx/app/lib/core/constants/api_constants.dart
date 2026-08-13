@@ -143,6 +143,10 @@ abstract final class ApiConstants {
   static const tenantCategoriasStats = '/tenant/categorias/stats';
   static String tenantCategoria(String categoryId) =>
       '/tenant/categorias/$categoryId';
+  static const tenantServicos = '/tenant/servicos';
+  static const tenantServicosStats = '/tenant/servicos/stats';
+  static String tenantServico(String servicoId) =>
+      '/tenant/servicos/$servicoId';
   static String tenantProdutoHistoricoPrecos(String productId) =>
       '/tenant/produtos/$productId/historico-precos';
   static String tenantProdutoLotes(String produtoId) =>

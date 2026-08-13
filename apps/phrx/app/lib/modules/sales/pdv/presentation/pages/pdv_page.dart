@@ -629,7 +629,6 @@ class _PdvPageState extends ConsumerState<PdvPage>
               controller: _search,
               focusNode: _searchFocusNode,
               autofocus: true,
-              fullWidth: true,
               hintText: _isProductsTab
                   ? (isMobile
                       ? 'Pesquisar ou escanear...'
@@ -674,7 +673,10 @@ class _PdvPageState extends ConsumerState<PdvPage>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: searchBar),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: searchBar,
+                  ),
                   if (_isProductsTab) ...[
                     SizedBox(width: s.sm),
                     SizedBox(
@@ -711,6 +713,7 @@ class _PdvPageState extends ConsumerState<PdvPage>
                       canAdd: canAddCatalog,
                       addingProductId: cartState.busyLineId,
                       onAdd: (product) => unawaited(_addProduct(product)),
+                      pagination: showCatalogPagination ? catalogFooter : null,
                     )
               : isMobile
                   ? PdvServiceList(
@@ -725,12 +728,9 @@ class _PdvPageState extends ConsumerState<PdvPage>
                       query: serviceState.query,
                       canAdd: canAddCatalog,
                       onAdd: (service) => unawaited(_addService(service)),
+                      pagination: showCatalogPagination ? catalogFooter : null,
                     ),
         ),
-        if (showCatalogPagination) ...[
-          SizedBox(height: s.sm),
-          catalogFooter,
-        ],
       ],
     );
     final mobileCatalog = isMobile ? catalog : catalog;

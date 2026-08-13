@@ -7,8 +7,8 @@ export class ForgotPasswordUseCase {
 
     if (normalizedEmail.length > 0) {
       const prisma = prismaCentralUnscoped as any;
-      const user = await prisma.user.findUnique({
-        where: { email: normalizedEmail },
+      const user = await prisma.user.findFirst({
+        where: { email: normalizedEmail, deletedAt: null },
         select: { id: true, name: true, email: true, active: true },
       });
 

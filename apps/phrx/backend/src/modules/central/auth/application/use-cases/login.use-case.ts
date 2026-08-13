@@ -37,8 +37,8 @@ export class LoginUseCase {
     const prisma = prismaCentralUnscoped as any;
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail, deletedAt: null },
       include: {
         userTenants: {
           where: {
@@ -73,7 +73,7 @@ export class LoginUseCase {
       );
     }
 
-    if (user.active === false) {
+    if (user.deletedAt != null || user.active === false) {
       await this.recordAttempt(normalizedEmail, false, user.id, meta);
       throw new ApiError(
         'A sua conta está inativa.',

@@ -453,8 +453,8 @@ class _TenantActionsMenuButton extends ConsumerWidget {
         ),
         EnterpriseDropdownItem<_TenantAction>(
           value: _TenantAction.deleteTenant,
-          label: 'Deletar Tenant',
-          icon: Icons.delete_outline_rounded,
+          label: 'Eliminar Tenant',
+          icon: Icons.delete_forever_rounded,
           destructive: true,
         ),
       ],
@@ -505,25 +505,50 @@ class _TenantActionsMenuButton extends ConsumerWidget {
               PharmaFeedback.success(context, 'Créditos adicionados.');
             }
           case _TenantAction.deleteTenant:
+            final actionsBusy = ref.read(platformBillingActionsProvider);
+            if (actionsBusy) {
+              PharmaFeedback.warning(
+                context,
+                'Já existe uma operação em curso. Aguarde.',
+              );
+              return;
+            }
             final confirmed = await PharmaFeedback.confirm(
               context: context,
-              title: 'Deletar Tenant',
+              title: 'Eliminar Tenant',
               message:
-                  'Esta operação é irreversível. O tenant "${tenant.tenantName}" '
-                  'e todos os seus dados serão eliminados permanentemente.\n\n'
-                  'Só é possível eliminar tenants sem plano pago activo nem facturas pagas.',
-              confirmText: 'Deletar',
+                  'Esta acção é destrutiva e não pode ser desfeita.\n\n'
+                  'Tenant: ${tenant.tenantName} (${tenant.tenantKey})\n'
+                  'Filiais afectadas: ${tenant.branchCount}\n\n'
+                  '• A database operacional de cada filial será eliminada fisicamente.\n'
+                  '• Facturas, pagamentos e auditoria permanecem na Central e '
+                  'continuam consultáveis para fins administrativos/financeiros; '
+                  'deixam de aparecer nas listagens operacionais normais.\n'
+                  '• Utilizadores, permissões e sessões deste tenant são desactivados.\n'
+                  '• Pagamentos pendentes de confirmação impedem a eliminação.',
+              confirmText: 'Eliminar definitivamente',
               destructive: true,
             );
             if (!confirmed || !context.mounted) return;
             try {
+              // Não fazer await: showLoading só completa quando o diálogo é fechado.
+              PharmaFeedback.loading(
+                context: context,
+                title: 'A eliminar tenant',
+                message: 'A preservar histórico na Central e a remover as bases…',
+              );
               await ref
                   .read(platformBillingActionsProvider.notifier)
                   .deleteTenant(tenant.id);
               if (!context.mounted) return;
-              PharmaFeedback.success(context, 'Tenant eliminado.');
+              PharmaFeedback.dismiss(context);
+              PharmaFeedback.success(
+                context,
+                'Tenant eliminado. Histórico preservado na Central.',
+              );
             } catch (e) {
               if (!context.mounted) return;
+              PharmaFeedback.dismiss(context);
               PharmaFeedback.error(
                 context,
                 e.toString().replaceFirst('Exception: ', ''),

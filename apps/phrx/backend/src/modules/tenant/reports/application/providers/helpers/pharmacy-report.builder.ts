@@ -25,7 +25,7 @@ export function formatDateTime(value: unknown): string {
 
 export function mapProductTableRows(items: ProductListItem[]) {
   return items.map((item) => [
-    toText(item.nome),
+    toText(item.nomeComercial ?? item.nome),
     toText((item.categoria as any)?.nome ?? item.categoriaNome),
     toText(item.barcode),
     toText(item.estoqueAtual, "0"),

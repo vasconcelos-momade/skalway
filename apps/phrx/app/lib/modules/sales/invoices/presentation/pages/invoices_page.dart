@@ -126,7 +126,12 @@ class _SalesInvoicesPageState extends ConsumerState<SalesInvoicesPage> {
                       }
                     },
               icon: Icon(Icons.download_outlined, size: t.iconSm),
-              label: const Text('Exportar'),
+              label: Text(
+                'Exportar',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
             );
           },
         ),

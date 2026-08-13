@@ -8,7 +8,9 @@ async function test() {
   try {
     // 1. Garantir que temos um usuário dono no Central
     const email = "admin@skalway.com";
-    let user = await prismaCentral.user.findUnique({ where: { email } });
+    let user = await prismaCentral.user.findFirst({
+      where: { email, deletedAt: null },
+    });
 
     if (!user) {
       console.log("👤 Criando usuário administrador global...");

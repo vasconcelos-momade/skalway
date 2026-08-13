@@ -15,7 +15,7 @@ class PdvServiceRepositoryImpl implements PdvServiceRepository {
   Future<PaginationResponse<PdvService>> searchServices({
     String? query,
     int page = 1,
-    int pageSize = 10,
+    int pageSize = PaginationDefaults.pageSize,
   }) async {
     final response = await _remoteDataSource.searchServices(
       query: query,

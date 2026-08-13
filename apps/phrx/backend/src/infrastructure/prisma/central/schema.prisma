@@ -38,7 +38,7 @@ model User {
   uuid      String  @unique @default(uuid())
 
   name      String
-  email     String  @unique @db.VarChar(191)
+  email     String  @db.VarChar(191)
   password  String
   role      Role    @default(usuario)
   active    Boolean @default(true)
@@ -71,6 +71,7 @@ model User {
   sessions          UserSession[]
 
   @@index([role])
+  @@index([email])
   @@index([lockedUntil])
   @@index([active])
   @@index([deletedAt])

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/extensions.dart';
 import '../../../core/theme/pharma_surface.dart';
+import '../cards/enterprise_stat_card.dart';
 
 enum EnterpriseKpiTrend { positive, negative, neutral }
 
@@ -16,6 +17,7 @@ class EnterpriseKpiCard extends StatelessWidget {
     required this.icon,
     this.percentage,
     this.trend = EnterpriseKpiTrend.neutral,
+    this.accent = StatCardAccent.neutral,
     this.description,
     this.state = EnterpriseKpiState.data,
     this.onTap,
@@ -27,6 +29,7 @@ class EnterpriseKpiCard extends StatelessWidget {
   final IconData icon;
   final String? percentage;
   final EnterpriseKpiTrend trend;
+  final StatCardAccent accent;
   final String? description;
   final EnterpriseKpiState state;
   final VoidCallback? onTap;
@@ -69,11 +72,29 @@ class EnterpriseKpiCard extends StatelessWidget {
     }
 
     final colors = context.colors;
-    // Cor semântica só para comunicar estado (sucesso / erro); ícone do KPI neutro.
-    final (Color trendColor, Color bgTrendColor, IconData trendIcon) = switch (trend) {
-      EnterpriseKpiTrend.positive => (t.posSuccess, colors.successSubtle, Icons.trending_up),
-      EnterpriseKpiTrend.negative => (t.posDanger, colors.errorSubtle, Icons.trending_down),
-      EnterpriseKpiTrend.neutral => (t.textSecondary, colors.neutralSubtle, Icons.trending_flat),
+    final (Color trendColor, _, IconData trendIcon) = switch (trend) {
+      EnterpriseKpiTrend.positive => (
+          t.posSuccess,
+          colors.successSubtle,
+          Icons.trending_up,
+        ),
+      EnterpriseKpiTrend.negative => (
+          t.posDanger,
+          colors.errorSubtle,
+          Icons.trending_down,
+        ),
+      EnterpriseKpiTrend.neutral => (
+          t.textSecondary,
+          colors.neutralSubtle,
+          Icons.trending_flat,
+        ),
+    };
+    final (Color iconFg, Color iconBg) = switch (accent) {
+      StatCardAccent.positive => (t.posSuccess, colors.successSubtle),
+      StatCardAccent.warning => (t.posWarning, colors.warningSubtle),
+      StatCardAccent.danger => (t.posDanger, colors.errorSubtle),
+      StatCardAccent.info => (t.posInfo, colors.infoSubtle),
+      StatCardAccent.neutral => (t.textSecondary, colors.neutralSubtle),
     };
 
     return PharmaSurface(
@@ -99,10 +120,10 @@ class EnterpriseKpiCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(s.xs),
                 decoration: BoxDecoration(
-                  color: colors.neutralSubtle,
+                  color: iconBg,
                   borderRadius: BorderRadius.circular(t.radiusMd),
                 ),
-                child: Icon(icon, size: t.iconSm, color: t.textSecondary),
+                child: Icon(icon, size: t.iconSm, color: iconFg),
               ),
             ],
           ),

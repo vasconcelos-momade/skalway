@@ -186,14 +186,15 @@ export class CentralBillingController {
 
     const where = {
       deletedAt: null,
+      tenant: { deletedAt: null },
       ...tenantFilter,
       ...(query.status ? { status: query.status } : {}),
       ...(search
         ? {
             OR: [
               { reference: { contains: search } },
-              { tenant: { tenantKey: { contains: search } } },
-              { tenant: { tenantName: { contains: search } } },
+              { tenant: { tenantKey: { contains: search }, deletedAt: null } },
+              { tenant: { tenantName: { contains: search }, deletedAt: null } },
               { invoice: { number: { contains: search } } },
             ],
           }

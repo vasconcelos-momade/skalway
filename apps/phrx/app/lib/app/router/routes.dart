@@ -30,6 +30,7 @@ abstract final class AppRoutePaths {
 
   static const String products = '/app/products';
   static const String pharmacyCategories = '/app/pharmacy/categories';
+  static const String pharmacyServices = '/app/pharmacy/services';
   static const String pharmacyLots = '/app/pharmacy/lots';
   static const String pharmacyExpiry = '/app/pharmacy/expiry';
   static const String pharmacyFefo = '/app/pharmacy/fefo';
@@ -125,8 +126,9 @@ abstract final class AppRouteTitles {
       AppRoutePaths.dashboardStock => 'Stock',
       AppRoutePaths.dashboardCashier => 'Caixa',
       AppRoutePaths.pos => 'POS / Caixa',
-      AppRoutePaths.products => 'Produtos',
-      AppRoutePaths.pharmacyCategories => 'Categorias',
+      AppRoutePaths.products => 'Gestão de Produtos',
+      AppRoutePaths.pharmacyCategories => 'Gestão de Categorias',
+      AppRoutePaths.pharmacyServices => 'Gestão de Serviços',
       AppRoutePaths.pharmacyLots => 'Estoque & Lotes',
       AppRoutePaths.pharmacyExpiry => 'Validades',
       AppRoutePaths.pharmacyFefo => 'FEFO',
@@ -149,8 +151,8 @@ abstract final class AppRouteTitles {
       AppRoutePaths.stockRequisitions => 'Compras',
       AppRoutePaths.stockRequisitionsLegacy => 'Compras',
       AppRoutePaths.stockTransfersLegacy => 'Compras',
-      AppRoutePaths.stockInventory => 'Inventário',
-      AppRoutePaths.stockSuppliers => 'Fornecedores',
+      AppRoutePaths.stockInventory => 'Gestão de Inventário',
+      AppRoutePaths.stockSuppliers => 'Gestão de Fornecedores',
       AppRoutePaths.stockPurchases => 'Compras',
       AppRoutePaths.stockPurchaseSuggestions => 'Sugestão de Compra',
       AppRoutePaths.salesCustomers => 'Clientes',

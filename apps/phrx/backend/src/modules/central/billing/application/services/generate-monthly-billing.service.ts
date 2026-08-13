@@ -73,6 +73,7 @@ export class GenerateMonthlyBillingService {
         deletedAt: null,
         startDate: { lte: periodEnd },
         OR: [{ endDate: null }, { endDate: { gte: periodStart } }],
+        tenant: { deletedAt: null },
         ...(input.tenantId ? { tenantId: BigInt(input.tenantId) } : {}),
         ...(input.subscriptionId ? { id: BigInt(input.subscriptionId) } : {}),
       },

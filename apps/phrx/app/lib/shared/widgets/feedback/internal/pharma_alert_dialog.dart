@@ -118,7 +118,10 @@ abstract final class PharmaAlertDialog {
     String title = 'A processar',
     String? message,
   }) {
-    return showPharmaResponsiveDialog<void>(
+    // Dispara o diálogo sem aguardar o pop — senão `await loading()` bloqueia
+    // para sempre e o trabalho a seguir nunca corre.
+    // ignore: unawaited_futures
+    showPharmaResponsiveDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
@@ -147,6 +150,7 @@ abstract final class PharmaAlertDialog {
         );
       },
     );
+    return Future<void>.value();
   }
 
   static Future<void> _showAcknowledgement({

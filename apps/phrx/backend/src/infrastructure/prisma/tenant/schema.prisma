@@ -11,7 +11,7 @@ datasource db {
 model User {
   id                      BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
   name                    String
-  email                   String?                  @unique
+  email                   String?
   role                    TenantUserRole           @default(GERENTE)
   active                  Boolean                  @default(true)
   centralUserId           BigInt?                  @db.UnsignedBigInt
@@ -50,6 +50,8 @@ model User {
   inventariosIniciados    Inventario[]             @relation("InventarioCriador")
   inventariosReconciliados Inventario[]            @relation("InventarioReconciliador")
   @@index([centralUserId])
+  @@index([email])
+  @@index([deletedAt])
   @@map("users")
 }
 

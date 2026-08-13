@@ -38,6 +38,7 @@ export class ProcessSubscriptionLifecycleService {
         status: "trial",
         deletedAt: null,
         trialEndsAt: { lte: referenceDate },
+        tenant: { deletedAt: null },
       },
       include: {
         plan: true,
@@ -63,6 +64,7 @@ export class ProcessSubscriptionLifecycleService {
         deletedAt: null,
         status: { in: ["pendente", "parcial"] },
         dueDate: { lt: referenceDate },
+        tenant: { deletedAt: null },
       },
       orderBy: { dueDate: "asc" },
       select: { id: true },
@@ -86,6 +88,7 @@ export class ProcessSubscriptionLifecycleService {
         deletedAt: null,
         status: "vencido",
         dueDate: { lte: cancelAfter },
+        tenant: { deletedAt: null },
         subscription: {
           deletedAt: null,
           status: { not: "cancelado" },

@@ -21,8 +21,10 @@ async function provisionCentralLoginAccess(params: {
   const hashedPassword = await bcrypt.hash(params.password, 10);
   const tenantId = BigInt(params.tenantId);
 
+  // Email só está ocupado se existir utilizador com deletedAt IS NULL.
+  // Soft-deleted mantêm-se intactos; cria-se um novo registo quando necessário.
   let centralUser = await prisma.user.findFirst({
-    where: { email },
+    where: { email, deletedAt: null },
   });
 
   if (centralUser) {
@@ -32,7 +34,6 @@ async function provisionCentralLoginAccess(params: {
         name: params.name,
         password: hashedPassword,
         active: params.active,
-        deletedAt: null,
       },
     });
   } else {
@@ -51,6 +52,7 @@ async function provisionCentralLoginAccess(params: {
     where: {
       userId: centralUser.id,
       tenantId,
+      deletedAt: null,
     },
   });
 
@@ -60,7 +62,6 @@ async function provisionCentralLoginAccess(params: {
       data: {
         role: params.role,
         active: params.active,
-        deletedAt: null,
       },
     });
   } else {

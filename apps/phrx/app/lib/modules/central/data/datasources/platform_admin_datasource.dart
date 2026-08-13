@@ -294,7 +294,14 @@ class PlatformAdminDataSource {
 
   Future<void> deleteTenant(String tenantId) async {
     try {
-      await _dio.delete<void>('${ApiConstants.centralTenants}/$tenantId');
+      await _dio.delete<void>(
+        '${ApiConstants.centralTenants}/$tenantId',
+        options: Options(
+          // Soft-delete Central + DROP das BDs das filiais.
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }

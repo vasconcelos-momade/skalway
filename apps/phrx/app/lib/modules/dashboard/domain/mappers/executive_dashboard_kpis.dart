@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../shared/widgets/dashboard/enterprise_kpi_card.dart';
 import '../../../finance/domain/finance_metrics_keys.dart';
 import '../utils/dashboard_data_utils.dart';
@@ -20,12 +21,12 @@ abstract final class ExecutiveDashboardKpis {
     final criticos = _asDouble(kpis['produtosCriticos']);
 
     return [
-      // Primários (layout enterprise)
       EnterpriseKpiCard(
         title: 'Receita total',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.faturamento),
         unit: 'MZN',
         icon: Icons.payments_outlined,
+        accent: StatCardAccent.positive,
         trend: EnterpriseKpiTrend.positive,
         onTap: () => context.go(AppRoutePaths.financeRevenue),
       ),
@@ -34,6 +35,7 @@ abstract final class ExecutiveDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.lucroLiquido),
         unit: 'MZN',
         icon: Icons.trending_up,
+        accent: StatCardAccent.info,
         trend: EnterpriseKpiTrend.positive,
         onTap: () => context.go(AppRoutePaths.financeExpenses),
       ),
@@ -42,6 +44,7 @@ abstract final class ExecutiveDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.saldoAtual),
         unit: 'MZN',
         icon: Icons.account_balance_wallet_outlined,
+        accent: StatCardAccent.neutral,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.financeCashflow),
       ),
@@ -49,17 +52,18 @@ abstract final class ExecutiveDashboardKpis {
         title: 'Produtos críticos',
         value: DashboardDataUtils.kpi(kpis, 'produtosCriticos'),
         icon: Icons.warning_amber_outlined,
+        accent: StatCardAccent.warning,
         trend: criticos > 0
             ? EnterpriseKpiTrend.negative
             : EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.pharmacyStock),
       ),
-      // Secundários
       EnterpriseKpiCard(
         title: 'Margem de lucro',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.margem),
         unit: '%',
         icon: Icons.donut_large_outlined,
+        accent: StatCardAccent.info,
         trend: margem >= 0
             ? EnterpriseKpiTrend.positive
             : EnterpriseKpiTrend.negative,
@@ -68,6 +72,7 @@ abstract final class ExecutiveDashboardKpis {
         title: 'N.º de vendas',
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.numVendas),
         icon: Icons.receipt_long_outlined,
+        accent: StatCardAccent.positive,
         trend: EnterpriseKpiTrend.neutral,
         onTap: () => context.go(AppRoutePaths.salesInvoices),
       ),
@@ -76,6 +81,7 @@ abstract final class ExecutiveDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, FinanceMetricsKeys.ticketMedio),
         unit: 'MZN',
         icon: Icons.sell_outlined,
+        accent: StatCardAccent.warning,
         trend: EnterpriseKpiTrend.neutral,
       ),
       EnterpriseKpiCard(
@@ -83,6 +89,7 @@ abstract final class ExecutiveDashboardKpis {
         value: DashboardDataUtils.kpi(kpis, 'crescimento'),
         unit: kpis['crescimento'] == null ? null : '%',
         icon: Icons.show_chart,
+        accent: StatCardAccent.danger,
         trend: crescimento > 0
             ? EnterpriseKpiTrend.positive
             : crescimento < 0

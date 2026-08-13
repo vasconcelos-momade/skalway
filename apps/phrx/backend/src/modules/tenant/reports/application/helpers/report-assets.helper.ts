@@ -1,9 +1,17 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 
 const ASSETS_ROOT = join(import.meta.dir, "../../assets");
 
 const assetCache = new Map<string, string>();
+
+const MIME_BY_EXT: Record<string, string> = {
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+};
 
 export function loadReportAssetDataUri(
   assetName: string,
@@ -22,6 +30,8 @@ export function loadReportAssetDataUri(
   return dataUri;
 }
 
-export function resolveLogoDataUri(assetName = "logo.svg"): string {
-  return loadReportAssetDataUri(assetName, "image/svg+xml");
+export function resolveLogoDataUri(assetName = "logo.png"): string {
+  const ext = extname(assetName).toLowerCase();
+  const mimeType = MIME_BY_EXT[ext] ?? "image/png";
+  return loadReportAssetDataUri(assetName, mimeType);
 }

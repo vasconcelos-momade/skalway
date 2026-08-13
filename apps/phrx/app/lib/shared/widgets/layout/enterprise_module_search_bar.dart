@@ -26,7 +26,7 @@ class EnterpriseModuleSearchBar extends StatefulWidget {
   final FocusNode? focusNode;
   final bool autofocus;
 
-  /// Ocupa toda a largura disponível (ex.: toolbar do PDV).
+  /// Ocupa toda a largura disponível (ex.: toolbars mobile full-bleed).
   final bool fullWidth;
 
   @override

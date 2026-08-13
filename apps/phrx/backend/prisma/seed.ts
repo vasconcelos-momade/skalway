@@ -32,8 +32,8 @@ const PLANS = [
 
 async function seedSuperAdmin() {
   console.log("👤 [central] SUPER_ADMIN...");
-  const existing = await prisma.user.findUnique({
-    where: { email: SUPER_ADMIN_EMAIL },
+  const existing = await prisma.user.findFirst({
+    where: { email: SUPER_ADMIN_EMAIL, deletedAt: null },
   });
 
   if (existing) {

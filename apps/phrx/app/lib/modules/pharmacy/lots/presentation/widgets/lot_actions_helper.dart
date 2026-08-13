@@ -146,7 +146,8 @@ abstract final class LotActionsHelper {
     if (!confirmed || !context.mounted) return;
 
     try {
-      await PharmaFeedback.loading(
+      // Não fazer await: showLoading só completa quando o diálogo é fechado.
+      PharmaFeedback.loading(
         context: context,
         title: isRevert ? 'A libertar quarentena' : 'A processar quarentena',
       );

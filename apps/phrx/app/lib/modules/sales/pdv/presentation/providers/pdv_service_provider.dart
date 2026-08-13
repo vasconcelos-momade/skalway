@@ -13,7 +13,7 @@ class PdvServiceListState {
     this.items = const <PdvService>[],
     this.query = '',
     this.page = 1,
-    this.pageSize = 10,
+    this.pageSize = PaginationDefaults.pageSize,
     this.hasMore = false,
     this.totalCount,
     this.isLoading = false,

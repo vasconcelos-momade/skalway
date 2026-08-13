@@ -12,12 +12,14 @@ class PdvServiceTable extends StatelessWidget {
     required this.query,
     required this.canAdd,
     required this.onAdd,
+    this.pagination,
   });
 
   final List<PdvService> items;
   final String query;
   final bool canAdd;
   final void Function(PdvService service) onAdd;
+  final Widget? pagination;
 
   static const _columns = ['SERVIÇO', 'TIPO', 'PREÇO', 'AÇÕES'];
 
@@ -37,6 +39,7 @@ class PdvServiceTable extends StatelessWidget {
           : 'Nenhum serviço encontrado.',
       emptyMessage: 'Nenhum registo encontrado',
       emptySubtitle: query.isEmpty ? null : 'Tente outro nome de serviço.',
+      pagination: pagination,
       columns: [
         for (final label in _columns)
           DataColumn(label: TableTypography.headerLabel(context, label)),

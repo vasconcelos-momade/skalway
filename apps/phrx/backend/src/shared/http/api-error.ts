@@ -33,3 +33,9 @@ export class UnauthorizedApiError extends ApiError {
     super(message, 401, "AUTH_UNAUTHORIZED", details);
   }
 }
+
+export class ConflictApiError extends ApiError {
+  constructor(message = "Conflict", details?: unknown) {
+    super(message, 409, "CONFLICT", details);
+  }
+}

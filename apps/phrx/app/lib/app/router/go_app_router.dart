@@ -36,6 +36,7 @@ import '../../modules/pharmacy/prescriptions/presentation/pages/recipes_book_pag
 import '../../modules/pharmacy/psychotropics/presentation/pages/psychotropics_book_page.dart';
 import '../../modules/pharmacy/products/presentation/pages/products_page.dart';
 import '../../modules/pharmacy/categories/presentation/pages/categories_page.dart';
+import '../../modules/pharmacy/services/presentation/pages/services_page.dart';
 import '../../modules/sales/proforma_invoices/presentation/pages/proforma_invoices_page.dart';
 import '../../modules/sales/invoices/presentation/pages/invoices_page.dart';
 import '../../modules/sales/pdv/presentation/pages/pdv_page.dart';
@@ -365,6 +366,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutePaths.pharmacyCategories,
             name: 'pharmacy-categories',
             builder: (context, state) => const CategoriesPage(),
+          ),
+          GoRoute(
+            path: AppRoutePaths.pharmacyServices,
+            name: 'pharmacy-services',
+            builder: (context, state) => const ServicesPage(),
           ),
           GoRoute(
             path: AppRoutePaths.pharmacyStock,

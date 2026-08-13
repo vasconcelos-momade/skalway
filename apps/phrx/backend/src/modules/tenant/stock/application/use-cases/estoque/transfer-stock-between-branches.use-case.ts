@@ -1,10 +1,10 @@
-import { prismaCentralUnscoped } from "../../../../../infrastructure/prisma/prisma-central.service";
-import { TenantPrismaFactory } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
-import { branchContext } from "../../../../../shared/context/branch-context";
+import { prismaCentralUnscoped } from "../../../../../../infrastructure/prisma/prisma-central.service";
+import { TenantPrismaFactory } from "../../../../../../infrastructure/prisma/tenant-prisma.factory";
+import { branchContext } from "../../../../../../shared/context/branch-context";
 import {
   NotFoundApiError,
   ValidationApiError,
-} from "../../../../../shared/http/api-error";
+} from "../../../../../../shared/http/api-error";
 import {
   getLoteQuantidadeFromMovements,
   syncLoteStockBalanceCache,
