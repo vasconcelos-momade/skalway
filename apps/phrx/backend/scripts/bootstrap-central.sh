@@ -15,23 +15,34 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-phrx_backend}"
 
-# No host normalmente não há DATABASE_URL — redireciona para o contentor.
-if [[ -z "${DATABASE_URL:-}" ]]; then
+run_in_backend_container() {
   if ! command -v docker >/dev/null 2>&1; then
-    echo "❌ DATABASE_URL não está definido e o Docker não está disponível."
-    echo "   Defina DATABASE_URL ou suba o stack PhRx."
+    echo "❌ Docker não está disponível e bun não está no PATH."
+    echo "   Instale bun, ou suba o stack PhRx e use:"
+    echo "     docker exec ${BACKEND_CONTAINER} bun run bootstrap:central"
     exit 1
   fi
   if ! docker ps --format '{{.Names}}' | grep -qx "${BACKEND_CONTAINER}"; then
-    echo "❌ DATABASE_URL não está definido e o contentor '${BACKEND_CONTAINER}' não está a correr."
+    echo "❌ Contentor '${BACKEND_CONTAINER}' não está a correr."
     echo "   Suba o stack:"
-    echo "     cd infra/docker/phrx && docker compose -f docker-compose.dev.yml up -d"
-    echo "   Depois volte a correr este script, ou:"
+    echo "     cd /opt/skalway-repo/infra/docker/phrx"
+    echo "     docker compose -f docker-compose.prod.yml --env-file .env up -d"
+    echo "   Depois:"
     echo "     docker exec ${BACKEND_CONTAINER} bun run bootstrap:central"
     exit 1
   fi
   echo "==> [bootstrap:central] A executar no contentor ${BACKEND_CONTAINER}..."
   exec docker exec "${BACKEND_CONTAINER}" bun run bootstrap:central
+}
+
+# No host (VPS): normalmente não há bun → redireciona para o contentor.
+# Também redireciona se DATABASE_URL não estiver definido.
+if ! command -v bun >/dev/null 2>&1; then
+  run_in_backend_container
+fi
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  run_in_backend_container
 fi
 
 cd "${BACKEND_DIR}"
