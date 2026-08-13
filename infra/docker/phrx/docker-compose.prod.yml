@@ -9,8 +9,8 @@
 # - imagem apps/phrx/backend/Dockerfile (sem bind-mount de código)
 # - MySQL/Redis NÃO publicados na Internet
 # - API só em 127.0.0.1:4001 (Nginx do host faz TLS)
+# - phpMyAdmin só em 127.0.0.1:8081 (Nginx do host → subdomínio)
 # - phrx-migrate aplica Prisma migrate deploy (Central) antes do backend
-# - sem Adminer/phpMyAdmin
 # - Redis com volume persistente
 # - NODE_ENV=production
 
@@ -205,6 +205,39 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Administração MySQL — apenas loopback; acesso externo via Nginx do host
+  # (ex.: pma.phrx.skalway.com → 127.0.0.1:8081). Sem Adminer.
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: phrx_phpmyadmin
+    restart: unless-stopped
+    environment:
+      TZ: Africa/Maputo
+      PMA_HOST: phrx-db
+      PMA_PORT: 3306
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
+    depends_on:
+      phrx-db:
+        condition: service_healthy
+    networks:
+      - phrx_net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "php -r \"exit(@fsockopen('127.0.0.1', 80) ? 0 : 1);\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     logging:
       driver: json-file
       options:
