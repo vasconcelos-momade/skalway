@@ -1,6 +1,15 @@
 import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
 import { POS_DEFAULT_PAGE_SIZE, POS_MAX_PAGE_SIZE } from "../../domain/pos-catalog.constants";
 
+/** Where do catálogo POS — apenas serviços activos. */
+export function buildPosServicosWhere(query?: string) {
+  const trimmed = query?.trim();
+  return {
+    ativo: true as const,
+    ...(trimmed ? { nome: { contains: trimmed } } : {}),
+  };
+}
+
 export class SearchServicosUseCase {
   async execute(params?: {
     query?: string;
@@ -13,12 +22,7 @@ export class SearchServicosUseCase {
       POS_MAX_PAGE_SIZE,
       Math.max(1, params?.pageSize ?? POS_DEFAULT_PAGE_SIZE),
     );
-    const query = params?.query?.trim();
-
-    const where = {
-      ativo: true,
-      ...(query ? { nome: { contains: query } } : {}),
-    };
+    const where = buildPosServicosWhere(params?.query);
 
     const [totalCount, items] = await Promise.all([
       prisma.servico.count({ where }),
@@ -29,6 +33,7 @@ export class SearchServicosUseCase {
           nome: true,
           preco: true,
           tipoServicoClinico: true,
+          ativo: true,
         },
         orderBy: [{ nome: "asc" }, { id: "asc" }],
         skip: (page - 1) * pageSize,

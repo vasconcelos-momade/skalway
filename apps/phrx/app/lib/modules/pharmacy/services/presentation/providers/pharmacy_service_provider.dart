@@ -145,6 +145,16 @@ class PharmacyServiceListController extends Notifier<PharmacyServiceListState> {
     await ref.read(pharmacyServiceRemoteDataSourceProvider).delete(id);
     await load();
   }
+
+  Future<void> deactivate(String id) async {
+    await ref.read(pharmacyServiceRemoteDataSourceProvider).deactivate(id);
+    await load();
+  }
+
+  Future<void> activate(String id) async {
+    await ref.read(pharmacyServiceRemoteDataSourceProvider).activate(id);
+    await load();
+  }
 }
 
 final pharmacyServiceListProvider =

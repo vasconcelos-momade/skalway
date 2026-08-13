@@ -1049,8 +1049,17 @@ class PlatformAdminDataSource {
             ? '${periodStart.toIso8601String().substring(0, 10)} a ${periodEnd.toIso8601String().substring(0, 10)}'
             : '—');
     final discount = _toDouble(json['discount']) ?? 0;
-    final amount = _toDouble(json['amount'] ?? json['total']) ?? 0;
-    final payable = _toDouble(json['payableAmount']);
+    final amount = _toDouble(json['amount']) ?? 0;
+    final subtotal = _toDouble(json['subtotal']) ?? amount;
+    final computedPayable =
+        subtotal - discount < 0 ? 0.0 : subtotal - discount;
+    final payable = _toDouble(json['payableAmount']) ?? computedPayable;
+    final paid = _toDouble(json['paid'] ?? json['paidAmount']) ?? 0;
+    final computedRemaining = payable - paid < 0 ? 0.0 : payable - paid;
+    final remaining = _toDouble(
+          json['balance'] ?? json['remaining'] ?? json['remainingAmount'],
+        ) ??
+        computedRemaining;
 
     return PlatformInvoice(
       id: '${json['id']}',
@@ -1063,12 +1072,10 @@ class PlatformAdminDataSource {
       tenantKey: json['tenantKey'] as String?,
       planName: json['planName'] as String? ?? '—',
       period: period,
-      total: amount,
-      paid: _toDouble(json['paid'] ?? json['paidAmount']) ?? 0,
-      balance: _toDouble(
-            json['balance'] ?? json['remaining'] ?? json['remainingAmount'],
-          ) ??
-          0,
+      // Total UI = Subtotal − Desconto (payable), não o bruto `amount`.
+      total: payable,
+      paid: paid,
+      balance: remaining,
       status: json['status'] as String? ?? 'pendente',
       dueDate: _toDate(json['dueDate'] ?? json['dueAt']),
       paidAt: _toDate(json['paidAt']),
@@ -1080,7 +1087,7 @@ class PlatformAdminDataSource {
       includedBranches: json['includedBranches'] as int?,
       extraBranchPrice: _toDouble(json['extraBranchPrice']),
       extrasAmount: _toDouble(json['extrasAmount']),
-      subtotal: _toDouble(json['subtotal']),
+      subtotal: subtotal,
       discount: discount,
       payableAmount: payable,
     );

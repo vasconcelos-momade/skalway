@@ -807,7 +807,10 @@ class _InvoicesTab extends ConsumerWidget {
               planMonthlyPrice: i.planMonthlyPrice,
               includedBranches: i.includedBranches,
               extraBranchPrice: i.extraBranchPrice,
+              extrasAmount: i.extrasAmount,
               subtotal: i.subtotal,
+              discount: i.discount,
+              payableAmount: i.payableAmount,
             );
             return DataRow(
               cells: [

@@ -147,6 +147,10 @@ abstract final class ApiConstants {
   static const tenantServicosStats = '/tenant/servicos/stats';
   static String tenantServico(String servicoId) =>
       '/tenant/servicos/$servicoId';
+  static String tenantServicoActivate(String servicoId) =>
+      '/tenant/servicos/$servicoId/activate';
+  static String tenantServicoDeactivate(String servicoId) =>
+      '/tenant/servicos/$servicoId/deactivate';
   static String tenantProdutoHistoricoPrecos(String productId) =>
       '/tenant/produtos/$productId/historico-precos';
   static String tenantProdutoLotes(String produtoId) =>

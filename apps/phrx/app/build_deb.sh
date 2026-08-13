@@ -3,12 +3,15 @@
 # build_deb.sh — Skalway PhRx Linux DEB Release
 #
 # Build otimizado:
-# - Suporta ambiente DEV e PROD
 # - Mantém cache Flutter
 # - Gera pacote Debian (.deb)
-# - Configura API via dart-define
+# - API sempre remota (nunca localhost / LAN de desenvolvimento)
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../scripts/api-release-urls.sh
+source "${SCRIPT_DIR}/../scripts/api-release-urls.sh"
 
 
 # ==============================
@@ -22,48 +25,10 @@ VERSION="${VERSION:-1.0.0}"
 MAINTAINER="Skalway <suporte@skalway.com>"
 DESCRIPTION="Sistema de gestão Skalway PhRx — ERP farmacêutico"
 
-ENVIRONMENT="${ENVIRONMENT:-dev}"
+ENVIRONMENT="${ENVIRONMENT:-prod}"
 
-
-# ==============================
-# Configuração API DEV / PROD
-# ==============================
-
-case "$ENVIRONMENT" in
-
-  dev)
-
-    # Teste local do .deb: backend no mesmo host (docker compose → :4001).
-    # LAN / outro host: API_BASE_URL=http://<IP>:4001 ./build_deb.sh
-    API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:4001}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
-
-    ;;
-
-  prod)
-
-    API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
-
-    ;;
-
-  *)
-
-    echo "❌ Ambiente inválido: $ENVIRONMENT"
-    echo ""
-    echo "Uso:"
-    echo ""
-    echo "DEV:"
-    echo "./build_deb.sh"
-    echo ""
-    echo "PROD:"
-    echo "ENVIRONMENT=prod ./build_deb.sh"
-
-    exit 1
-
-    ;;
-
-esac
+# Builds empacotados apontam só para a API remota.
+phrx_export_release_api_urls
 
 
 # ==============================

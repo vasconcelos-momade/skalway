@@ -1,50 +1,27 @@
 #!/bin/bash
 
 # build-apk.sh
-# Skalway PhRx APK Release
+# Skalway PhRx APK Release — API sempre remota (nunca localhost / emulador).
 #
-# DEV:
 #   ./build-apk.sh
-#
-# PROD:
 #   ENVIRONMENT=prod ./build-apk.sh
 
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../scripts/api-release-urls.sh
+source "${SCRIPT_DIR}/../scripts/api-release-urls.sh"
 
 
 # =====================================
 # Ambiente
 # =====================================
 
-ENVIRONMENT="${ENVIRONMENT:-dev}"
+ENVIRONMENT="${ENVIRONMENT:-prod}"
 
-
-if [ "$ENVIRONMENT" = "dev" ]; then
-
-    # Emulador Android: 10.0.2.2 → localhost do host (docker → :4001).
-    # Dispositivo físico: API_BASE_URL=http://<IP-da-máquina>:4001 ./build-apk.sh
-    API_BASE_URL="${API_BASE_URL:-http://10.0.2.2:4001}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
-
-
-elif [ "$ENVIRONMENT" = "prod" ]; then
-
-    API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
-    API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
-
-
-else
-
-    echo "❌ Ambiente inválido: $ENVIRONMENT"
-    echo "Use:"
-    echo "./build-apk.sh"
-    echo "ou"
-    echo "ENVIRONMENT=prod ./build-apk.sh"
-
-    exit 1
-
-fi
+# Builds empacotados apontam só para a API remota.
+phrx_export_release_api_urls
 
 
 

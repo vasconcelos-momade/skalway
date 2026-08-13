@@ -248,6 +248,10 @@ class PlatformInvoice {
   /// Valor a pagar após desconto — valor da API.
   final double? payableAmount;
 
+  /// Subtotal bruto (antes do desconto).
+  double get grossSubtotal =>
+      subtotal ?? ((payableAmount ?? total) + discount);
+
   bool get canConfirmPayment {
     switch (status.toLowerCase()) {
       case 'pendente':

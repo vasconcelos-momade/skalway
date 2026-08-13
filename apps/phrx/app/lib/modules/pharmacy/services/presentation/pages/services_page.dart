@@ -11,6 +11,7 @@ import '../../../../../shared/responsive/responsive_builder.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/cards/enterprise_stat_card.dart';
 import '../../../../../shared/widgets/dialogs/enterprise_form_side_sheet.dart';
+import '../../../../../shared/widgets/dialogs/enterprise_overlay_tokens.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
@@ -191,18 +192,25 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                       DataCell(
                         EnterpriseActionsMenuButton<String>(
                           compact: true,
-                          items: const [
-                            EnterpriseDropdownItem(
+                          items: [
+                            const EnterpriseDropdownItem(
                               value: 'ver',
                               label: 'Visualizar',
                               icon: Icons.visibility_outlined,
                             ),
-                            EnterpriseDropdownItem(
+                            const EnterpriseDropdownItem(
                               value: 'editar',
                               label: 'Editar',
                               icon: Icons.edit_outlined,
                             ),
                             EnterpriseDropdownItem(
+                              value: item.ativo ? 'desactivar' : 'activar',
+                              label: item.ativo ? 'Desactivar' : 'Activar',
+                              icon: item.ativo
+                                  ? Icons.pause_circle_outline
+                                  : Icons.play_circle_outline,
+                            ),
+                            const EnterpriseDropdownItem(
                               value: 'excluir',
                               label: 'Eliminar',
                               icon: Icons.delete_outline,
@@ -215,6 +223,10 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                                 _openView(context, item);
                               case 'editar':
                                 _openForm(context, service: item);
+                              case 'desactivar':
+                                _confirmDeactivate(context, item);
+                              case 'activar':
+                                _activate(context, item);
                               case 'excluir':
                                 _confirmDelete(context, item);
                             }
@@ -245,6 +257,84 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                   isLoading: state.isLoading,
                   hasFilters: state.includeInactive,
                   onSearchSubmitted: controller.onSearchChanged,
+                  onOpenFilters: () {
+                    final scheme = Theme.of(context).colorScheme;
+                    showModalBottomSheet<void>(
+                      context: context,
+                      useRootNavigator: true,
+                      isScrollControlled: true,
+                      barrierColor: enterpriseOverlayScrim(context),
+                      backgroundColor: scheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(context.pharmaTokens.radiusXl),
+                        ),
+                      ),
+                      builder: (sheetContext) => SafeArea(
+                        child: Padding(
+                          padding: EdgeInsets.all(s.md),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 4,
+                                margin: EdgeInsets.only(bottom: s.md),
+                                decoration: BoxDecoration(
+                                  color: context.pharmaTokens.textMuted
+                                      .withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(
+                                    context.pharmaTokens.radiusMd / 2,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Filtros',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .erpCardTitle
+                                        .copyWith(
+                                          color: context
+                                              .pharmaTokens.textPrimary,
+                                        ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      color: context.pharmaTokens.textMuted,
+                                      size: context.pharmaTokens.iconSm,
+                                    ),
+                                    onPressed: () =>
+                                        Navigator.of(sheetContext).pop(),
+                                  ),
+                                ],
+                              ),
+                              Divider(
+                                height: 1,
+                                color: context.pharmaTokens.border
+                                    .withValues(alpha: 0.45),
+                              ),
+                              SizedBox(height: s.md),
+                              SwitchListTile(
+                                title: const Text('Mostrar inactivos'),
+                                value: state.includeInactive,
+                                onChanged: (val) {
+                                  controller.setIncludeInactive(val);
+                                  Navigator.of(sheetContext).pop();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  onClearFilters: () async =>
+                      controller.setIncludeInactive(false),
                 ),
                 itemCount: _accumulatedItems.length,
                 itemBuilder: (context, index) {
@@ -257,19 +347,40 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                           '${pharmacyServiceTipoLabel(item.tipoServicoClinico)} · ${item.preco.toStringAsFixed(2)} MZN',
                       trailing: _StatusChip(ativo: item.ativo),
                       onTap: () => _openView(context, item),
-                      actions: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            onPressed: () =>
-                                _openForm(context, service: item),
+                      actions: EnterpriseActionsMenuButton<String>(
+                        compact: true,
+                        items: [
+                          const EnterpriseDropdownItem(
+                            value: 'editar',
+                            label: 'Editar',
+                            icon: Icons.edit_outlined,
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => _confirmDelete(context, item),
+                          EnterpriseDropdownItem(
+                            value: item.ativo ? 'desactivar' : 'activar',
+                            label: item.ativo ? 'Desactivar' : 'Activar',
+                            icon: item.ativo
+                                ? Icons.pause_circle_outline
+                                : Icons.play_circle_outline,
+                          ),
+                          const EnterpriseDropdownItem(
+                            value: 'excluir',
+                            label: 'Eliminar',
+                            icon: Icons.delete_outline,
+                            destructive: true,
                           ),
                         ],
+                        onSelected: (action) {
+                          switch (action) {
+                            case 'editar':
+                              _openForm(context, service: item);
+                            case 'desactivar':
+                              _confirmDeactivate(context, item);
+                            case 'activar':
+                              _activate(context, item);
+                            case 'excluir':
+                              _confirmDelete(context, item);
+                          }
+                        },
                       ),
                     ),
                   );
@@ -324,19 +435,22 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
       },
     );
 
-    if (result == null || !mounted) return;
+    if (result == null || !context.mounted) return;
     try {
       final notifier = ref.read(pharmacyServiceListProvider.notifier);
       if (service == null) {
         await notifier.create(result);
-        if (mounted) PharmaFeedback.success(context, 'Serviço criado.');
+        if (!context.mounted) return;
+        PharmaFeedback.success(context, 'Serviço criado.');
       } else {
         await notifier.update(service.id, result);
-        if (mounted) PharmaFeedback.success(context, 'Serviço actualizado.');
+        if (!context.mounted) return;
+        PharmaFeedback.success(context, 'Serviço actualizado.');
       }
       ref.invalidate(pharmacyServiceStatsProvider);
     } on ApiFailure catch (e) {
-      if (mounted) PharmaFeedback.error(context, e.message);
+      if (!context.mounted) return;
+      PharmaFeedback.error(context, e.message);
     }
   }
 
@@ -373,6 +487,47 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
     );
   }
 
+  Future<void> _confirmDeactivate(
+    BuildContext context,
+    PharmacyService service,
+  ) async {
+    final confirmed = await PharmaFeedback.confirm(
+      context: context,
+      title: 'Desactivar serviço',
+      message:
+          'O serviço «${service.nome}» ficará inactivo e deixará de aparecer no POS. Continuar?',
+      confirmText: 'Desactivar',
+      destructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
+    try {
+      await ref
+          .read(pharmacyServiceListProvider.notifier)
+          .deactivate(service.id);
+      ref.invalidate(pharmacyServiceStatsProvider);
+      if (!context.mounted) return;
+      PharmaFeedback.success(context, 'Serviço desactivado.');
+    } on ApiFailure catch (e) {
+      if (!context.mounted) return;
+      PharmaFeedback.error(context, e.message);
+    }
+  }
+
+  Future<void> _activate(
+    BuildContext context,
+    PharmacyService service,
+  ) async {
+    try {
+      await ref.read(pharmacyServiceListProvider.notifier).activate(service.id);
+      ref.invalidate(pharmacyServiceStatsProvider);
+      if (!context.mounted) return;
+      PharmaFeedback.success(context, 'Serviço activado.');
+    } on ApiFailure catch (e) {
+      if (!context.mounted) return;
+      PharmaFeedback.error(context, e.message);
+    }
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     PharmacyService service,
@@ -381,16 +536,20 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
       context: context,
       title: 'Eliminar serviço',
       message:
-          'O serviço «${service.nome}» será desactivado. Continuar?',
+          'O serviço «${service.nome}» será eliminado permanentemente da base de dados.\n\n'
+          'Se tiver histórico de vendas, use Desactivar em vez de Eliminar.',
+      confirmText: 'Eliminar',
       destructive: true,
     );
-    if (!confirmed || !mounted) return;
+    if (!confirmed || !context.mounted) return;
     try {
       await ref.read(pharmacyServiceListProvider.notifier).delete(service.id);
       ref.invalidate(pharmacyServiceStatsProvider);
-      if (mounted) PharmaFeedback.success(context, 'Serviço eliminado.');
+      if (!context.mounted) return;
+      PharmaFeedback.success(context, 'Serviço eliminado.');
     } on ApiFailure catch (e) {
-      if (mounted) PharmaFeedback.error(context, e.message);
+      if (!context.mounted) return;
+      PharmaFeedback.error(context, e.message);
     }
   }
 }
@@ -481,7 +640,7 @@ class _ServiceFormState extends ConsumerState<_ServiceForm> {
       'ativo': _ativo,
     };
     if (widget.embedded) {
-      AdaptiveNavigator.pop(context, payload);
+      AdaptiveNavigator.complete(context, payload);
       return;
     }
     Navigator.of(context).pop(payload);

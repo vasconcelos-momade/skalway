@@ -259,6 +259,54 @@ Widget _dashboardAxisLabel({
   );
 }
 
+/// Estilo partilhado dos tooltips dos gráficos.
+///
+/// [fitInsideHorizontally]/[fitInsideVertically] mantêm o popup dentro da
+/// área do gráfico (evita ficar oculto atrás do título do card ou cortado
+/// pela viewport em mobile).
+TextStyle _dashboardTooltipTextStyle(BuildContext context) {
+  final t = context.pharmaTokens;
+  return Theme.of(context).textTheme.erpCaption.copyWith(
+        color: t.textPrimary,
+        fontWeight: TypographyTokens.semibold,
+      );
+}
+
+LineTouchTooltipData _dashboardLineTouchTooltipData(
+  BuildContext context, {
+  required GetLineTooltipItems getTooltipItems,
+  double maxContentWidth = 140,
+}) {
+  final t = context.pharmaTokens;
+  return LineTouchTooltipData(
+    getTooltipColor: (_) => t.card,
+    tooltipBorder: BorderSide(color: t.border),
+    tooltipMargin: SpacingTokens.sm,
+    maxContentWidth: maxContentWidth,
+    fitInsideHorizontally: true,
+    fitInsideVertically: true,
+    getTooltipItems: getTooltipItems,
+  );
+}
+
+BarTouchTooltipData _dashboardBarTouchTooltipData(
+  BuildContext context, {
+  required GetBarTooltipItem getTooltipItem,
+  double maxContentWidth = 140,
+}) {
+  final t = context.pharmaTokens;
+  return BarTouchTooltipData(
+    getTooltipColor: (_) => t.card,
+    tooltipBorder: BorderSide(color: t.border),
+    tooltipMargin: SpacingTokens.sm,
+    maxContentWidth: maxContentWidth,
+    fitInsideHorizontally: true,
+    fitInsideVertically: true,
+    direction: TooltipDirection.auto,
+    getTooltipItem: getTooltipItem,
+  );
+}
+
 Widget dashboardAsyncBody<T>({
   required AsyncValue<T> async,
   required Widget Function(T data) builder,
@@ -339,17 +387,13 @@ Widget dashboardLineChart({
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
                   enabled: true,
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => t.card,
-                    tooltipBorder: BorderSide(color: t.border),
+                  touchTooltipData: _dashboardLineTouchTooltipData(
+                    context,
                     getTooltipItems: (touched) => touched
                         .map(
                           (item) => LineTooltipItem(
                             '${item.y.toStringAsFixed(2)} MZN',
-                            Theme.of(context).textTheme.erpCaption.copyWith(
-                                  color: t.textPrimary,
-                                  fontWeight: TypographyTokens.semibold,
-                                ),
+                            _dashboardTooltipTextStyle(context),
                           ),
                         )
                         .toList(growable: false),
@@ -488,16 +532,12 @@ Widget dashboardBarChart({
         borderData: FlBorderData(show: false),
         barTouchData: BarTouchData(
           enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => t.card,
-            tooltipBorder: BorderSide(color: t.border),
+          touchTooltipData: _dashboardBarTouchTooltipData(
+            context,
             getTooltipItem: (group, groupIndex, rodData, rodIndex) {
               return BarTooltipItem(
                 '${rodData.toY.toStringAsFixed(2)} MZN',
-                Theme.of(context).textTheme.erpCaption.copyWith(
-                      color: t.textPrimary,
-                      fontWeight: TypographyTokens.semibold,
-                    ),
+                _dashboardTooltipTextStyle(context),
               );
             },
           ),
@@ -601,6 +641,18 @@ Widget dashboardTrendBarChart({
               FlLine(color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha), strokeWidth: context.dashboardTheme.chartGridStrokeWidth),
         ),
         borderData: FlBorderData(show: false),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: _dashboardBarTouchTooltipData(
+            context,
+            getTooltipItem: (group, groupIndex, rodData, rodIndex) {
+              return BarTooltipItem(
+                '${rodData.toY.toStringAsFixed(2)} MZN',
+                _dashboardTooltipTextStyle(context),
+              );
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -727,6 +779,20 @@ Widget dashboardDualTrendBarChart({
                 ),
               ),
               borderData: FlBorderData(show: false),
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: _dashboardBarTouchTooltipData(
+                  context,
+                  maxContentWidth: 160,
+                  getTooltipItem: (group, groupIndex, rodData, rodIndex) {
+                    final label = rodIndex == 0 ? 'Receitas' : 'Despesas';
+                    return BarTooltipItem(
+                      '$label\n${rodData.toY.toStringAsFixed(2)} MZN',
+                      _dashboardTooltipTextStyle(context),
+                    );
+                  },
+                ),
+              ),
               titlesData: FlTitlesData(
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
@@ -908,9 +974,9 @@ Widget dashboardMultiLineChart({
                 lineTouchData: LineTouchData(
                   enabled: true,
                   handleBuiltInTouches: true,
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => t.card,
-                    tooltipBorder: BorderSide(color: t.border),
+                  touchTooltipData: _dashboardLineTouchTooltipData(
+                    context,
+                    maxContentWidth: 160,
                     getTooltipItems: (touched) {
                       return touched.map((item) {
                         final seriesIndex = item.barIndex;
@@ -919,10 +985,7 @@ Widget dashboardMultiLineChart({
                             : '';
                         return LineTooltipItem(
                           '$label\n${item.y.toStringAsFixed(2)} MZN',
-                          Theme.of(context).textTheme.erpCaption.copyWith(
-                                color: t.textPrimary,
-                                fontWeight: TypographyTokens.semibold,
-                              ),
+                          _dashboardTooltipTextStyle(context),
                         );
                       }).toList(growable: false);
                     },
@@ -1056,6 +1119,7 @@ Widget dashboardGroupedCashFlowChart({
           child: Padding(
             padding: EdgeInsets.only(top: SpacingTokens.sm, bottom: SpacingTokens.xs, right: SpacingTokens.xs),
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 BarChart(
                   BarChartData(
@@ -1074,9 +1138,9 @@ Widget dashboardGroupedCashFlowChart({
                     borderData: FlBorderData(show: false),
                     barTouchData: BarTouchData(
                       enabled: true,
-                      touchTooltipData: BarTouchTooltipData(
-                        getTooltipColor: (_) => t.card,
-                        tooltipBorder: BorderSide(color: t.border),
+                      touchTooltipData: _dashboardBarTouchTooltipData(
+                        context,
+                        maxContentWidth: 180,
                         getTooltipItem: (group, groupIndex, rodData, rodIndex) {
                           if (rodIndex != 0) return null;
                           final entrada = entradas[groupIndex];
@@ -1086,10 +1150,7 @@ Widget dashboardGroupedCashFlowChart({
                             'Entrada:\n${entrada.toStringAsFixed(2)} MZN\n\n'
                             'Saída:\n${saida.toStringAsFixed(2)} MZN\n\n'
                             'Saldo:\n${saldo.toStringAsFixed(2)} MZN',
-                            Theme.of(context).textTheme.erpCaption.copyWith(
-                                  color: t.textPrimary,
-                                  fontWeight: TypographyTokens.semibold,
-                                ),
+                            _dashboardTooltipTextStyle(context),
                             textAlign: TextAlign.left,
                           );
                         },
@@ -1469,11 +1530,11 @@ Widget dashboardDualLineChart({
       Expanded(
         child: _dashboardScrollableChart(
           minWidth: minWidth,
-          child: ClipRect(
-            child: LineChart(
+          child: LineChart(
               LineChartData(
                 minY: 0,
                 maxY: chartMax,
+                clipData: const FlClipData.none(),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
@@ -1483,6 +1544,22 @@ Widget dashboardDualLineChart({
                   ),
                 ),
                 borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: _dashboardLineTouchTooltipData(
+                    context,
+                    maxContentWidth: 160,
+                    getTooltipItems: (touched) {
+                      return touched.map((item) {
+                        final label = item.barIndex == 0 ? 'Receitas' : 'Despesas';
+                        return LineTooltipItem(
+                          '$label\n${item.y.toStringAsFixed(2)} MZN',
+                          _dashboardTooltipTextStyle(context),
+                        );
+                      }).toList(growable: false);
+                    },
+                  ),
+                ),
                 titlesData: const FlTitlesData(show: false),
                 lineBarsData: [
                   LineChartBarData(
@@ -1502,7 +1579,6 @@ Widget dashboardDualLineChart({
                 ],
               ),
             ),
-          ),
         ),
       ),
       const SizedBox(height: SpacingTokens.xs),
@@ -1552,6 +1628,25 @@ Widget dashboardIndexedBarChart({
               FlLine(color: t.border.withValues(alpha: context.dashboardTheme.chartGridAlpha), strokeWidth: context.dashboardTheme.chartGridStrokeWidth),
         ),
         borderData: FlBorderData(show: false),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: _dashboardBarTouchTooltipData(
+            context,
+            getTooltipItem: (group, groupIndex, rodData, rodIndex) {
+              final label = groupIndex >= 0 && groupIndex < labels.length
+                  ? labels[groupIndex]
+                  : '';
+              final value = rodData.toY;
+              final formatted = value == value.roundToDouble()
+                  ? value.toInt().toString()
+                  : value.toStringAsFixed(2);
+              return BarTooltipItem(
+                label.isEmpty ? formatted : '$label\n$formatted',
+                _dashboardTooltipTextStyle(context),
+              );
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(

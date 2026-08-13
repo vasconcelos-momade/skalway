@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/design_metrics.dart';
 import '../../../core/theme/design_tokens.dart';
-import '../../../core/theme/extensions.dart';
 import '../../../core/theme/pharma_surface.dart';
 import '../../responsive/pharma_screen_layout.dart';
 import '../feedback/module_data_states.dart';

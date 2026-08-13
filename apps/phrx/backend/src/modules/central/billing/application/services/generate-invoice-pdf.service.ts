@@ -2,16 +2,11 @@ import { CentralSettingsService } from "../../../settings/application/central-se
 import { GetInvoiceUseCase } from "../use-cases/get-invoice.use-case";
 import {
   renderCentralInvoiceHtml,
-  type CentralInvoiceLineItem,
   type CentralInvoicePdfView,
 } from "../templates/central-invoice.html.template";
+import { buildCentralInvoiceLineItems, money } from "./central-invoice-line-items";
+import { computePayableAmount } from "./invoice-financial-integrity.service";
 import { renderHtmlDocumentToPdf } from "./html-document-pdf.service";
-
-function money(value: unknown, digits = 2): string {
-  const n = Number(value ?? 0);
-  if (!Number.isFinite(n)) return (0).toFixed(digits);
-  return n.toFixed(digits);
-}
 
 function toDate(value: unknown): Date | null {
   if (!value) return null;
@@ -48,24 +43,6 @@ function formatPeriod(periodStart: unknown, periodEnd: unknown): string {
   return `${start} a ${end}`;
 }
 
-function resolveContractMonths(invoice: any): number {
-  const start = invoice.periodStart ? new Date(invoice.periodStart) : null;
-  const end = invoice.periodEnd ? new Date(invoice.periodEnd) : null;
-  if (
-    start &&
-    end &&
-    !Number.isNaN(start.getTime()) &&
-    !Number.isNaN(end.getTime())
-  ) {
-    const monthDiff =
-      (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-      (end.getUTCMonth() - start.getUTCMonth()) +
-      1;
-    return Math.max(1, monthDiff);
-  }
-  return 1;
-}
-
 function statusLabel(status: string): string {
   switch (String(status).toLowerCase()) {
     case "pendente":
@@ -96,57 +73,6 @@ function methodLabel(method: string): string {
     default:
       return method;
   }
-}
-
-function buildLineItems(invoice: any): CentralInvoiceLineItem[] {
-  const items: CentralInvoiceLineItem[] = [];
-  const planName = invoice.planName || "Plano SaaS";
-  const planPrice = Number(invoice.planMonthlyPrice);
-  const extraBranches = Number(
-    invoice.snapshotExtraBranches ?? invoice.extraBranches ?? 0,
-  );
-  const extraPrice = Number(invoice.extraBranchPrice ?? 0);
-  const contractMonths = resolveContractMonths(invoice);
-  const contractPeriodLabel = `Período do contrato: ${contractMonths} ${contractMonths === 1 ? "mês" : "meses"}`;
-
-  if (Number.isFinite(planPrice) && planPrice >= 0) {
-    const lineAmount = planPrice * contractMonths;
-    items.push({
-      item: 1,
-      description: `Subscrição ${planName}${invoice.planSlug ? ` (${invoice.planSlug})` : ""} — mensalidade\n${contractPeriodLabel}`,
-      qty: String(contractMonths),
-      unitPrice: money(planPrice),
-      amount: money(lineAmount),
-    });
-  }
-
-  if (extraBranches > 0 && Number.isFinite(extraPrice)) {
-    const lineAmount = extraBranches * extraPrice * contractMonths;
-    items.push({
-      item: items.length + 1,
-      description: `Filiais extra (${extraBranches} × ${money(extraPrice)} MZN/mês)\n${contractPeriodLabel}`,
-      qty: String(extraBranches),
-      unitPrice: money(extraPrice * contractMonths),
-      amount: money(lineAmount),
-    });
-  }
-
-  if (items.length === 0) {
-    items.push({
-      item: 1,
-      description:
-        `${invoice.description || `Factura SaaS ${invoice.number}`}\n${contractPeriodLabel}`,
-      qty: String(contractMonths),
-      unitPrice: money(
-        contractMonths > 0
-          ? Number(invoice.amount) / contractMonths
-          : invoice.amount,
-      ),
-      amount: money(invoice.amount),
-    });
-  }
-
-  return items;
 }
 
 function buildView(invoice: any, issuer: any): CentralInvoicePdfView {
@@ -191,13 +117,26 @@ function buildView(invoice: any, issuer: any): CentralInvoicePdfView {
       terms: "Transferência / M-Pesa / E-Mola / Cash",
       description: invoice.description,
     },
-    items: buildLineItems(invoice),
+    items: buildCentralInvoiceLineItems(invoice),
     totals: {
+      // Subtotal = valor bruto; Total = Subtotal − Desconto; Em aberto = Total − Pago.
       subtotal: money(invoice.subtotal ?? invoice.amount),
       discount: money(invoice.discount ?? 0),
       paid: money(invoice.paidAmount),
-      remaining: money(invoice.remainingAmount),
-      total: money(invoice.amount),
+      remaining: money(
+        invoice.remainingAmount ??
+          computePayableAmount(
+            Number(invoice.amount),
+            Number(invoice.discount ?? 0),
+          ) - Number(invoice.paidAmount ?? 0),
+      ),
+      total: money(
+        invoice.payableAmount ??
+          computePayableAmount(
+            Number(invoice.amount),
+            Number(invoice.discount ?? 0),
+          ),
+      ),
     },
     payments: (invoice.payments ?? []).map((p: any) => ({
       reference: p.reference || "—",
@@ -222,13 +161,20 @@ export async function generateCentralInvoicePdf(
 
   const view = buildView(invoice, issuer);
   const html = renderCentralInvoiceHtml(view);
+  const payable = Number(
+    invoice.payableAmount ??
+      computePayableAmount(
+        Number(invoice.amount),
+        Number(invoice.discount ?? 0),
+      ),
+  );
 
   const fallback = [
     `${issuer.companyName} — Factura SaaS`,
     `NUIT: ${issuer.companyNuit}`,
     `Cliente: ${invoice.tenant?.tenantName ?? "—"}`,
     `Numero: ${invoice.number}`,
-    `Total: ${invoice.amount} ${invoice.currency}`,
+    `Total: ${payable} ${invoice.currency}`,
     issuer.invoiceFooter || "",
   ];
 

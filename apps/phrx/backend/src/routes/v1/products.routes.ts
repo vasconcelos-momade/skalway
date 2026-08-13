@@ -216,6 +216,36 @@ function registerServicoItemResource(router: Router, path: string): void {
       return servicoController.delete(servicoId, getTenantAuth(context).userId);
     },
   );
+
+  router.post(
+    `${path}/deactivate`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("PRODUTOS", "UPDATE"),
+    auditMiddleware,
+    async (context) => {
+      const { servicoId } = parseRouteParams(context.params, servicoIdParamSchema);
+      return servicoController.deactivate(
+        servicoId,
+        getTenantAuth(context).userId,
+      );
+    },
+  );
+
+  router.post(
+    `${path}/activate`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("PRODUTOS", "UPDATE"),
+    auditMiddleware,
+    async (context) => {
+      const { servicoId } = parseRouteParams(context.params, servicoIdParamSchema);
+      return servicoController.activate(
+        servicoId,
+        getTenantAuth(context).userId,
+      );
+    },
+  );
 }
 
 export function registerProductRoutes(router: Router, prefix: string): void {

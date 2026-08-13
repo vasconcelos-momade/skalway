@@ -1,5 +1,9 @@
 import { ServicoRepository } from "../../infrastructure/repositories/servico.repository";
 import type { CreateServicoDTO, UpdateServicoDTO } from "../dto/servico.dto";
+import {
+  ConflictApiError,
+  NotFoundApiError,
+} from "../../../../../shared/http/api-error";
 
 export class ServicoService {
   private repo = new ServicoRepository();
@@ -20,7 +24,7 @@ export class ServicoService {
 
   async get(id: bigint) {
     const servico = await this.repo.findById(id);
-    if (!servico) throw new Error("Serviço não encontrado");
+    if (!servico) throw new NotFoundApiError("Serviço não encontrado");
     return servico;
   }
 
@@ -38,7 +42,7 @@ export class ServicoService {
 
   async update(id: bigint, data: UpdateServicoDTO, _userId: string) {
     const existing = await this.repo.findById(id);
-    if (!existing) throw new Error("Serviço não encontrado");
+    if (!existing) throw new NotFoundApiError("Serviço não encontrado");
 
     if (data.nome !== undefined && data.nome.trim() !== existing.nome) {
       await this.ensureUniqueName(data.nome.trim(), id);
@@ -57,23 +61,46 @@ export class ServicoService {
     });
   }
 
+  /** Desactiva o serviço (mantém histórico). */
+  async deactivate(id: bigint, _userId: string) {
+    const existing = await this.repo.findById(id);
+    if (!existing) throw new NotFoundApiError("Serviço não encontrado");
+    if (!existing.ativo) return existing;
+    return this.repo.softDeactivate(id);
+  }
+
+  /** Reactiva o serviço. */
+  async activate(id: bigint, _userId: string) {
+    const existing = await this.repo.findById(id);
+    if (!existing) throw new NotFoundApiError("Serviço não encontrado");
+    if (existing.ativo) return existing;
+    return this.repo.update(id, { ativo: true });
+  }
+
+  /**
+   * Elimina definitivamente do banco.
+   * Se existir histórico em faturas/proformas, exige desactivar em vez de apagar.
+   */
   async delete(id: bigint, _userId: string) {
     const existing = await this.repo.findById(id);
-    if (!existing) throw new Error("Serviço não encontrado");
+    if (!existing) throw new NotFoundApiError("Serviço não encontrado");
 
-    const linked = await this.repo.countLinkedInvoiceItems(id);
+    const linked = await this.repo.countLinkedDocuments(id);
     if (linked > 0) {
-      // Preserva histórico: desactiva em vez de apagar.
-      return this.repo.softDeactivate(id);
+      throw new ConflictApiError(
+        "Este serviço tem histórico de vendas/proformas. Desactive-o em vez de o eliminar.",
+        { linkedDocuments: linked },
+      );
     }
 
-    return this.repo.softDeactivate(id);
+    await this.repo.hardDelete(id);
+    return { deleted: true };
   }
 
   private async ensureUniqueName(nome: string, ignoreId?: bigint) {
     const existing = await this.repo.findByNome(nome);
     if (existing && existing.id !== ignoreId) {
-      throw new Error("Já existe um serviço com este nome");
+      throw new ConflictApiError("Já existe um serviço com este nome");
     }
   }
 }

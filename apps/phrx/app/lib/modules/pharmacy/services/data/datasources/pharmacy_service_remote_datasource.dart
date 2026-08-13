@@ -84,6 +84,28 @@ class PharmacyServiceRemoteDataSource {
     }
   }
 
+  Future<PharmacyServiceModel> deactivate(String id) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.tenantServicoDeactivate(id),
+      );
+      return PharmacyServiceModel.fromJson(ApiEnvelope.unwrapMap(response.data!));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<PharmacyServiceModel> activate(String id) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.tenantServicoActivate(id),
+      );
+      return PharmacyServiceModel.fromJson(ApiEnvelope.unwrapMap(response.data!));
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   PaginationResponse<PharmacyServiceModel> _parsePage(
     Map<String, dynamic>? data,
     int page,

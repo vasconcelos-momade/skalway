@@ -1,11 +1,10 @@
 #!/bin/bash
 # build-apk-common.sh — lógica partilhada de build/rename/validação APK (PhRx)
 # Não invocar diretamente; usar build-dev-apk.sh ou build-prod-apk.sh.
+# Pré-requisito: API_BASE_URL / API_CLOUD_URL já exportados (não locais).
 
 set -e
 
-API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
-API_CLOUD_URL="${API_CLOUD_URL:-https://api-phrx.skalway.com}"
 DISPLAY_NAME="${DISPLAY_NAME:-Skalway PhRx}"
 VERSION="${VERSION:-1.0.0}"
 
@@ -13,6 +12,11 @@ VERSION="${VERSION:-1.0.0}"
 PHRX_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="${PHRX_ROOT}/app"
 OUT_DIR="${APP_DIR}/build/app/outputs/flutter-apk"
+
+# Garantir URLs remotas mesmo se o caller não tiver sourced api-release-urls.sh
+# shellcheck source=api-release-urls.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/api-release-urls.sh"
+phrx_export_release_api_urls
 
 phrx_ensure_app_dir() {
   if [ ! -d "$APP_DIR" ] || [ ! -f "$APP_DIR/pubspec.yaml" ]; then

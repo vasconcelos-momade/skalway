@@ -32,11 +32,12 @@ bash scripts/analyze.sh
 
 ## Instaladores (padrão Scalway Gastro)
 
+Builds `.deb` / APK / AppImage apontam **sempre** para a API remota
+(`https://api-phrx.skalway.com`). Não usam localhost.
+
 ```bash
 # APK Release (split por ABI) — em apps/phrx/app
 ./build-apk.sh
-# produção:
-ENVIRONMENT=prod ./build-apk.sh
 
 # Ou a partir de apps/phrx (clean + split + validação):
 ./build-prod-apk.sh

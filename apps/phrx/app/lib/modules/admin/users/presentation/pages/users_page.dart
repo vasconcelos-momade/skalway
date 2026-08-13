@@ -39,7 +39,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
   late final TextEditingController _searchController;
   List<TenantUserSummary> _accumulatedItems = [];
   static final _dateFmt = DateFormat('dd/MM/yyyy');
-  static final _dateTimeFmt = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   void initState() {
@@ -216,8 +215,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     }
 
     final t = context.pharmaTokens;
-    final s = context.spacing;
-    final recentAccess = state.dashboard.ultimosAcessos;
     final displayItems = isMobile
         ? (_accumulatedItems.isEmpty ? state.items : _accumulatedItems)
         : state.items;

@@ -2,6 +2,7 @@ import { PaymentMethod } from "../../../../../infrastructure/prisma/central/gene
 import { prismaCentralUnscoped } from "../../../../../infrastructure/prisma/prisma-central.service";
 import { runWithCentralTenant } from "../../../../../shared/context/central-tenant-context";
 import { applyPaymentToInvoice } from "../services/apply-payment-to-invoice.service";
+import { computeRemainingAmount } from "../services/invoice-financial-integrity.service";
 
 export interface ProcessPaymentWebhookDTO {
   webhookId: string;
@@ -204,7 +205,12 @@ export class ProcessPaymentWebhookUseCase {
 
         const invoiceAmount = Number(targetInvoice.amount);
         const invoicePaid = Number(targetInvoice.paidAmount);
-        const remaining = Math.round((invoiceAmount - invoicePaid) * 100) / 100;
+        const invoiceDiscount = Number(targetInvoice.discount ?? 0);
+        const remaining = computeRemainingAmount(
+          invoiceAmount,
+          invoicePaid,
+          invoiceDiscount,
+        );
 
         if (remaining <= 0) {
           await tx.paymentWebhook.update({

@@ -80,7 +80,25 @@ export class ServicoController {
   async delete(id: string, userId: string) {
     try {
       await this.service.delete(BigInt(id), userId);
-      return Response.json({ message: "Serviço eliminado com sucesso" });
+      return Response.json({ message: "Serviço eliminado definitivamente" });
+    } catch (error: any) {
+      return controllerErrorResponse(error);
+    }
+  }
+
+  async deactivate(id: string, userId: string) {
+    try {
+      const result = await this.service.deactivate(BigInt(id), userId);
+      return Response.json(this.serialize(result));
+    } catch (error: any) {
+      return controllerErrorResponse(error);
+    }
+  }
+
+  async activate(id: string, userId: string) {
+    try {
+      const result = await this.service.activate(BigInt(id), userId);
+      return Response.json(this.serialize(result));
     } catch (error: any) {
       return controllerErrorResponse(error);
     }

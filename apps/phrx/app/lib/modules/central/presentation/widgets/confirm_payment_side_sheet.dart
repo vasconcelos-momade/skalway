@@ -53,7 +53,9 @@ class _ConfirmPaymentSideSheetState
   @override
   void initState() {
     super.initState();
-    final open = invoice.balance > 0 ? invoice.balance : invoice.total;
+    final open = invoice.balance > 0
+        ? invoice.balance
+        : (invoice.payableAmount ?? invoice.total);
     _amountCtrl = TextEditingController(
       text: open > 0 ? open.toStringAsFixed(2) : '',
     );
@@ -138,9 +140,9 @@ class _ConfirmPaymentSideSheetState
             leading: Icons.receipt_long_outlined,
           ),
           EnterpriseListCard(
-            title: 'Valor Total',
-            subtitle: currency.format(invoice.total),
-            leading: Icons.payments_outlined,
+            title: 'Subtotal',
+            subtitle: currency.format(invoice.grossSubtotal),
+            leading: Icons.receipt_outlined,
           ),
           if (invoice.discount > 0)
             EnterpriseListCard(
@@ -148,19 +150,18 @@ class _ConfirmPaymentSideSheetState
               subtitle: currency.format(invoice.discount),
               leading: Icons.discount_outlined,
             ),
-          if (invoice.payableAmount != null)
-            EnterpriseListCard(
-              title: 'Valor a Pagar',
-              subtitle: currency.format(invoice.payableAmount),
-              leading: Icons.request_quote_outlined,
-            ),
           EnterpriseListCard(
-            title: 'Valor Pago',
+            title: 'Total',
+            subtitle: currency.format(invoice.payableAmount ?? invoice.total),
+            leading: Icons.payments_outlined,
+          ),
+          EnterpriseListCard(
+            title: 'Pago',
             subtitle: currency.format(invoice.paid),
             leading: Icons.check_circle_outline,
           ),
           EnterpriseListCard(
-            title: 'Valor em Aberto',
+            title: 'Em aberto',
             subtitle: currency.format(invoice.balance),
             leading: Icons.pending_actions_outlined,
           ),

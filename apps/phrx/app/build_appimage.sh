@@ -1,10 +1,16 @@
 #!/bin/bash
 
+# AppImage — API sempre remota (nunca localhost).
+
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../scripts/api-release-urls.sh
+source "${SCRIPT_DIR}/../scripts/api-release-urls.sh"
+phrx_export_release_api_urls
 
 APP_NAME="SkalwayPhRx"
 VERSION="1.0.0"
-API_BASE_URL="${API_BASE_URL:-https://api-phrx.skalway.com}"
 DISPLAY_NAME="Skalway PhRx"
 APPDIR="${APP_NAME}.AppDir"
 APPIMAGETOOL="appimagetool-x86_64.AppImage"
@@ -19,6 +25,8 @@ BINARY_NAME="skalway_phrx"
 echo "=============================="
 echo "🚀 BUILD APPIMAGE SKALWAY PHRX"
 echo "=============================="
+echo "API:   $API_BASE_URL"
+echo "Cloud: $API_CLOUD_URL"
 
 echo "🧹 Limpando ambiente..."
 rm -rf build "$APPDIR"
@@ -37,8 +45,8 @@ fi
 echo "📦 Gerando build Linux..."
 mkdir -p build/native_assets/linux
 flutter build linux --release \
-  --dart-define=API_BASE_URL=$API_BASE_URL \
-  --dart-define=API_CLOUD_URL=$API_BASE_URL \
+  --dart-define=API_BASE_URL="$API_BASE_URL" \
+  --dart-define=API_CLOUD_URL="$API_CLOUD_URL" \
   --dart-define=APP_NAME="$DISPLAY_NAME"
 
 echo "📁 Criando AppDir..."

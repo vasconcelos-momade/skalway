@@ -510,8 +510,8 @@ class PlatformBillingActionsNotifier extends Notifier<bool> {
     try {
       final result =
           await ref.read(platformAdminDataSourceProvider).registerTenant(payload);
-      ref.invalidate(platformTenantsProvider);
-      ref.invalidate(platformDashboardProvider);
+      // Trial invoice criada no backend — refrescar tenants, dashboard e faturas.
+      invalidateTenantBilling(ref, result.id);
       return result;
     } finally {
       state = false;

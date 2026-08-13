@@ -112,6 +112,14 @@ export class ServicoRepository {
     });
   }
 
+  async countLinkedDocuments(id: bigint) {
+    const [faturaItems, proformaItems] = await Promise.all([
+      this.prisma.faturaItem.count({ where: { servicoId: id } }),
+      this.prisma.proformaInvoiceItem.count({ where: { servicoId: id } }),
+    ]);
+    return faturaItems + proformaItems;
+  }
+
   async create(data: ServicoWritePayload) {
     const row = await this.prisma.servico.create({
       data: {
@@ -156,5 +164,9 @@ export class ServicoRepository {
       },
     });
     return serializeServico(row);
+  }
+
+  async hardDelete(id: bigint) {
+    await this.prisma.servico.delete({ where: { id } });
   }
 }

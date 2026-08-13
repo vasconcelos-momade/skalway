@@ -95,7 +95,7 @@ class _ApplyInvoiceDiscountSideSheetState
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(symbol: 'MT ', decimalDigits: 2);
     final s = context.spacing;
-    final maxDiscount = invoice.total;
+    final maxDiscount = invoice.grossSubtotal;
 
     return EnterpriseFormSideSheet(
       title: const Text('Adicionar desconto'),
@@ -114,8 +114,8 @@ class _ApplyInvoiceDiscountSideSheetState
               leading: Icons.business_rounded,
             ),
             EnterpriseListCard(
-              title: 'Valor da Factura',
-              subtitle: currency.format(invoice.total),
+              title: 'Subtotal',
+              subtitle: currency.format(invoice.grossSubtotal),
               leading: Icons.payments_outlined,
             ),
             if (invoice.paid > 0)

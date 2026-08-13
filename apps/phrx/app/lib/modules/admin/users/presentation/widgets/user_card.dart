@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/design_tokens.dart';
-import '../../../../../core/theme/extensions.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
 import '../../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';

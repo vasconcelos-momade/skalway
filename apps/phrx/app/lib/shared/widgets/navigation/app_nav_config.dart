@@ -82,7 +82,6 @@ IconData navSectionIconForTitle(String title) {
     AppNavSections.audit => Icons.history_edu_outlined,
     AppNavSections.administration => Icons.admin_panel_settings_outlined,
     AppNavSections.system => Icons.settings_outlined,
-    'Dashboard' => Icons.space_dashboard_rounded,
     'Clientes' => Icons.apartment_rounded,
     'Comercial' => Icons.storefront_rounded,
     'Infraestrutura' => Icons.dns_rounded,
