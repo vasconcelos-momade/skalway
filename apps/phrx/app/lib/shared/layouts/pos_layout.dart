@@ -46,154 +46,144 @@ class PosLayout extends ConsumerWidget {
     final caixaIcon =
         caixaAberto ? Icons.lock_open_rounded : Icons.lock_outline_rounded;
     final caixaColor = caixaAberto ? t.brandGreen : t.posDanger;
-    final subtitle = caixaAberto
-        ? 'Caixa aberto • Operações liberadas • FEFO • ESC/POS'
-        : 'Caixa fechado • Abra o caixa para iniciar as operações';
 
     return Scaffold(
       backgroundColor: t.bgPrimary,
       body: Column(
         children: [
-          Container(
-            height: t.posHeader,
-            padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+          // Fundo do header pinta o status bar; toolbar = 56.
+          DecoratedBox(
             decoration: BoxDecoration(
               color: t.bgSecondary,
               border: Border(bottom: BorderSide(color: t.border)),
             ),
-            child: LayoutBuilder(
-              builder: (context, bx) {
-                final narrow = bx.maxWidth < Breakpoints.mobile;
-                return Row(
-                  children: [
-                    SizedBox.square(
-                      dimension: t.controlHeight,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(t.radiusMd),
-                        child: Image.asset(
-                          'assets/logos/logo_512.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: narrow ? s.sm : s.md),
-                    Expanded(
-                      child: DesktopWindowDragArea(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'PhRx — PDV',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.erpAppName,
-                            ),
-                            if (!narrow)
-                              Text(
-                                subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .erpOverline
-                                    .copyWith(color: t.textMuted),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (!narrow && caixaState.isLoading)
-                      Padding(
-                        padding: EdgeInsets.only(right: s.sm),
-                        child: const PharmaButtonLoader(),
-                      ),
-                    Tooltip(
-                      message: caixaLabel,
-                      child: narrow
-                          ? SizedBox.square(
-                              dimension: t.controlHeight,
-                              child: IconButton(
-                                onPressed: caixaState.isSubmitting
-                                    ? null
-                                    : () => _onCaixaPressed(
-                                          context,
-                                          ref,
-                                          caixaState,
-                                        ),
-                                icon: Icon(caixaIcon, color: caixaColor),
-                              ),
-                            )
-                          : OutlinedButton.icon(
-                              onPressed: caixaState.isSubmitting
-                                  ? null
-                                  : () => _onCaixaPressed(
-                                        context,
-                                        ref,
-                                        caixaState,
-                                      ),
-                              icon: caixaState.isSubmitting
-                                  ? const PharmaButtonLoader()
-                                  : Icon(caixaIcon, color: caixaColor),
-                              label: Text(
-                                caixaLabel,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .erpButtonSecondary
-                                    .copyWith(color: caixaColor),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                  color: caixaColor.withValues(alpha: 0.45),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: t.posHeader,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  child: LayoutBuilder(
+                    builder: (context, bx) {
+                      final narrow = bx.maxWidth < Breakpoints.mobile;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: DesktopWindowDragArea(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'PhRx — PDV',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      Theme.of(context).textTheme.erpAppName,
                                 ),
                               ),
                             ),
-                    ),
-                    SizedBox(width: narrow ? s.sm : s.md),
-                    SyncStatusStrip(
-                      state: SyncVisualState.online,
-                      pendingCount: 0,
-                      compact: narrow,
-                    ),
-                    SizedBox(width: narrow ? s.sm : s.lg),
-                    if (narrow)
-                      SizedBox.square(
-                        dimension: t.controlHeight,
-                        child: IconButton(
-                          tooltip: 'Sair PDV',
-                          onPressed: () => context.go(AppRoutePaths.dashboard),
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: t.textSecondary,
                           ),
-                        ),
-                      )
-                    else
-                      TextButton.icon(
-                        onPressed: () => context.go(AppRoutePaths.dashboard),
-                        icon: Icon(
-                          Icons.arrow_back_rounded,
-                          color: t.textSecondary,
-                          size: t.iconSm,
-                        ),
-                        label: Text(
-                          'Sair do PDV',
-                          style: Theme.of(context)
-                              .textTheme
-                              .erpLabel
-                              .copyWith(color: t.textSecondary),
-                        ),
-                      ),
-                    const DesktopWindowControls(),
-                  ],
-                );
-              },
+                          if (!narrow && caixaState.isLoading)
+                            Padding(
+                              padding: EdgeInsets.only(right: s.sm),
+                              child: const PharmaButtonLoader(),
+                            ),
+                          Tooltip(
+                            message: caixaLabel,
+                            child: narrow
+                                ? SizedBox.square(
+                                    dimension: t.controlHeight,
+                                    child: IconButton(
+                                      onPressed: caixaState.isSubmitting
+                                          ? null
+                                          : () => _onCaixaPressed(
+                                                context,
+                                                ref,
+                                                caixaState,
+                                              ),
+                                      icon:
+                                          Icon(caixaIcon, color: caixaColor),
+                                    ),
+                                  )
+                                : OutlinedButton.icon(
+                                    onPressed: caixaState.isSubmitting
+                                        ? null
+                                        : () => _onCaixaPressed(
+                                              context,
+                                              ref,
+                                              caixaState,
+                                            ),
+                                    icon: caixaState.isSubmitting
+                                        ? const PharmaButtonLoader()
+                                        : Icon(caixaIcon, color: caixaColor),
+                                    label: Text(
+                                      caixaLabel,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .erpButtonSecondary
+                                          .copyWith(color: caixaColor),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color:
+                                            caixaColor.withValues(alpha: 0.45),
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                          SizedBox(width: narrow ? s.sm : s.md),
+                          SyncStatusStrip(
+                            state: SyncVisualState.online,
+                            pendingCount: 0,
+                            compact: narrow,
+                          ),
+                          SizedBox(width: narrow ? s.sm : s.lg),
+                          if (narrow)
+                            SizedBox.square(
+                              dimension: t.controlHeight,
+                              child: IconButton(
+                                tooltip: 'Sair PDV',
+                                onPressed: () =>
+                                    context.go(AppRoutePaths.dashboard),
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  color: t.textSecondary,
+                                ),
+                              ),
+                            )
+                          else
+                            TextButton.icon(
+                              onPressed: () =>
+                                  context.go(AppRoutePaths.dashboard),
+                              icon: Icon(
+                                Icons.arrow_back_rounded,
+                                color: t.textSecondary,
+                                size: t.iconSm,
+                              ),
+                              label: Text(
+                                'Sair do PDV',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .erpLabel
+                                    .copyWith(color: t.textSecondary),
+                              ),
+                            ),
+                          const DesktopWindowControls(),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalInset),
-              child: child,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                child: child,
+              ),
             ),
           ),
         ],

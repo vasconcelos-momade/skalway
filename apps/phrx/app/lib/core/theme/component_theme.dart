@@ -661,7 +661,7 @@ abstract final class PharmaComponentTheme {
             ? theme.erpMenuItemActive.copyWith(color: tokens.textPrimary)
             : theme.erpMenuItem.copyWith(color: tokens.textSecondary);
       }),
-      height: DesignMetrics.tabHeightMax,
+      height: DesignMetrics.bottomNavHeight,
     );
   }
 

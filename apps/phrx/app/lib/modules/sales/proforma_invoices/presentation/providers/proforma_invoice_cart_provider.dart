@@ -195,8 +195,13 @@ class ProformaInvoiceCartController extends Notifier<ProformaInvoiceCartState> {
     }
   }
 
-  Future<void> addProduct(Product product) {
-    return _addLine(ProformaInvoiceCartLine.fromProduct(product));
+  Future<void> addProduct(Product product, {int quantidade = 1}) {
+    return _addLine(
+      ProformaInvoiceCartLine.fromProduct(
+        product,
+        quantidade: quantidade.toDouble(),
+      ),
+    );
   }
 
   Future<void> addService(PdvService service) {

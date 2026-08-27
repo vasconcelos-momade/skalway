@@ -22,6 +22,7 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
     this.emptyMessage = 'Nenhum resultado encontrado',
     this.minSearchLength = 2,
     this.debounceDuration = const Duration(milliseconds: 350),
+    this.floatingLabel = false,
   });
 
   final String labelText;
@@ -36,6 +37,9 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
   final String emptyMessage;
   final int minSearchLength;
   final Duration debounceDuration;
+
+  /// Quando `true`, o label fica dentro do campo (floating) em vez de acima.
+  final bool floatingLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +69,13 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
           focusNode: focusNode,
           onChanged: onChanged,
           style: textTheme.erpBody.copyWith(color: t.textPrimary),
+          textAlignVertical: TextAlignVertical.center,
           decoration: EnterpriseFieldDecoration.of(
             context,
+            labelText: floatingLabel ? labelText : null,
             hintText: hintText,
             helperText: helperText,
+            floatingLabel: floatingLabel,
             suffixIcon: Icon(
               Icons.search_rounded,
               size: t.iconSm,
@@ -108,6 +115,7 @@ class AsyncTypeAheadField<T> extends StatelessWidget {
       },
     );
 
+    if (floatingLabel) return field;
     return EnterpriseFieldGroup(labelText: labelText, child: field);
   }
 }

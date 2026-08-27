@@ -154,7 +154,11 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
                   onOpenDrawer: () => _shellKey.currentState?.openDrawer(),
                 ),
                 Expanded(
-                  child: Container(color: t.bgPrimary, child: body),
+                  child: SafeArea(
+                    top: false,
+                    bottom: false,
+                    child: Container(color: t.bgPrimary, child: body),
+                  ),
                 ),
               ],
             ),
@@ -175,95 +179,114 @@ class _DashboardLayoutState extends ConsumerState<DashboardLayout> {
         ? _configuredBottomNavIndex(location, config)
         : _erpBottomNavIndex(location);
 
-    return Theme(
-      data: Theme.of(context).copyWith(
-        navigationBarTheme: NavigationBarThemeData(
-          height: AppDimensions.topBarCompact,
-          indicatorColor: context.colors.primary.withValues(
-            alpha: Theme.of(context).brightness == Brightness.light ? 0.25 : 0.15,
-          ),
-        ),
-      ),
-      child: NavigationBar(
-        height: AppDimensions.topBarCompact,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (i) {
-          if (config != null) {
-            final dest = config.destinations[i];
-            if (dest.opensMore) {
-              final onMore = config.onMore;
-              if (onMore != null) {
-                onMore(context);
-              } else {
-                _shellKey.currentState?.openDrawer();
-              }
-              return;
-            }
-            context.go(dest.path);
-            return;
-          }
-          if (i == 4) {
-            _shellKey.currentState?.openDrawer();
-            return;
-          }
-          switch (i) {
-            case 0:
-              context.go(AppRoutePaths.dashboard);
-              break;
-            case 1:
-              context.go(AppRoutePaths.pos);
-              break;
-            case 2:
-              context.go(AppRoutePaths.products);
-              break;
-            case 3:
-              context.go(AppRoutePaths.financeCashflow);
-              break;
-          }
-        },
-        destinations: config != null
-            ? [
-                for (final dest in config.destinations)
-                  NavigationDestination(
-                    tooltip: dest.label,
-                    icon: Icon(dest.icon, color: t.textSecondary),
-                    selectedIcon: Icon(dest.icon, color: t.textPrimary),
-                    label: '',
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
+    // Altura útil = bottomNavHeight; o inset de gestos fica só abaixo (0 no web/desktop).
+    return ColoredBox(
+      color: t.bgSecondary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MediaQuery.removePadding(
+            context: context,
+            removeBottom: true,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                navigationBarTheme: NavigationBarThemeData(
+                  height: AppDimensions.bottomNavHeight,
+                  backgroundColor: t.bgSecondary,
+                  indicatorColor: context.colors.primary.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.light
+                        ? 0.25
+                        : 0.15,
                   ),
-              ]
-            : [
-                NavigationDestination(
-                  tooltip: 'Painel',
-                  icon: Icon(Icons.dashboard_outlined, color: t.textSecondary),
-                  selectedIcon: Icon(Icons.dashboard, color: t.textPrimary),
-                  label: '',
                 ),
-                NavigationDestination(
-                  tooltip: 'PDV',
-                  icon: Icon(Icons.point_of_sale_outlined, color: t.textSecondary),
-                  selectedIcon: Icon(Icons.point_of_sale, color: t.textPrimary),
-                  label: '',
-                ),
-                NavigationDestination(
-                  tooltip: 'Produtos',
-                  icon: Icon(Icons.medication_outlined, color: t.textSecondary),
-                  selectedIcon: Icon(Icons.medication, color: t.textPrimary),
-                  label: '',
-                ),
-                NavigationDestination(
-                  tooltip: 'Finanças',
-                  icon: Icon(Icons.payments_outlined, color: t.textSecondary),
-                  selectedIcon: Icon(Icons.payments, color: t.textPrimary),
-                  label: '',
-                ),
-                NavigationDestination(
-                  tooltip: 'Menu',
-                  icon: SidebarMenuIcon(color: t.textSecondary),
-                  selectedIcon: SidebarMenuIcon(color: t.textPrimary),
-                  label: '',
-                ),
-              ],
+              ),
+              child: NavigationBar(
+                height: AppDimensions.bottomNavHeight,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (i) {
+                  if (config != null) {
+                    final dest = config.destinations[i];
+                    if (dest.opensMore) {
+                      final onMore = config.onMore;
+                      if (onMore != null) {
+                        onMore(context);
+                      } else {
+                        _shellKey.currentState?.openDrawer();
+                      }
+                      return;
+                    }
+                    context.go(dest.path);
+                    return;
+                  }
+                  if (i == 4) {
+                    _shellKey.currentState?.openDrawer();
+                    return;
+                  }
+                  switch (i) {
+                    case 0:
+                      context.go(AppRoutePaths.dashboard);
+                      break;
+                    case 1:
+                      context.go(AppRoutePaths.pos);
+                      break;
+                    case 2:
+                      context.go(AppRoutePaths.products);
+                      break;
+                    case 3:
+                      context.go(AppRoutePaths.financeCashflow);
+                      break;
+                  }
+                },
+                destinations: config != null
+                    ? [
+                        for (final dest in config.destinations)
+                          NavigationDestination(
+                            tooltip: dest.label,
+                            icon: Icon(dest.icon, color: t.textSecondary),
+                            selectedIcon: Icon(dest.icon, color: t.textPrimary),
+                            label: '',
+                          ),
+                      ]
+                    : [
+                        NavigationDestination(
+                          tooltip: 'Painel',
+                          icon: Icon(Icons.dashboard_outlined, color: t.textSecondary),
+                          selectedIcon: Icon(Icons.dashboard, color: t.textPrimary),
+                          label: '',
+                        ),
+                        NavigationDestination(
+                          tooltip: 'PDV',
+                          icon: Icon(Icons.point_of_sale_outlined, color: t.textSecondary),
+                          selectedIcon: Icon(Icons.point_of_sale, color: t.textPrimary),
+                          label: '',
+                        ),
+                        NavigationDestination(
+                          tooltip: 'Produtos',
+                          icon: Icon(Icons.medication_outlined, color: t.textSecondary),
+                          selectedIcon: Icon(Icons.medication, color: t.textPrimary),
+                          label: '',
+                        ),
+                        NavigationDestination(
+                          tooltip: 'Finanças',
+                          icon: Icon(Icons.payments_outlined, color: t.textSecondary),
+                          selectedIcon: Icon(Icons.payments, color: t.textPrimary),
+                          label: '',
+                        ),
+                        NavigationDestination(
+                          tooltip: 'Menu',
+                          icon: SidebarMenuIcon(color: t.textSecondary),
+                          selectedIcon: SidebarMenuIcon(color: t.textPrimary),
+                          label: '',
+                        ),
+                      ],
+              ),
+            ),
+          ),
+          if (bottomInset > 0) SizedBox(height: bottomInset),
+        ],
       ),
     );
   }
@@ -339,114 +362,104 @@ class _EnterpriseTopBar extends ConsumerWidget {
     );
     final actionSpacing = compactActions ? s.sm : s.md;
 
+    final toolbarHeight = AppDimensions.appBarHeight;
+
+    // Fundo pinta o status bar; a toolbar (56) fica só no SafeArea.
     return Material(
       color: t.bgPrimary,
       animationDuration: kPharmaInstantThemeDuration,
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      child: Container(
-        height: isDesktop
-            ? AppDimensions.topBarDesktop
-            : AppDimensions.topBarCompact,
-        padding: horizontalPadding,
-        child: Row(
-          children: [
-            if (!isDesktop && !isMobile) ...[
-              IconButton(
-                constraints: BoxConstraints(
-                  minWidth: t.minTouchTarget,
-                  minHeight: t.minTouchTarget,
-                ),
-                padding: EdgeInsets.zero,
-                tooltip: 'Menu',
-                icon: SidebarMenuIcon(color: t.textSecondary, size: t.iconMd),
-                onPressed: onOpenDrawer,
-              ),
-              SizedBox(width: s.md),
-            ],
-            Expanded(
-              child: DesktopWindowDragArea(
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isMobile)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          brandLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.erpOverline.copyWith(
-                            color: t.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          section,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.erpAppBarTitle.copyWith(
-                            color: t.textPrimary,
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Row(
-                      children: [
-                        Text(
-                          brandLabel,
-                          style: theme.textTheme.erpOverline.copyWith(
-                            color: t.textMuted,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: s.sm),
-                          child: Icon(
-                            Icons.chevron_right_rounded,
-                            size: t.iconSm,
-                            color: t.border,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            section,
-                            style: theme.textTheme.erpOverline.copyWith(
-                              color: t.textPrimary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: toolbarHeight,
+          child: Padding(
+            padding: horizontalPadding,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (!isDesktop && !isMobile) ...[
+                  IconButton(
+                    constraints: BoxConstraints(
+                      minWidth: t.minTouchTarget,
+                      minHeight: t.minTouchTarget,
                     ),
+                    padding: EdgeInsets.zero,
+                    tooltip: 'Menu',
+                    icon: SidebarMenuIcon(color: t.textSecondary, size: t.iconMd),
+                    onPressed: onOpenDrawer,
+                  ),
+                  SizedBox(width: s.md),
                 ],
-              ),
-              ),
-            ),
-            SizedBox(width: isMobile ? s.sm : s.lg),
-            Flexible(
-              fit: FlexFit.loose,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const _PageRefreshAction(),
-                      SizedBox(width: actionSpacing),
-                      _ThemeModeMenuButton(themeMode: themeMode),
-                      const DesktopWindowControls(),
-                    ],
+                Expanded(
+                  child: DesktopWindowDragArea(
+                    child: isMobile
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              section,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.erpAppBarTitle.copyWith(
+                                color: t.textPrimary,
+                                height: 1.2,
+                              ),
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Text(
+                                brandLabel,
+                                style: theme.textTheme.erpOverline.copyWith(
+                                  color: t.textMuted,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: s.sm),
+                                child: Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: t.iconSm,
+                                  color: t.border,
+                                ),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  section,
+                                  style: theme.textTheme.erpOverline.copyWith(
+                                    color: t.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
-              ),
+                SizedBox(width: isMobile ? s.sm : s.lg),
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.zero,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const _PageRefreshAction(),
+                          SizedBox(width: actionSpacing),
+                          _ThemeModeMenuButton(themeMode: themeMode),
+                          const DesktopWindowControls(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

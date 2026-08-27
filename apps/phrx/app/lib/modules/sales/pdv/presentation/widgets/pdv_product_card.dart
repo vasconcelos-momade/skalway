@@ -7,8 +7,9 @@ import '../../../../../shared/widgets/buttons/pharma_button_loader.dart';
 import '../../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
 import 'pdv_catalog_utils.dart';
+import 'pdv_qty_field.dart';
 
-class PdvProductCard extends StatelessWidget {
+class PdvProductCard extends StatefulWidget {
   const PdvProductCard({
     super.key,
     required this.product,
@@ -21,27 +22,49 @@ class PdvProductCard extends StatelessWidget {
   final Product product;
   final bool canAdd;
   final bool isAdding;
-  final VoidCallback onAdd;
+  final void Function(int quantidade) onAdd;
   final bool compactAction;
+
+  @override
+  State<PdvProductCard> createState() => _PdvProductCardState();
+}
+
+class _PdvProductCardState extends State<PdvProductCard> {
+  int _quantidade = 1;
+
+  @override
+  void didUpdateWidget(covariant PdvProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.product.id != widget.product.id) {
+      _quantidade = 1;
+    } else {
+      final stock = widget.product.estoqueAtual.toInt();
+      if (stock > 0 && _quantidade > stock) {
+        _quantidade = stock;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.pharmaTokens;
     final textTheme = Theme.of(context).textTheme;
-    final hasStock = product.estoqueAtual > 0;
-    final lowStock = product.estoqueAtual <= product.estoqueMinimo;
-    final canInteract = canAdd && !isAdding && hasStock;
-    final dosagem = product.dosagem?.trim();
-    final forma = product.forma?.trim();
+    final hasStock = widget.product.estoqueAtual > 0;
+    final lowStock =
+        widget.product.estoqueAtual <= widget.product.estoqueMinimo;
+    final canInteract = widget.canAdd && !widget.isAdding && hasStock;
+    final stock = widget.product.estoqueAtual.toInt();
+    final dosagem = widget.product.dosagem?.trim();
+    final forma = widget.product.forma?.trim();
     final metadataLine =
-        'PV ${pdvFormatMoney(product.precoVenda)} • Val. ${pdvFormatDate(product.dataValidade)} • Lote ${product.lote ?? '—'}';
+        'PV ${pdvFormatMoney(widget.product.precoVenda)} • Val. ${pdvFormatDate(widget.product.dataValidade)} • Lote ${widget.product.lote ?? '—'}';
     final titleStyle = textTheme.erpCardTitle.copyWith(color: t.textPrimary);
     final titleDetailStyle = titleStyle.copyWith(
       color: t.textSecondary,
       fontWeight: FontWeight.w400,
     );
     final titleWidget =
-        (compactAction &&
+        (widget.compactAction &&
             ((dosagem != null && dosagem.isNotEmpty) ||
                 (forma != null && forma.isNotEmpty)))
         ? RichText(
@@ -50,7 +73,7 @@ class PdvProductCard extends StatelessWidget {
             text: TextSpan(
               style: titleStyle,
               children: [
-                TextSpan(text: product.nomeComercial),
+                TextSpan(text: widget.product.nomeComercial),
                 if (dosagem != null && dosagem.isNotEmpty) ...[
                   TextSpan(text: ' - ', style: titleDetailStyle),
                   TextSpan(text: dosagem, style: titleDetailStyle),
@@ -65,19 +88,18 @@ class PdvProductCard extends StatelessWidget {
         : null;
     final s = context.spacing;
     final Widget actionButton = SizedBox(
-      height: compactAction ? t.compactControlHeight : t.controlHeight,
-      // Largura intrínseca — `infinity` parte o Row do EnterpriseListCard.
-      width: compactAction ? t.compactControlHeight + s.sm : null,
+      height: widget.compactAction ? t.compactControlHeight : t.controlHeight,
+      width: widget.compactAction ? t.compactControlHeight + s.sm : null,
       child: FilledButton(
         style: PharmaComponentTheme.filled(
           t,
           Theme.of(context).colorScheme,
-          compact: compactAction,
+          compact: widget.compactAction,
         ),
-        onPressed: canInteract ? onAdd : null,
-        child: isAdding
+        onPressed: canInteract ? () => widget.onAdd(_quantidade) : null,
+        child: widget.isAdding
             ? PharmaButtonLoader(color: t.brandBlue)
-            : compactAction
+            : widget.compactAction
                 ? const Text('+')
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -92,36 +114,48 @@ class PdvProductCard extends StatelessWidget {
     );
 
     return EnterpriseListCard(
-      title: product.nomeComercial,
+      title: widget.product.nomeComercial,
       titleWidget: titleWidget,
-      subtitle: (product.nomeGenerico ?? '').isNotEmpty
-          ? product.nomeGenerico
+      subtitle: (widget.product.nomeGenerico ?? '').isNotEmpty
+          ? widget.product.nomeGenerico
           : null,
-      chip: product.requiresPsychotropicBook
+      chip: widget.product.requiresPsychotropicBook
           ? EnterpriseStatusChip(
               label: 'Psicotrópico',
               color: t.psychotropic,
             )
-          : product.requiresPrescription
+          : widget.product.requiresPrescription
               ? EnterpriseStatusChip(
                   label: 'Receita',
                   color: t.posWarning,
                 )
               : null,
       metadata: [
-        EnterpriseListCardMeta(label: product.categoriaNome ?? '—'),
+        EnterpriseListCardMeta(label: widget.product.categoriaNome ?? '—'),
         EnterpriseListCardMeta(label: metadataLine),
+        if (widget.compactAction)
+          EnterpriseListCardMeta(
+            label: 'Stock: $stock',
+            color: lowStock ? t.posDanger : t.textMuted,
+          ),
       ],
-      trailingMeta: compactAction
-          ? EnterpriseListCardMeta(
-              label: 'Stock: ${product.estoqueAtual.toInt()}',
-              color: lowStock ? t.posDanger : t.textMuted,
-              alignEnd: true,
-              emphasized: true,
-            )
-          : null,
-      onTap: canInteract ? onAdd : null,
-      actions: actionButton,
+      trailingMeta: null,
+      onTap: canInteract ? () => widget.onAdd(_quantidade) : null,
+      actions: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PdvQtyField(
+            key: ValueKey('card-qty-${widget.product.id}'),
+            maxStock: stock,
+            value: _quantidade,
+            enabled: canInteract,
+            compact: widget.compactAction,
+            onChanged: (qty) => setState(() => _quantidade = qty),
+          ),
+          SizedBox(width: s.sm),
+          actionButton,
+        ],
+      ),
     );
   }
 }

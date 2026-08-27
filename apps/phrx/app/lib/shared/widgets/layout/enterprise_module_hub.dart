@@ -152,10 +152,11 @@ class EnterpriseModuleHub extends StatelessWidget {
     );
 
     if (scrollable) {
-      return SafeArea(child: SingleChildScrollView(child: body));
+      // Safe Area top/bottom ficam no shell (AppBar / NavigationBar / Scaffold).
+      return SingleChildScrollView(child: body);
     }
 
-    return SafeArea(child: body);
+    return body;
   }
 
   Widget _buildKpis(BuildContext context, PharmaScreenSize size) {

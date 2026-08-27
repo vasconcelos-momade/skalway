@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'component_theme.dart';
+import 'design_metrics.dart' show DesignMetrics;
 import 'design_tokens.dart';
 import 'pharma_border_tokens.dart';
 import 'pharma_color_tokens.dart';
@@ -82,7 +83,8 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        toolbarHeight: tokens.controlHeight,
+        centerTitle: false,
+        toolbarHeight: DesignMetrics.appBarToolbarHeight,
         titleTextStyle: AppTypography.appBarTitle(
           textTheme,
         ).copyWith(color: tokens.textPrimary),

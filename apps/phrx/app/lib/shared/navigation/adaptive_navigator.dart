@@ -6,6 +6,7 @@ import '../widgets/dialogs/enterprise_dialog.dart';
 import '../widgets/dialogs/enterprise_overlay_tokens.dart';
 import '../widgets/dialogs/enterprise_side_sheet.dart';
 import '../widgets/layout/adaptive_side_sheet.dart';
+import '../widgets/navigation/enterprise_app_bar.dart';
 
 /// Callback para construir painéis de detalhe / histórico.
 typedef AdaptiveDetailBuilder = Widget Function(
@@ -90,7 +91,7 @@ abstract final class AdaptiveNavigator {
         void onClose() => close(detailContext);
         if (isMobile(detailContext)) {
           return Scaffold(
-            appBar: AppBar(title: Text(title)),
+            appBar: EnterpriseAppBar(title: Text(title)),
             body: builder(detailContext, onClose),
           );
         }
@@ -169,7 +170,7 @@ abstract final class AdaptiveNavigator {
               PharmaScreenLayout.mobileHorizontalInset(formContext);
           if (mobileWrapInScrollView) {
             return Scaffold(
-              appBar: AppBar(
+              appBar: EnterpriseAppBar(
                 title: title is Text ? title : const Text('Formulário'),
               ),
               body: SingleChildScrollView(
@@ -186,7 +187,7 @@ abstract final class AdaptiveNavigator {
           // Sem wrap de scroll: o formulário gere margens do conteúdo e do footer
           // (ex.: Finalizar Venda — botões alinhados ao conteúdo).
           return Scaffold(
-            appBar: AppBar(
+            appBar: EnterpriseAppBar(
               title: title is Text ? title : const Text('Formulário'),
             ),
             body: form,

@@ -147,7 +147,7 @@ class _PdvPageState extends ConsumerState<PdvPage>
     _searchFocusNode.requestFocus();
   }
 
-  Future<bool> _addProduct(Product p) async {
+  Future<bool> _addProduct(Product p, {int quantidade = 1}) async {
     if (!_ensureCaixaAberto()) {
       return false;
     }
@@ -156,15 +156,32 @@ class _PdvPageState extends ConsumerState<PdvPage>
       return false;
     }
 
+    final stock = p.estoqueAtual.toInt();
+    if (quantidade < 1) {
+      PharmaFeedback.error(context, 'Informe uma quantidade válida.');
+      return false;
+    }
+    if (quantidade > stock) {
+      PharmaFeedback.error(
+        context,
+        'Quantidade ($quantidade) superior ao stock disponível ($stock).',
+      );
+      return false;
+    }
+
     try {
-      final added = await ref.read(pdvCartProvider.notifier).addProduct(p);
+      final added = await ref.read(pdvCartProvider.notifier).addProduct(
+            p,
+            quantidade: quantidade,
+          );
       if (!mounted) {
         return false;
       }
       if (added) {
+        final suffix = quantidade == 1 ? '' : ' (x$quantidade)';
         PharmaFeedback.success(
           context,
-          '${p.nomeComercial} adicionado ao carrinho.',
+          '${p.nomeComercial}$suffix adicionado ao carrinho.',
         );
       }
       return added;
@@ -701,7 +718,8 @@ class _PdvPageState extends ConsumerState<PdvPage>
                       isLoading: productState.isLoading,
                       canAdd: canAddCatalog,
                       addingProductId: cartState.busyLineId,
-                      onAdd: (product) => unawaited(_addProduct(product)),
+                      onAdd: (product, quantidade) =>
+                          unawaited(_addProduct(product, quantidade: quantidade)),
                       onLoadMore: () =>
                           productController.goToPage(productState.page + 1),
                       bottomPadding: catalogListBottomPadding,
@@ -712,7 +730,8 @@ class _PdvPageState extends ConsumerState<PdvPage>
                       isLoading: productState.isLoading,
                       canAdd: canAddCatalog,
                       addingProductId: cartState.busyLineId,
-                      onAdd: (product) => unawaited(_addProduct(product)),
+                      onAdd: (product, quantidade) =>
+                          unawaited(_addProduct(product, quantidade: quantidade)),
                       pagination: showCatalogPagination ? catalogFooter : null,
                     )
               : isMobile

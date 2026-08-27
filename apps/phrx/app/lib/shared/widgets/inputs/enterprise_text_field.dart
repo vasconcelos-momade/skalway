@@ -37,6 +37,7 @@ class EnterpriseTextFormField extends StatelessWidget {
     this.enableSuggestions = true,
     this.textCapitalization = TextCapitalization.none,
     this.autovalidateMode,
+    this.floatingLabel = false,
   });
 
   final TextEditingController? controller;
@@ -67,6 +68,9 @@ class EnterpriseTextFormField extends StatelessWidget {
   final bool enableSuggestions;
   final TextCapitalization textCapitalization;
   final AutovalidateMode? autovalidateMode;
+
+  /// Quando `true`, o label fica dentro do campo (floating) em vez de acima.
+  final bool floatingLabel;
 
   bool get _multiline => (maxLines ?? 1) > 1 || (minLines ?? 1) > 1;
 
@@ -102,6 +106,7 @@ class EnterpriseTextFormField extends StatelessWidget {
       style: theme.textTheme.erpBody.copyWith(color: t.textPrimary),
       decoration: EnterpriseFieldDecoration.of(
         context,
+        labelText: floatingLabel ? labelText : null,
         hintText: hintText,
         helperText: helperText,
         errorText: errorText,
@@ -110,9 +115,11 @@ class EnterpriseTextFormField extends StatelessWidget {
         suffixIcon: suffixIcon,
         enabled: enabled,
         multiline: _multiline,
+        floatingLabel: floatingLabel,
       ),
     );
 
+    if (floatingLabel) return field;
     return EnterpriseFieldGroup(labelText: labelText, child: field);
   }
 }

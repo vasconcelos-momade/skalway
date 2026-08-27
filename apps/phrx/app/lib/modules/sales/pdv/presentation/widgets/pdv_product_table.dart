@@ -8,8 +8,9 @@ import '../../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../../pharmacy/products/domain/entities/product.dart';
 import 'pdv_catalog_utils.dart';
+import 'pdv_qty_field.dart';
 
-class PdvProductTable extends StatelessWidget {
+class PdvProductTable extends StatefulWidget {
   const PdvProductTable({
     super.key,
     required this.items,
@@ -25,23 +26,51 @@ class PdvProductTable extends StatelessWidget {
   final String query;
   final bool canAdd;
   final String? addingProductId;
-  final void Function(Product product) onAdd;
+  final void Function(Product product, int quantidade) onAdd;
   final bool isLoading;
   final Widget? pagination;
 
+  @override
+  State<PdvProductTable> createState() => _PdvProductTableState();
+}
+
+class _PdvProductTableState extends State<PdvProductTable> {
   static const _columns = [
     'PRODUTO',
     'PREÇO',
     'VALIDADE',
     'LOTE',
     'STOCK',
+    'QTD',
     'AÇÕES',
   ];
 
+  /// Quantidade por produto (default 1).
+  final Map<String, int> _qtyByProductId = {};
+
   EnterpriseTableStatus get _status {
-    if (isLoading && items.isEmpty) return EnterpriseTableStatus.loading;
-    if (items.isEmpty) return EnterpriseTableStatus.empty;
+    if (widget.isLoading && widget.items.isEmpty) {
+      return EnterpriseTableStatus.loading;
+    }
+    if (widget.items.isEmpty) return EnterpriseTableStatus.empty;
     return EnterpriseTableStatus.data;
+  }
+
+  int _qtyFor(Product product) {
+    final stock = product.estoqueAtual.toInt();
+    final current = _qtyByProductId[product.id] ?? 1;
+    if (stock < 1) return 1;
+    if (current > stock) return stock;
+    if (current < 1) return 1;
+    return current;
+  }
+
+  void _setQty(Product product, int qty) {
+    setState(() => _qtyByProductId[product.id] = qty);
+  }
+
+  void _handleAdd(Product product) {
+    widget.onAdd(product, _qtyFor(product));
   }
 
   @override
@@ -54,30 +83,33 @@ class PdvProductTable extends StatelessWidget {
       adaptive: false,
       showCheckboxColumn: false,
       status: _status,
-      isLoading: isLoading,
-      emptyTitle: query.isEmpty
+      isLoading: widget.isLoading,
+      emptyTitle: widget.query.isEmpty
           ? 'Nenhum registo encontrado'
           : 'Nenhum produto encontrado.',
       emptyMessage: 'Nenhum registo encontrado',
-      emptySubtitle: query.isEmpty ? null : 'Tente outro nome, código ou EAN.',
+      emptySubtitle:
+          widget.query.isEmpty ? null : 'Tente outro nome, código ou EAN.',
       dataRowMinHeight: 72,
       dataRowMaxHeight: 92,
       columnSpacing: s.xxl,
-      pagination: pagination,
+      pagination: widget.pagination,
       columns: [
         for (final label in _columns)
           enterpriseDataColumn(
             context,
             label,
-            numeric: label == 'PREÇO' || label == 'STOCK',
+            numeric: label == 'PREÇO' || label == 'STOCK' || label == 'QTD',
           ),
       ],
-      rowCount: items.length,
+      rowCount: widget.items.length,
       rowBuilder: (context, index) {
-        final product = items[index];
+        final product = widget.items[index];
         final lineId = 'produto:${product.id}';
-        final isAdding = addingProductId == lineId;
-        final canInteract = canAdd && !isAdding && product.estoqueAtual > 0;
+        final isAdding = widget.addingProductId == lineId;
+        final canInteract =
+            widget.canAdd && !isAdding && product.estoqueAtual > 0;
+        final stock = product.estoqueAtual.toInt();
 
         return DataRow(
           color: WidgetStateProperty.resolveWith((states) {
@@ -89,13 +121,26 @@ class PdvProductTable extends StatelessWidget {
             }
             return null;
           }),
-          onSelectChanged: canInteract ? (_) => onAdd(product) : null,
+          onSelectChanged: canInteract ? (_) => _handleAdd(product) : null,
           cells: [
             DataCell(_nameCell(context, product)),
             DataCell(TableNumericCell(pdvFormatMoney(product.precoVenda))),
             DataCell(TableMetadataCell(pdvFormatDate(product.dataValidade))),
             DataCell(TableMetadataCell(product.lote)),
-            DataCell(TableNumericCell('${product.estoqueAtual.toInt()}')),
+            DataCell(TableNumericCell('$stock')),
+            DataCell(
+              Align(
+                alignment: Alignment.center,
+                child: PdvQtyField(
+                  key: ValueKey('qty-${product.id}'),
+                  maxStock: stock,
+                  value: _qtyFor(product),
+                  enabled: canInteract,
+                  onChanged: (qty) => _setQty(product, qty),
+                ),
+              ),
+              onTap: () {},
+            ),
             DataCell(
               Align(
                 alignment: Alignment.center,
@@ -108,7 +153,8 @@ class PdvProductTable extends StatelessWidget {
                         ),
                       )
                     : FilledButton.tonalIcon(
-                        onPressed: canInteract ? () => onAdd(product) : null,
+                        onPressed:
+                            canInteract ? () => _handleAdd(product) : null,
                         icon: const Icon(Icons.add_rounded),
                         label: const Text('Add'),
                       ),

@@ -75,118 +75,129 @@ class ProformaLayout extends ConsumerWidget {
       backgroundColor: t.bgPrimary,
       body: Column(
         children: [
-          Container(
-            height: t.posHeader,
-            padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+          DecoratedBox(
             decoration: BoxDecoration(
               color: t.bgSecondary,
               border: Border(bottom: BorderSide(color: t.border)),
             ),
             child: SafeArea(
               bottom: false,
-              child: LayoutBuilder(
-                builder: (context, bx) {
-                  final narrow = bx.maxWidth < Breakpoints.mobile;
-                  return Row(
-                    children: [
-                      SizedBox.square(
-                        dimension: t.controlHeight,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(t.radiusMd),
-                          child: Image.asset(
-                            'assets/logos/logo_512.png',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: narrow ? s.sm : s.md),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'PhRx',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.erpAppName
-                                    .copyWith(color: t.textPrimary),
+              child: SizedBox(
+                height: t.posHeader,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  child: LayoutBuilder(
+                    builder: (context, bx) {
+                      final narrow = bx.maxWidth < Breakpoints.mobile;
+                      return Row(
+                        children: [
+                          SizedBox.square(
+                            dimension: t.controlHeight,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(t.radiusMd),
+                              child: Image.asset(
+                                'assets/logos/logo_512.png',
+                                fit: BoxFit.cover,
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s.sm),
-                              child: Icon(
-                                Icons.chevron_right_rounded,
+                          ),
+                          SizedBox(width: narrow ? s.sm : s.md),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'PhRx',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .erpAppName
+                                        .copyWith(color: t.textPrimary),
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: s.sm),
+                                  child: Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: t.iconSm,
+                                    color: t.border,
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    'Fatura Proforma',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: t.textPrimary,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (narrow)
+                            SizedBox.square(
+                              dimension: t.controlHeight,
+                              child: IconButton(
+                                tooltip: ' Nova Fatura',
+                                onPressed: canStartNewInvoice
+                                    ? () => _startNewInvoice(context, ref)
+                                    : null,
+                                icon: Icon(
+                                  Icons.add_rounded,
+                                  color: t.brandGreen,
+                                ),
+                              ),
+                            )
+                          else
+                            FilledButton.icon(
+                              onPressed: canStartNewInvoice
+                                  ? () => _startNewInvoice(context, ref)
+                                  : null,
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Nova Fatura'),
+                            ),
+                          SizedBox(width: narrow ? s.sm : s.lg),
+                          if (narrow)
+                            SizedBox.square(
+                              dimension: t.controlHeight,
+                              child: IconButton(
+                                tooltip: 'Sair da Página',
+                                onPressed: () => _handleExit(context),
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  color: t.textSecondary,
+                                ),
+                              ),
+                            )
+                          else
+                            TextButton.icon(
+                              onPressed: () => _handleExit(context),
+                              icon: Icon(
+                                Icons.arrow_back_rounded,
+                                color: t.textSecondary,
                                 size: t.iconSm,
-                                color: t.border,
+                              ),
+                              label: Text(
+                                'Sair da Página',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .erpLabel
+                                    .copyWith(color: t.textSecondary),
                               ),
                             ),
-                            Flexible(
-                              child: Text(
-                                'Fatura Proforma',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: t.textPrimary,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (narrow)
-                        SizedBox.square(
-                          dimension: t.controlHeight,
-                          child: IconButton(
-                            tooltip: ' Nova Fatura',
-                            onPressed: canStartNewInvoice
-                                ? () => _startNewInvoice(context, ref)
-                                : null,
-                            icon: Icon(
-                              Icons.add_rounded,
-                              color: t.brandGreen,
-                            ),
-                          ),
-                        )
-                      else
-                        FilledButton.icon(
-                          onPressed: canStartNewInvoice
-                              ? () => _startNewInvoice(context, ref)
-                              : null,
-                          icon: const Icon(Icons.add_rounded),
-                          label: const Text('Nova Fatura'),
-                        ),
-                      SizedBox(width: narrow ? s.sm : s.lg),
-                      if (narrow)
-                        SizedBox.square(
-                          dimension: t.controlHeight,
-                          child: IconButton(
-                            tooltip: 'Sair da Página',
-                            onPressed: () => _handleExit(context),
-                            icon: Icon(
-                              Icons.close_rounded,
-                              color: t.textSecondary,
-                            ),
-                          ),
-                        )
-                      else
-                        TextButton.icon(
-                          onPressed: () => _handleExit(context),
-                          icon: Icon(
-                            Icons.arrow_back_rounded,
-                            color: t.textSecondary,
-                            size: t.iconSm,
-                          ),
-                          label: Text(
-                            'Sair da Página',
-                            style: Theme.of(context).textTheme.erpLabel
-                                .copyWith(color: t.textSecondary),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),

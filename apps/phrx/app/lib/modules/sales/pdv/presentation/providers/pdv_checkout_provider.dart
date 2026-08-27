@@ -96,11 +96,11 @@ class PdvCheckoutController extends Notifier<PdvCheckoutState> {
             .read(pdvCartProvider.notifier)
             .applyCheckoutReset(result.nextCartIdempotencyKey);
       }
+      // Actualização reativa: limpa cache e refresca a página actual sem
+      // invalidar/autoDispose o provider (evita reload completo do POS).
       invalidatePdvProductCatalogCache();
-      ref.invalidate(productListProvider);
+      unawaited(ref.read(productListProvider.notifier).refreshCurrentPage());
       invalidateInvoiceListCache();
-      ref.invalidate(invoiceListProvider);
-      // Garante atualização imediata: evita qualquer chance de ficar preso em cache/estado.
       unawaited(ref.read(invoiceListProvider.notifier).refresh());
       state = state.copyWith(isSubmitting: false, clearError: true);
       return result;

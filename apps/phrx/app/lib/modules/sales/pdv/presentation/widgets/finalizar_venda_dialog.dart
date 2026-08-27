@@ -244,6 +244,7 @@ class _FinalizarVendaDialogState
     return AsyncTypeAheadField<CustomerSummary>(
       controller: _nomeController,
       labelText: 'Nome do paciente',
+      floatingLabel: true,
       helperText: cartState.hasSelectedCliente
           ? 'Cliente encontrado e associado a venda.'
           : 'Opcional. Pesquise um cliente ou digite um novo nome.',
@@ -267,6 +268,7 @@ class _FinalizarVendaDialogState
     return EnterpriseTextFormField(
       controller: _idadeController,
       labelText: 'Idade',
+      floatingLabel: true,
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (value) {
@@ -287,6 +289,7 @@ class _FinalizarVendaDialogState
     return EnterpriseTextFormField(
       controller: _nidController,
       labelText: 'NID da receita/doente',
+      floatingLabel: true,
     );
   }
 
@@ -294,6 +297,7 @@ class _FinalizarVendaDialogState
     return EnterpriseTextFormField(
       controller: _prescritorController,
       labelText: 'Prescritor',
+      floatingLabel: true,
     );
   }
 
@@ -301,6 +305,7 @@ class _FinalizarVendaDialogState
     return EnterpriseTextFormField(
       controller: _unidadeSanitariaController,
       labelText: 'Unidade sanitária',
+      floatingLabel: true,
     );
   }
 
@@ -309,6 +314,7 @@ class _FinalizarVendaDialogState
       controller: _valorRecebidoController,
       enabled: enabled,
       labelText: 'Valor recebido *',
+      floatingLabel: true,
       suffixText: 'MT',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [

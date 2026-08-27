@@ -6,9 +6,10 @@ import 'design_metrics.dart';
 abstract final class AppDimensions {
   AppDimensions._();
 
-  static const double appBarHeight = DesignMetrics.toolbarHeight;
+  static const double appBarHeight = DesignMetrics.appBarToolbarHeight;
   static const double topBarDesktop = DesignMetrics.topBarDesktop;
   static const double topBarCompact = DesignMetrics.topBarCompact;
+  static const double bottomNavHeight = DesignMetrics.bottomNavHeight;
   static const double posHeader = DesignMetrics.posHeader;
   static const double posFooter = DesignMetrics.posFooter;
 

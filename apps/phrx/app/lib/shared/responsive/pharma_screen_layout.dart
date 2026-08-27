@@ -73,16 +73,24 @@ abstract final class PharmaScreenLayout {
 
   /// Margens do conteúdo de página.
   ///
-  /// Em mobile, a margem horizontal é sempre [SpacingTokens.md] (12) —
-  /// padrão enterprise unificado para todas as páginas do shell.
+  /// Em mobile, a margem horizontal é sempre [SpacingTokens.md] (12).
+  /// Top/bottom reduzidos: AppBar e NavigationBar já separam o conteúdo das bordas.
   static EdgeInsets pagePadding(BuildContext context) {
     final base = context.pharmaTokens.density.pageInsets;
-    if (!isMobile(context)) return base;
+    if (isMobile(context)) {
+      return EdgeInsets.fromLTRB(
+        SpacingTokens.md,
+        0,
+        SpacingTokens.md,
+        0,
+      );
+    }
+    // Tablet / desktop / web: sem bottom nav — evitar “faixa” inferior larga.
     return EdgeInsets.fromLTRB(
-      SpacingTokens.md,
+      base.left,
       base.top,
+      base.right,
       SpacingTokens.md,
-      base.bottom,
     );
   }
 

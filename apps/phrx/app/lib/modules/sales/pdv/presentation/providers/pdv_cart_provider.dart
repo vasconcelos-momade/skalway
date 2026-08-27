@@ -244,7 +244,7 @@ class PdvCartController extends Notifier<PdvCartState> {
     _maybeLoadFromServer();
   }
 
-  Future<bool> addProduct(Product product) async {
+  Future<bool> addProduct(Product product, {int quantidade = 1}) async {
     final ctx = _mutationContext();
     if (ctx == null) {
       return false;
@@ -258,6 +258,7 @@ class PdvCartController extends Notifier<PdvCartState> {
             userId: ctx.userId,
             idempotencyKey: ctx.idempotencyKey,
             product: product,
+            quantidade: quantidade,
           );
       _applyCart(cart);
       return true;

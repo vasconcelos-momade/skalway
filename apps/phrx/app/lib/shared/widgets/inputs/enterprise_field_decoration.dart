@@ -8,10 +8,11 @@ import '../../../core/theme/extensions.dart';
 /// Fonte de verdade: [ThemeData.inputDecorationTheme]
 /// ([PharmaComponentTheme.input]).
 /// - Altura da caixa = [PharmaTokens.controlHeight]
-/// - Labels **acima** do campo via [EnterpriseFieldGroup] (não floating)
+/// - Labels **acima** do campo via [EnterpriseFieldGroup] por defeito
+/// - [floatingLabel] = `true` → label suspenso dentro do input (`FloatingLabelBehavior.auto`)
 /// - Borda neutra; cor primária apenas no estado de foco
 ///
-/// [floatingLabel] default `false` — preferir [EnterpriseFieldGroup].
+/// [floatingLabel] default `false` — preferir [EnterpriseFieldGroup] no ERP geral.
 abstract final class EnterpriseFieldDecoration {
   EnterpriseFieldDecoration._();
 
@@ -52,9 +53,13 @@ abstract final class EnterpriseFieldDecoration {
       enabled: enabled,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      floatingLabelBehavior: FloatingLabelBehavior.never,
+      floatingLabelBehavior: floatingLabel
+          ? FloatingLabelBehavior.auto
+          : FloatingLabelBehavior.never,
     ).applyDefaults(inputTheme).copyWith(
-          floatingLabelBehavior: FloatingLabelBehavior.never,
+          floatingLabelBehavior: floatingLabel
+              ? FloatingLabelBehavior.auto
+              : FloatingLabelBehavior.never,
         );
 
     if (!multiline) return decoration;

@@ -33,7 +33,7 @@ class PdvProductList extends StatefulWidget {
   final bool isLoading;
   final bool canAdd;
   final String? addingProductId;
-  final void Function(Product product) onAdd;
+  final void Function(Product product, int quantidade) onAdd;
   final VoidCallback onLoadMore;
   final double bottomPadding;
 
@@ -132,7 +132,7 @@ class _PdvProductListState extends State<PdvProductList> {
           product: product,
           canAdd: widget.canAdd,
           isAdding: widget.addingProductId == lineId,
-          onAdd: () => widget.onAdd(product),
+          onAdd: (quantidade) => widget.onAdd(product, quantidade),
           compactAction: true,
         );
       },

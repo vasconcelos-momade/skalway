@@ -51,8 +51,14 @@ abstract final class DesignMetrics {
   static const double buttonHeight = controlHeight;
   static const double tabHeightMin = 44;
   static const double tabHeightMax = minTouchTarget;
-  /// ⚠️ Alias legado — usar [controlHeight] em novo código.
-  static const double toolbarHeight = controlHeight;
+  /// Altura canónica do AppBar / top bar / footer nav (56dp em todos os breakpoints).
+  static const double appBarToolbarHeight = 56;
+
+  /// Alias — mesma altura compacta (mobile pequeno/grande = 56).
+  static const double appBarToolbarHeightCompact = appBarToolbarHeight;
+
+  /// ⚠️ Alias — preferir [appBarToolbarHeight] em novo código.
+  static const double toolbarHeight = appBarToolbarHeight;
   static const double tableRowHeightMin = 52;
   static const double tableRowHeightMax = 56;
   /// Botões circulares de paginação / segmentos.
@@ -65,13 +71,16 @@ abstract final class DesignMetrics {
   static const double searchFieldMaxWidthDesktop = 320;
   static const double searchFieldMaxWidthTablet = 300;
 
-  // Shell / layout
-  static const double topBarDesktop = 72;
-  static const double topBarCompact = 56;
+  // Shell / layout — AppBar e footer alinhados a 56.
+  static const double topBarDesktop = appBarToolbarHeight;
+  static const double topBarCompact = appBarToolbarHeight;
   static const double posFooter = minTouchTarget;
 
-  /// Chrome do PDV: controlHeight + padding vertical do density (md*2).
-  static const double posHeader = controlHeight + SpacingTokens.md * 2;
+  /// Chrome PDV / Proforma — alinhado ao AppBar (56).
+  static const double posHeader = appBarToolbarHeight;
+
+  /// Altura do NavigationBar mobile (sem o inset de gestos — o Scaffold trata o Safe Area).
+  static const double bottomNavHeight = appBarToolbarHeight;
 
   static const double sidebarExpanded = 256;
   /// ⚠️ Legado — o sidebar desktop é fixo; não recolher a rail inteira.

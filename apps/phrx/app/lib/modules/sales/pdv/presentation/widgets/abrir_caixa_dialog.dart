@@ -397,6 +397,7 @@ class _FecharCaixaDialogState extends ConsumerState<FecharCaixaDialog> {
           EnterpriseTextFormField(
             controller: _valorContadoController,
             labelText: 'Valor contado',
+            floatingLabel: true,
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
             ),
@@ -417,6 +418,7 @@ class _FecharCaixaDialogState extends ConsumerState<FecharCaixaDialog> {
           EnterpriseTextFormField(
             controller: _observacoesController,
             labelText: 'Observações do fecho',
+            floatingLabel: true,
             maxLines: 3,
             prefixIcon: const Icon(Icons.notes_rounded),
           ),

@@ -154,23 +154,40 @@ class _SalesProformaInvoicesPageState
     }
   }
 
-  Future<void> _addProduct(Product product) async {
+  Future<void> _addProduct(Product product, {int quantidade = 1}) async {
     final controller = ref.read(proformaInvoiceCartProvider.notifier);
     final state = ref.read(proformaInvoiceCartProvider);
+    final stock = product.estoqueAtual.toInt();
+    if (quantidade < 1) {
+      PharmaFeedback.error(context, 'Informe uma quantidade válida.');
+      return;
+    }
+    if (quantidade > stock) {
+      PharmaFeedback.error(
+        context,
+        'Quantidade ($quantidade) superior ao stock disponível ($stock).',
+      );
+      return;
+    }
+
     try {
       if (!state.hasProformaInvoice) {
         await _createProformaInvoiceForLine(
-          ProformaInvoiceCartLine.fromProduct(product),
+          ProformaInvoiceCartLine.fromProduct(
+            product,
+            quantidade: quantidade.toDouble(),
+          ),
         );
         return;
       }
-      await controller.addProduct(product);
+      await controller.addProduct(product, quantidade: quantidade);
       if (!mounted) {
         return;
       }
+      final suffix = quantidade == 1 ? '' : ' (x$quantidade)';
       PharmaFeedback.success(
         context,
-        '${product.nomeComercial} adicionado à fatura proforma.',
+        '${product.nomeComercial}$suffix adicionado à fatura proforma.',
       );
     } on ApiFailure catch (e) {
       if (mounted) {
@@ -623,7 +640,9 @@ class _SalesProformaInvoicesPageState
                         isLoading: productState.isLoading,
                         canAdd: true,
                         addingProductId: null,
-                        onAdd: (product) => unawaited(_addProduct(product)),
+                        onAdd: (product, quantidade) => unawaited(
+                          _addProduct(product, quantidade: quantidade),
+                        ),
                         onLoadMore: () =>
                             productController.goToPage(productState.page + 1),
                         bottomPadding: bottomPadding,
@@ -633,7 +652,9 @@ class _SalesProformaInvoicesPageState
                         query: productState.query,
                         canAdd: true,
                         addingProductId: null,
-                        onAdd: (product) => unawaited(_addProduct(product)),
+                        onAdd: (product, quantidade) => unawaited(
+                          _addProduct(product, quantidade: quantidade),
+                        ),
                         pagination: catalogFooter,
                       )
               : _isServicesTab
