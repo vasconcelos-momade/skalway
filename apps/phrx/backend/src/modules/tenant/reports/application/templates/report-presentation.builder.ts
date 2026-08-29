@@ -80,6 +80,10 @@ export function buildReportHtmlSections(
       partial: "institutional-info",
       titleText: definition.title ?? definition.reportName,
       subtitle: definition.subtitle ?? "",
+      reportCode: toText(
+        definition.reportCode ?? definition.title ?? definition.reportName,
+      ),
+      periodLabel: toText(definition.periodLabel, "-"),
       logoSrc: presentation.showLogo
         ? resolveLogoDataUri(presentation.logoAsset)
         : "",
@@ -88,6 +92,7 @@ export function buildReportHtmlSections(
         branchName: toText(definition.institution.branchName),
         address: toText(definition.institution.address),
         nuit: toText(definition.institution.nuit),
+        email: toText(definition.institution.email),
         contacts: toText(definition.institution.contacts),
       },
       generatedBy: toText(definition.generatedBy),
@@ -192,12 +197,12 @@ export function buildInstitutionalReportView(definition: ReportDefinition) {
     headerLines: [
       "Skalway PhRx",
       definition.institution.pharmacyName,
-      definition.institution.branchName
-        ? `Filial: ${definition.institution.branchName}`
-        : "Filial: -",
-      `Endereco: ${toText(definition.institution.address)}`,
       `NUIT: ${toText(definition.institution.nuit)}`,
-      `Contactos: ${toText(definition.institution.contacts)}`,
+      `Endereco: ${toText(definition.institution.address)}`,
+      `E-mail: ${toText(definition.institution.email)}`,
+      `Contacto: ${toText(definition.institution.contacts)}`,
+      `Codigo: ${toText(definition.reportCode ?? definition.title ?? definition.reportName)}`,
+      `Periodo: ${toText(definition.periodLabel, "-")}`,
       `Data: ${formatDate(definition.generatedAt)}`,
       `Hora: ${formatTime(definition.generatedAt)}`,
       `Utilizador: ${toText(definition.generatedBy)}`,

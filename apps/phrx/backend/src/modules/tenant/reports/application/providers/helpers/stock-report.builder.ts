@@ -37,6 +37,8 @@ export function buildStockReportDefinition(input: {
   reportName: string;
   title: string;
   subtitle?: string;
+  reportCode?: string;
+  periodLabel?: string;
   filters: Record<string, unknown>;
   kpis: Record<string, unknown>;
   tables: ReportSectionTable[];
@@ -47,6 +49,8 @@ export function buildStockReportDefinition(input: {
     reportName: input.reportName,
     title: input.title,
     subtitle: input.subtitle,
+    reportCode: input.reportCode,
+    periodLabel: input.periodLabel,
     filters: input.filters,
     kpis: input.kpis,
     tables: input.tables,

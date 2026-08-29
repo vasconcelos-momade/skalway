@@ -1,7 +1,6 @@
-import { prismaCentralUnscoped } from "../../../../../infrastructure/prisma/prisma-central.service";
 import { getPrisma } from "../../../../../infrastructure/prisma/tenant-prisma.factory";
-import { getBranchStore } from "../../../../../shared/context/branch-context";
 import { ValidationApiError } from "../../../../../shared/http/api-error";
+import { resolveTenantEmpresaProfile } from "../../../pos/application/services/tenant-empresa-profile.service";
 import { type ReportKey } from "../constants/report-keys";
 import { reportExporters } from "../exports/report-exporters.registry";
 import { toText } from "../helpers/report-export.helper";
@@ -63,6 +62,7 @@ export class ReportService {
         branchName: institution.branchName,
         address: institution.address,
         nuit: institution.nuit,
+        email: institution.email,
         contacts: institution.contacts,
       },
     };
@@ -73,39 +73,21 @@ export class ReportService {
   async buildInstitution(
     userId: string,
   ): Promise<ReportDefinition["institution"] & { generatedBy: string }> {
-    const store = getBranchStore();
-    const [branch, user] = await Promise.all([
-      (prismaCentralUnscoped as any).branch.findUnique({
-        where: { id: BigInt(store.branchId) },
-        include: {
-          tenant: {
-            select: {
-              tenantName: true,
-              nuit: true,
-              email: true,
-              endereco: true,
-            },
-          },
-        },
-      }),
+    const [profile, user] = await Promise.all([
+      resolveTenantEmpresaProfile(),
       (getPrisma() as any).user.findUnique({
         where: { id: BigInt(userId) },
         select: { name: true },
       }),
     ]);
 
-    const tenant = branch?.tenant;
-    const contacts = [tenant?.email]
-      .map((value: unknown) => String(value ?? "").trim())
-      .filter((value: string) => value.length > 0)
-      .join(" | ");
-
     return {
-      pharmacyName: toText(tenant?.tenantName, "Farmacia"),
-      branchName: toText(branch?.name),
-      address: toText(tenant?.endereco),
-      nuit: toText(tenant?.nuit),
-      contacts: toText(contacts),
+      pharmacyName: toText(profile.nome, "Filial"),
+      branchName: toText(profile.nome),
+      address: toText(profile.endereco),
+      nuit: toText(profile.nuit),
+      email: toText(profile.email),
+      contacts: toText(profile.telefone),
       generatedBy: toText(user?.name, "Sistema"),
     };
   }

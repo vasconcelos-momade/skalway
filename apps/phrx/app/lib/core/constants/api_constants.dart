@@ -55,8 +55,12 @@ abstract final class ApiConstants {
       '/tenant/fornecedores/$fornecedorId';
   static const tenantFornecedoresSearch = '/tenant/fornecedores/search';
   static const tenantComprasSugestoes = '/tenant/compras/sugestoes';
+  static const tenantComprasSugestoesAtualizar =
+      '/tenant/compras/sugestoes/atualizar';
   static String tenantCompraSugestao(String produtoId) =>
       '/tenant/compras/sugestoes/$produtoId';
+  static String tenantCompraSugestaoAprovacao(String produtoId) =>
+      '/tenant/compras/sugestoes/$produtoId/aprovacao';
   static const tenantEstoqueEntradaCompra = '/tenant/estoque/entrada-compra';
   static const tenantEstoqueTransferencia = '/tenant/estoque/transferencia';
   static const tenantEstoqueMovimentos = '/tenant/estoque/movimentos';

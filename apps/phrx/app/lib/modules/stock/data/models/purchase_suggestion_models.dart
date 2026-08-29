@@ -37,10 +37,12 @@ class PurchaseSuggestionItem {
     required this.categoriaNome,
     required this.fornecedorNome,
     required this.consumoMedioDiario,
+    required this.totalSaidasPeriodo,
     required this.estoqueAtual,
     required this.estoqueMinimo,
     required this.coberturaDias,
     required this.quantidadeSugerida,
+    required this.quantidadeAprovada,
     required this.ultimoPreco,
     required this.valorEstimado,
     required this.unidade,
@@ -56,10 +58,12 @@ class PurchaseSuggestionItem {
   final String? fornecedorId;
   final String fornecedorNome;
   final num consumoMedioDiario;
+  final num totalSaidasPeriodo;
   final num estoqueAtual;
   final num estoqueMinimo;
   final int coberturaDias;
   final num quantidadeSugerida;
+  final num quantidadeAprovada;
   final num ultimoPreco;
   final num valorEstimado;
   final String unidade;
@@ -85,10 +89,12 @@ class PurchaseSuggestionItem {
       fornecedorId: json['fornecedorId']?.toString(),
       fornecedorNome: json['fornecedorNome']?.toString() ?? 'Sem fornecedor',
       consumoMedioDiario: _readNum(json['consumoMedioDiario']),
+      totalSaidasPeriodo: _readNum(json['totalSaidasPeriodo']),
       estoqueAtual: _readNum(json['estoqueAtual']),
       estoqueMinimo: _readNum(json['estoqueMinimo']),
       coberturaDias: json['coberturaDias'] as int? ?? 30,
       quantidadeSugerida: _readNum(json['quantidadeSugerida']),
+      quantidadeAprovada: _readNum(json['quantidadeAprovada']),
       ultimoPreco: _readNum(json['ultimoPreco']),
       valorEstimado: _readNum(json['valorEstimado']),
       unidade: json['unidade']?.toString() ?? 'un',

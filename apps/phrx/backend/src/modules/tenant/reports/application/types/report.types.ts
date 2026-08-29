@@ -23,6 +23,7 @@ export type ReportInstitution = {
   branchName?: string;
   address?: string;
   nuit?: string;
+  email?: string;
   contacts?: string;
 };
 
@@ -73,6 +74,8 @@ export type ReportDefinition = {
   reportName: string;
   title?: string;
   subtitle?: string;
+  reportCode?: string;
+  periodLabel?: string;
   orientation?: ReportPageOrientation;
   pageSize?: ReportPageSize;
   generatedAt: Date;
@@ -135,6 +138,8 @@ export type ReportHtmlSection = {
   institution?: Record<string, string>;
   titleText?: string;
   subtitle?: string;
+  reportCode?: string;
+  periodLabel?: string;
   logoSrc?: string;
   generatedBy?: string;
   generatedDate?: string;

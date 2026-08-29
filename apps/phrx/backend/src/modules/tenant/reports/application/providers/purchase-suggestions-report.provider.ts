@@ -1,6 +1,10 @@
 import { collectAllPages } from "../helpers/report-pagination.helper";
 import { formatCurrency, toText } from "../helpers/report-export.helper";
 import {
+  formatSuggestionInteger,
+  resolvePurchaseSuggestionPeriod,
+} from "../../../stock/domain/purchase-suggestion.service";
+import {
   type ModuleReportDefinition,
   type ReportDataProvider,
   type ReportProviderContext,
@@ -10,19 +14,20 @@ import { PurchaseSuggestionsUseCase } from "../../../stock/application/use-cases
 import { buildStockReportDefinition } from "./helpers/stock-report.builder";
 
 const REPORT_COLUMNS = [
+  "#",
   "Produto",
-  "Origem",
   "Estoque Atual",
   "Estoque Mínimo",
-  "Consumo Médio Diário",
+  "Total de Saídas no Período",
   "Quantidade Sugerida",
-  "Fornecedor Principal",
-  "Observação",
+  "Quantidade Aprovada",
 ] as const;
 
 function parseSuggestionFilters(url: URL) {
   return {
     q: url.searchParams.get("q") ?? undefined,
+    dataInicio: url.searchParams.get("dataInicio") ?? undefined,
+    dataFim: url.searchParams.get("dataFim") ?? undefined,
     origem: (url.searchParams.get("origem") as "AUTOMATICA" | "MANUAL" | "TODAS") ?? undefined,
     sortBy: url.searchParams.get("sortBy") ?? undefined,
     sortOrder: (url.searchParams.get("sortOrder") as "asc" | "desc") ?? undefined,
@@ -30,16 +35,15 @@ function parseSuggestionFilters(url: URL) {
   };
 }
 
-function mapSuggestionRow(item: Record<string, unknown>) {
+function mapSuggestionRow(item: Record<string, unknown>, rowNumber: number) {
   return [
+    String(rowNumber),
     toText(item.produtoNome),
-    toText(item.origem === "MANUAL" ? "Manual" : "Automática"),
     toText(item.estoqueAtual, "0"),
     toText(item.estoqueMinimo, "0"),
-    toText(item.consumoMedioDiario, "0"),
-    toText(item.quantidadeSugerida, "0"),
-    toText(item.fornecedorNome),
-    item.observacao ? toText(item.observacao) : "-",
+    formatSuggestionInteger(item.totalSaidasPeriodo),
+    formatSuggestionInteger(item.quantidadeSugerida),
+    formatSuggestionInteger(item.quantidadeAprovada),
   ];
 }
 
@@ -59,16 +63,23 @@ export class PurchaseSuggestionsReportProvider implements ReportDataProvider {
 
     const grouped = await this.loadAllGrouped(filters);
     const dashboard = firstPage.dashboard;
-    const totalItems = grouped.reduce((sum, group) => sum + group.items.length, 0);
+    const period = resolvePurchaseSuggestionPeriod(
+      filters.dataInicio && filters.dataFim
+        ? { dataInicio: filters.dataInicio, dataFim: filters.dataFim }
+        : undefined,
+    );
+    let rowNumber = 0;
 
     return buildStockReportDefinition({
       fileBaseName: "sugestao-compras",
       reportName: "Sugestão de Compras",
       title: "Sugestão de Compras",
       subtitle: "Lista consolidada agrupada por fornecedor principal",
+      reportCode: "Sugestão de Compras",
+      periodLabel: period.periodoLabel,
       filters: {
         Pesquisa: filters.q ?? "-",
-        Origem: filters.origem ?? "Todas",
+        Período: period.periodoLabel,
       },
       kpis: {
         Produtos: dashboard.produtosSugeridos,
@@ -80,23 +91,11 @@ export class PurchaseSuggestionsReportProvider implements ReportDataProvider {
       tables: grouped.map((group) => ({
         title: group.fornecedorNome,
         columns: [...REPORT_COLUMNS],
-        rows: group.items.map((item) =>
-          mapSuggestionRow(item as Record<string, unknown>),
-        ),
+        rows: group.items.map((item) => {
+          rowNumber += 1;
+          return mapSuggestionRow(item as Record<string, unknown>, rowNumber);
+        }),
       })),
-      totals: {
-        Registos: totalItems,
-        Fornecedores: grouped.length,
-        "Qtd. total": grouped.reduce(
-          (sum, group) =>
-            sum +
-            group.items.reduce(
-              (inner, item) => inner + Number(item.quantidadeSugerida ?? 0),
-              0,
-            ),
-          0,
-        ),
-      },
     });
   }
 

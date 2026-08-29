@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/providers/session_access_notifier.dart';
 import '../../../../core/constants/report_paths.dart';
-import '../../../../core/theme/design_metrics.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/extensions.dart';
 import '../../../../shared/navigation/adaptive_navigator.dart';
+import '../../../../shared/responsive/pharma_screen_layout.dart';
 import '../../../../shared/responsive/responsive_builder.dart';
 import '../../../../shared/widgets/cards/enterprise_list_card.dart';
 import '../../../../shared/widgets/cards/enterprise_stat_card.dart';
+import '../../../../shared/widgets/dialogs/enterprise_overlay_chrome.dart';
+import '../../../../shared/widgets/dialogs/pharma_responsive_dialog.dart';
+import '../../../../shared/widgets/feedback/pharma_feedback.dart';
 import '../../../../shared/widgets/inputs/async_type_ahead_field.dart';
+import '../../../../shared/widgets/inputs/enterprise_date_field.dart';
 import '../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_scroll_list.dart';
 import '../../../../shared/widgets/layout/enterprise_mobile_toolbar.dart';
 import '../../../../shared/widgets/layout/enterprise_module_hub.dart';
+import '../../../../shared/widgets/menus/enterprise_actions_menu_button.dart';
+import '../../../../shared/widgets/menus/enterprise_dropdown_menu.dart';
 import '../../../../shared/widgets/tables/enterprise_data_table.dart';
 import '../../../../shared/widgets/tables/enterprise_pagination.dart';
+import '../../../../shared/widgets/tables/enterprise_table_cells.dart';
 import '../../../pharmacy/estoque/data/datasources/estoque_remote_datasource.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/fornecedor_remote_datasource.dart';
@@ -27,6 +35,10 @@ String _formatSuggestionQty(num value) {
     return value.toStringAsFixed(0);
   }
   return value.toStringAsFixed(2);
+}
+
+String _formatSuggestionInteger(num value) {
+  return value.round().toString();
 }
 
 class PurchaseSuggestionsPage extends ConsumerStatefulWidget {
@@ -61,7 +73,20 @@ class _PurchaseSuggestionsPageState
     final state = ref.watch(purchaseSuggestionsProvider);
     final controller = ref.read(purchaseSuggestionsProvider.notifier);
     final reportBusy = ref.watch(reportControllerProvider).isSubmitting;
-    final totalLabel = state.totalCount ?? state.items.length;
+
+    ref.listen<PurchaseSuggestionsState>(purchaseSuggestionsProvider, (prev, next) {
+      if (!context.mounted) return;
+      if (next.successMessage != null &&
+          next.successMessage != prev?.successMessage &&
+          next.items.isNotEmpty) {
+        PharmaFeedback.success(context, next.successMessage!);
+      }
+      if (next.errorMessage != null &&
+          next.errorMessage != prev?.errorMessage &&
+          next.items.isNotEmpty) {
+        PharmaFeedback.error(context, next.errorMessage!);
+      }
+    });
 
     if (_searchController.text != state.search) {
       _searchController.value = TextEditingValue(
@@ -114,62 +139,55 @@ class _PurchaseSuggestionsPageState
     return ResponsiveBuilder(
       builder: (context, constraints) {
         final isMobile = !constraints.isTabletOrWider;
+        final s = context.spacing;
 
         return Scaffold(
           backgroundColor: t.bgPrimary,
+          floatingActionButton: isMobile
+              ? FloatingActionButton(
+                  onPressed: state.isLoading || state.isMutating
+                      ? null
+                      : () => _showSuggestionDialog(context, ref),
+                  child: const Icon(Icons.add_rounded),
+                )
+              : null,
           body: EnterpriseModuleHub(
             title: 'Sugestão de Compra',
             subtitle:
                 'Lista consolidada de produtos para reposição — automáticos e manuais.',
             mobileKpisHorizontalScroll: true,
             kpis: isMobile ? null : kpiCards,
-            filters: isMobile
-                ? null
-                : EnterpriseDesktopListToolbar(
-                    searchController: _searchController,
-                    searchHint: 'Pesquisar produto...',
-                    isLoading: state.isLoading,
-                    onSearchSubmitted: controller.setSearch,
-                    hasFilters: false,
-                    trailingActions: [
-                      TextButton.icon(
-                        onPressed: state.isLoading ||
-                                state.isMutating ||
-                                state.items.isEmpty
-                            ? null
-                            : () => _confirmClear(context, controller),
-                        icon: const Icon(Icons.delete_sweep_outlined),
-                        label: const Text('Limpar lista'),
-                      ),
-                      Text(
-                        '$totalLabel sugestão(ões)',
-                        style: Theme.of(context)
-                            .textTheme
-                            .erpBodySecondary
-                            .copyWith(color: t.textMuted),
-                      ),
-                      exportMenu,
-                    ],
-                    filterWidgets: const [],
-                  ),
-            actions: isMobile
-                ? null
-                : [
-                    OutlinedButton.icon(
-                      onPressed: state.isLoading || state.isMutating
-                          ? null
-                          : () => _showAddProductDialog(context, ref),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Adicionar Produto'),
-                    ),
-                  ],
+            filters: _buildPeriodFilters(
+              context,
+              state,
+              controller,
+              isMobile: isMobile,
+            ),
+            actions: [
+              if (!isMobile)
+                OutlinedButton.icon(
+                  onPressed: state.isLoading || state.isMutating
+                      ? null
+                      : () => _showSuggestionDialog(context, ref),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Adicionar Produto'),
+                ),
+            ],
             child: EnterpriseAdaptiveListBody(
               isMobile: isMobile,
               isLoading: state.isLoading && state.items.isEmpty,
               errorText: state.errorMessage != null && state.items.isEmpty
                   ? state.errorMessage
                   : null,
-              desktopToolbar: null,
+              desktopToolbar: EnterpriseDesktopListToolbar(
+                searchController: _searchController,
+                searchHint: 'Pesquisar produto...',
+                isLoading: state.isLoading,
+                onSearchSubmitted: controller.setSearch,
+                hasFilters: false,
+                trailingActions: [exportMenu],
+                filterWidgets: const [],
+              ),
               desktopContent: _buildDesktopContent(context, state, controller),
               desktopPagination: (state.totalCount ?? 0) > 0
                   ? EnterprisePagination(
@@ -186,18 +204,23 @@ class _PurchaseSuggestionsPageState
                   : null,
               mobileList: EnterpriseMobileScrollList(
                 kpis: kpiCards,
-                stickyHeader: EnterpriseMobileToolbar(
-                  searchController: _searchController,
-                  searchHint: 'Pesquisar produto...',
-                  enabled: !state.isLoading,
-                  isLoading: state.isLoading,
-                  hasFilters: false,
-                  showFiltersButton: false,
-                  showRefreshButton: false,
-                  onSearchSubmitted: controller.setSearch,
-                  onOpenFilters: () {},
-                  onRefresh: controller.load,
-                  reportAction: exportMenu,
+                stickyHeader: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    EnterpriseMobileToolbar(
+                      searchController: _searchController,
+                      searchHint: 'Pesquisar produto...',
+                      enabled: !state.isLoading && !state.isRefreshing,
+                      isLoading: state.isLoading || state.isRefreshing,
+                      hasFilters: false,
+                      showFiltersButton: false,
+                      showRefreshButton: false,
+                      onSearchSubmitted: controller.setSearch,
+                      onOpenFilters: () {},
+                      onRefresh: controller.load,
+                      reportAction: exportMenu,
+                    ),
+                  ],
                 ),
                 itemCount: state.items.length,
                 itemBuilder: (context, index) {
@@ -206,9 +229,12 @@ class _PurchaseSuggestionsPageState
                     item: item,
                     isMutating: state.isMutating,
                     onEdit: () =>
-                        _showAddProductDialog(context, ref, item: item),
-                    onRemove: () =>
-                        controller.removeSuggestion(item.produtoId),
+                        _showSuggestionDialog(context, ref, item: item),
+                    onRemove: () => _confirmRemove(
+                      context,
+                      controller,
+                      item.produtoId,
+                    ),
                   );
                 },
                 hasMore: state.hasMore,
@@ -221,6 +247,84 @@ class _PurchaseSuggestionsPageState
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPeriodFilters(
+    BuildContext context,
+    PurchaseSuggestionsState state,
+    PurchaseSuggestionsController controller, {
+    required bool isMobile,
+  }) {
+    final t = context.pharmaTokens;
+    final s = context.spacing;
+    final busy = state.isLoading || state.isMutating || state.isRefreshing;
+
+    final dataInicialField = EnterpriseDateField(
+      labelText: 'Data Inicial',
+      value: state.dataInicial,
+      lastDate: state.dataFinal,
+      enabled: !busy,
+      onChanged: (picked) {
+        if (picked != null) {
+          controller.setDataInicial(picked);
+        }
+      },
+    );
+
+    final dataFinalField = EnterpriseDateField(
+      labelText: 'Data Final',
+      value: state.dataFinal,
+      firstDate: state.dataInicial,
+      enabled: !busy,
+      onChanged: (picked) {
+        if (picked != null) {
+          controller.setDataFinal(picked);
+        }
+      },
+    );
+
+    final refreshButton = OutlinedButton.icon(
+      onPressed: busy ? null : () => controller.refreshList(),
+      icon: state.isRefreshing
+          ? SizedBox(
+              width: t.iconSm,
+              height: t.iconSm,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: t.textSecondary,
+              ),
+            )
+          : const Icon(Icons.refresh_rounded),
+      label: const Text(
+        'Atualizar Lista',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+
+    if (isMobile) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(child: dataInicialField),
+          SizedBox(width: s.sm),
+          Expanded(child: dataFinalField),
+          SizedBox(width: s.sm),
+          Expanded(child: refreshButton),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Flexible(child: dataInicialField),
+        SizedBox(width: s.sm),
+        Flexible(child: dataFinalField),
+        SizedBox(width: s.sm),
+        refreshButton,
+      ],
     );
   }
 
@@ -266,60 +370,66 @@ class _PurchaseSuggestionsPageState
                           : EnterpriseTableStatus.data,
                   emptyTitle: 'Nenhum resultado encontrado',
                   emptyMessage: 'Nenhum resultado encontrado',
-                  columns: const [
-                    DataColumn(label: Text('PRODUTO')),
-                    DataColumn(label: Text('ORIGEM')),
-                    DataColumn(label: Text('FORNECEDOR')),
-                    DataColumn(label: Text('ESTOQUE ATUAL')),
-                    DataColumn(label: Text('EST. MÍNIMO')),
-                    DataColumn(label: Text('CONSUMO/DIA')),
-                    DataColumn(label: Text('QTD. SUGERIDA')),
-                    DataColumn(label: Text('OBSERVAÇÃO')),
-                    DataColumn(label: Text('')),
+                  columns: [
+                    const DataColumn(label: Text('#')),
+                    const DataColumn(label: Text('PRODUTO')),
+                    const DataColumn(label: Text('ESTOQUE ATUAL')),
+                    const DataColumn(label: Text('EST. MÍNIMO')),
+                    const DataColumn(label: Text('TOTAL SAÍDAS NO PERÍODO')),
+                    const DataColumn(label: Text('QTD. SUGERIDA')),
+                    const DataColumn(label: Text('QTD. APROVADA')),
+                    enterpriseDataColumn(context, 'Ações'),
                   ],
                   rowCount: state.items.length,
                   rowBuilder: (context, index) {
                     final item = state.items[index];
                     return DataRow(
                       cells: [
+                        DataCell(Text('${index + 1}')),
                         DataCell(Text(item.produtoNome)),
-                        DataCell(Text(item.origemLabel)),
-                        DataCell(Text(item.fornecedorNome)),
                         DataCell(Text(_formatSuggestionQty(item.estoqueAtual))),
                         DataCell(Text(_formatSuggestionQty(item.estoqueMinimo))),
-                        DataCell(Text(_formatSuggestionQty(item.consumoMedioDiario))),
-                        DataCell(Text(_formatSuggestionQty(item.quantidadeSugerida))),
-                        DataCell(Text(item.observacao ?? '—')),
                         DataCell(
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: 'Editar',
-                                onPressed: state.isMutating
-                                    ? null
-                                    : () => _showAddProductDialog(
-                                          context,
-                                          ref,
-                                          item: item,
-                                        ),
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  size: t.iconSm,
-                                ),
+                          Text(_formatSuggestionInteger(item.totalSaidasPeriodo)),
+                        ),
+                        DataCell(
+                          Text(_formatSuggestionInteger(item.quantidadeSugerida)),
+                        ),
+                        DataCell(
+                          Text(_formatSuggestionInteger(item.quantidadeAprovada)),
+                        ),
+                        DataCell(
+                          EnterpriseActionsMenuButton<String>(
+                            compact: true,
+                            enabled: !state.isMutating,
+                            items: const [
+                              EnterpriseDropdownItem(
+                                value: 'editar',
+                                label: 'Editar',
+                                icon: Icons.edit_outlined,
                               ),
-                              IconButton(
-                                tooltip: 'Remover',
-                                onPressed: state.isMutating
-                                    ? null
-                                    : () => controller
-                                        .removeSuggestion(item.produtoId),
-                                icon: Icon(
-                                  Icons.close_rounded,
-                                  size: t.iconSm,
-                                ),
+                              EnterpriseDropdownItem(
+                                value: 'remover',
+                                label: 'Remover',
+                                icon: Icons.delete_outline,
+                                destructive: true,
                               ),
                             ],
+                            onSelected: (action) {
+                              if (action == 'editar') {
+                                _showSuggestionDialog(
+                                  context,
+                                  ref,
+                                  item: item,
+                                );
+                              } else if (action == 'remover') {
+                                _confirmRemove(
+                                  context,
+                                  controller,
+                                  item.produtoId,
+                                );
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -334,6 +444,8 @@ class _PurchaseSuggestionsPageState
   static Map<String, dynamic> _reportParams(PurchaseSuggestionsState state) {
     return <String, dynamic>{
       if (state.search.trim().isNotEmpty) 'q': state.search.trim(),
+      'dataInicio': formatPurchaseSuggestionApiDate(state.dataInicial),
+      'dataFim': formatPurchaseSuggestionApiDate(state.dataFinal),
     };
   }
 
@@ -363,45 +475,37 @@ class _PurchaseSuggestionsPageState
     }
   }
 
-  static Future<void> _confirmClear(
+  static Future<void> _confirmRemove(
     BuildContext context,
     PurchaseSuggestionsController controller,
+    String produtoId,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await PharmaFeedback.confirm(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Limpar sugestões'),
-        content: const Text(
-          'Remover todas as sugestões da lista? Esta acção não pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Limpar'),
-          ),
-        ],
-      ),
+      title: 'Remover item',
+      message:
+          'Tem certeza de que pretende remover este item da sugestão de compras?',
+      confirmText: 'Remover',
+      destructive: true,
     );
     if (confirmed == true) {
-      await controller.clearSuggestions();
+      await controller.removeSuggestion(produtoId);
     }
   }
 
-  static Future<void> _showAddProductDialog(
+  static Future<void> _showSuggestionDialog(
     BuildContext context,
     WidgetRef ref, {
     PurchaseSuggestionItem? item,
   }) async {
-    await AdaptiveNavigator.openForm<void>(
+    await AdaptiveNavigator.openEmbeddedForm<void>(
       context: context,
       title: Text(item == null ? 'Adicionar produto' : 'Editar sugestão'),
-      contentBuilder: (formContext) => _AddProductDialogBody(
+      mobileWrapInScrollView: false,
+      formBuilder: (formContext, {required embedded}) => _SuggestionFormDialog(
         parentRef: ref,
         item: item,
+        embedded: embedded,
       ),
     );
   }
@@ -422,8 +526,6 @@ class _PurchaseSuggestionMobileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.pharmaTokens;
-
     return EnterpriseListCard(
       title: item.produtoNome,
       subtitle: item.fornecedorNome,
@@ -432,50 +534,67 @@ class _PurchaseSuggestionMobileCard extends StatelessWidget {
       metadata: [
         EnterpriseListCardMeta(
           label:
-              'Sugerida: ${_formatSuggestionQty(item.quantidadeSugerida)}',
+              'Sugerida: ${_formatSuggestionInteger(item.quantidadeSugerida)}',
+        ),
+        EnterpriseListCardMeta(
+          label:
+              'Aprovada: ${_formatSuggestionInteger(item.quantidadeAprovada)}',
         ),
         EnterpriseListCardMeta(
           label: 'Stock: ${_formatSuggestionQty(item.estoqueAtual)}',
         ),
         EnterpriseListCardMeta(
-          label: 'Origem: ${item.origemLabel}',
+          label:
+              'Saídas no período: ${_formatSuggestionInteger(item.totalSaidasPeriodo)}',
         ),
       ],
-      actions: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            tooltip: 'Editar',
-            onPressed: isMutating ? null : onEdit,
-            icon: Icon(Icons.edit_outlined, size: t.iconSm),
+      actions: EnterpriseActionsMenuButton<String>(
+        enabled: !isMutating,
+        items: const [
+          EnterpriseDropdownItem(
+            value: 'editar',
+            label: 'Editar',
+            icon: Icons.edit_outlined,
           ),
-          IconButton(
-            tooltip: 'Remover',
-            onPressed: isMutating ? null : onRemove,
-            icon: Icon(Icons.close_rounded, size: t.iconSm),
+          EnterpriseDropdownItem(
+            value: 'remover',
+            label: 'Remover',
+            icon: Icons.delete_outline,
+            destructive: true,
           ),
         ],
+        onSelected: (action) {
+          if (action == 'editar') onEdit();
+          if (action == 'remover') onRemove();
+        },
       ),
     );
   }
 }
 
-class _AddProductDialogBody extends ConsumerStatefulWidget {
-  const _AddProductDialogBody({required this.parentRef, this.item});
+class _SuggestionFormDialog extends ConsumerStatefulWidget {
+  const _SuggestionFormDialog({
+    required this.parentRef,
+    this.item,
+    this.embedded = false,
+  });
 
   final WidgetRef parentRef;
   final PurchaseSuggestionItem? item;
+  final bool embedded;
+
+  bool get isEditing => item != null;
 
   @override
-  ConsumerState<_AddProductDialogBody> createState() =>
-      _AddProductDialogBodyState();
+  ConsumerState<_SuggestionFormDialog> createState() =>
+      _SuggestionFormDialogState();
 }
 
-class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
+class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
   late final TextEditingController _produtoController;
   late final TextEditingController _fornecedorController;
-  late final TextEditingController _qtyController;
-  late final TextEditingController _obsController;
+  late final TextEditingController _sugeridaController;
+  late final TextEditingController _aprovadaController;
 
   ProdutoSearchResult? _selectedProduto;
   FornecedorDetalheModel? _selectedFornecedor;
@@ -484,27 +603,34 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
   @override
   void initState() {
     super.initState();
-    _produtoController =
-        TextEditingController(text: widget.item?.produtoNome ?? '');
+    final item = widget.item;
+    _produtoController = TextEditingController(text: item?.produtoNome ?? '');
     _fornecedorController =
-        TextEditingController(text: widget.item?.fornecedorNome ?? '');
-    _qtyController = TextEditingController(
-      text: widget.item != null
-          ? widget.item!.quantidadeSugerida.toString()
-          : '1',
+        TextEditingController(text: item?.fornecedorNome ?? '');
+    _sugeridaController = TextEditingController(
+      text: item != null
+          ? _formatSuggestionInteger(item.quantidadeSugerida)
+          : '0',
     );
-    _obsController =
-        TextEditingController(text: widget.item?.observacao ?? '');
 
-    if (widget.item != null) {
+    final defaultAprovada = item == null
+        ? ''
+        : _formatSuggestionInteger(
+            item.quantidadeAprovada > 0
+                ? item.quantidadeAprovada
+                : item.quantidadeSugerida,
+          );
+    _aprovadaController = TextEditingController(text: defaultAprovada);
+
+    if (item != null) {
       _selectedProduto = ProdutoSearchResult(
-        id: widget.item!.produtoId,
-        nomeComercial: widget.item!.produtoNome,
+        id: item.produtoId,
+        nomeComercial: item.produtoNome,
       );
-      if (widget.item!.fornecedorId != null) {
+      if (item.fornecedorId != null) {
         _selectedFornecedor = FornecedorDetalheModel(
-          id: widget.item!.fornecedorId!,
-          nome: widget.item!.fornecedorNome,
+          id: item.fornecedorId!,
+          nome: item.fornecedorNome,
           ativo: true,
         );
       }
@@ -515,30 +641,57 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
   void dispose() {
     _produtoController.dispose();
     _fornecedorController.dispose();
-    _qtyController.dispose();
-    _obsController.dispose();
+    _sugeridaController.dispose();
+    _aprovadaController.dispose();
     super.dispose();
+  }
+
+  int? _parseApprovedQuantity() {
+    final parsed =
+        int.tryParse(_aprovadaController.text.trim().replaceAll(',', '.'));
+    if (parsed == null || parsed < 0) {
+      return null;
+    }
+    return parsed;
   }
 
   Future<void> _submit() async {
     final produto = _selectedProduto;
     final fornecedor = _selectedFornecedor;
-    final qty = num.tryParse(_qtyController.text.replaceAll(',', '.'));
-    if (produto == null || fornecedor == null || qty == null || qty <= 0) {
+    if (produto == null || fornecedor == null) {
       return;
+    }
+
+    final canEditApproved =
+        ref.read(sessionAccessProvider).canEditPurchaseApprovedQuantity;
+    int? quantidadeAprovada;
+    if (canEditApproved) {
+      if (_aprovadaController.text.trim().isEmpty) {
+        return;
+      }
+      quantidadeAprovada = _parseApprovedQuantity();
+      if (quantidadeAprovada == null) {
+        return;
+      }
     }
 
     setState(() => _isSubmitting = true);
     final controller =
         widget.parentRef.read(purchaseSuggestionsProvider.notifier);
-    await controller.addManualSuggestion(
-      produtoId: produto.id,
-      supplierId: fornecedor.id,
-      quantidadeSugerida: qty,
-      observacao: _obsController.text.trim().isEmpty
-          ? null
-          : _obsController.text.trim(),
-    );
+
+    if (widget.isEditing) {
+      await controller.updateSuggestion(
+        produtoId: produto.id,
+        supplierId: fornecedor.id,
+        quantidadeAprovada: canEditApproved ? quantidadeAprovada : null,
+      );
+    } else {
+      await controller.addManualSuggestion(
+        produtoId: produto.id,
+        supplierId: fornecedor.id,
+        quantidadeAprovada: quantidadeAprovada,
+      );
+    }
 
     if (!mounted) return;
     final state = widget.parentRef.read(purchaseSuggestionsProvider);
@@ -549,13 +702,55 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSupplierField(BuildContext context) {
     final s = context.spacing;
-    final t = context.pharmaTokens;
+    final isEditing = widget.isEditing;
+
+    if (isEditing) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          EnterpriseTextField(
+            controller: _produtoController,
+            labelText: 'Produto',
+            readOnly: true,
+          ),
+          SizedBox(height: s.md),
+          AsyncTypeAheadField<FornecedorDetalheModel>(
+            controller: _fornecedorController,
+            labelText: 'Fornecedor',
+            hintText: 'Digite para pesquisar o fornecedor',
+            suggestionsCallback: (query) async {
+              final result = await ref
+                  .read(fornecedorRemoteDataSourceProvider)
+                  .search(query: query, pageSize: 10);
+              return result.items;
+            },
+            itemLabel: (fornecedor) => fornecedor.nome,
+            itemSubtitle: (fornecedor) {
+              final parts = <String>[
+                if (fornecedor.nuit != null &&
+                    fornecedor.nuit!.trim().isNotEmpty)
+                  'NUIT ${fornecedor.nuit}',
+                if (fornecedor.telefone != null &&
+                    fornecedor.telefone!.trim().isNotEmpty)
+                  fornecedor.telefone!.trim(),
+              ];
+              return parts.join(' · ');
+            },
+            onSelected: (fornecedor) {
+              setState(() {
+                _selectedFornecedor = fornecedor;
+                _fornecedorController.text = fornecedor.nome;
+              });
+            },
+          ),
+        ],
+      );
+    }
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AsyncTypeAheadField<ProdutoSearchResult>(
           controller: _produtoController,
@@ -603,49 +798,109 @@ class _AddProductDialogBodyState extends ConsumerState<_AddProductDialogBody> {
             });
           },
         ),
+      ],
+    );
+  }
+
+  Widget _buildFields(BuildContext context) {
+    final s = context.spacing;
+    final canEditApproved =
+        ref.watch(sessionAccessProvider).canEditPurchaseApprovedQuantity;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSupplierField(context),
         SizedBox(height: s.md),
         EnterpriseTextField(
-          controller: _qtyController,
+          controller: _sugeridaController,
           labelText: 'Quantidade sugerida',
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          readOnly: true,
         ),
         SizedBox(height: s.md),
         EnterpriseTextField(
-          controller: _obsController,
-          labelText: 'Observação',
-          hintText: 'Opcional',
-          maxLines: 2,
-        ),
-        SizedBox(height: s.lg),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: _isSubmitting
-                  ? null
-                  : () => AdaptiveNavigator.complete(context),
-              child: const Text('Cancelar'),
-            ),
-            SizedBox(width: s.sm),
-            FilledButton(
-              onPressed: _selectedProduto == null ||
-                      _selectedFornecedor == null ||
-                      _isSubmitting
-                  ? null
-                  : _submit,
-              child: _isSubmitting
-                  ? SizedBox(
-                      width: t.iconSm,
-                      height: t.iconSm,
-                      child: CircularProgressIndicator(
-                        strokeWidth: DesignMetrics.buttonLoaderStrokeWidth,
-                      ),
-                    )
-                  : const Text('Guardar'),
-            ),
-          ],
+          controller: _aprovadaController,
+          labelText: 'Quantidade aprovada para compra',
+          hintText: canEditApproved
+              ? (widget.isEditing ? null : 'Informe a quantidade')
+              : null,
+          keyboardType: TextInputType.number,
+          readOnly: !canEditApproved,
         ),
       ],
+    );
+  }
+
+  List<Widget> _buildActions(BuildContext context) {
+    return [
+      EnterpriseOverlayActions.secondary(
+        label: 'Cancelar',
+        onPressed:
+            _isSubmitting ? null : () => AdaptiveNavigator.cancel(context),
+      ),
+      EnterpriseOverlayActions.primary(
+        label: widget.isEditing ? 'Guardar' : 'Adicionar',
+        onPressed: _selectedProduto == null ||
+                _selectedFornecedor == null ||
+                _isSubmitting
+            ? null
+            : _submit,
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.spacing;
+    final form = _buildFields(context);
+    final actions = _buildActions(context);
+
+    if (widget.embedded) {
+      final isMobile = PharmaScreenLayout.isMobile(context);
+      if (isMobile) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  PharmaScreenLayout.mobileHorizontalInset(context),
+                  s.lg,
+                  PharmaScreenLayout.mobileHorizontalInset(context),
+                  s.lg,
+                ),
+                child: form,
+              ),
+            ),
+            EnterpriseOverlayFooter(
+              actions: actions,
+              expandOnNarrow: true,
+            ),
+          ],
+        );
+      }
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          form,
+          SizedBox(height: s.lg),
+          EnterpriseOverlayFooter(
+            actions: actions,
+            expandOnNarrow: false,
+          ),
+        ],
+      );
+    }
+
+    return PharmaResponsiveDialog(
+      title: Text(
+        widget.isEditing ? 'Editar sugestão' : 'Adicionar produto',
+      ),
+      content: form,
+      actions: actions,
     );
   }
 }

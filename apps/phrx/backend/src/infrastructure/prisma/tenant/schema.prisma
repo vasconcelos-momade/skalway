@@ -311,7 +311,9 @@ model PurchaseSuggestion {
   quantidadeAtual    Decimal              @db.Decimal(14, 2)
   estoqueMinimo      Decimal              @db.Decimal(14, 2)
   consumoMedioDiario Decimal              @db.Decimal(14, 4)
+  totalSaidasPeriodo  Decimal              @default(0) @db.Decimal(14, 2)
   quantidadeSugerida Decimal              @db.Decimal(14, 2)
+  quantidadeAprovada Decimal              @default(0) @db.Decimal(14, 2)
   coberturaDias      Int                  @default(30)
   origem             OrigemSugestaoCompra @default(AUTOMATICA)
   observacao         String?              @db.Text

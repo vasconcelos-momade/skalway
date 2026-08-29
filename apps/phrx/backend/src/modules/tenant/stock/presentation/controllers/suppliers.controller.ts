@@ -2,13 +2,17 @@ import {
   addManualPurchaseSuggestionSchema,
   createSupplierSchema,
   purchaseSuggestionsQuerySchema,
+  refreshPurchaseSuggestionsSchema,
   searchSuppliersQuerySchema,
+  updatePurchaseSuggestionApprovalSchema,
   updateSupplierSchema,
 } from "../../application/dto/suppliers.dto";
 import { AddManualPurchaseSuggestionUseCase } from "../../application/use-cases/purchases/add-manual-purchase-suggestion.use-case";
 import { ClearPurchaseSuggestionsUseCase } from "../../application/use-cases/purchases/clear-purchase-suggestions.use-case";
 import { PurchaseSuggestionsUseCase } from "../../application/use-cases/purchases/purchase-suggestions.use-case";
+import { RefreshPurchaseSuggestionsUseCase } from "../../application/use-cases/purchases/refresh-purchase-suggestions.use-case";
 import { RemovePurchaseSuggestionUseCase } from "../../application/use-cases/purchases/remove-purchase-suggestion.use-case";
+import { UpdatePurchaseSuggestionApprovalUseCase } from "../../application/use-cases/purchases/update-purchase-suggestion-approval.use-case";
 import { SupplierService } from "../../application/use-cases/purchases/supplier.service";
 import {
   parseJsonBody,
@@ -22,6 +26,8 @@ export class SuppliersController {
   private addManualSuggestionUseCase = new AddManualPurchaseSuggestionUseCase();
   private removeSuggestionUseCase = new RemovePurchaseSuggestionUseCase();
   private clearSuggestionsUseCase = new ClearPurchaseSuggestionsUseCase();
+  private updateApprovalUseCase = new UpdatePurchaseSuggestionApprovalUseCase();
+  private refreshSuggestionsUseCase = new RefreshPurchaseSuggestionsUseCase();
 
   private serialize(data: unknown) {
     return JSON.parse(
@@ -102,10 +108,13 @@ export class SuppliersController {
     }
   }
 
-  async addManualPurchaseSuggestion(req: Request) {
+  async addManualPurchaseSuggestion(req: Request, actorUserId: string) {
     try {
       const body = await parseJsonBody(req, addManualPurchaseSuggestionSchema);
-      const result = await this.addManualSuggestionUseCase.execute(body);
+      const result = await this.addManualSuggestionUseCase.execute(
+        actorUserId,
+        body,
+      );
       return Response.json(this.serialize(result), { status: 201 });
     } catch (error: unknown) {
       return controllerErrorResponse(error);
@@ -120,6 +129,31 @@ export class SuppliersController {
       return Response.json(this.serialize(result));
     } catch (error: unknown) {
       return controllerErrorResponse(error, 404);
+    }
+  }
+
+  async updatePurchaseSuggestionApproval(req: Request, actorUserId: string) {
+    try {
+      const parts = new URL(req.url).pathname.split("/");
+      const produtoId = parts[parts.length - 2];
+      const body = await parseJsonBody(req, updatePurchaseSuggestionApprovalSchema);
+      const result = await this.updateApprovalUseCase.execute(actorUserId, {
+        produtoId,
+        ...body,
+      });
+      return Response.json(this.serialize(result));
+    } catch (error: unknown) {
+      return controllerErrorResponse(error);
+    }
+  }
+
+  async refreshPurchaseSuggestions(req: Request) {
+    try {
+      const body = await parseJsonBody(req, refreshPurchaseSuggestionsSchema);
+      const result = await this.refreshSuggestionsUseCase.execute(body);
+      return Response.json(this.serialize(result));
+    } catch (error: unknown) {
+      return controllerErrorResponse(error);
     }
   }
 

@@ -56,7 +56,11 @@ function registerPurchaseSuggestionsRoutes(router: Router, prefix: string): void
     tenantBranchContextMiddleware(),
     requirePermission("COMPRAS", "CREATE"),
     auditMiddleware,
-    async (context) => suppliersController.addManualPurchaseSuggestion(context.req),
+    async (context) =>
+      suppliersController.addManualPurchaseSuggestion(
+        context.req,
+        getTenantAuth(context).userId,
+      ),
   );
 
   router.delete(
@@ -75,6 +79,29 @@ function registerPurchaseSuggestionsRoutes(router: Router, prefix: string): void
     requirePermission("COMPRAS", "DELETE"),
     auditMiddleware,
     async (context) => suppliersController.removePurchaseSuggestion(context.req),
+  );
+
+  router.patch(
+    `${prefix}/tenant/compras/sugestoes/:produtoId/aprovacao`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("COMPRAS", "UPDATE"),
+    auditMiddleware,
+    async (context) =>
+      suppliersController.updatePurchaseSuggestionApproval(
+        context.req,
+        getTenantAuth(context).userId,
+      ),
+  );
+
+  router.post(
+    `${prefix}/tenant/compras/sugestoes/atualizar`,
+    tenantAuthMiddleware(),
+    tenantBranchContextMiddleware(),
+    requirePermission("COMPRAS", "UPDATE"),
+    auditMiddleware,
+    async (context) =>
+      suppliersController.refreshPurchaseSuggestions(context.req),
   );
 }
 

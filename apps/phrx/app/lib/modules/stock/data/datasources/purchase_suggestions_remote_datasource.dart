@@ -16,6 +16,8 @@ class PurchaseSuggestionsRemoteDataSource {
     String? query,
     PurchaseSuggestionOriginFilter originFilter =
         PurchaseSuggestionOriginFilter.todas,
+    String? dataInicio,
+    String? dataFim,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -24,6 +26,8 @@ class PurchaseSuggestionsRemoteDataSource {
         ApiConstants.tenantComprasSugestoes,
         queryParameters: <String, dynamic>{
           if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
+          if (dataInicio != null && dataInicio.isNotEmpty) 'dataInicio': dataInicio,
+          if (dataFim != null && dataFim.isNotEmpty) 'dataFim': dataFim,
           if (originFilter != PurchaseSuggestionOriginFilter.todas)
             'origem': switch (originFilter) {
               PurchaseSuggestionOriginFilter.automatica => 'AUTOMATICA',
@@ -44,8 +48,7 @@ class PurchaseSuggestionsRemoteDataSource {
   Future<String> addManualSuggestion({
     required String produtoId,
     required String supplierId,
-    required num quantidadeSugerida,
-    String? observacao,
+    int? quantidadeAprovada,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -53,9 +56,7 @@ class PurchaseSuggestionsRemoteDataSource {
         data: <String, dynamic>{
           'produtoId': produtoId,
           'supplierId': supplierId,
-          'quantidadeSugerida': quantidadeSugerida,
-          if (observacao != null && observacao.trim().isNotEmpty)
-            'observacao': observacao.trim(),
+          if (quantidadeAprovada != null) 'quantidadeAprovada': quantidadeAprovada,
         },
       );
       final payload = ApiEnvelope.unwrapMap(response.data ?? {});
@@ -70,6 +71,64 @@ class PurchaseSuggestionsRemoteDataSource {
       await _dio.delete<Map<String, dynamic>>(
         ApiConstants.tenantCompraSugestao(produtoId),
       );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<String> updateSuggestion({
+    required String produtoId,
+    required String supplierId,
+    int? quantidadeAprovada,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.tenantCompraSugestaoAprovacao(produtoId),
+        data: <String, dynamic>{
+          'supplierId': supplierId,
+          if (quantidadeAprovada != null)
+            'quantidadeAprovada': quantidadeAprovada,
+        },
+      );
+      final payload = ApiEnvelope.unwrapMap(response.data ?? {});
+      return payload['message']?.toString() ?? 'Sugestão actualizada';
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<String> refreshSuggestions({
+    required String dataInicio,
+    required String dataFim,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConstants.tenantComprasSugestoesAtualizar,
+        data: <String, dynamic>{
+          'dataInicio': dataInicio,
+          'dataFim': dataFim,
+        },
+      );
+      final payload = ApiEnvelope.unwrapMap(response.data ?? {});
+      return payload['message']?.toString() ?? 'Lista actualizada';
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<String> updateApprovedQuantity({
+    required String produtoId,
+    required int quantidadeAprovada,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        ApiConstants.tenantCompraSugestaoAprovacao(produtoId),
+        data: <String, dynamic>{
+          'quantidadeAprovada': quantidadeAprovada,
+        },
+      );
+      final payload = ApiEnvelope.unwrapMap(response.data ?? {});
+      return payload['message']?.toString() ?? 'Quantidade aprovada actualizada';
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }

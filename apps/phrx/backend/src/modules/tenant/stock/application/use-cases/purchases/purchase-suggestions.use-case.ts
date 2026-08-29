@@ -5,7 +5,11 @@ import {
   resolvePrincipalSupplierId,
   resolvePrincipalSupplierName,
 } from "../../../domain/purchase-supplier.util";
-import { DEFAULT_COVERAGE_DAYS } from "../../../domain/purchase-suggestion.service";
+import {
+  DEFAULT_COVERAGE_DAYS,
+  resolvePurchaseSuggestionPeriod,
+  roundSuggestionInteger,
+} from "../../../domain/purchase-suggestion.service";
 
 type SuggestionListItem = {
   id: string;
@@ -17,8 +21,10 @@ type SuggestionListItem = {
   estoqueAtual: number;
   estoqueMinimo: number;
   consumoMedioDiario: number;
+  totalSaidasPeriodo: number;
   coberturaDias: number;
   quantidadeSugerida: number;
+  quantidadeAprovada: number;
   ultimoPreco: number;
   valorEstimado: number;
   unidade: string;
@@ -33,7 +39,9 @@ const SORTABLE_FIELDS = new Set([
   "estoqueAtual",
   "estoqueMinimo",
   "consumoMedioDiario",
+  "totalSaidasPeriodo",
   "quantidadeSugerida",
+  "quantidadeAprovada",
   "origem",
   "fornecedorNome",
 ]);
@@ -42,6 +50,8 @@ export class PurchaseSuggestionsUseCase {
   async execute(
     params: {
       q?: string;
+      dataInicio?: string;
+      dataFim?: string;
       origem?: "AUTOMATICA" | "MANUAL" | "TODAS";
       supplierId?: string;
       sortBy?: string;
@@ -150,7 +160,7 @@ export class PurchaseSuggestionsUseCase {
       const estoqueAtual = round2(toNumber(row.quantidadeAtual));
       if (estoqueAtual <= 0) produtosSemStock += 1;
 
-      const quantidadeSugerida = round2(toNumber(row.quantidadeSugerida));
+      const quantidadeSugerida = roundSuggestionInteger(toNumber(row.quantidadeSugerida));
       quantidadeTotalSugerida += quantidadeSugerida;
 
       const ultimoPreco = resolveUltimoPrecoCompra({
@@ -179,13 +189,21 @@ export class PurchaseSuggestionsUseCase {
       grouped.set(key, bucket);
     }
 
+    const period = resolvePurchaseSuggestionPeriod(
+      params.dataInicio && params.dataFim
+        ? { dataInicio: params.dataInicio, dataFim: params.dataFim }
+        : undefined,
+    );
+
+    const { inicio: _inicio, fim: _fim, ...periodMeta } = period;
+
     return {
-      coberturaDias: DEFAULT_COVERAGE_DAYS,
+      ...periodMeta,
       dashboard: {
         produtosAbaixoMinimo: totalCount,
         produtosSemStock,
         valorEstimadoCompra: round2(valorEstimadoCompra),
-        quantidadeTotalSugerida: round2(quantidadeTotalSugerida),
+        quantidadeTotalSugerida: roundSuggestionInteger(quantidadeTotalSugerida),
         fornecedoresEnvolvidos: fornecedores.size,
         produtosSugeridos: totalCount,
       },
@@ -221,7 +239,10 @@ export class PurchaseSuggestionsUseCase {
       historicoPrecos: produto.historicoPrecos,
       lotes: produto.lotes,
     });
-    const quantidadeSugerida = round2(toNumber(row.quantidadeSugerida));
+    const quantidadeSugerida = roundSuggestionInteger(toNumber(row.quantidadeSugerida));
+    const quantidadeAprovada = roundSuggestionInteger(toNumber(row.quantidadeAprovada ?? 0));
+    const consumoMedioDiario = round2(toNumber(row.consumoMedioDiario));
+    const totalSaidasPeriodo = roundSuggestionInteger(toNumber(row.totalSaidasPeriodo));
 
     return {
       id: row.id.toString(),
@@ -232,9 +253,11 @@ export class PurchaseSuggestionsUseCase {
       fornecedorNome,
       estoqueAtual: round2(toNumber(row.quantidadeAtual)),
       estoqueMinimo: round2(toNumber(row.estoqueMinimo)),
-      consumoMedioDiario: round2(toNumber(row.consumoMedioDiario)),
+      consumoMedioDiario,
+      totalSaidasPeriodo,
       coberturaDias: row.coberturaDias ?? DEFAULT_COVERAGE_DAYS,
       quantidadeSugerida,
+      quantidadeAprovada,
       ultimoPreco: round2(ultimoPreco),
       valorEstimado: round2(quantidadeSugerida * ultimoPreco),
       unidade: produto.apresentacao?.trim() || "un",
@@ -253,8 +276,12 @@ export class PurchaseSuggestionsUseCase {
         return { estoqueMinimo: sortOrder };
       case "consumoMedioDiario":
         return { consumoMedioDiario: sortOrder };
+      case "totalSaidasPeriodo":
+        return { totalSaidasPeriodo: sortOrder };
       case "quantidadeSugerida":
         return { quantidadeSugerida: sortOrder };
+      case "quantidadeAprovada":
+        return { quantidadeAprovada: sortOrder };
       case "origem":
         return { origem: sortOrder };
       case "fornecedorNome":

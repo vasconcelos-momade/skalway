@@ -28,6 +28,8 @@ export const updateSupplierSchema = createSupplierSchema.partial().extend({
 
 export const purchaseSuggestionsQuerySchema = z.object({
   q: z.string().trim().optional(),
+  dataInicio: z.string().trim().optional(),
+  dataFim: z.string().trim().optional(),
   origem: z.enum(["AUTOMATICA", "MANUAL", "TODAS"]).optional(),
   supplierId: z.string().trim().optional(),
   sortBy: z
@@ -36,7 +38,9 @@ export const purchaseSuggestionsQuerySchema = z.object({
       "estoqueAtual",
       "estoqueMinimo",
       "consumoMedioDiario",
+      "totalSaidasPeriodo",
       "quantidadeSugerida",
+      "quantidadeAprovada",
       "origem",
       "fornecedorNome",
     ])
@@ -49,12 +53,41 @@ export const purchaseSuggestionsQuerySchema = z.object({
 export const addManualPurchaseSuggestionSchema = z.object({
   produtoId: z.string().trim().min(1, "Produto é obrigatório"),
   supplierId: z.string().trim().min(1, "Fornecedor é obrigatório"),
-  quantidadeSugerida: z.coerce
+  quantidadeAprovada: z.coerce
     .number()
-    .positive("Quantidade sugerida deve ser maior que zero"),
+    .int("Quantidade aprovada deve ser inteira")
+    .nonnegative("Quantidade aprovada não pode ser negativa")
+    .optional(),
   observacao: z.string().trim().optional(),
+});
+
+export const updatePurchaseSuggestionApprovalSchema = z.object({
+  supplierId: z.string().trim().min(1, "Fornecedor é obrigatório"),
+  quantidadeAprovada: z.coerce
+    .number()
+    .int("Quantidade aprovada deve ser inteira")
+    .nonnegative("Quantidade aprovada não pode ser negativa")
+    .optional(),
 });
 
 export type AddManualPurchaseSuggestionDTO = z.infer<
   typeof addManualPurchaseSuggestionSchema
+> & { produtoId: string };
+
+export const refreshPurchaseSuggestionsSchema = z
+  .object({
+    dataInicio: z.string().trim().min(1, "Data inicial é obrigatória"),
+    dataFim: z.string().trim().min(1, "Data final é obrigatória"),
+  })
+  .refine((data) => data.dataInicio <= data.dataFim, {
+    message: "Data inicial não pode ser posterior à data final",
+    path: ["dataInicio"],
+  });
+
+export type RefreshPurchaseSuggestionsDTO = z.infer<
+  typeof refreshPurchaseSuggestionsSchema
 >;
+
+export type UpdatePurchaseSuggestionApprovalDTO = z.infer<
+  typeof updatePurchaseSuggestionApprovalSchema
+> & { produtoId: string };

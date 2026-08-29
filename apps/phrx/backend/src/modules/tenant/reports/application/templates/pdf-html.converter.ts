@@ -32,8 +32,7 @@ function resolvePdfFormat(definition: ReportDefinition): {
 }
 
 function buildInstitutionalFooterTemplate(definition: ReportDefinition): string {
-  const pharmacyName = escapeHtml(definition.institution?.pharmacyName);
-  const branchName = escapeHtml(definition.institution?.branchName);
+  const branchName = escapeHtml(definition.institution?.pharmacyName);
   const generatedBy = escapeHtml(definition.generatedBy);
 
   return `
@@ -41,8 +40,6 @@ function buildInstitutionalFooterTemplate(definition: ReportDefinition): string 
         <div style="border-top:1px solid #059669; padding-top:4px; display:flex; justify-content:space-between; gap:8px;">
           <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             <span style="font-weight:700; color:#059669;">Skalway PhRx</span>
-            <span style="margin:0 6px; color:#777;">|</span>
-            <span>${pharmacyName}</span>
             <span style="margin:0 6px; color:#777;">|</span>
             <span>${branchName}</span>
           </div>

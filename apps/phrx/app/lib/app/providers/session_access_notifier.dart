@@ -41,6 +41,15 @@ class SessionAccessState {
   bool get canAccessAdministration =>
       superAdminFullAccess || can('UTILIZADORES', 'VIEW');
 
+  /// Espelha [canApprovePurchaseSuggestionQuantity] do backend (UX apenas).
+  bool get canEditPurchaseApprovedQuantity {
+    if (superAdminFullAccess) return true;
+    final role = permissions?.role;
+    return role == 'GERENTE' ||
+        role == 'DIRETOR_TECNICO' ||
+        role == 'ADMIN';
+  }
+
   SessionAccessState copyWith({
     UserEffectivePermissions? permissions,
     SessionAccessViewState? viewState,

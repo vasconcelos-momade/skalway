@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/auth_session_notifier.dart';
@@ -91,16 +93,40 @@ class PdvCartController extends Notifier<PdvCartState> {
   PdvCartState build() {
     ref.listen(caixaSessaoProvider, (previous, next) {
       if (previous?.hasSessaoAberta == true && !next.hasSessaoAberta) {
-        _clearPersistedCartKey();
-        state = PdvCartState.initial;
-        _didLoadForSession = false;
-        _activeSessionId = null;
+        _resetCartState();
         return;
       }
+
+      final previousSessaoId = previous?.sessaoAtual?.id;
+      final nextSessaoId = next.sessaoAtual?.id;
+      if (previousSessaoId != null &&
+          nextSessaoId != null &&
+          previousSessaoId != nextSessaoId) {
+        _resetCartState();
+        _maybeLoadFromServer();
+        return;
+      }
+
       _maybeLoadFromServer();
     });
 
-    ref.listen(authSessionProvider, (_, _) => _maybeLoadFromServer());
+    ref.listen<AuthSessionState>(authSessionProvider, (previous, next) {
+      final wasReady = previous != null &&
+          !previous.isBootstrapping &&
+          previous.hasTenantContext;
+      final isReady = !next.isBootstrapping && next.hasTenantContext;
+
+      if (!isReady) {
+        _resetCartState();
+        return;
+      }
+
+      final userChanged = previous?.session?.user.id != next.session?.user.id;
+      if (!wasReady || userChanged) {
+        _resetCartState();
+        _maybeLoadFromServer();
+      }
+    });
 
     _maybeLoadFromServer();
     return PdvCartState.initial;
@@ -109,12 +135,17 @@ class PdvCartController extends Notifier<PdvCartState> {
   bool get _canSyncCart {
     final caixa = ref.read(caixaSessaoProvider);
     final auth = ref.read(authSessionProvider);
-    final userId = auth.session?.user.id;
     return caixa.hasSessaoAberta &&
         caixa.isInitialized &&
         !auth.isBootstrapping &&
-        userId != null &&
-        userId.isNotEmpty;
+        auth.hasTenantContext;
+  }
+
+  void _resetCartState() {
+    _clearPersistedCartKey();
+    state = PdvCartState.initial;
+    _didLoadForSession = false;
+    _activeSessionId = null;
   }
 
   void _maybeLoadFromServer() {
@@ -358,9 +389,7 @@ class PdvCartController extends Notifier<PdvCartState> {
   }
 
   void clear() {
-    _clearPersistedCartKey();
-    state = PdvCartState.initial;
-    _didLoadForSession = false;
+    _resetCartState();
   }
 
   void setSelectedCliente({required String id, required String nome}) {
