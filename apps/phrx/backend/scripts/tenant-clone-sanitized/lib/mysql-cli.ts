@@ -209,11 +209,11 @@ export function recreateDatabase(
  * Dump consistente (read-only) — seguro para produção.
  * Usa --single-transaction para InnoDB sem bloquear escritas.
  */
-export function dumpDatabase(
+export async function dumpDatabase(
   config: MysqlCliConfig,
   dbName: string,
   outputPath: string,
-): void {
+): Promise<void> {
   const safe = assertSafeDbIdentifier(dbName);
   mkdirSync(dirname(outputPath), { recursive: true });
 
@@ -232,6 +232,9 @@ export function dumpDatabase(
       stdio: "inherit",
       maxBuffer: 1024 * 1024 * 512,
     });
+    // MariaDB client inclui colunas STORED GENERATED — corrigir antes do restore.
+    const { fixGeneratedColumnsInDump } = await import("./fix-generated-columns-dump");
+    await fixGeneratedColumnsInDump(config, safe, outputPath);
   }
 }
 

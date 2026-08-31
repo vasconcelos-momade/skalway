@@ -24,6 +24,13 @@ source "${SCRIPT_DIR}/_lib.sh"
 
 COMPOSE_DIR="${PHRX_COMPOSE_DIR}"
 TENANT_CLONE_ENV="${COMPOSE_DIR}/tenant-clone.prod.env"
+TENANT_CLONE_ENV_EXAMPLE="${COMPOSE_DIR}/tenant-clone.prod.env.example"
+
+if [[ ! -f "$TENANT_CLONE_ENV" && -f "$TENANT_CLONE_ENV_EXAMPLE" ]]; then
+  cp "$TENANT_CLONE_ENV_EXAMPLE" "$TENANT_CLONE_ENV"
+  chmod 600 "$TENANT_CLONE_ENV"
+fi
+
 if [[ -f "$TENANT_CLONE_ENV" ]]; then
   # shellcheck disable=SC1090
   source "$TENANT_CLONE_ENV"

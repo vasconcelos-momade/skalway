@@ -252,12 +252,12 @@ async function main(): Promise<void> {
     // ── 4. Backup do tenant de teste ──
     logStep(3, `A criar backup de segurança do destino (${target.dbName})...`);
     assertNotProductionTarget(target.dbName, "backup destino");
-    dumpDatabase(mysqlConfig, target.dbName, targetBackupPath);
+    await dumpDatabase(mysqlConfig, target.dbName, targetBackupPath);
     console.log(`  ✅ Backup destino: ${targetBackupPath}`);
 
     // ── 5. Dump da origem (READ-ONLY) ──
     logStep(4, `A exportar origem (${source.dbName}) — SOMENTE LEITURA...`);
-    dumpDatabase(mysqlConfig, source.dbName, sourceDumpPath);
+    await dumpDatabase(mysqlConfig, source.dbName, sourceDumpPath);
     console.log(`  ✅ Dump origem: ${sourceDumpPath}`);
 
     const sourceStats = await countTablesAndRows(source.dbName);
@@ -280,7 +280,7 @@ async function main(): Promise<void> {
 
     // ── 8. Dump sanitizado ──
     logStep(8, `A gerar dump sanitizado...`);
-    dumpDatabase(mysqlConfig, tempDb, sanitizedDumpPath);
+    await dumpDatabase(mysqlConfig, tempDb, sanitizedDumpPath);
     console.log(`  ✅ Dump sanitizado: ${sanitizedDumpPath}`);
 
     // ── 9. Restaurar no tenant de teste ──

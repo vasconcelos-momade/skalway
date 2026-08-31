@@ -22,10 +22,22 @@ source "${SCRIPT_DIR}/_lib.sh"
 
 COMPOSE_DIR="${PHRX_COMPOSE_DIR}"
 TENANT_CLONE_ENV="${COMPOSE_DIR}/tenant-clone.prod.env"
+TENANT_CLONE_ENV_EXAMPLE="${COMPOSE_DIR}/tenant-clone.prod.env.example"
+
+if [[ ! -f "$TENANT_CLONE_ENV" && -f "$TENANT_CLONE_ENV_EXAMPLE" ]]; then
+  cp "$TENANT_CLONE_ENV_EXAMPLE" "$TENANT_CLONE_ENV"
+  chmod 600 "$TENANT_CLONE_ENV"
+  warn "Criado ${TENANT_CLONE_ENV} a partir do example — confirme source/target antes de --yes"
+fi
+
 if [[ -f "$TENANT_CLONE_ENV" ]]; then
   # shellcheck disable=SC1090
   source "$TENANT_CLONE_ENV"
 fi
+
+# Valores por omissão VPS (cliente real protegido)
+PROTECTED_DATABASES="${PROTECTED_DATABASES:-phrx_tenant_2_branch_3,skalway_central,production,prod}"
+export PROTECTED_DATABASES
 
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-phrx_backend}"
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-phrx_mysql}"
@@ -86,13 +98,6 @@ if ! docker inspect -f '{{.State.Running}}' "$MYSQL_CONTAINER" 2>/dev/null | gre
 fi
 
 load_mysql_root_password
-
-# Por omissão em produção: proteger todas as bases tenant excepto destino explícito.
-# Complementar com slugs/DBs reais após --list-tenants.
-if [[ -z "${PROTECTED_DATABASES:-}" ]]; then
-  warn "PROTECTED_DATABASES não definido — recomenda-se exportar antes de --yes"
-  warn "Exemplo: export PROTECTED_DATABASES=\"phrx_tenant_2_branch_3,skalway_central\""
-fi
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_DIR="${BACKUP_DIR:-${BACKUP_ROOT}/${STAMP}}"
