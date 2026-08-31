@@ -1,6 +1,7 @@
 import { collectAllPages } from "../helpers/report-pagination.helper";
 import { formatCurrency, toText } from "../helpers/report-export.helper";
 import {
+  formatProductDisplayLabel,
   formatSuggestionInteger,
   resolvePurchaseSuggestionPeriod,
 } from "../../../stock/domain/purchase-suggestion.service";
@@ -16,11 +17,11 @@ import { buildStockReportDefinition } from "./helpers/stock-report.builder";
 const REPORT_COLUMNS = [
   "#",
   "Produto",
-  "Estoque Atual",
-  "Estoque Mínimo",
-  "Total de Saídas no Período",
-  "Quantidade Sugerida",
-  "Quantidade Aprovada",
+  "Stock atual",
+  "Stock mínimo",
+  "Saídas",
+  "QTD sugerida",
+  "QTD. aprovada",
 ] as const;
 
 function parseSuggestionFilters(url: URL) {
@@ -36,9 +37,18 @@ function parseSuggestionFilters(url: URL) {
 }
 
 function mapSuggestionRow(item: Record<string, unknown>, rowNumber: number) {
+  const produtoLabel =
+    typeof item.produtoDisplayLabel === "string" && item.produtoDisplayLabel.trim()
+      ? item.produtoDisplayLabel
+      : formatProductDisplayLabel({
+          nomeComercial: toText(item.produtoNome, ""),
+          dosagem: typeof item.produtoDosagem === "string" ? item.produtoDosagem : null,
+          forma: typeof item.produtoForma === "string" ? item.produtoForma : null,
+        });
+
   return [
     String(rowNumber),
-    toText(item.produtoNome),
+    produtoLabel,
     toText(item.estoqueAtual, "0"),
     toText(item.estoqueMinimo, "0"),
     formatSuggestionInteger(item.totalSaidasPeriodo),

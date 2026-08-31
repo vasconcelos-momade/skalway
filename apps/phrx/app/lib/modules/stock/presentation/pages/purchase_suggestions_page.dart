@@ -73,6 +73,7 @@ class _PurchaseSuggestionsPageState
     final state = ref.watch(purchaseSuggestionsProvider);
     final controller = ref.read(purchaseSuggestionsProvider.notifier);
     final reportBusy = ref.watch(reportControllerProvider).isSubmitting;
+    ref.watch(sessionAccessProvider);
 
     ref.listen<PurchaseSuggestionsState>(purchaseSuggestionsProvider, (prev, next) {
       if (!context.mounted) return;
@@ -371,13 +372,13 @@ class _PurchaseSuggestionsPageState
                   emptyTitle: 'Nenhum resultado encontrado',
                   emptyMessage: 'Nenhum resultado encontrado',
                   columns: [
-                    const DataColumn(label: Text('#')),
-                    const DataColumn(label: Text('PRODUTO')),
-                    const DataColumn(label: Text('ESTOQUE ATUAL')),
-                    const DataColumn(label: Text('EST. MÍNIMO')),
-                    const DataColumn(label: Text('TOTAL SAÍDAS NO PERÍODO')),
-                    const DataColumn(label: Text('QTD. SUGERIDA')),
-                    const DataColumn(label: Text('QTD. APROVADA')),
+                    enterpriseDataColumn(context, '#'),
+                    enterpriseDataColumn(context, 'Produto'),
+                    enterpriseDataColumn(context, 'Stock atual'),
+                    enterpriseDataColumn(context, 'Stock mínimo'),
+                    enterpriseDataColumn(context, 'Saídas'),
+                    enterpriseDataColumn(context, 'QTD sugerida'),
+                    enterpriseDataColumn(context, 'QTD. aprovada'),
                     enterpriseDataColumn(context, 'Ações'),
                   ],
                   rowCount: state.items.length,
@@ -385,8 +386,14 @@ class _PurchaseSuggestionsPageState
                     final item = state.items[index];
                     return DataRow(
                       cells: [
-                        DataCell(Text('${index + 1}')),
-                        DataCell(Text(item.produtoNome)),
+                        DataCell(
+                          Text(
+                            '${index + 1}',
+                            softWrap: false,
+                            maxLines: 1,
+                          ),
+                        ),
+                        DataCell(Text(item.produtoDisplayLabel)),
                         DataCell(Text(_formatSuggestionQty(item.estoqueAtual))),
                         DataCell(Text(_formatSuggestionQty(item.estoqueMinimo))),
                         DataCell(
@@ -527,7 +534,7 @@ class _PurchaseSuggestionMobileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EnterpriseListCard(
-      title: item.produtoNome,
+      title: item.produtoDisplayLabel,
       subtitle: item.fornecedorNome,
       leading: Icons.shopping_cart_outlined,
       isBusy: isMutating,
@@ -604,7 +611,9 @@ class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
   void initState() {
     super.initState();
     final item = widget.item;
-    _produtoController = TextEditingController(text: item?.produtoNome ?? '');
+    _produtoController = TextEditingController(
+      text: item?.produtoDisplayLabel ?? '',
+    );
     _fornecedorController =
         TextEditingController(text: item?.fornecedorNome ?? '');
     _sugeridaController = TextEditingController(
@@ -626,6 +635,8 @@ class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
       _selectedProduto = ProdutoSearchResult(
         id: item.produtoId,
         nomeComercial: item.produtoNome,
+        dosagem: item.produtoDosagem,
+        forma: item.produtoForma,
       );
       if (item.fornecedorId != null) {
         _selectedFornecedor = FornecedorDetalheModel(
@@ -802,10 +813,8 @@ class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
     );
   }
 
-  Widget _buildFields(BuildContext context) {
+  Widget _buildFields(BuildContext context, {required bool canEditApproved}) {
     final s = context.spacing;
-    final canEditApproved =
-        ref.watch(sessionAccessProvider).canEditPurchaseApprovedQuantity;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -820,6 +829,7 @@ class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
         ),
         SizedBox(height: s.md),
         EnterpriseTextField(
+          key: ValueKey('aprovada-$canEditApproved'),
           controller: _aprovadaController,
           labelText: 'Quantidade aprovada para compra',
           hintText: canEditApproved
@@ -853,7 +863,10 @@ class _SuggestionFormDialogState extends ConsumerState<_SuggestionFormDialog> {
   @override
   Widget build(BuildContext context) {
     final s = context.spacing;
-    final form = _buildFields(context);
+    final canEditApproved = ref.watch(
+      sessionAccessProvider.select((access) => access.canEditPurchaseApprovedQuantity),
+    );
+    final form = _buildFields(context, canEditApproved: canEditApproved);
     final actions = _buildActions(context);
 
     if (widget.embedded) {

@@ -87,6 +87,20 @@ export function formatSuggestionInteger(value: unknown): string {
   return String(roundSuggestionInteger(toNumber(value)));
 }
 
+/** Ex.: `Aminofilina 500mg Cápsulas` */
+export function formatProductDisplayLabel(input: {
+  nomeComercial?: string | null;
+  dosagem?: string | null;
+  forma?: string | null;
+}): string {
+  const parts = [
+    input.nomeComercial?.trim(),
+    input.dosagem?.trim(),
+    input.forma?.trim(),
+  ].filter((part): part is string => Boolean(part && part.length > 0));
+  return parts.length > 0 ? parts.join(" ") : "—";
+}
+
 export function sumSaidasFromMovements(
   movements: Array<{ quantidade: unknown }>,
 ): number {

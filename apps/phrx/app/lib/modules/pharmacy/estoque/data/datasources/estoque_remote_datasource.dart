@@ -256,6 +256,7 @@ class EstoqueRemoteDataSource {
     String? numeroLote,
     String? dataValidade,
     String? dataFabricacao,
+    String? fornecedorId,
   }) async {
     try {
       await _dio.patch<Map<String, dynamic>>(
@@ -264,6 +265,7 @@ class EstoqueRemoteDataSource {
           'numeroLote': ?numeroLote,
           'dataValidade': ?dataValidade,
           'dataFabricacao': ?dataFabricacao,
+          'fornecedorId': ?fornecedorId,
         },
       );
     } on DioException catch (e) {

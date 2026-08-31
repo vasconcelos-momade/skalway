@@ -7,6 +7,7 @@ import {
 } from "../../../domain/purchase-supplier.util";
 import {
   DEFAULT_COVERAGE_DAYS,
+  formatProductDisplayLabel,
   resolvePurchaseSuggestionPeriod,
   roundSuggestionInteger,
 } from "../../../domain/purchase-suggestion.service";
@@ -15,6 +16,9 @@ type SuggestionListItem = {
   id: string;
   produtoId: string;
   produtoNome: string;
+  produtoDosagem: string | null;
+  produtoForma: string | null;
+  produtoDisplayLabel: string;
   categoriaNome: string;
   fornecedorId: string | null;
   fornecedorNome: string;
@@ -126,6 +130,8 @@ export class PurchaseSuggestionsUseCase {
             select: {
               id: true,
               nomeComercial: true,
+              dosagem: true,
+              forma: true,
               apresentacao: true,
               categoria: { select: { nome: true } },
               ...produtoPriceSelect,
@@ -244,10 +250,20 @@ export class PurchaseSuggestionsUseCase {
     const consumoMedioDiario = round2(toNumber(row.consumoMedioDiario));
     const totalSaidasPeriodo = roundSuggestionInteger(toNumber(row.totalSaidasPeriodo));
 
+    const produtoDosagem = produto.dosagem?.trim() || null;
+    const produtoForma = produto.forma?.trim() || null;
+
     return {
       id: row.id.toString(),
       produtoId: row.produtoId.toString(),
       produtoNome: produto.nomeComercial,
+      produtoDosagem,
+      produtoForma,
+      produtoDisplayLabel: formatProductDisplayLabel({
+        nomeComercial: produto.nomeComercial,
+        dosagem: produtoDosagem,
+        forma: produtoForma,
+      }),
       categoriaNome: produto.categoria?.nome ?? "—",
       fornecedorId,
       fornecedorNome,

@@ -17,6 +17,7 @@
     "bootstrap:central": "bash scripts/bootstrap-central.sh",
     "reset:superadmin-password": "bun scripts/reset-superadmin-password.ts",
     "seed:tenant": "bun prisma/seed-tenant.ts",
+    "seed:fnm-categorias:all": "bun scripts/seed-fnm-categorias-all-tenants.ts",
     "seed:demo": "bun prisma/seed-demo.ts",
     "billing:generate:monthly": "bun scripts/generate-monthly-billing.ts",
     "billing:process:lifecycle": "bun scripts/process-subscription-lifecycle.ts",

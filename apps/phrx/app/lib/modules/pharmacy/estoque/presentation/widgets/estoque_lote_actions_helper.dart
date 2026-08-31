@@ -8,12 +8,15 @@ import '../../../../../core/theme/extensions.dart';
 import '../../../../../core/utils/lote_stock_utils.dart';
 import '../../../../../shared/navigation/adaptive_navigator.dart';
 import '../../../../../shared/widgets/feedback/pharma_feedback.dart';
+import '../../../../../shared/widgets/inputs/async_type_ahead_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_date_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_select_field.dart';
 import '../../../../../shared/widgets/inputs/enterprise_text_field.dart';
 import '../../data/datasources/estoque_remote_datasource.dart';
 import '../../domain/entities/estoque_item.dart';
 import '../providers/estoque_provider.dart';
+import '../../../../stock/data/datasources/fornecedor_remote_datasource.dart';
+import '../../../../stock/data/models/fornecedor_model.dart';
 import '../../../../stock/presentation/providers/movimentacao_provider.dart';
 
 abstract final class EstoqueLoteActionsHelper {
@@ -220,6 +223,8 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
   late final TextEditingController _numeroController;
   late final TextEditingController _validadeController;
   late final TextEditingController _fabricacaoController;
+  late final TextEditingController _fornecedorController;
+  String? _fornecedorId;
   bool _isSubmitting = false;
 
   @override
@@ -232,6 +237,10 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
           : '',
     );
     _fabricacaoController = TextEditingController();
+    _fornecedorId = widget.item.fornecedorId;
+    _fornecedorController = TextEditingController(
+      text: widget.item.fornecedorNome ?? '',
+    );
   }
 
   @override
@@ -239,6 +248,7 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
     _numeroController.dispose();
     _validadeController.dispose();
     _fabricacaoController.dispose();
+    _fornecedorController.dispose();
     super.dispose();
   }
 
@@ -271,6 +281,7 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
             numeroLote: numeroLote,
             dataValidade: dataValidade,
             dataFabricacao: dataFabricacao,
+            fornecedorId: _fornecedorId,
           );
       if (!mounted) return;
       PharmaFeedback.success(context, 'Lote actualizado com sucesso');
@@ -323,6 +334,36 @@ class _EditarLoteFormContentState extends ConsumerState<_EditarLoteFormContent> 
             controller: _fabricacaoController,
             firstDate: DateTime(2000),
             lastDate: DateTime(2100),
+          ),
+          SizedBox(height: s.sm),
+          AsyncTypeAheadField<FornecedorDetalheModel>(
+            controller: _fornecedorController,
+            labelText: 'Fornecedor',
+            hintText: widget.item.fornecedorNome ?? 'Digite para pesquisar…',
+            suggestionsCallback: (query) async {
+              final result = await ref
+                  .read(fornecedorRemoteDataSourceProvider)
+                  .search(query: query, pageSize: 10);
+              return result.items;
+            },
+            itemLabel: (fornecedor) => fornecedor.nome,
+            itemSubtitle: (fornecedor) {
+              final parts = <String>[
+                if (fornecedor.nuit != null &&
+                    fornecedor.nuit!.trim().isNotEmpty)
+                  'NUIT ${fornecedor.nuit}',
+                if (fornecedor.telefone != null &&
+                    fornecedor.telefone!.trim().isNotEmpty)
+                  fornecedor.telefone!.trim(),
+              ];
+              return parts.join(' · ');
+            },
+            onSelected: (fornecedor) {
+              setState(() {
+                _fornecedorId = fornecedor.id;
+                _fornecedorController.text = fornecedor.nome;
+              });
+            },
           ),
         ],
       ),

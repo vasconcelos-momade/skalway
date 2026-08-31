@@ -11,6 +11,7 @@ export interface UpdateLoteDTO {
   numeroLote?: string;
   dataValidade?: string;
   dataFabricacao?: string | null;
+  fornecedorId?: string | null;
   userId: string;
 }
 
@@ -34,7 +35,14 @@ export class UpdateLoteUseCase {
 
       const lote = await tx.lote.findFirst({
         where: { id: loteId, deletedAt: null, ativo: true },
-        include: {
+        select: {
+          id: true,
+          produtoId: true,
+          fornecedorId: true,
+          numeroLote: true,
+          dataValidade: true,
+          dataFabricacao: true,
+          precoCompra: true,
           produto: { select: { id: true, nomeComercial: true, barcode: true } },
           fornecedor: { select: { id: true, nome: true } },
         },
@@ -69,6 +77,43 @@ export class UpdateLoteUseCase {
         updateData.dataFabricacao = dataFabricacao;
       }
 
+      if (data.fornecedorId !== undefined) {
+        const fornecedorIdRaw = data.fornecedorId?.trim() || null;
+        if (fornecedorIdRaw == null) {
+          updateData.fornecedorId = null;
+        } else {
+          const fornecedorId = BigInt(fornecedorIdRaw);
+          const fornecedor = await tx.fornecedor.findFirst({
+            where: { id: fornecedorId, deletedAt: null, ativo: true },
+            select: { id: true },
+          });
+          if (!fornecedor) {
+            throw new NotFoundApiError("Fornecedor não encontrado");
+          }
+
+          const produtoFornecedor = await tx.produtoFornecedor.findUnique({
+            where: {
+              produtoId_fornecedorId: {
+                produtoId: lote.produtoId,
+                fornecedorId,
+              },
+            },
+          });
+
+          if (!produtoFornecedor) {
+            await tx.produtoFornecedor.create({
+              data: {
+                produtoId: lote.produtoId,
+                fornecedorId,
+                precoCompra: Number(lote.precoCompra ?? 0),
+              },
+            });
+          }
+
+          updateData.fornecedorId = fornecedorId;
+        }
+      }
+
       const updated = await tx.lote.update({
         where: { id: loteId },
         data: updateData,
@@ -90,6 +135,7 @@ export class UpdateLoteUseCase {
             dataValidade: lote.dataValidade?.toISOString?.() ?? lote.dataValidade,
             dataFabricacao:
               lote.dataFabricacao?.toISOString?.() ?? lote.dataFabricacao,
+            fornecedorId: lote.fornecedorId?.toString?.() ?? null,
           },
           after: {
             numeroLote: updated.numeroLote,
@@ -98,6 +144,7 @@ export class UpdateLoteUseCase {
             dataFabricacao:
               updated.dataFabricacao?.toISOString?.() ??
               updated.dataFabricacao,
+            fornecedorId: updated.fornecedorId?.toString?.() ?? null,
           },
         },
         tx,

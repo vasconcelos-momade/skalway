@@ -83,6 +83,12 @@ export const updateLoteBodySchema = z.object({
   numeroLote: z.string().trim().min(1).optional(),
   dataValidade: z.string().trim().min(1).optional(),
   dataFabricacao: z.string().trim().optional().nullable(),
+  fornecedorId: z
+    .string()
+    .trim()
+    .regex(/^\d+$/, "Fornecedor inválido")
+    .optional()
+    .nullable(),
 });
 
 export const createLoteSchema = z

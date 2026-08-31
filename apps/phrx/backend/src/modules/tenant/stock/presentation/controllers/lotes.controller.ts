@@ -290,6 +290,7 @@ export class LotesController {
         numeroLote: body.numeroLote,
         dataValidade: body.dataValidade,
         dataFabricacao: body.dataFabricacao,
+        fornecedorId: body.fornecedorId,
         userId,
       });
       return Response.json(this.serialize(result));

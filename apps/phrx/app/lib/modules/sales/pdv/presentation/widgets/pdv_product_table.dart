@@ -133,6 +133,7 @@ class _PdvProductTableState extends State<PdvProductTable> {
                 alignment: Alignment.center,
                 child: PdvQtyField(
                   key: ValueKey('qty-${product.id}'),
+                  compact: true,
                   maxStock: stock,
                   value: _qtyFor(product),
                   enabled: canInteract,
@@ -146,17 +147,39 @@ class _PdvProductTableState extends State<PdvProductTable> {
                 alignment: Alignment.center,
                 child: isAdding
                     ? SizedBox(
-                        width: t.minTouchTarget,
-                        height: t.minTouchTarget,
+                        width: t.compactControlHeight,
+                        height: t.compactControlHeight,
                         child: Center(
                           child: PharmaButtonLoader(color: t.brandBlue),
                         ),
                       )
-                    : FilledButton.tonalIcon(
-                        onPressed:
-                            canInteract ? () => _handleAdd(product) : null,
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add'),
+                    : SizedBox(
+                        height: t.compactControlHeight,
+                        child: FilledButton.tonalIcon(
+                          onPressed:
+                              canInteract ? () => _handleAdd(product) : null,
+                          style: ButtonStyle(
+                            minimumSize: WidgetStateProperty.all(
+                              Size(t.minTouchTarget, t.compactControlHeight),
+                            ),
+                            maximumSize: WidgetStateProperty.all(
+                              Size(double.infinity, t.compactControlHeight),
+                            ),
+                            padding: WidgetStateProperty.all(
+                              EdgeInsets.symmetric(
+                                horizontal: t.density.buttonPadding.left,
+                              ),
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: WidgetStateProperty.all(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(t.radiusMd),
+                              ),
+                            ),
+                          ),
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add'),
+                        ),
                       ),
               ),
             ),

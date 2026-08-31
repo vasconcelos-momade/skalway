@@ -88,13 +88,20 @@ Dados de demonstração **não** correm neste fluxo.
 |--------|-----|--------|----------|
 | `prisma/seed-tenant.ts` | `bun run seed:tenant <db>` | Automático na criação do tenant | Roles/permissões, Consumidor Final, categorias FNM, impostos, **terminais + caixas** |
 | `prisma/seed-demo.ts` | `bun run seed:demo <db>` | Manual / opcional | Medicamentos ANARME, serviços, lotes, movimentações |
+| `scripts/seed-fnm-categorias-all-tenants.ts` | `bun run seed:fnm-categorias:all` | Manual | Sincroniza categorias FNM em todos os tenants/filiais activos |
 | `prisma/seed-all-tenant.ts` | — | Manual | Estrutural + demo |
 
-Exemplos:
+Exemplos (com Docker Compose — `bun` corre **dentro** do contentor `phrx_backend`):
 
 ```bash
 # Só estrutural (já feito pelo CreateTenantUseCase)
 docker exec phrx_backend bun run seed:tenant phrx_tenant_1_branch_1
+
+# Sincronizar categorias FNM em todos os tenants activos
+docker exec phrx_backend bun run seed:fnm-categorias:all
+
+# Sincronizar categorias FNM num tenant específico
+docker exec phrx_backend bun scripts/seed-fnm-categorias-all-tenants.ts phrx_tenant_1_branch_1
 
 # Demo (pode demorar 20–30 min)
 docker exec phrx_backend bun run seed:demo phrx_tenant_1_branch_1

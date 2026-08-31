@@ -1,4 +1,5 @@
 import '../../../../core/contracts/pagination_response.dart';
+import '../../../pharmacy/estoque/domain/entities/estoque_item.dart';
 
 enum PurchaseSuggestionOriginFilter { todas, automatica, manual }
 
@@ -34,6 +35,8 @@ class PurchaseSuggestionItem {
     required this.id,
     required this.produtoId,
     required this.produtoNome,
+    this.produtoDosagem,
+    this.produtoForma,
     required this.categoriaNome,
     required this.fornecedorNome,
     required this.consumoMedioDiario,
@@ -54,6 +57,8 @@ class PurchaseSuggestionItem {
   final String id;
   final String produtoId;
   final String produtoNome;
+  final String? produtoDosagem;
+  final String? produtoForma;
   final String categoriaNome;
   final String? fornecedorId;
   final String fornecedorNome;
@@ -74,6 +79,12 @@ class PurchaseSuggestionItem {
 
   String get origemLabel => isManual ? 'Manual' : 'Automática';
 
+  String get produtoDisplayLabel => formatEstoqueProdutoLabel(
+        nomeComercial: produtoNome,
+        dosagem: produtoDosagem,
+        forma: produtoForma,
+      );
+
   static num _readNum(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value;
@@ -85,6 +96,8 @@ class PurchaseSuggestionItem {
       id: json['id']?.toString() ?? '',
       produtoId: json['produtoId']?.toString() ?? '',
       produtoNome: json['produtoNome']?.toString() ?? '—',
+      produtoDosagem: json['produtoDosagem']?.toString(),
+      produtoForma: json['produtoForma']?.toString(),
       categoriaNome: json['categoriaNome']?.toString() ?? '—',
       fornecedorId: json['fornecedorId']?.toString(),
       fornecedorNome: json['fornecedorNome']?.toString() ?? 'Sem fornecedor',

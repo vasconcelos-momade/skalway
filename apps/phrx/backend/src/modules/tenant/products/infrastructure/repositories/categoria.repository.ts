@@ -3,9 +3,9 @@ import {
   mirrorToCentralSync,
   recordLocalOutboxEvent,
 } from "../../../../../infrastructure/sync/tenant-sync-outbox.service";
-import { FNM_CATEGORIAS } from "../../domain/fnm-categorias";
+import { syncFnmCategorias } from "../../domain/sync-fnm-categorias";
 
-const DEFAULT_CATEGORY_CODIGO = "SISTEMA_NERVOSO_CENTRAL";
+const DEFAULT_CATEGORY_CODIGO = "SISTEMA_NERVOSO";
 
 type CategoriaSearchFilters = {
   query?: string;
@@ -311,45 +311,7 @@ export class CategoriaRepository {
   }
 
   private async ensureFnmCategoriasSeeded() {
-    for (const item of FNM_CATEGORIAS) {
-      const existing = await this.prisma.categoria.findFirst({
-        where: {
-          OR: [
-            { codigoFNM: item.codigoFNM },
-            { nome: item.nome },
-          ],
-        },
-        orderBy: [{ id: "asc" }],
-      });
-
-      if (!existing) {
-        await this.prisma.categoria.create({
-          data: {
-            nome: item.nome,
-            codigoFNM: item.codigoFNM,
-            descricao: "Categoria terapêutica FNM (Nível 1)",
-            ativo: true,
-          },
-        });
-        continue;
-      }
-
-      const data: Record<string, unknown> = {};
-      if (existing.nome !== item.nome) data.nome = item.nome;
-      if (existing.codigoFNM !== item.codigoFNM) data.codigoFNM = item.codigoFNM;
-      if (!existing.descricao) {
-        data.descricao = "Categoria terapêutica FNM (Nível 1)";
-      }
-      if (existing.ativo !== true) data.ativo = true;
-      if (existing.deletedAt != null) data.deletedAt = null;
-
-      if (Object.keys(data).length > 0) {
-        await this.prisma.categoria.update({
-          where: { id: existing.id },
-          data,
-        });
-      }
-    }
+    await syncFnmCategorias(this.prisma);
   }
 }
 
