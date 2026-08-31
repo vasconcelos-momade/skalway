@@ -4,7 +4,7 @@ import {
   type ReportDisposition,
   type ReportExporter,
 } from "../types/report.types";
-import { toReportFileName } from "../helpers/report-export.helper";
+import { resolveArtifactFileName } from "../helpers/report-export.helper";
 import { ReportPdfService } from "../services/report-pdf.service";
 
 export class PdfExporter implements ReportExporter {
@@ -18,7 +18,11 @@ export class PdfExporter implements ReportExporter {
 
     return {
       bytes,
-      fileName: `${toReportFileName(definition.fileBaseName)}.pdf`,
+      fileName: resolveArtifactFileName({
+        fileBaseName: definition.fileBaseName,
+        generatedAt: definition.generatedAt,
+        extension: "pdf",
+      }),
       contentType: "application/pdf",
       disposition,
     };

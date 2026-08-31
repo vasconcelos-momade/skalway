@@ -3,6 +3,7 @@ import { resolveLogoDataUri } from "../helpers/report-assets.helper";
 import {
   type ReportDefinition,
   type ReportHtmlSection,
+  type ReportImportantNote,
   type ReportPresentation,
 } from "../types/report.types";
 
@@ -18,6 +19,20 @@ function toRows(values?: Record<string, unknown>): ReportLabelValueRow[] {
       label,
       value: toText(value),
     }));
+}
+
+export function formatImportantNoteLines(note: ReportImportantNote): string[] {
+  const lines = [note.title];
+  for (const block of note.blocks) {
+    const headingLine = block.intro
+      ? `${block.heading} ${block.intro}`
+      : block.heading;
+    lines.push(headingLine);
+    for (const item of block.items ?? []) {
+      lines.push(`- ${item}`);
+    }
+  }
+  return lines;
 }
 
 function resolvePresentation(definition: ReportDefinition): Required<
@@ -149,6 +164,15 @@ export function buildReportHtmlSections(
     });
   }
 
+  if (definition.importantNote) {
+    sections.push({
+      partial: "important-note",
+      title: definition.importantNote.title,
+      importantNote: definition.importantNote,
+      blocks: definition.importantNote.blocks,
+    });
+  }
+
   if (presentation.showSignature && presentation.signature) {
     sections.push({
       partial: "signature",
@@ -188,6 +212,10 @@ export function buildInstitutionalReportView(definition: ReportDefinition) {
     kpis,
     totals,
     observations: (definition.observations ?? []).map((item) => toText(item)),
+    importantNote: definition.importantNote,
+    importantNoteLines: definition.importantNote
+      ? formatImportantNoteLines(definition.importantNote)
+      : [],
     tables: definition.tables.map((table) => ({
       title: table.title ?? "",
       columns: table.columns,

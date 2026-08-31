@@ -1,0 +1,21 @@
+<section class="section important-note report-footer-block">
+  <div class="section-heading keep-with-next">
+    <h2 class="section-title important-note-title">{{title}}</h2>
+  </div>
+  <div class="important-note-body">
+    {{#each blocks}}
+      <div class="important-note-block">
+        <p class="important-note-paragraph">
+          <strong>{{heading}}</strong>{{#if intro}} {{intro}}{{/if}}
+        </p>
+        {{#if items}}
+          <ul class="important-note-list">
+            {{#each items}}
+              <li>{{this}}</li>
+            {{/each}}
+          </ul>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+</section>

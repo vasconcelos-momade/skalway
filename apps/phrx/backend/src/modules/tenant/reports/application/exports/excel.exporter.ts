@@ -81,6 +81,14 @@ export class ExcelExporter implements ReportExporter {
       sections.push("</table>");
     }
 
+    if (view.importantNoteLines.length > 0) {
+      sections.push(`<h3>${escapeHtml(view.importantNote?.title ?? "Nota importante")}</h3><table border=\"1\">`);
+      for (const item of view.importantNoteLines) {
+        sections.push(`<tr><td>${escapeHtml(item)}</td></tr>`);
+      }
+      sections.push("</table>");
+    }
+
     sections.push("<h3>Rodape</h3><table border=\"1\">");
     for (const line of view.footerLines) {
       sections.push(`<tr><td>${escapeHtml(line)}</td></tr>`);

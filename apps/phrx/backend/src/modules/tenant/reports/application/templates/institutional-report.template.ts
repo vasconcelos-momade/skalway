@@ -46,6 +46,11 @@ export function renderInstitutionalReportTextLines(definition: ReportDefinition)
     lines.push("");
   }
 
+  if (view.importantNoteLines.length > 0) {
+    lines.push(...view.importantNoteLines);
+    lines.push("");
+  }
+
   lines.push(...view.footerLines);
   return lines;
 }

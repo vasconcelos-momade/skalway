@@ -18,6 +18,17 @@ export type ReportSectionTable = {
   rows: Array<Array<unknown>>;
 };
 
+export type ReportImportantNoteBlock = {
+  heading: string;
+  intro?: string;
+  items?: string[];
+};
+
+export type ReportImportantNote = {
+  title: string;
+  blocks: ReportImportantNoteBlock[];
+};
+
 export type ReportInstitution = {
   pharmacyName: string;
   branchName?: string;
@@ -86,6 +97,7 @@ export type ReportDefinition = {
   tables: ReportSectionTable[];
   totals?: Record<string, unknown>;
   observations?: string[];
+  importantNote?: ReportImportantNote;
   permissions?: string[];
   presentation?: ReportPresentation;
   pdf?: ReportPdfConfig;
@@ -126,6 +138,7 @@ export type ReportHtmlSection = {
     | "table"
     | "summary"
     | "observations"
+    | "important-note"
     | "signature"
     | "empty-state";
   title?: string;
@@ -133,6 +146,7 @@ export type ReportHtmlSection = {
   columns?: string[];
   rows?: string[][];
   observations?: string[];
+  importantNote?: ReportImportantNote;
   message?: string;
   signature?: ReportSignature;
   institution?: Record<string, string>;

@@ -79,6 +79,7 @@ function buildCorsHeaders(req: Request): Headers {
     "Content-Type, Authorization, x-tenant-id, x-branch-id, x-user-id, x-request-id",
   );
   headers.set("Access-Control-Allow-Credentials", "true");
+  headers.set("Access-Control-Expose-Headers", "Content-Disposition, x-request-id");
   headers.set("Access-Control-Max-Age", "86400");
 
   return headers;

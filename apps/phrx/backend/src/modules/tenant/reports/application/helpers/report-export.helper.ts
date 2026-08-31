@@ -8,6 +8,25 @@ export function toReportFileName(value: string): string {
     .toLowerCase();
 }
 
+export function formatIsoDate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function resolveArtifactFileName(input: {
+  fileBaseName: string;
+  generatedAt: Date;
+  extension: string;
+}): string {
+  if (input.fileBaseName === "sugestao-compras") {
+    return `sugestao-de-compras_${formatIsoDate(input.generatedAt)}.${input.extension}`;
+  }
+
+  return `${toReportFileName(input.fileBaseName)}.${input.extension}`;
+}
+
 export function toText(value: unknown, fallback = "-"): string {
   if (value == null) {
     return fallback;

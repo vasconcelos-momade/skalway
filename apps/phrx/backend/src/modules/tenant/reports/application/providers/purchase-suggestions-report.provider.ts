@@ -9,6 +9,7 @@ import {
   type ModuleReportDefinition,
   type ReportDataProvider,
   type ReportProviderContext,
+  type ReportImportantNote,
 } from "../types/report.types";
 import { REPORT_KEYS, type ReportKey } from "../constants/report-keys";
 import { PurchaseSuggestionsUseCase } from "../../../stock/application/use-cases/purchases/purchase-suggestions.use-case";
@@ -57,6 +58,27 @@ function mapSuggestionRow(item: Record<string, unknown>, rowNumber: number) {
   ];
 }
 
+const PURCHASE_SUGGESTIONS_IMPORTANT_NOTE: ReportImportantNote = {
+  title: "NOTA IMPORTANTE — UNIDADE DE COMPRA E PRAZO DE VALIDADE",
+  blocks: [
+    {
+      heading: "1. Unidade de compra:",
+      intro:
+        "As quantidades sugeridas/aprovadas devem ser interpretadas de acordo com a unidade de apresentação e aquisição do produto:",
+      items: [
+        "Suspensões, xaropes e injetáveis (Inj.): frascos;",
+        "Pomadas e cremes: tubos/bisnagas;",
+        "Cápsulas e comprimidos: carteiras/blisters, e não caixas.",
+      ],
+    },
+    {
+      heading: "2. Prazo de Validade (PV):",
+      intro:
+        "Antes de efetuar a compra, verificar obrigatoriamente o prazo de validade dos lotes disponíveis. Evitar a aquisição de produtos com PV muito curto, principalmente quando o prazo restante não for compatível com o consumo previsto, de modo a reduzir o risco de vencimento, perdas e problemas no controlo sanitário.",
+    },
+  ],
+};
+
 export class PurchaseSuggestionsReportProvider implements ReportDataProvider {
   readonly reportKey: ReportKey = REPORT_KEYS.PURCHASE_SUGGESTIONS;
 
@@ -80,7 +102,8 @@ export class PurchaseSuggestionsReportProvider implements ReportDataProvider {
     );
     let rowNumber = 0;
 
-    return buildStockReportDefinition({
+    return {
+      ...buildStockReportDefinition({
       fileBaseName: "sugestao-compras",
       reportName: "Sugestão de Compras",
       title: "Sugestão de Compras",
@@ -106,7 +129,9 @@ export class PurchaseSuggestionsReportProvider implements ReportDataProvider {
           return mapSuggestionRow(item as Record<string, unknown>, rowNumber);
         }),
       })),
-    });
+      }),
+      importantNote: PURCHASE_SUGGESTIONS_IMPORTANT_NOTE,
+    };
   }
 
   /** Carrega todas as páginas e reagrupa por fornecedor (ordem alfabética). */

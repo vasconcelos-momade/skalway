@@ -295,6 +295,46 @@ body.report-body {
   margin: 0 0 4px;
 }
 
+.important-note {
+  margin-top: 12px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.important-note-title {
+  color: var(--primary-deep);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.important-note-body {
+  background: var(--primary-soft);
+  border: 1px solid var(--gray-150);
+  border-left: 3px solid var(--primary);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--gray-900);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.important-note-block + .important-note-block {
+  margin-top: 8px;
+}
+
+.important-note-paragraph {
+  margin: 0;
+}
+
+.important-note-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.important-note-list li {
+  margin: 0 0 3px;
+}
+
 .empty-state-message {
   margin: 4px 0 0;
   padding: 8px 0;
@@ -349,6 +389,7 @@ body.report-body {
   .report-header-block,
   .institutional-head,
   .signature-card,
+  .important-note,
   .kpi-grid,
   .filters-block {
     page-break-inside: avoid;

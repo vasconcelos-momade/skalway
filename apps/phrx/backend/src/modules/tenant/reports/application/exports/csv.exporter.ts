@@ -61,6 +61,12 @@ export class CsvExporter implements ReportExporter {
       lines.push("");
     }
 
+    if (view.importantNoteLines.length > 0) {
+      lines.push(escapeCsv(view.importantNote?.title ?? "Nota importante"));
+      lines.push(...view.importantNoteLines.map((item) => escapeCsv(item)));
+      lines.push("");
+    }
+
     lines.push(...view.footerLines.map((line) => escapeCsv(line)));
 
     return {
