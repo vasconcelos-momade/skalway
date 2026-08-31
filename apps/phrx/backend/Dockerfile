@@ -35,6 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrandr2 \
     libxshmfence1 \
     libxss1 \
+    default-mysql-client \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # @skalway/* — file:../../../services/* resolve para /services/*

@@ -72,6 +72,10 @@ services:
     ports:
       # Apenas loopback do host — Cloudflare → Nginx → aqui
       - "127.0.0.1:${BACKEND_PORT:-4001}:3300"
+    volumes:
+      # Ops: tenant-clone-sanitized (mysqldump via docker exec phrx_mysql)
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${SKALWAY_ROOT:-/opt/skalway}/backups/tenant-clone:/usr/src/app/backups/tenant-clone
     depends_on:
       phrx-db:
         condition: service_healthy

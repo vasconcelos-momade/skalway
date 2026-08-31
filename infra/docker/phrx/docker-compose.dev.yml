@@ -28,6 +28,7 @@ services:
       - ../../../apps/phrx/backend:/usr/src/app
       - ../../../services/identity:/services/identity
       - ../../../services/billing:/services/billing
+      - /var/run/docker.sock:/var/run/docker.sock
       - phrx_node_modules:/usr/src/app/node_modules
       - phrx_prisma_central_generated:/usr/src/app/src/infrastructure/prisma/central/generated
       - phrx_prisma_tenant_generated:/usr/src/app/src/infrastructure/prisma/tenant/generated

@@ -25,7 +25,8 @@
     "start": "bun src/main.ts",
     "worker": "bun src/infrastructure/queue/worker.ts",
     "worker:print": "bun src/infrastructure/queue/print-job.worker.ts",
-    "db:reset:central-tenants": "echo 'Run this script from the project root: bash scripts/reset-central-and-tenants.sh'"
+    "db:reset:central-tenants": "echo 'Run this script from the project root: bash scripts/reset-central-and-tenants.sh'",
+    "tenant:clone-sanitized": "bun scripts/tenant-clone-sanitized/tenant-clone-sanitized.ts"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

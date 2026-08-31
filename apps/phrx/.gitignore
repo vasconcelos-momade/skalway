@@ -19,3 +19,4 @@ backend/local_types/
 backend-nf/node_modules/
 
 backend/tmp-report-preview/
+backend/backups/
