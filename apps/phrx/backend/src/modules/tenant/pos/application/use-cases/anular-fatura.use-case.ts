@@ -215,6 +215,28 @@ export class AnularFaturaUseCase {
                   version: { increment: 1 }
                 }
               });
+
+              // Atualizar Read Model (CashBalance) — espelha FinalizarVenda / cashflow
+              await tx.cashBalance.upsert({
+                where: { caixaId: caixa.id },
+                update: {
+                  saldoTotal: { decrement: valorEstorno },
+                  saldoDinheiro:
+                    pagamento.metodo === "DINHEIRO"
+                      ? { decrement: valorEstorno }
+                      : undefined,
+                  saldoDigital:
+                    pagamento.metodo !== "DINHEIRO"
+                      ? { decrement: valorEstorno }
+                      : undefined,
+                },
+                create: {
+                  caixaId: caixa.id,
+                  saldoTotal: 0,
+                  saldoDinheiro: 0,
+                  saldoDigital: 0,
+                },
+              });
             }
           }
         }
